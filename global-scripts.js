@@ -96,7 +96,12 @@ function initializeNavigationMenu() {
         e.setAttribute("aria-expanded", isOpen);
       }
     })
-  })
+  });
+  // Desktop: aria-expanded dinamico nos dropdowns por hover (D08 — WCAG 4.1.2)
+  document.querySelectorAll("nav.desktop-nav button[aria-haspopup]").forEach(function(btn) {
+    btn.addEventListener("mouseenter", function() { btn.setAttribute("aria-expanded", "true"); });
+    btn.addEventListener("mouseleave", function() { btn.setAttribute("aria-expanded", "false"); });
+  });
 }
 
 /* =========================

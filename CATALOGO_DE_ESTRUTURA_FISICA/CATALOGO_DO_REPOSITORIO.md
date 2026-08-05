@@ -1,0 +1,614 @@
+# 📦 Catálogo do Repositório
+
+**Projeto:** Calculadoras de Enfermagem  
+**Gerado em:** 04/08/2026 22:47:21  
+**Fase:** 1 — Apenas Leitura  
+
+## 📊 Resumo Geral
+
+| Métrica | Valor |
+|---|---|
+| Total de arquivos | **7,499** |
+| Total de pastas | **408** |
+| Tamanho total | **965.03 MB** |
+| Extensões diferentes | **24** |
+
+## 🗂️ Quantidade por Tipo
+
+| Tipo | Quantidade | Tamanho |
+|---|---|---|
+| HTML | **4,852** | 219.09 MB |
+| Imagens | **2,010** | 197.23 MB |
+| JSON | **211** | 9.61 MB |
+| Documentos | **173** | 130.48 MB |
+| Sistema | **150** | 1.82 MB |
+| JavaScript | **64** | 451.4 KB |
+| Fontes | **17** | 5.86 MB |
+| Vídeos | **15** | 400.29 MB |
+| Outros | **4** | 87.2 KB |
+| CSS | **3** | 139.5 KB |
+
+## 📎 Top 20 Extensões
+
+| Extensão | Arquivos | Tamanho |
+|---|---|---|
+| `.html` | 4,852 | 219.09 MB |
+| `.webp` | 1,794 | 61.61 MB |
+| `.json` | 211 | 9.61 MB |
+| `.png` | 164 | 133.32 MB |
+| `.py` | 110 | 691.7 KB |
+| `.pdf` | 106 | 121.34 MB |
+| `.js` | 64 | 451.4 KB |
+| `.txt` | 63 | 5.95 MB |
+| `.jpg` | 32 | 2.07 MB |
+| `.md` | 31 | 148.7 KB |
+| `.ico` | 18 | 72.7 KB |
+| `.woff2` | 17 | 5.86 MB |
+| `.mp4` | 15 | 400.29 MB |
+| `.xml` | 4 | 1012.5 KB |
+| s/ext | 3 | 26.8 KB |
+| `.css` | 3 | 139.5 KB |
+| `.ps1` | 2 | 7.0 KB |
+| `.cmd` | 2 | 199 B |
+| `.docx` | 2 | 3.13 MB |
+| `.csv` | 2 | 66.3 KB |
+
+## 🌐 HTML por Idioma
+
+| Idioma | Arquivos HTML |
+|---|---|
+| 🇧🇷 Português | **3,230** |
+| 🇸🇪 Sueco | **96** |
+| 🇺🇦 Ucraniano | **95** |
+| 🇳🇱 Holandês | **94** |
+| 🇵🇱 Polonês | **94** |
+| 🇻🇳 Vietnamita | **94** |
+| 🇺🇸 Inglês | **93** |
+| 🇪🇸 Espanhol | **90** |
+| 🇮🇩 Indonésio | **89** |
+| 🇯🇵 Japonês | **89** |
+| 🇰🇷 Coreano | **89** |
+| 🇷🇺 Russo | **89** |
+| 🇹🇷 Turco | **89** |
+| 🇸🇦 Árabe | **88** |
+| 🇨🇳 Chinês | **88** |
+| 🇫🇷 Francês | **87** |
+| 🇮🇳 Hindi | **87** |
+| 🇩🇪 Alemão | **86** |
+| 🇮🇹 Italiano | **85** |
+
+**Total de idiomas:** 19
+
+## 📍 HTML por Localização
+
+| Localização | Quantidade |
+|---|---|
+| Raiz (português) | **162** |
+| Pastas de idioma | **1,622** |
+| Blog | **8** |
+| Conta | **6** |
+
+## 🔗 Páginas Multilíngues
+
+| Página | Idiomas |
+|---|---|
+| `aldrete.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `apache.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `apgar.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `asa.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `balancohidrico.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `ballard.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `barthel.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `berg.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `bishop.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `bps.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `braden.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `cam.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `capurro.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `cincinnati.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `copsoq.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `copsoq3.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `cornell.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `cries.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `curb-65.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `downes.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `downton.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `elpo.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `equipamentoscc.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `escalanumerica.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `exames_laboratoriais.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `fast.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `flacc.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `footer.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `formulario-saep-enfermagem.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `four.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `fugulin.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `gasometria.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `gds.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `gestacional.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `glasgow.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `global-body-elements.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `gosnell.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `gotejamento.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `hamilton.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `hendrich.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `humpty.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `imc.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `index.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `instrumentais-cirurgicos.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `johns.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `jouvet.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `katz.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `lachs.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `lanss.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `lawton.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `medicamentos.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `meem.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `menu-global.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `meows.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `missao.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `moca.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `morse.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `nanda.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `news.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `nihss.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `nips.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `norton.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `objetivo.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `ofras.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `painad.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `pelod.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `perroca.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `pews.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `politica.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `prism.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `qsofa.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `ramsay.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `rancholosamigos.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `richmond.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `saps.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `sbar.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `silverman.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `sofa.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `tecnologiaverde.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `termos.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `tinetti.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `waterlow.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `zarit.html` | ar, de, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `fale.html` | ar, de, en, es, fr, hi, id, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `insulina.html` | ar, de, en, es, fr, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `manchester.html` | ar, en, es, fr, hi, id, it, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `mapa-do-site.html` | ar, de, en, es, fr, hi, id, ja, ko, nl, pl, pt, ru, sv, tr, uk, vi, zh |
+| `_language_selector.html` | ar, hi, id, ja, ko, nl, pl, pt, ru, tr, uk, vi, zh |
+| `diagnosticosnanda.html` | en, es, id, ko, nl, pl, pt, ru, sv, tr, uk, vi |
+| `5-hs-da-paradacardiorespiratoria.html` | nl, pl, pt, sv, uk, vi |
+| `calculadoravacina.html` | nl, pl, pt, sv, uk, vi |
+| `lista-de-doencas-de-notificacao-compulsoria.html` | nl, pl, pt, sv, uk, vi |
+| `sinan.html` | nl, pl, pt, sv, uk, vi |
+| `vagasdeemprego.html` | nl, pl, pt, sv, uk, vi |
+| `teorias-de-enfermagem.html` | en, es, pt |
+| `checagem.html` | en, pt |
+| `downloads.html` | pt, uk |
+| `entenda_copsoq.html` | en, pt |
+| `metasinternacionais.html` | en, pt |
+| `time-de-resposta-rapida.html` | es, pt |
+| `vigilancia.html` | en, pt |
+
+## 📁 Arquivos por Pasta Especial
+
+| Pasta | Arquivos |
+|---|---|
+| biblioteca | **1,321** |
+| img | **1,212** |
+| automacoes | **309** |
+| docs | **94** |
+| downloads | **51** |
+| fonts | **17** |
+| js | **17** |
+| blog | **8** |
+| conta | **6** |
+| public | **1** |
+| src | **1** |
+
+## 🌳 Árvore de Pastas
+
+```
+(raiz)/
+├── CATALOGO_DO_SITE/ (9 arquivos)
+├── SISTEMA_DE_LOGIN_DO_SITE/ (2 arquivos)
+├── ar/ (108 arquivos)
+├── automacoes/ (71 arquivos)
+│   ├── auditor_seo/ (12 arquivos)
+│   ├── catalogador/ (18 arquivos)
+│   ├── extrator_infograficos/ (4 arquivos)
+│   │   ├── biblioteca/ (0 arquivos)
+│   │   │   ├── fotografia/ (29 arquivos)
+│   │   │   ├── icone/ (26 arquivos)
+│   │   │   └── imagem/ (8 arquivos)
+│   │   ├── cache/ (118 arquivos)
+│   │   ├── entrada/ (1 arquivos)
+│   │   ├── pipeline/ (8 arquivos)
+│   │   └── saida/ (3 arquivos)
+│   └── repository_catalog_engine/ (11 arquivos)
+├── backups_seo/ (0 arquivos)
+│   ├── 20260803_233935/ (1 arquivos)
+│   ├── 20260803_234011/ (5 arquivos)
+│   ├── 20260803_234012/ (6 arquivos)
+│   ├── 20260803_234013/ (5 arquivos)
+│   ├── 20260803_234014/ (3 arquivos)
+│   ├── 20260803_234015/ (5 arquivos)
+│   ├── 20260803_234016/ (6 arquivos)
+│   ├── 20260803_234017/ (8 arquivos)
+│   ├── 20260803_234018/ (7 arquivos)
+│   ├── 20260803_234019/ (4 arquivos)
+│   ├── 20260803_234020/ (7 arquivos)
+│   ├── 20260803_234021/ (7 arquivos)
+│   ├── 20260803_234022/ (8 arquivos)
+│   ├── 20260803_234023/ (6 arquivos)
+│   ├── 20260803_234024/ (5 arquivos)
+│   ├── 20260803_234025/ (6 arquivos)
+│   ├── 20260803_234026/ (6 arquivos)
+│   ├── 20260803_234027/ (4 arquivos)
+│   ├── 20260803_234028/ (5 arquivos)
+│   ├── 20260803_234029/ (5 arquivos)
+│   ├── 20260803_234030/ (5 arquivos)
+│   ├── 20260803_234031/ (1 arquivos)
+│   ├── 20260803_234032/ (6 arquivos)
+│   ├── 20260803_234033/ (5 arquivos)
+│   ├── 20260803_234034/ (7 arquivos)
+│   ├── 20260803_234035/ (6 arquivos)
+│   ├── 20260803_234036/ (6 arquivos)
+│   ├── 20260803_234037/ (8 arquivos)
+│   ├── 20260803_234038/ (7 arquivos)
+│   ├── 20260803_234039/ (4 arquivos)
+│   ├── 20260803_234040/ (6 arquivos)
+│   ├── 20260803_234041/ (8 arquivos)
+│   ├── 20260803_234042/ (6 arquivos)
+│   ├── 20260803_234043/ (7 arquivos)
+│   ├── 20260803_234044/ (2 arquivos)
+│   ├── 20260803_234045/ (4 arquivos)
+│   ├── 20260803_234046/ (4 arquivos)
+│   ├── 20260803_234047/ (3 arquivos)
+│   ├── 20260803_234048/ (3 arquivos)
+│   ├── 20260803_234049/ (4 arquivos)
+│   ├── 20260803_234050/ (5 arquivos)
+│   ├── 20260803_234051/ (4 arquivos)
+│   ├── 20260803_234052/ (7 arquivos)
+│   ├── 20260803_234053/ (2 arquivos)
+│   ├── 20260803_234054/ (1 arquivos)
+│   ├── 20260803_234055/ (5 arquivos)
+│   ├── 20260803_234056/ (5 arquivos)
+│   ├── 20260803_234057/ (6 arquivos)
+│   ├── 20260803_234058/ (4 arquivos)
+│   ├── 20260803_234059/ (5 arquivos)
+│   ├── 20260803_234100/ (4 arquivos)
+│   ├── 20260803_234101/ (5 arquivos)
+│   ├── 20260803_234102/ (8 arquivos)
+│   ├── 20260803_234103/ (7 arquivos)
+│   ├── 20260803_234104/ (8 arquivos)
+│   ├── 20260803_234105/ (6 arquivos)
+│   ├── 20260803_234106/ (5 arquivos)
+│   ├── 20260803_234107/ (7 arquivos)
+│   ├── 20260803_234108/ (7 arquivos)
+│   ├── 20260803_234109/ (7 arquivos)
+│   ├── 20260803_234110/ (7 arquivos)
+│   ├── 20260803_234111/ (8 arquivos)
+│   ├── 20260803_234112/ (7 arquivos)
+│   ├── 20260803_234113/ (3 arquivos)
+│   ├── 20260803_234114/ (7 arquivos)
+│   ├── 20260803_234115/ (7 arquivos)
+│   ├── 20260803_234116/ (8 arquivos)
+│   ├── 20260803_234117/ (7 arquivos)
+│   ├── 20260803_234118/ (6 arquivos)
+│   ├── 20260803_234119/ (7 arquivos)
+│   ├── 20260803_234120/ (6 arquivos)
+│   ├── 20260803_234121/ (6 arquivos)
+│   ├── 20260803_234122/ (7 arquivos)
+│   ├── 20260803_234123/ (7 arquivos)
+│   ├── 20260803_234124/ (6 arquivos)
+│   ├── 20260803_234125/ (5 arquivos)
+│   ├── 20260803_234126/ (4 arquivos)
+│   ├── 20260803_234127/ (4 arquivos)
+│   ├── 20260803_234128/ (3 arquivos)
+│   ├── 20260803_234129/ (5 arquivos)
+│   ├── 20260803_234130/ (7 arquivos)
+│   ├── 20260803_234131/ (8 arquivos)
+│   ├── 20260803_234132/ (6 arquivos)
+│   ├── 20260803_234133/ (6 arquivos)
+│   ├── 20260803_234134/ (4 arquivos)
+│   ├── 20260803_234135/ (7 arquivos)
+│   ├── 20260803_234136/ (5 arquivos)
+│   ├── 20260803_234137/ (4 arquivos)
+│   ├── 20260803_234138/ (6 arquivos)
+│   ├── 20260803_234139/ (6 arquivos)
+│   ├── 20260803_234140/ (7 arquivos)
+│   ├── 20260803_234141/ (6 arquivos)
+│   ├── 20260803_234142/ (6 arquivos)
+│   ├── 20260803_234143/ (6 arquivos)
+│   ├── 20260803_234144/ (4 arquivos)
+│   ├── 20260803_234145/ (6 arquivos)
+│   ├── 20260803_234146/ (7 arquivos)
+│   ├── 20260803_234147/ (7 arquivos)
+│   ├── 20260803_234148/ (7 arquivos)
+│   ├── 20260803_234149/ (5 arquivos)
+│   ├── 20260803_234150/ (6 arquivos)
+│   ├── 20260803_234151/ (7 arquivos)
+│   ├── 20260803_234152/ (6 arquivos)
+│   ├── 20260803_234153/ (6 arquivos)
+│   ├── 20260803_234154/ (4 arquivos)
+│   ├── 20260803_234155/ (4 arquivos)
+│   ├── 20260803_234156/ (6 arquivos)
+│   ├── 20260803_234157/ (5 arquivos)
+│   ├── 20260803_234158/ (6 arquivos)
+│   ├── 20260803_234159/ (3 arquivos)
+│   ├── 20260803_234200/ (6 arquivos)
+│   ├── 20260803_234201/ (6 arquivos)
+│   ├── 20260803_234202/ (5 arquivos)
+│   ├── 20260803_234203/ (4 arquivos)
+│   ├── 20260803_234204/ (4 arquivos)
+│   ├── 20260803_234205/ (6 arquivos)
+│   ├── 20260803_234206/ (3 arquivos)
+│   ├── 20260803_234207/ (6 arquivos)
+│   ├── 20260803_234208/ (4 arquivos)
+│   ├── 20260803_234209/ (3 arquivos)
+│   ├── 20260803_234210/ (7 arquivos)
+│   ├── 20260803_234211/ (6 arquivos)
+│   ├── 20260803_234212/ (7 arquivos)
+│   ├── 20260803_234213/ (5 arquivos)
+│   ├── 20260803_234214/ (5 arquivos)
+│   ├── 20260803_234215/ (5 arquivos)
+│   ├── 20260803_234216/ (3 arquivos)
+│   ├── 20260803_234217/ (3 arquivos)
+│   ├── 20260803_234218/ (6 arquivos)
+│   ├── 20260803_234219/ (8 arquivos)
+│   ├── 20260803_234220/ (5 arquivos)
+│   ├── 20260803_234221/ (5 arquivos)
+│   ├── 20260803_234222/ (7 arquivos)
+│   ├── 20260803_234223/ (7 arquivos)
+│   ├── 20260803_234224/ (8 arquivos)
+│   ├── 20260803_234225/ (7 arquivos)
+│   ├── 20260803_234226/ (7 arquivos)
+│   ├── 20260803_234227/ (6 arquivos)
+│   ├── 20260803_234228/ (7 arquivos)
+│   ├── 20260803_234229/ (4 arquivos)
+│   ├── 20260803_234230/ (5 arquivos)
+│   ├── 20260803_234231/ (7 arquivos)
+│   ├── 20260803_234232/ (8 arquivos)
+│   ├── 20260803_234233/ (6 arquivos)
+│   ├── 20260803_234234/ (7 arquivos)
+│   ├── 20260803_234235/ (6 arquivos)
+│   ├── 20260803_234236/ (8 arquivos)
+│   ├── 20260803_234237/ (7 arquivos)
+│   ├── 20260803_234238/ (7 arquivos)
+│   ├── 20260803_234239/ (7 arquivos)
+│   ├── 20260803_234240/ (7 arquivos)
+│   ├── 20260803_234241/ (5 arquivos)
+│   ├── 20260803_234242/ (5 arquivos)
+│   ├── 20260803_234243/ (3 arquivos)
+│   ├── 20260803_234244/ (7 arquivos)
+│   ├── 20260803_234245/ (7 arquivos)
+│   ├── 20260803_234246/ (8 arquivos)
+│   ├── 20260803_234247/ (6 arquivos)
+│   ├── 20260803_234248/ (6 arquivos)
+│   ├── 20260803_234249/ (7 arquivos)
+│   ├── 20260803_234250/ (7 arquivos)
+│   ├── 20260803_234251/ (7 arquivos)
+│   ├── 20260803_234252/ (6 arquivos)
+│   ├── 20260803_234253/ (7 arquivos)
+│   ├── 20260803_234254/ (6 arquivos)
+│   ├── 20260803_234255/ (7 arquivos)
+│   ├── 20260803_234256/ (6 arquivos)
+│   ├── 20260803_234257/ (6 arquivos)
+│   ├── 20260803_234258/ (7 arquivos)
+│   ├── 20260803_234259/ (3 arquivos)
+│   ├── 20260803_234300/ (3 arquivos)
+│   ├── 20260803_234301/ (6 arquivos)
+│   ├── 20260803_234302/ (3 arquivos)
+│   ├── 20260803_234303/ (5 arquivos)
+│   ├── 20260803_234304/ (5 arquivos)
+│   ├── 20260803_234305/ (5 arquivos)
+│   ├── 20260803_234306/ (4 arquivos)
+│   ├── 20260803_234307/ (3 arquivos)
+│   ├── 20260803_234308/ (2 arquivos)
+│   ├── 20260803_234309/ (5 arquivos)
+│   ├── 20260803_234310/ (5 arquivos)
+│   ├── 20260803_234311/ (6 arquivos)
+│   ├── 20260803_234312/ (6 arquivos)
+│   ├── 20260803_234313/ (5 arquivos)
+│   ├── 20260803_234314/ (7 arquivos)
+│   ├── 20260803_234315/ (6 arquivos)
+│   ├── 20260803_234316/ (5 arquivos)
+│   ├── 20260803_234317/ (7 arquivos)
+│   ├── 20260803_234318/ (6 arquivos)
+│   ├── 20260803_234319/ (5 arquivos)
+│   ├── 20260803_234320/ (5 arquivos)
+│   ├── 20260803_234321/ (7 arquivos)
+│   ├── 20260803_234322/ (8 arquivos)
+│   ├── 20260803_234323/ (7 arquivos)
+│   ├── 20260803_234324/ (6 arquivos)
+│   ├── 20260803_234325/ (6 arquivos)
+│   ├── 20260803_234326/ (7 arquivos)
+│   ├── 20260803_234327/ (6 arquivos)
+│   ├── 20260803_234328/ (6 arquivos)
+│   ├── 20260803_234329/ (6 arquivos)
+│   ├── 20260803_234330/ (6 arquivos)
+│   ├── 20260803_234331/ (5 arquivos)
+│   ├── 20260803_234332/ (7 arquivos)
+│   ├── 20260803_234333/ (6 arquivos)
+│   ├── 20260803_234334/ (6 arquivos)
+│   ├── 20260803_234335/ (3 arquivos)
+│   ├── 20260803_234336/ (7 arquivos)
+│   ├── 20260803_234337/ (7 arquivos)
+│   ├── 20260803_234338/ (7 arquivos)
+│   ├── 20260803_234339/ (6 arquivos)
+│   ├── 20260803_234340/ (5 arquivos)
+│   ├── 20260803_234341/ (6 arquivos)
+│   ├── 20260803_234342/ (7 arquivos)
+│   ├── 20260803_234343/ (6 arquivos)
+│   ├── 20260803_234344/ (8 arquivos)
+│   ├── 20260803_234345/ (7 arquivos)
+│   ├── 20260803_234346/ (8 arquivos)
+│   ├── 20260803_234347/ (5 arquivos)
+│   ├── 20260803_234348/ (8 arquivos)
+│   ├── 20260803_234349/ (7 arquivos)
+│   ├── 20260803_234350/ (6 arquivos)
+│   ├── 20260803_234351/ (4 arquivos)
+│   ├── 20260803_234352/ (7 arquivos)
+│   ├── 20260803_234353/ (6 arquivos)
+│   ├── 20260803_234354/ (7 arquivos)
+│   ├── 20260803_234355/ (7 arquivos)
+│   ├── 20260803_234356/ (7 arquivos)
+│   ├── 20260803_234357/ (6 arquivos)
+│   ├── 20260803_234358/ (8 arquivos)
+│   ├── 20260803_234359/ (7 arquivos)
+│   ├── 20260803_234400/ (7 arquivos)
+│   ├── 20260803_234401/ (7 arquivos)
+│   ├── 20260803_234402/ (6 arquivos)
+│   ├── 20260803_234403/ (6 arquivos)
+│   ├── 20260803_234404/ (8 arquivos)
+│   ├── 20260803_234405/ (6 arquivos)
+│   ├── 20260803_234406/ (3 arquivos)
+│   ├── 20260803_234407/ (1 arquivos)
+│   ├── 20260803_234408/ (6 arquivos)
+│   ├── 20260803_234409/ (3 arquivos)
+│   ├── 20260803_234410/ (5 arquivos)
+│   ├── 20260803_234411/ (6 arquivos)
+│   ├── 20260803_234412/ (6 arquivos)
+│   ├── 20260803_234413/ (3 arquivos)
+│   ├── 20260803_234414/ (7 arquivos)
+│   ├── 20260803_234415/ (4 arquivos)
+│   ├── 20260803_234416/ (5 arquivos)
+│   ├── 20260803_234417/ (6 arquivos)
+│   ├── 20260803_234418/ (4 arquivos)
+│   ├── 20260803_234419/ (5 arquivos)
+│   ├── 20260803_234420/ (6 arquivos)
+│   ├── 20260803_234421/ (6 arquivos)
+│   ├── 20260803_234422/ (6 arquivos)
+│   ├── 20260803_234423/ (5 arquivos)
+│   ├── 20260803_234424/ (4 arquivos)
+│   ├── 20260803_234425/ (7 arquivos)
+│   ├── 20260803_234426/ (8 arquivos)
+│   ├── 20260803_234427/ (7 arquivos)
+│   ├── 20260803_234428/ (7 arquivos)
+│   ├── 20260803_234429/ (5 arquivos)
+│   ├── 20260803_234430/ (8 arquivos)
+│   ├── 20260803_234431/ (8 arquivos)
+│   ├── 20260803_234432/ (6 arquivos)
+│   ├── 20260803_234433/ (8 arquivos)
+│   ├── 20260803_234434/ (7 arquivos)
+│   ├── 20260803_234435/ (6 arquivos)
+│   ├── 20260803_234436/ (5 arquivos)
+│   ├── 20260803_234437/ (3 arquivos)
+│   ├── 20260803_234438/ (7 arquivos)
+│   ├── 20260803_234439/ (7 arquivos)
+│   ├── 20260803_234440/ (7 arquivos)
+│   ├── 20260803_234441/ (6 arquivos)
+│   ├── 20260803_234442/ (6 arquivos)
+│   ├── 20260803_234443/ (7 arquivos)
+│   ├── 20260803_234444/ (6 arquivos)
+│   ├── 20260803_234445/ (7 arquivos)
+│   ├── 20260803_234446/ (7 arquivos)
+│   ├── 20260803_234447/ (7 arquivos)
+│   ├── 20260803_234448/ (7 arquivos)
+│   ├── 20260803_234449/ (6 arquivos)
+│   ├── 20260803_234450/ (6 arquivos)
+│   ├── 20260803_234451/ (5 arquivos)
+│   ├── 20260803_234452/ (6 arquivos)
+│   ├── 20260803_234453/ (7 arquivos)
+│   ├── 20260803_234454/ (7 arquivos)
+│   ├── 20260803_234455/ (6 arquivos)
+│   ├── 20260803_234456/ (6 arquivos)
+│   ├── 20260803_234457/ (5 arquivos)
+│   ├── 20260804_000032/ (1 arquivos)
+│   ├── 20260804_000034/ (1 arquivos)
+│   ├── 20260804_000035/ (2 arquivos)
+│   ├── 20260804_000036/ (1 arquivos)
+│   ├── 20260804_000040/ (1 arquivos)
+│   ├── 20260804_000058/ (1 arquivos)
+│   ├── 20260804_000104/ (1 arquivos)
+│   └── 20260804_000111/ (1 arquivos)
+├── biblioteca/ (1321 arquivos)
+├── blog/ (8 arquivos)
+├── blog-templates/ (2 arquivos)
+├── conta/ (6 arquivos)
+├── de/ (106 arquivos)
+├── docs/ (94 arquivos)
+├── downloads/ (51 arquivos)
+├── en/ (115 arquivos)
+├── es/ (117 arquivos)
+├── fonts/ (0 arquivos)
+│   ├── arabic/ (2 arquivos)
+│   ├── chinese/ (2 arquivos)
+│   ├── devanagari/ (2 arquivos)
+│   ├── inter/ (4 arquivos)
+│   ├── japanese/ (2 arquivos)
+│   ├── korean/ (2 arquivos)
+│   └── nunito/ (3 arquivos)
+├── fr/ (107 arquivos)
+├── hi/ (107 arquivos)
+├── id/ (109 arquivos)
+├── imagens/ (3 arquivos)
+│   └── flags/ (255 arquivos)
+├── imagens_customizadas_web/ (21 arquivos)
+│   └── _originais/ (22 arquivos)
+├── img/ (1212 arquivos)
+├── it/ (105 arquivos)
+├── ja/ (110 arquivos)
+├── js/ (6 arquivos)
+│   ├── auth/ (10 arquivos)
+│   └── firebase/ (1 arquivos)
+├── ko/ (110 arquivos)
+├── locales/ (0 arquivos)
+│   ├── ar/ (2 arquivos)
+│   ├── bn/ (2 arquivos)
+│   ├── cs/ (2 arquivos)
+│   ├── da/ (2 arquivos)
+│   ├── de/ (2 arquivos)
+│   ├── el/ (2 arquivos)
+│   ├── en/ (2 arquivos)
+│   ├── es/ (2 arquivos)
+│   ├── fi/ (2 arquivos)
+│   ├── fr/ (2 arquivos)
+│   ├── he/ (2 arquivos)
+│   ├── hi/ (2 arquivos)
+│   ├── id/ (2 arquivos)
+│   ├── it/ (2 arquivos)
+│   ├── ja/ (2 arquivos)
+│   ├── ko/ (2 arquivos)
+│   ├── ms/ (2 arquivos)
+│   ├── nb/ (2 arquivos)
+│   ├── nl/ (2 arquivos)
+│   ├── pl/ (2 arquivos)
+│   ├── pt/ (2 arquivos)
+│   ├── ro/ (2 arquivos)
+│   ├── ru/ (2 arquivos)
+│   ├── sv/ (2 arquivos)
+│   ├── th/ (2 arquivos)
+│   ├── tr/ (2 arquivos)
+│   ├── uk/ (2 arquivos)
+│   ├── ur/ (2 arquivos)
+│   ├── vi/ (2 arquivos)
+│   └── zh/ (2 arquivos)
+├── nl/ (114 arquivos)
+├── pl/ (114 arquivos)
+├── posts-markdown/ (7 arquivos)
+├── provas-pdf/ (23 arquivos)
+├── public/ (1 arquivos)
+├── relatorios/ (8 arquivos)
+├── ru/ (109 arquivos)
+├── scripts/ (6 arquivos)
+├── src/ (1 arquivos)
+├── sv/ (113 arquivos)
+│   └── partials/ (3 arquivos)
+├── tr/ (109 arquivos)
+├── uk/ (115 arquivos)
+├── vi/ (114 arquivos)
+├── videos/ (15 arquivos)
+├── yourdomain.com/ (1 arquivos)
+└── zh/ (108 arquivos)
+```
+
+---
+
+*Repository Catalog Engine v1.0 — Fase 1 (Leitura)*  
+*Gerado em 04/08/2026 22:47:21*

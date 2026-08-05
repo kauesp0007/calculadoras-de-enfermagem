@@ -1,0 +1,8958 @@
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 2 - SISTEMA DE PERFIL DO USUÁRIO
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 1, o usuário já consegue autenticar-se utilizando Firebase Authentication através do login Google e login por e-mail/senha.
+
+Entretanto, até este momento o sistema conhece apenas o usuário autenticado pelo Firebase Authentication.
+
+Nesta fase será implementado o Sistema de Perfil do Usuário, responsável por transformar um usuário autenticado em um usuário pertencente ao ecossistema do projeto Calculadoras de Enfermagem.
+
+O objetivo desta fase é criar toda a infraestrutura responsável por armazenar, atualizar, recuperar e disponibilizar as informações do usuário para qualquer página do sistema.
+
+Esta será a base para todas as próximas fases:
+
+- Favoritos
+- Histórico
+- Área Premium
+- Biblioteca Premium
+- Cursos
+- Certificados
+- Assinaturas
+- Painel Administrativo
+
+Nenhuma destas funcionalidades deverá ser implementada nesta fase.
+
+Esta fase criará apenas a infraestrutura necessária.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Detectar automaticamente um novo usuário autenticado.
+
+✓ Verificar se já existe um documento correspondente no Firestore.
+
+✓ Criar automaticamente o documento caso seja o primeiro acesso.
+
+✓ Atualizar automaticamente o último acesso.
+
+✓ Carregar automaticamente todas as informações do usuário.
+
+✓ Disponibilizar essas informações para qualquer página do projeto.
+
+✓ Atualizar automaticamente o menu superior quando existir login.
+
+✓ Exibir foto, nome e informações do usuário.
+
+✓ Implementar página Perfil.
+
+✓ Implementar página Configurações.
+
+✓ Preparar completamente a estrutura para Favoritos, Histórico e Premium.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O Firebase Authentication NÃO será considerado o banco de dados do usuário.
+
+Ele será utilizado apenas para autenticação.
+
+Todos os dados do usuário pertencentes ao sistema deverão ficar armazenados exclusivamente no Firestore.
+
+Authentication será responsável apenas por:
+
+- autenticar
+- recuperar sessão
+- recuperar token
+- recuperar uid
+
+Todo o restante será responsabilidade do Sistema de Perfil.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário acessa Login
+
+↓
+
+Seleciona Google
+
+↓
+
+Firebase Authentication
+
+↓
+
+Usuário autenticado
+
+↓
+
+Recebe UID
+
+↓
+
+Consultar coleção users
+
+↓
+
+Existe documento?
+
+↓
+
+SIM
+
+↓
+
+Atualizar lastLogin
+
+↓
+
+Carregar Perfil
+
+↓
+
+Atualizar Sessão
+
+↓
+
+Atualizar Interface
+
+↓
+
+Sistema pronto
+
+-----------------------------------
+
+Caso NÃO exista documento
+
+↓
+
+Criar documento automaticamente
+
+↓
+
+Salvar informações iniciais
+
+↓
+
+Criar preferências padrão
+
+↓
+
+Criar permissões padrão
+
+↓
+
+Carregar perfil
+
+↓
+
+Atualizar sessão
+
+↓
+
+Sistema pronto
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+Criar coleção
+
+users
+
+Cada documento utilizará obrigatoriamente o UID do Firebase Authentication.
+
+Exemplo
+
+users/
+
+UID/
+
+Campos obrigatórios
+
+uid
+
+displayName
+
+email
+
+photoURL
+
+provider
+
+language
+
+country
+
+createdAt
+
+lastLogin
+
+role
+
+plan
+
+status
+
+preferences
+
+permissions
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# CAMPOS OBRIGATÓRIOS
+
+uid
+
+Identificador único.
+
+Nunca poderá ser alterado.
+
+----------------------------------
+
+displayName
+
+Nome do usuário.
+
+----------------------------------
+
+email
+
+Email principal.
+
+----------------------------------
+
+photoURL
+
+Foto do perfil.
+
+----------------------------------
+
+provider
+
+google
+
+password
+
+apple
+
+microsoft
+
+github
+
+Preparar estrutura.
+
+----------------------------------
+
+language
+
+Idioma escolhido.
+
+Inicialmente utilizar idioma do navegador.
+
+Posteriormente permitir alteração.
+
+----------------------------------
+
+country
+
+País detectado.
+
+----------------------------------
+
+createdAt
+
+Data do primeiro cadastro.
+
+Nunca atualizar.
+
+----------------------------------
+
+lastLogin
+
+Atualizar obrigatoriamente em todos os logins.
+
+----------------------------------
+
+role
+
+Inicialmente
+
+user
+
+Preparar para
+
+premium
+
+moderator
+
+admin
+
+----------------------------------
+
+plan
+
+Inicialmente
+
+free
+
+Preparar
+
+premium_monthly
+
+premium_yearly
+
+institution
+
+----------------------------------
+
+status
+
+active
+
+Preparar
+
+inactive
+
+blocked
+
+deleted
+
+----------------------------------
+
+preferences
+
+Objeto
+
+theme
+
+language
+
+newsletter
+
+cookies
+
+fontSize
+
+accessibility
+
+----------------------------------
+
+permissions
+
+Objeto
+
+downloadPremium
+
+courses
+
+certificates
+
+forum
+
+admin
+
+----------------------------------
+
+metadata
+
+Objeto
+
+browser
+
+device
+
+os
+
+timezone
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/auth/user-profile.js
+
+Responsável por armazenar e recuperar informações do usuário.
+
+----------------------------------
+
+js/auth/firestore-user.js
+
+Responsável por comunicação exclusiva com Firestore.
+
+Nenhuma outra classe poderá acessar Firestore diretamente.
+
+----------------------------------
+
+js/auth/preferences.js
+
+Responsável pelas preferências.
+
+----------------------------------
+
+js/auth/user-cache.js
+
+Cache temporário do perfil.
+
+----------------------------------
+
+js/auth/user-events.js
+
+Sistema de eventos.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+auth-core.js
+
+session.js
+
+permissions.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINAS
+
+perfil.html
+
+Deverá mostrar
+
+Foto
+
+Nome
+
+Email
+
+Plano
+
+Idioma
+
+País
+
+Data cadastro
+
+Último acesso
+
+Provider
+
+-----------------------------------
+
+configuracoes.html
+
+Permitir alterar
+
+Idioma
+
+Tema
+
+Newsletter
+
+Preferências
+
+--------------------------------------------------------------------------------------------------------
+
+# REGRAS OBRIGATÓRIAS
+
+Nunca acessar Firestore diretamente através do HTML.
+
+Toda comunicação deverá ocorrer através de Services.
+
+Nunca duplicar código.
+
+Nunca escrever regras de negócio dentro da interface.
+
+Nunca acessar Firebase diretamente pelas páginas.
+
+Todo acesso deverá passar pelos módulos.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Ao finalizar a integração desta fase, substituir as regras temporárias do Firestore por regras específicas para cada coleção.
+
+Não manter permanentemente:
+
+allow read, write: if false;
+
+Criar regras específicas para:
+
+users
+
+perfis
+
+configuracoes
+
+demais coleções futuras.
+
+Cada usuário deverá acessar exclusivamente seus próprios documentos.
+
+--------------------------------------------------------------------------------------------------------
+
+# EMAILS
+
+Não utilizar definitivamente os modelos padrão do Firebase.
+
+Preparar arquitetura para futura implementação de envio de emails personalizados utilizando domínio próprio do projeto.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Ao finalizar esta fase criar automaticamente auditoria contendo:
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Fluxo.
+
+Possíveis riscos.
+
+Problemas encontrados.
+
+Correções aplicadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar obrigatoriamente
+
+Primeiro login Google.
+
+Segundo login Google.
+
+Primeiro login Email.
+
+Atualização lastLogin.
+
+Criação automática do documento.
+
+Carregamento do perfil.
+
+Atualização do menu.
+
+Persistência da sessão.
+
+Logout.
+
+Recarregar navegador.
+
+Abrir nova aba.
+
+Abrir modo anônimo.
+
+Verificar erros no Console.
+
+Todos deverão passar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando:
+
+✓ Documento criado automaticamente.
+
+✓ Documento atualizado.
+
+✓ Perfil carregado.
+
+✓ Sessão funcionando.
+
+✓ Menu atualizado.
+
+✓ Perfil funcional.
+
+✓ Configurações funcionais.
+
+✓ Nenhum erro no Console.
+
+✓ Auditoria gerada.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular, segurança e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 2 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+- analisar toda a arquitetura existente;
+- analisar todos os arquivos criados na Fase 1;
+- não modificar arquitetura existente;
+- apresentar plano técnico completo;
+- aguardar aprovação.
+
+Objetivo:
+
+Implementar o Sistema de Perfil do Usuário exatamente conforme especificado nesta documentação.
+
+Regras obrigatórias:
+
+- não alterar páginas existentes sem autorização;
+- criar apenas os módulos necessários;
+- manter arquitetura modular;
+- separar interface, autenticação, banco de dados e regras de negócio;
+- nunca acessar Firestore diretamente pelas páginas HTML;
+- criar camada de serviços reutilizável;
+- criar documentação técnica ao final;
+- executar auditoria automática;
+- executar testes automáticos.
+
+Ao finalizar:
+
+- substituir as regras temporárias do Firestore por regras específicas para cada coleção;
+- manter cada usuário com acesso apenas aos próprios documentos;
+- preparar arquitetura para envio futuro de e-mails personalizados;
+- não implementar Favoritos, Histórico, Premium ou Cursos nesta fase, apenas preparar a infraestrutura necessária para as próximas etapas.
+
+# FIM DA FASE 2
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 3 - SISTEMA DE FAVORITOS
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 2, cada usuário já possuirá um perfil persistente armazenado no Firestore.
+
+Nesta fase será desenvolvido o Sistema de Favoritos, permitindo que cada usuário salve páginas do site para acesso rápido em qualquer dispositivo.
+
+O sistema deverá ser completamente desacoplado da interface, reutilizável e preparado para futuras integrações com Biblioteca Premium, Cursos, Simulados e demais módulos do projeto.
+
+Nenhuma informação deverá ficar armazenada apenas no navegador.
+
+Todos os favoritos deverão ser sincronizados automaticamente com o Firestore.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Favoritar qualquer página do projeto.
+
+✓ Remover qualquer favorito.
+
+✓ Sincronizar favoritos automaticamente entre dispositivos.
+
+✓ Exibir quantidade total de favoritos.
+
+✓ Exibir estado favorito/não favorito.
+
+✓ Atualizar interface em tempo real.
+
+✓ Disponibilizar API reutilizável para qualquer página.
+
+✓ Preparar estrutura para Favoritos Premium.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Favoritos pertencem ao usuário.
+
+Nunca pertencem à página.
+
+Nunca utilizar LocalStorage como armazenamento principal.
+
+LocalStorage poderá ser utilizado apenas como cache temporário.
+
+O Firestore será sempre a fonte oficial dos dados.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário autenticado
+
+↓
+
+Abre página
+
+↓
+
+Sistema verifica favoritos
+
+↓
+
+Página já favoritada?
+
+↓
+
+SIM
+
+↓
+
+Ícone preenchido
+
+↓
+
+NÃO
+
+↓
+
+Ícone vazio
+
+↓
+
+Usuário clica Favoritar
+
+↓
+
+Atualizar Firestore
+
+↓
+
+Atualizar Cache
+
+↓
+
+Atualizar Interface
+
+↓
+
+Atualizar contador
+
+↓
+
+Sistema sincronizado
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+Coleção
+
+users
+
+↓
+
+UID
+
+↓
+
+favorites
+
+↓
+
+Documento
+
+Cada favorito deverá conter:
+
+pageId
+
+title
+
+url
+
+language
+
+category
+
+subcategory
+
+image
+
+description
+
+createdAt
+
+updatedAt
+
+favoriteType
+
+tags
+
+--------------------------------------------------------------------------------------------------------
+
+# IDENTIFICAÇÃO DA PÁGINA
+
+Cada página deverá possuir um identificador único.
+
+Exemplo
+
+glasgow
+
+braden
+
+fugulin
+
+dimensionamento
+
+curb65
+
+apache
+
+Nunca utilizar apenas URL como identificador.
+
+Criar pageId exclusivo.
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE FAVORITOS
+
+Preparar arquitetura para:
+
+calculator
+
+scale
+
+article
+
+protocol
+
+download
+
+course
+
+premium
+
+library
+
+simulation
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/favorites/
+
+favorites-service.js
+
+Responsável pela comunicação com Firestore.
+
+----------------------------------
+
+favorites-cache.js
+
+Cache local.
+
+----------------------------------
+
+favorites-events.js
+
+Sistema de eventos.
+
+----------------------------------
+
+favorites-ui.js
+
+Atualização da interface.
+
+----------------------------------
+
+favorites-sync.js
+
+Sincronização automática.
+
+----------------------------------
+
+favorites-utils.js
+
+Funções auxiliares.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+perfil.html
+
+menu-global.html
+
+global-scripts.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# INTERFACE
+
+Criar componente reutilizável.
+
+Botão Favoritar.
+
+Estado:
+
+Favoritado
+
+Não Favoritado
+
+Carregando
+
+Erro
+
+Sincronizando
+
+Não duplicar componentes.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Utilizar cache local apenas para:
+
+melhorar desempenho
+
+reduzir leituras
+
+permitir abertura rápida
+
+Toda sincronização deverá ocorrer automaticamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SINCRONIZAÇÃO
+
+Ao realizar login:
+
+↓
+
+Carregar favoritos
+
+↓
+
+Atualizar cache
+
+↓
+
+Atualizar interface
+
+↓
+
+Atualizar contador
+
+Ao adicionar favorito:
+
+↓
+
+Salvar Firestore
+
+↓
+
+Atualizar cache
+
+↓
+
+Atualizar interface
+
+Ao remover:
+
+↓
+
+Remover Firestore
+
+↓
+
+Atualizar cache
+
+↓
+
+Atualizar interface
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINA FAVORITOS
+
+Implementar favoritos.html
+
+Permitir:
+
+listar favoritos
+
+ordenar
+
+pesquisar
+
+filtrar
+
+abrir página
+
+remover favorito
+
+visualizar categoria
+
+visualizar idioma
+
+Preparar paginação.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Preparar filtros por
+
+categoria
+
+idioma
+
+tipo
+
+data
+
+ordem alfabética
+
+mais recentes
+
+mais antigos
+
+--------------------------------------------------------------------------------------------------------
+
+# PESQUISA
+
+Implementar pesquisa local.
+
+Não consultar Firestore a cada caractere.
+
+Pesquisar inicialmente sobre cache.
+
+--------------------------------------------------------------------------------------------------------
+
+# DESEMPENHO
+
+Nunca consultar Firestore repetidamente.
+
+Carregar favoritos apenas uma vez por sessão.
+
+Atualizar somente quando necessário.
+
+Preparar arquitetura para milhares de favoritos.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Cada usuário deverá visualizar exclusivamente seus próprios favoritos.
+
+Nunca permitir acesso aos favoritos de outro usuário.
+
+Nunca utilizar parâmetros manipuláveis na URL.
+
+Toda validação deverá utilizar UID autenticado.
+
+--------------------------------------------------------------------------------------------------------
+
+# REGRAS DO FIRESTORE
+
+Criar regras específicas para coleção favorites.
+
+Cada usuário poderá:
+
+ler
+
+criar
+
+editar
+
+remover
+
+apenas seus próprios favoritos.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente relatório contendo:
+
+Arquivos criados
+
+Arquivos modificados
+
+Quantidade de favoritos
+
+Fluxo implementado
+
+Riscos encontrados
+
+Problemas corrigidos
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Adicionar favorito.
+
+Remover favorito.
+
+Atualizar favorito.
+
+Atualizar navegador.
+
+Abrir nova aba.
+
+Login Google.
+
+Login Email.
+
+Logout.
+
+Novo Login.
+
+Sincronização entre dispositivos.
+
+Atualização do contador.
+
+Nenhum erro deverá existir.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando:
+
+✓ Favoritos sincronizados.
+
+✓ Interface funcionando.
+
+✓ Página favoritos funcional.
+
+✓ Firestore atualizado.
+
+✓ Cache funcionando.
+
+✓ Contador atualizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA FASES FUTURAS
+
+Preparar infraestrutura para:
+
+Biblioteca Premium
+
+Cursos
+
+Protocolos
+
+Downloads
+
+Artigos
+
+Favoritos Premium
+
+Sem implementar nenhuma destas funcionalidades.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 3 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+- analisar toda a arquitetura existente;
+- analisar as Fases 1 e 2;
+- apresentar plano técnico detalhado;
+- aguardar aprovação.
+
+Objetivo:
+
+Implementar um Sistema de Favoritos totalmente sincronizado com Firestore, desacoplado da interface e reutilizável por qualquer página do projeto.
+
+Regras obrigatórias:
+
+- nunca acessar Firestore diretamente pelas páginas HTML;
+- utilizar camada de serviços;
+- manter arquitetura modular;
+- não modificar páginas existentes sem autorização;
+- criar documentação técnica;
+- executar auditoria automática;
+- executar testes automáticos;
+- preparar arquitetura para Biblioteca Premium, Cursos, Downloads, Protocolos e demais módulos futuros.
+
+Ao finalizar:
+
+- criar regras específicas do Firestore para favoritos;
+- garantir acesso apenas aos próprios favoritos;
+- manter compatibilidade total com todas as fases anteriores;
+- não implementar Histórico, Premium, Cursos ou Biblioteca nesta fase.
+
+# FIM DA FASE 3
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 4 - SISTEMA DE HISTÓRICO INTELIGENTE
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 3, cada usuário já possuirá um perfil persistente e um sistema de favoritos totalmente sincronizado.
+
+Nesta fase será desenvolvido o Sistema de Histórico Inteligente.
+
+O objetivo desta fase não é simplesmente registrar páginas acessadas.
+
+O sistema deverá registrar a interação completa do usuário com o site para permitir futuras funcionalidades como:
+
+• Continuar de onde parou.
+• Recomendações personalizadas.
+• Estatísticas de utilização.
+• Progresso de aprendizagem.
+• Histórico de estudos.
+• Histórico de calculadoras utilizadas.
+• Histórico de downloads.
+• Histórico de protocolos consultados.
+• Histórico de cursos.
+• Histórico de certificados.
+• Relatórios futuros.
+
+Nenhuma dessas funcionalidades será implementada nesta fase.
+
+Será criada apenas toda a infraestrutura necessária.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Registrar automaticamente páginas visitadas.
+
+✓ Registrar horário de acesso.
+
+✓ Registrar duração da visita.
+
+✓ Registrar idioma utilizado.
+
+✓ Registrar categoria da página.
+
+✓ Registrar tipo da página.
+
+✓ Registrar dispositivo.
+
+✓ Registrar navegador.
+
+✓ Registrar sistema operacional.
+
+✓ Registrar origem da navegação.
+
+✓ Sincronizar automaticamente com Firestore.
+
+✓ Disponibilizar API reutilizável.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O histórico pertence ao usuário.
+
+Jamais pertence ao navegador.
+
+Jamais dependerá exclusivamente do LocalStorage.
+
+O Firestore será sempre considerado a fonte oficial.
+
+O LocalStorage será utilizado apenas como cache temporário para melhorar desempenho.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário autenticado
+
+↓
+
+Abre qualquer página
+
+↓
+
+Sistema identifica página
+
+↓
+
+Obtém pageId
+
+↓
+
+Obtém categoria
+
+↓
+
+Obtém idioma
+
+↓
+
+Obtém horário
+
+↓
+
+Obtém dispositivo
+
+↓
+
+Obtém navegador
+
+↓
+
+Obtém sistema operacional
+
+↓
+
+Calcula duração da permanência
+
+↓
+
+Grava no Firestore
+
+↓
+
+Atualiza cache
+
+↓
+
+Atualiza histórico
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+users
+
+↓
+
+UID
+
+↓
+
+history
+
+↓
+
+Documento
+
+Cada registro deverá conter obrigatoriamente:
+
+historyId
+
+pageId
+
+title
+
+url
+
+language
+
+category
+
+subcategory
+
+pageType
+
+visitedAt
+
+exitAt
+
+duration
+
+device
+
+browser
+
+operatingSystem
+
+country
+
+referrer
+
+visitNumber
+
+sessionId
+
+tags
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# IDENTIFICAÇÃO DA VISITA
+
+Cada visita deverá possuir um identificador único.
+
+Nunca utilizar apenas a URL.
+
+Criar historyId exclusivo.
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE HISTÓRICO
+
+Preparar arquitetura para:
+
+calculadora
+
+escala
+
+protocolo
+
+artigo
+
+download
+
+curso
+
+biblioteca
+
+premium
+
+simulado
+
+certificado
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/history/
+
+history-service.js
+
+Comunicação exclusiva com Firestore.
+
+-----------------------------------
+
+history-cache.js
+
+Cache local.
+
+-----------------------------------
+
+history-events.js
+
+Sistema de eventos.
+
+-----------------------------------
+
+history-sync.js
+
+Sincronização automática.
+
+-----------------------------------
+
+history-ui.js
+
+Atualização da interface.
+
+-----------------------------------
+
+history-utils.js
+
+Funções auxiliares.
+
+-----------------------------------
+
+history-session.js
+
+Gerenciamento das sessões de navegação.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+session.js
+
+global-scripts.js
+
+perfil.html
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINA HISTÓRICO
+
+Implementar historico.html
+
+Permitir:
+
+Visualizar visitas.
+
+Pesquisar.
+
+Ordenar.
+
+Filtrar.
+
+Agrupar.
+
+Excluir registros.
+
+Excluir histórico completo.
+
+Exportar histórico futuramente.
+
+Preparar paginação.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Criar filtros por
+
+Categoria
+
+Idioma
+
+Tipo
+
+Data
+
+Últimos acessos
+
+Mais acessados
+
+Calculadoras
+
+Protocolos
+
+Cursos
+
+Biblioteca
+
+Premium
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTATÍSTICAS
+
+Preparar estrutura para:
+
+Quantidade de páginas visitadas.
+
+Tempo total de utilização.
+
+Categorias mais utilizadas.
+
+Idiomas utilizados.
+
+Calculadoras mais acessadas.
+
+Escalas mais utilizadas.
+
+Protocolos mais consultados.
+
+Downloads realizados.
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTINUAR DE ONDE PAROU
+
+Preparar infraestrutura para futura funcionalidade.
+
+Exemplo
+
+Curso ECG
+
+↓
+
+Última aula assistida
+
+↓
+
+Retornar exatamente ao ponto anterior.
+
+A funcionalidade não deverá ser implementada nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# RECOMENDAÇÕES FUTURAS
+
+Preparar estrutura para IA sugerir:
+
+Calculadoras relacionadas.
+
+Escalas semelhantes.
+
+Protocolos relacionados.
+
+Cursos relacionados.
+
+Artigos relacionados.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Utilizar cache local apenas para:
+
+Reduzir leituras.
+
+Melhorar desempenho.
+
+Permitir abertura rápida.
+
+Sincronizar automaticamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SINCRONIZAÇÃO
+
+Ao realizar login
+
+↓
+
+Carregar histórico
+
+↓
+
+Atualizar cache
+
+↓
+
+Atualizar interface
+
+↓
+
+Atualizar estatísticas
+
+Ao abrir nova página
+
+↓
+
+Registrar visita
+
+↓
+
+Atualizar cache
+
+↓
+
+Sincronizar Firestore
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Cada usuário deverá visualizar exclusivamente seu próprio histórico.
+
+Nunca permitir acesso ao histórico de outro usuário.
+
+Toda validação deverá utilizar UID autenticado.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar regras específicas para:
+
+history
+
+Cada usuário poderá:
+
+Ler
+
+Criar
+
+Editar
+
+Excluir
+
+Somente seus próprios registros.
+
+--------------------------------------------------------------------------------------------------------
+
+# DESEMPENHO
+
+Nunca consultar Firestore continuamente.
+
+Carregar histórico apenas quando necessário.
+
+Paginar registros.
+
+Preparar arquitetura para dezenas de milhares de registros por usuário.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente relatório contendo:
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Fluxo implementado.
+
+Quantidade de registros.
+
+Possíveis riscos.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar obrigatoriamente
+
+Abrir página.
+
+Trocar de página.
+
+Atualizar navegador.
+
+Fechar navegador.
+
+Nova aba.
+
+Login Google.
+
+Login Email.
+
+Logout.
+
+Novo Login.
+
+Sincronização.
+
+Pesquisa.
+
+Filtros.
+
+Paginação.
+
+Excluir item.
+
+Excluir histórico.
+
+Nenhum erro deverá existir.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando:
+
+✓ Histórico sincronizado.
+
+✓ Página historico.html funcional.
+
+✓ Pesquisa funcionando.
+
+✓ Filtros funcionando.
+
+✓ Paginação funcionando.
+
+✓ Cache funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMAS FASES
+
+Preparar infraestrutura para:
+
+Sistema de recomendações.
+
+Cursos.
+
+Certificados.
+
+Biblioteca Premium.
+
+IA personalizada.
+
+Relatórios.
+
+Dashboard do usuário.
+
+Sem implementar nenhuma destas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular, sincronização de dados e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 4 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1, 2 e 3;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Sistema de Histórico Inteligente totalmente sincronizado com Firestore, desacoplado da interface e reutilizável por qualquer página do projeto.
+
+Regras obrigatórias:
+
+• nunca acessar Firestore diretamente pelas páginas HTML;
+• utilizar camada de serviços;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados;
+• preparar arquitetura para recomendações inteligentes, cursos, certificados, IA personalizada e Dashboard do usuário.
+
+Ao finalizar:
+
+• criar regras específicas do Firestore para a coleção history;
+• garantir acesso apenas ao próprio histórico;
+• manter compatibilidade total com todas as fases anteriores;
+• não implementar Sistema Premium, Cursos, Biblioteca ou Painel Administrativo nesta fase.
+
+# FIM DA FASE 4
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 5 - SISTEMA DE AUTORIZAÇÃO, PERMISSÕES E CONTROLE DE ACESSO (RBAC)
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 4, o sistema já possui:
+
+✓ Autenticação
+
+✓ Perfil
+
+✓ Favoritos
+
+✓ Histórico
+
+Entretanto, ainda não existe controle sobre quem pode acessar cada recurso do sistema.
+
+Nesta fase será implementado um Sistema de Autorização baseado em Papéis (RBAC - Role Based Access Control).
+
+Este sistema será responsável por controlar absolutamente todos os acessos do projeto.
+
+Nenhuma página protegida poderá possuir regras próprias.
+
+Toda autorização deverá passar obrigatoriamente por este sistema.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Identificar o tipo do usuário.
+
+✓ Identificar o plano contratado.
+
+✓ Verificar permissões.
+
+✓ Permitir criação de novas permissões.
+
+✓ Permitir criação de novos papéis.
+
+✓ Proteger páginas automaticamente.
+
+✓ Proteger downloads.
+
+✓ Proteger biblioteca.
+
+✓ Proteger cursos.
+
+✓ Proteger certificados.
+
+✓ Proteger APIs futuras.
+
+✓ Disponibilizar API única para autorização.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Autenticação NÃO é autorização.
+
+Authentication apenas identifica quem é o usuário.
+
+Authorization decide o que ele pode fazer.
+
+Nenhuma página deverá verificar permissões diretamente.
+
+Toda decisão deverá ser tomada por um único módulo.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUITETURA
+
+Criar uma camada exclusiva denominada
+
+Authorization Layer
+
+Toda página protegida deverá consultar apenas esta camada.
+
+Nunca consultar Firestore diretamente.
+
+Nunca consultar o perfil diretamente.
+
+Nunca escrever regras de autorização dentro do HTML.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário autenticado
+
+↓
+
+Carregar Perfil
+
+↓
+
+Carregar Plano
+
+↓
+
+Carregar Role
+
+↓
+
+Carregar Permissões
+
+↓
+
+Criar Sessão
+
+↓
+
+Disponibilizar Authorization Service
+
+↓
+
+Página solicita acesso
+
+↓
+
+Authorization verifica
+
+↓
+
+Permitido?
+
+↓
+
+SIM
+
+↓
+
+Abrir conteúdo
+
+↓
+
+NÃO
+
+↓
+
+Redirecionar
+
+--------------------------------------------------------------------------------------------------------
+
+# HIERARQUIA DE PAPÉIS
+
+Criar estrutura preparada para:
+
+guest
+
+user
+
+premium
+
+institution
+
+moderator
+
+editor
+
+administrator
+
+superAdministrator
+
+Nenhum papel deverá ser fixo.
+
+Todos deverão ser configuráveis.
+
+--------------------------------------------------------------------------------------------------------
+
+# PLANOS
+
+Preparar estrutura para:
+
+free
+
+premium_monthly
+
+premium_yearly
+
+student
+
+professional
+
+institution
+
+lifetime
+
+Todos deverão poder coexistir com qualquer role.
+
+Plano não substitui role.
+
+--------------------------------------------------------------------------------------------------------
+
+# SISTEMA DE PERMISSÕES
+
+Criar permissões individuais.
+
+Exemplos
+
+viewPremium
+
+downloadPremium
+
+accessCourses
+
+accessCertificates
+
+downloadProtocols
+
+viewBiblioteca
+
+createForumTopic
+
+replyForum
+
+moderateForum
+
+manageUsers
+
+managePremium
+
+managePayments
+
+manageCourses
+
+manageDownloads
+
+manageCertificates
+
+manageBlog
+
+manageAds
+
+manageSystem
+
+Todas deverão ser independentes.
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+users
+
+↓
+
+UID
+
+↓
+
+permissions
+
+↓
+
+roles
+
+↓
+
+plans
+
+↓
+
+features
+
+↓
+
+limits
+
+Cada grupo deverá possuir documentos independentes.
+
+Preparar arquitetura para expansão.
+
+--------------------------------------------------------------------------------------------------------
+
+# LIMITES
+
+Criar estrutura para limites futuros.
+
+Exemplo
+
+Quantidade máxima de favoritos.
+
+Quantidade máxima de downloads.
+
+Quantidade máxima de certificados.
+
+Quantidade máxima de cursos ativos.
+
+Quantidade máxima de dispositivos.
+
+Nesta fase apenas criar estrutura.
+
+--------------------------------------------------------------------------------------------------------
+
+# FEATURE FLAGS
+
+Criar sistema de ativação de funcionalidades.
+
+Exemplo
+
+Forum
+
+Cursos
+
+Biblioteca
+
+Downloads
+
+Premium
+
+Comunidade
+
+Chat
+
+IA
+
+Todas deverão poder ser ativadas ou desativadas individualmente.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/auth/
+
+authorization.js
+
+------------------------------------
+
+permission-service.js
+
+------------------------------------
+
+role-service.js
+
+------------------------------------
+
+plan-service.js
+
+------------------------------------
+
+feature-service.js
+
+------------------------------------
+
+route-guard.js
+
+------------------------------------
+
+permission-cache.js
+
+------------------------------------
+
+authorization-events.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+session.js
+
+auth-core.js
+
+user-profile.js
+
+global-scripts.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# API DE AUTORIZAÇÃO
+
+Criar API única.
+
+Exemplos
+
+Authorization.can()
+
+Authorization.hasRole()
+
+Authorization.hasPermission()
+
+Authorization.hasPlan()
+
+Authorization.canAccess()
+
+Authorization.canDownload()
+
+Authorization.canEdit()
+
+Authorization.canManage()
+
+Authorization.getPermissions()
+
+Authorization.getPlan()
+
+Authorization.getRole()
+
+Toda página deverá utilizar exclusivamente esta API.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROTEÇÃO DE PÁGINAS
+
+Preparar infraestrutura para proteger automaticamente:
+
+/premium
+
+/cursos
+
+/certificados
+
+/downloads
+
+/forum
+
+/biblioteca
+
+/admin
+
+Sem implementar o conteúdo destas áreas.
+
+--------------------------------------------------------------------------------------------------------
+
+# MENU
+
+Atualizar automaticamente o menu.
+
+Exemplo
+
+Usuário Free
+
+↓
+
+Ocultar Premium
+
+Usuário Premium
+
+↓
+
+Mostrar Premium
+
+Administrador
+
+↓
+
+Mostrar Painel Administrativo
+
+Tudo automaticamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca confiar apenas na interface.
+
+Nunca confiar em parâmetros da URL.
+
+Nunca confiar em LocalStorage.
+
+Toda validação deverá ocorrer utilizando:
+
+UID
+
+Role
+
+Permissões
+
+Plano
+
+Firestore
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar regras específicas.
+
+Cada usuário poderá ler apenas seus próprios dados.
+
+Permissões administrativas deverão possuir validação própria.
+
+Preparar estrutura para Cloud Functions futuramente.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache inteligente.
+
+Nunca consultar Firestore repetidamente.
+
+Atualizar cache quando houver alteração.
+
+Invalidar automaticamente quando necessário.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar relatório automático contendo:
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Fluxo.
+
+Permissões cadastradas.
+
+Papéis cadastrados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar obrigatoriamente
+
+Usuário Free.
+
+Usuário Premium.
+
+Administrador.
+
+Moderador.
+
+Editor.
+
+Sem Login.
+
+Plano inválido.
+
+Permissão inválida.
+
+Permissão removida.
+
+Plano expirado.
+
+Logout.
+
+Login.
+
+Atualização automática.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando:
+
+✓ Sistema de autorização implementado.
+
+✓ API funcionando.
+
+✓ Roles funcionando.
+
+✓ Permissões funcionando.
+
+✓ Planos funcionando.
+
+✓ Cache funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMAS FASES
+
+Preparar infraestrutura para:
+
+Sistema Premium.
+
+Assinaturas.
+
+Cursos.
+
+Biblioteca.
+
+Certificados.
+
+Painel Administrativo.
+
+Cloud Functions.
+
+Sem implementar nenhuma destas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em sistemas de autorização, RBAC, Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular e aplicações escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 5 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1, 2, 3 e 4;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar uma camada centralizada de autorização baseada em papéis (RBAC), permissões, planos e funcionalidades, reutilizável por todo o projeto.
+
+Regras obrigatórias:
+
+• nunca implementar verificações de permissão diretamente nas páginas HTML;
+• utilizar exclusivamente a camada Authorization;
+• criar módulos independentes para papéis, permissões, planos e funcionalidades;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar regras específicas do Firestore para controle de permissões;
+• garantir que toda autorização seja centralizada;
+• preparar infraestrutura para Sistema Premium, Assinaturas, Cursos, Biblioteca, Certificados e Painel Administrativo;
+• não implementar essas funcionalidades nesta fase, apenas a infraestrutura.
+
+# FIM DA FASE 5
+
+
+
+
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 6 - CONTENT ACCESS ENGINE (MOTOR DE CONTROLE DE CONTEÚDO)
+# Versão 2.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 5, o sistema já possui:
+
+✓ Autenticação
+
+✓ Perfil
+
+✓ Favoritos
+
+✓ Histórico
+
+✓ Sistema de Permissões
+
+✓ Controle de Papéis (RBAC)
+
+Entretanto, ainda não existe um mecanismo centralizado responsável por decidir quais conteúdos cada usuário pode acessar.
+
+Nesta fase será criado o Content Access Engine.
+
+Este será um dos componentes mais importantes de toda a arquitetura.
+
+Ele será responsável por decidir se um usuário poderá ou não acessar qualquer recurso existente no projeto.
+
+Toda decisão deverá passar exclusivamente por este mecanismo.
+
+Nenhuma página poderá implementar regras próprias de acesso.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Separar completamente:
+
+AUTENTICAÇÃO
+
+↓
+
+AUTORIZAÇÃO
+
+↓
+
+ACESSO AO CONTEÚDO
+
+Authentication identifica.
+
+Authorization verifica permissões.
+
+Content Access decide se o conteúdo poderá ser aberto.
+
+Cada camada possui apenas uma responsabilidade.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Controlar acesso a qualquer página.
+
+✓ Controlar acesso a downloads.
+
+✓ Controlar acesso à Biblioteca.
+
+✓ Controlar acesso a Cursos.
+
+✓ Controlar acesso a Certificados.
+
+✓ Controlar acesso a Simulados.
+
+✓ Controlar acesso às futuras ferramentas IA.
+
+✓ Registrar tentativas de acesso.
+
+✓ Exibir mensagens inteligentes de bloqueio.
+
+✓ Exibir telas de upgrade.
+
+✓ Disponibilizar API única de acesso.
+
+--------------------------------------------------------------------------------------------------------
+
+# CONCEITO
+
+Toda página do projeto deverá possuir uma política de acesso.
+
+Exemplo
+
+glasgow.html
+
+↓
+
+Pública
+
+------------------------------------
+
+curso-ecg.html
+
+↓
+
+Premium
+
+------------------------------------
+
+downloads.html
+
+↓
+
+Institucional
+
+------------------------------------
+
+biblioteca-premium.html
+
+↓
+
+Premium
+
+------------------------------------
+
+admin.html
+
+↓
+
+Administrador
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTENT POLICY
+
+Criar um mecanismo chamado
+
+Content Policy
+
+Cada conteúdo poderá possuir:
+
+contentId
+
+contentType
+
+requiredRole
+
+requiredPlan
+
+requiredPermissions
+
+requiredFeatures
+
+requiredLicense
+
+visibility
+
+status
+
+tags
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTENT TYPES
+
+Preparar estrutura para
+
+calculator
+
+scale
+
+protocol
+
+article
+
+download
+
+course
+
+certificate
+
+simulation
+
+forum
+
+tool
+
+library
+
+premium
+
+admin
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTENT ACCESS ENGINE
+
+Criar um motor centralizado.
+
+Nenhuma página deverá decidir sozinha.
+
+Fluxo
+
+Usuário solicita conteúdo
+
+↓
+
+Content Access Engine
+
+↓
+
+Authorization
+
+↓
+
+Role
+
+↓
+
+Plano
+
+↓
+
+Permissões
+
+↓
+
+Features
+
+↓
+
+Licenças
+
+↓
+
+Pode acessar?
+
+↓
+
+SIM
+
+↓
+
+Abrir conteúdo
+
+↓
+
+NÃO
+
+↓
+
+Tela de bloqueio
+
+--------------------------------------------------------------------------------------------------------
+
+# ACCESS POLICIES
+
+Criar políticas reutilizáveis.
+
+Exemplo
+
+Public
+
+Authenticated
+
+Premium
+
+Institution
+
+Admin
+
+Moderator
+
+Editor
+
+Custom
+
+As páginas apenas informarão qual política utilizar.
+
+--------------------------------------------------------------------------------------------------------
+
+# ACCESS API
+
+Criar API única.
+
+Exemplos
+
+Access.canOpen()
+
+Access.canDownload()
+
+Access.canView()
+
+Access.canAccess()
+
+Access.getPolicy()
+
+Access.getReason()
+
+Access.getMissingPermission()
+
+Access.getRequiredPlan()
+
+Toda verificação deverá utilizar exclusivamente esta API.
+
+--------------------------------------------------------------------------------------------------------
+
+# ACCESS ROUTER
+
+Criar roteador central.
+
+Nenhuma página realizará redirecionamentos.
+
+Fluxo
+
+Solicitação
+
+↓
+
+Access Router
+
+↓
+
+Permitido?
+
+↓
+
+SIM
+
+↓
+
+Abrir
+
+↓
+
+NÃO
+
+↓
+
+Página Upgrade
+
+ou
+
+Página Login
+
+ou
+
+Página Sem Permissão
+
+--------------------------------------------------------------------------------------------------------
+
+# PREMIUM BANNER MANAGER
+
+Criar módulo responsável por exibir automaticamente:
+
+Banner Premium
+
+Benefícios
+
+Botão Assinar
+
+Comparativo
+
+Avisos
+
+Nunca escrever HTML repetido nas páginas.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREMIUM WIDGETS
+
+Criar componentes reutilizáveis.
+
+premium-banner
+
+premium-card
+
+premium-lock
+
+premium-upgrade
+
+premium-benefits
+
+premium-restriction
+
+Todos desacoplados.
+
+--------------------------------------------------------------------------------------------------------
+
+# ACCESS ANALYTICS
+
+Registrar automaticamente
+
+Tentativas de acesso.
+
+Downloads bloqueados.
+
+Cursos bloqueados.
+
+Biblioteca bloqueada.
+
+Conteúdo Premium mais desejado.
+
+Ferramentas mais procuradas.
+
+Essas informações serão utilizadas futuramente para Business Intelligence.
+
+--------------------------------------------------------------------------------------------------------
+
+# FEATURE FLAGS
+
+Integrar completamente com a Fase 5.
+
+Permitir ativar ou desativar
+
+Cursos
+
+Biblioteca
+
+Premium
+
+Downloads
+
+Simulados
+
+Comunidade
+
+IA
+
+Certificados
+
+Sem modificar código.
+
+--------------------------------------------------------------------------------------------------------
+
+# LICENÇAS
+
+Criar estrutura independente de planos.
+
+Exemplo
+
+Usuário Free
+
+↓
+
+Comprou apenas Curso ECG
+
+↓
+
+Pode acessar Curso ECG
+
+↓
+
+Não possui Premium
+
+Outro exemplo
+
+Usuário Institucional
+
+↓
+
+Licença Biblioteca
+
+↓
+
+Sem Curso
+
+Tudo deverá funcionar independentemente.
+
+--------------------------------------------------------------------------------------------------------
+
+# BENEFIT ENGINE
+
+Criar um motor de benefícios.
+
+Exemplo
+
+Plano Premium Mensal
+
+↓
+
+Benefícios
+
+Plano Premium Anual
+
+↓
+
+Benefícios
+
+Institucional
+
+↓
+
+Benefícios
+
+Todos configuráveis.
+
+Nenhum benefício ficará fixo no código.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/access/
+
+content-access.js
+
+access-router.js
+
+content-policy.js
+
+premium-banner-manager.js
+
+premium-widgets.js
+
+benefit-engine.js
+
+license-engine.js
+
+access-analytics.js
+
+access-events.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+authorization.js
+
+permissions.js
+
+global-scripts.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca confiar na interface.
+
+Nunca confiar em parâmetros.
+
+Nunca confiar em LocalStorage.
+
+Toda decisão deverá passar pelo Content Access Engine.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Conteúdos protegidos.
+
+Políticas criadas.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Usuário Free.
+
+Usuário Premium.
+
+Administrador.
+
+Institucional.
+
+Conteúdo Público.
+
+Conteúdo Premium.
+
+Downloads.
+
+Biblioteca.
+
+Cursos.
+
+Ferramentas.
+
+Certificados.
+
+Licenças.
+
+Feature Flags.
+
+Nenhum erro deverá existir.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando
+
+✓ Todo acesso passar pelo Content Access Engine.
+
+✓ Nenhuma página possuir regra própria.
+
+✓ API funcionando.
+
+✓ Router funcionando.
+
+✓ Widgets funcionando.
+
+✓ Banner funcionando.
+
+✓ Analytics funcionando.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para:
+
+Sistema de Assinaturas.
+
+Nenhum pagamento será implementado nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em arquitetura modular, RBAC, controle de acesso, Firebase Authentication, Firestore e aplicações escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 6 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 5;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Content Access Engine totalmente desacoplado da autenticação, autorização e assinaturas.
+
+Regras obrigatórias:
+
+• nenhuma página poderá implementar regras próprias de acesso;
+• toda decisão deverá passar pelo Content Access Engine;
+• criar API única de acesso;
+• manter arquitetura modular;
+• criar componentes reutilizáveis;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar políticas de acesso reutilizáveis;
+• implementar roteador central;
+• implementar sistema de benefícios;
+• implementar sistema de licenças;
+• preparar toda a infraestrutura para a Fase 7 (Sistema de Assinaturas);
+• não implementar pagamentos nesta fase.
+
+# FIM DA FASE 6
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 7 - SISTEMA DE ASSINATURAS
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 6, o sistema já possui um mecanismo centralizado responsável por controlar o acesso aos conteúdos do projeto.
+
+Nesta fase será implementado o Sistema de Assinaturas.
+
+Esta fase NÃO implementará nenhum gateway de pagamento.
+
+Ela será responsável exclusivamente pelo gerenciamento do ciclo de vida das assinaturas dos usuários.
+
+Todo o sistema deverá ser desenvolvido de forma totalmente independente do provedor financeiro.
+
+O gateway de pagamento será implementado apenas na Fase 8.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Criar assinaturas.
+
+✓ Ativar assinaturas.
+
+✓ Cancelar assinaturas.
+
+✓ Suspender assinaturas.
+
+✓ Reativar assinaturas.
+
+✓ Renovar assinaturas.
+
+✓ Alterar plano.
+
+✓ Registrar histórico completo.
+
+✓ Disponibilizar API única para gerenciamento de assinaturas.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Assinatura não é pagamento.
+
+Pagamento apenas financia uma assinatura.
+
+Todo o gerenciamento de assinaturas deverá ser totalmente independente do gateway financeiro.
+
+Nenhum código desta fase poderá depender de:
+
+Stripe
+
+Mercado Pago
+
+Asaas
+
+PayPal
+
+Google Pay
+
+Apple Pay
+
+PIX
+
+Cartão
+
+Boleto
+
+Toda integração financeira será realizada futuramente.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário seleciona um plano
+
+↓
+
+Sistema cria assinatura
+
+↓
+
+Status inicial
+
+pending
+
+↓
+
+Aguardar confirmação de pagamento (fase futura)
+
+↓
+
+Pagamento confirmado
+
+↓
+
+Assinatura ativa
+
+↓
+
+Atualizar permissões
+
+↓
+
+Atualizar plano
+
+↓
+
+Atualizar benefícios
+
+↓
+
+Atualizar Content Access Engine
+
+--------------------------------------------------------------------------------------------------------
+
+# CICLO DE VIDA
+
+Toda assinatura deverá possuir obrigatoriamente os seguintes estados:
+
+pending
+
+trial
+
+active
+
+gracePeriod
+
+paused
+
+cancelRequested
+
+cancelled
+
+expired
+
+blocked
+
+failed
+
+Todos deverão estar implementados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PLANOS
+
+Criar estrutura preparada para:
+
+Free
+
+Premium Mensal
+
+Premium Anual
+
+Institucional
+
+Lifetime
+
+Preparar novos planos sem necessidade de alterar código.
+
+--------------------------------------------------------------------------------------------------------
+
+# BENEFÍCIOS
+
+Cada assinatura poderá possuir benefícios independentes.
+
+Exemplo
+
+Downloads
+
+Biblioteca
+
+Cursos
+
+Certificados
+
+Protocolos
+
+Ferramentas
+
+Simulados
+
+IA
+
+Todos configuráveis.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar estrutura
+
+subscriptions
+
+subscriptionHistory
+
+subscriptionEvents
+
+plans
+
+benefits
+
+licenses
+
+Nenhuma cobrança será criada nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DA ASSINATURA
+
+Cada assinatura deverá conter
+
+subscriptionId
+
+userId
+
+planId
+
+status
+
+createdAt
+
+activatedAt
+
+trialEndsAt
+
+graceEndsAt
+
+expiresAt
+
+renewAt
+
+cancelAt
+
+provider
+
+providerSubscriptionId
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# API
+
+Criar API única
+
+Subscription.create()
+
+Subscription.activate()
+
+Subscription.cancel()
+
+Subscription.pause()
+
+Subscription.resume()
+
+Subscription.changePlan()
+
+Subscription.getPlan()
+
+Subscription.getBenefits()
+
+Subscription.getStatus()
+
+Subscription.isActive()
+
+Subscription.isExpired()
+
+Subscription.isTrial()
+
+--------------------------------------------------------------------------------------------------------
+
+# HISTÓRICO
+
+Registrar automaticamente
+
+Criação
+
+Ativação
+
+Cancelamento
+
+Renovação
+
+Suspensão
+
+Mudança de plano
+
+Expiração
+
+Reativação
+
+Todas as alterações deverão ser registradas.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/subscriptions/
+
+subscription-service.js
+
+subscription-manager.js
+
+subscription-events.js
+
+subscription-cache.js
+
+subscription-utils.js
+
+subscription-history.js
+
+subscription-validator.js
+
+plan-manager.js
+
+benefits-manager.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+authorization.js
+
+content-access.js
+
+permissions.js
+
+session.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINA ASSINATURA
+
+Implementar
+
+assinatura.html
+
+A página deverá apresentar
+
+Plano atual
+
+Status
+
+Benefícios
+
+Histórico
+
+Data de ativação
+
+Data de renovação
+
+Data de expiração
+
+Cancelar assinatura
+
+Alterar plano
+
+Preparar integração futura com pagamento.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache inteligente.
+
+Atualizar automaticamente.
+
+Invalidar quando necessário.
+
+Nunca consultar Firestore repetidamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Toda assinatura deverá ser validada utilizando
+
+UID
+
+Subscription
+
+Authorization
+
+Content Access Engine
+
+Nunca confiar apenas na interface.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar regras específicas para
+
+subscriptions
+
+Cada usuário poderá visualizar apenas sua própria assinatura.
+
+Administradores poderão visualizar todas.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Fluxo implementado.
+
+Assinaturas criadas.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Criar assinatura.
+
+Cancelar assinatura.
+
+Suspender assinatura.
+
+Reativar assinatura.
+
+Alterar plano.
+
+Período Trial.
+
+Grace Period.
+
+Expiração.
+
+Renovação.
+
+Atualização automática.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Sistema de Assinaturas implementado.
+
+✓ API funcionando.
+
+✓ Histórico funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Página assinatura.html funcional.
+
+✓ Cache funcionando.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para integração com:
+
+Stripe
+
+Mercado Pago
+
+Asaas
+
+PayPal
+
+Google Pay
+
+Apple Pay
+
+PIX
+
+Cartão
+
+Boleto
+
+Sem implementar pagamentos nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em sistemas de assinaturas, Firebase Authentication, Firestore, arquitetura modular e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 7 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 6;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Sistema de Assinaturas totalmente desacoplado de qualquer gateway de pagamento.
+
+Regras obrigatórias:
+
+• não implementar pagamentos nesta fase;
+• manter arquitetura modular;
+• criar camada exclusiva de assinaturas;
+• permitir integração futura com qualquer gateway financeiro;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar todo o ciclo de vida das assinaturas;
+• criar API reutilizável;
+• implementar assinatura.html;
+• preparar infraestrutura para integração futura com gateways de pagamento;
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 7
+
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 8 - PAYMENT ENGINE (MOTOR DE PAGAMENTOS)
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 7, o sistema já possui um Sistema de Assinaturas totalmente funcional.
+
+Nesta fase será implementado o Motor de Pagamentos (Payment Engine).
+
+Seu objetivo será conectar o Sistema de Assinaturas a um ou mais gateways financeiros, mantendo total independência entre a lógica do sistema e o provedor de pagamento.
+
+Nenhuma regra de negócio deverá ficar dentro do código específico de um gateway.
+
+Toda integração deverá passar por uma camada centralizada.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Criar cobranças.
+
+✓ Receber confirmações de pagamento.
+
+✓ Atualizar automaticamente assinaturas.
+
+✓ Processar renovações.
+
+✓ Processar cancelamentos.
+
+✓ Processar reembolsos.
+
+✓ Registrar eventos financeiros.
+
+✓ Trabalhar com múltiplos gateways simultaneamente.
+
+✓ Permitir troca futura de gateway sem necessidade de refatoração.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Gateway financeiro NÃO controla assinaturas.
+
+Gateway apenas informa eventos financeiros.
+
+O Sistema de Assinaturas continuará sendo o responsável por decidir:
+
+• plano
+
+• benefícios
+
+• permissões
+
+• expiração
+
+• renovação
+
+O Payment Engine apenas comunica eventos.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário escolhe plano
+
+↓
+
+Sistema de Assinaturas cria assinatura
+
+↓
+
+Payment Engine cria cobrança
+
+↓
+
+Gateway financeiro
+
+↓
+
+Pagamento aprovado
+
+↓
+
+Webhook
+
+↓
+
+Payment Engine
+
+↓
+
+Sistema de Assinaturas
+
+↓
+
+Atualizar assinatura
+
+↓
+
+Authorization
+
+↓
+
+Content Access Engine
+
+↓
+
+Conteúdo liberado
+
+--------------------------------------------------------------------------------------------------------
+
+# GATEWAYS SUPORTADOS
+
+Preparar arquitetura para:
+
+Stripe
+
+Mercado Pago
+
+Asaas
+
+PayPal
+
+Google Pay
+
+Apple Pay
+
+PIX
+
+Cartão
+
+Boleto
+
+Transferência Bancária
+
+Novos gateways deverão poder ser adicionados sem alterar a arquitetura.
+
+--------------------------------------------------------------------------------------------------------
+
+# MÉTODOS DE PAGAMENTO
+
+Preparar estrutura para:
+
+PIX
+
+Cartão de Crédito
+
+Cartão de Débito
+
+Boleto
+
+Carteiras Digitais
+
+Transferência Bancária
+
+Assinatura Recorrente
+
+Pagamento Único
+
+--------------------------------------------------------------------------------------------------------
+
+# STATUS DE PAGAMENTO
+
+Criar estrutura para:
+
+pending
+
+processing
+
+approved
+
+authorized
+
+paid
+
+cancelled
+
+refunded
+
+partiallyRefunded
+
+expired
+
+chargeback
+
+failed
+
+--------------------------------------------------------------------------------------------------------
+
+# WEBHOOK ENGINE
+
+Criar módulo responsável por receber eventos dos gateways.
+
+Exemplos
+
+Pagamento aprovado
+
+Pagamento recusado
+
+Estorno
+
+Chargeback
+
+Renovação
+
+Cancelamento
+
+Webhook inválido
+
+Todos deverão ser tratados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PAYMENT ENGINE
+
+Criar camada única.
+
+Nenhum gateway poderá alterar diretamente o Firestore.
+
+Fluxo
+
+Gateway
+
+↓
+
+Webhook
+
+↓
+
+Payment Engine
+
+↓
+
+Validação
+
+↓
+
+Sistema de Assinaturas
+
+↓
+
+Atualizar usuário
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+payments
+
+paymentHistory
+
+paymentEvents
+
+paymentMethods
+
+paymentProviders
+
+invoices
+
+refunds
+
+webhooks
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO PAGAMENTO
+
+paymentId
+
+subscriptionId
+
+userId
+
+provider
+
+providerPaymentId
+
+amount
+
+currency
+
+status
+
+paymentMethod
+
+createdAt
+
+paidAt
+
+refundedAt
+
+invoiceId
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# FATURAS
+
+Preparar estrutura para:
+
+invoiceId
+
+number
+
+status
+
+issueDate
+
+dueDate
+
+paidDate
+
+amount
+
+currency
+
+pdf
+
+--------------------------------------------------------------------------------------------------------
+
+# REEMBOLSOS
+
+Criar estrutura para:
+
+refundId
+
+paymentId
+
+reason
+
+status
+
+requestedAt
+
+processedAt
+
+amount
+
+--------------------------------------------------------------------------------------------------------
+
+# MOEDAS
+
+Preparar estrutura para:
+
+BRL
+
+USD
+
+EUR
+
+GBP
+
+Sem limitar futuras moedas.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/payments/
+
+payment-engine.js
+
+payment-service.js
+
+payment-manager.js
+
+payment-events.js
+
+payment-cache.js
+
+payment-history.js
+
+payment-validator.js
+
+gateway-manager.js
+
+invoice-manager.js
+
+refund-manager.js
+
+webhook-handler.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+subscription-service.js
+
+subscription-manager.js
+
+authorization.js
+
+content-access.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca confiar em respostas do navegador.
+
+Toda confirmação deverá ocorrer via Webhook.
+
+Validar assinatura digital dos Webhooks.
+
+Nunca atualizar assinatura diretamente pelo cliente.
+
+Nunca expor chaves privadas.
+
+Preparar utilização de variáveis de ambiente.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Gateways integrados.
+
+Eventos processados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Pagamento aprovado.
+
+Pagamento recusado.
+
+PIX.
+
+Cartão.
+
+Boleto.
+
+Renovação.
+
+Cancelamento.
+
+Webhook.
+
+Reembolso.
+
+Chargeback.
+
+Falha de comunicação.
+
+Timeout.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando
+
+✓ Payment Engine implementado.
+
+✓ Sistema desacoplado.
+
+✓ Webhooks funcionando.
+
+✓ Assinaturas atualizadas automaticamente.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para:
+
+Dashboard Financeiro.
+
+Relatórios.
+
+Controle de receitas.
+
+Métricas de assinaturas.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em gateways de pagamento, Firebase, Firestore, Webhooks, JavaScript moderno e arquitetura modular.
+
+Sua tarefa será implementar integralmente a Fase 8 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 7;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Payment Engine totalmente desacoplado do Sistema de Assinaturas, permitindo integração com múltiplos gateways financeiros.
+
+Regras obrigatórias:
+
+• nunca implementar lógica de assinaturas dentro do gateway;
+• toda comunicação deverá passar pelo Payment Engine;
+• validar todos os Webhooks;
+• utilizar variáveis de ambiente para credenciais;
+• manter arquitetura modular;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar o Motor de Pagamentos;
+• preparar integração com Stripe, Mercado Pago, Asaas, PayPal e futuros gateways;
+• manter compatibilidade total com todas as fases anteriores;
+• não implementar Dashboard Financeiro nesta fase.
+
+# FIM DA FASE 8
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 9 - PORTAL DO USUÁRIO (USER DASHBOARD)
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 8, o sistema já possui infraestrutura completa para autenticação, perfis, favoritos, histórico, permissões, conteúdo Premium, assinaturas e pagamentos.
+
+Nesta fase será desenvolvido o Portal do Usuário.
+
+O Portal será a área central onde o usuário poderá visualizar e gerenciar todas as informações relacionadas à sua conta.
+
+Todo o conteúdo deverá ser carregado dinamicamente através dos serviços já implementados nas fases anteriores.
+
+Nenhuma regra de negócio deverá ser implementada diretamente na interface.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Exibir painel inicial do usuário.
+
+✓ Exibir informações do perfil.
+
+✓ Exibir plano atual.
+
+✓ Exibir status da assinatura.
+
+✓ Exibir estatísticas pessoais.
+
+✓ Exibir favoritos recentes.
+
+✓ Exibir histórico recente.
+
+✓ Exibir progresso futuro dos cursos.
+
+✓ Exibir notificações.
+
+✓ Exibir atalhos rápidos.
+
+✓ Exibir configurações rápidas.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O Portal deverá ser apenas uma camada de apresentação.
+
+Nenhum processamento deverá ocorrer diretamente no HTML.
+
+Todos os dados deverão ser obtidos através dos módulos desenvolvidos anteriormente.
+
+O Portal não poderá acessar diretamente:
+
+Firestore
+
+Authentication
+
+Payments
+
+Subscriptions
+
+Authorization
+
+Sempre utilizar as APIs oficiais.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário realiza login
+
+↓
+
+Session
+
+↓
+
+User Profile
+
+↓
+
+Authorization
+
+↓
+
+Subscriptions
+
+↓
+
+Content Access
+
+↓
+
+Portal
+
+↓
+
+Carregar Widgets
+
+↓
+
+Atualizar Interface
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO PORTAL
+
+Criar estrutura preparada para:
+
+Dashboard
+
+Meu Perfil
+
+Minha Assinatura
+
+Meus Favoritos
+
+Meu Histórico
+
+Meus Downloads
+
+Meus Cursos
+
+Meus Certificados
+
+Configurações
+
+Segurança
+
+Notificações
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINA PRINCIPAL
+
+Criar
+
+conta/dashboard.html
+
+Esta será a página inicial após o login.
+
+--------------------------------------------------------------------------------------------------------
+
+# WIDGETS
+
+Criar widgets independentes.
+
+Perfil
+
+Plano
+
+Assinatura
+
+Favoritos
+
+Histórico
+
+Cursos
+
+Downloads
+
+Certificados
+
+Notificações
+
+Últimos acessos
+
+Todos deverão ser independentes.
+
+--------------------------------------------------------------------------------------------------------
+
+# PAINEL DE PERFIL
+
+Exibir
+
+Foto
+
+Nome
+
+Email
+
+Idioma
+
+País
+
+Data de cadastro
+
+Último acesso
+
+Provider
+
+Plano
+
+Status
+
+--------------------------------------------------------------------------------------------------------
+
+# PAINEL DE FAVORITOS
+
+Exibir
+
+Últimos favoritos.
+
+Quantidade.
+
+Botão
+
+Ver todos.
+
+--------------------------------------------------------------------------------------------------------
+
+# PAINEL DE HISTÓRICO
+
+Exibir
+
+Últimas páginas visitadas.
+
+Tempo de utilização.
+
+Mais acessados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PAINEL DE ASSINATURA
+
+Exibir
+
+Plano atual.
+
+Status.
+
+Data de renovação.
+
+Benefícios.
+
+Botão alterar plano.
+
+--------------------------------------------------------------------------------------------------------
+
+# PAINEL DE NOTIFICAÇÕES
+
+Preparar estrutura para:
+
+Avisos.
+
+Novidades.
+
+Atualizações.
+
+Promoções.
+
+Cursos.
+
+Mensagens administrativas.
+
+--------------------------------------------------------------------------------------------------------
+
+# CONFIGURAÇÕES RÁPIDAS
+
+Idioma
+
+Tema
+
+Newsletter
+
+Cookies
+
+Acessibilidade
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD PERSONALIZADO
+
+Preparar arquitetura para permitir que o usuário personalize:
+
+Ordem dos widgets.
+
+Widgets visíveis.
+
+Tema.
+
+Layout.
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTATÍSTICAS
+
+Exibir
+
+Tempo utilizando o sistema.
+
+Quantidade de acessos.
+
+Favoritos.
+
+Downloads.
+
+Cursos concluídos.
+
+Certificados.
+
+Preparar expansão futura.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/dashboard/
+
+dashboard-service.js
+
+dashboard-manager.js
+
+dashboard-widgets.js
+
+dashboard-layout.js
+
+dashboard-cache.js
+
+dashboard-events.js
+
+dashboard-utils.js
+
+dashboard-statistics.js
+
+notification-service.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+session.js
+
+user-profile.js
+
+global-scripts.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache específico do dashboard.
+
+Carregar dados apenas quando necessário.
+
+Atualizar automaticamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Toda informação deverá ser carregada utilizando:
+
+UID autenticado.
+
+Authorization.
+
+Content Access Engine.
+
+Nunca permitir acesso ao painel de outro usuário.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Widgets implementados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Primeiro login.
+
+Atualização do dashboard.
+
+Atualização automática.
+
+Mudança de plano.
+
+Atualização dos favoritos.
+
+Atualização do histórico.
+
+Mudança de idioma.
+
+Logout.
+
+Novo Login.
+
+Nenhum erro deverá existir.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Dashboard funcional.
+
+✓ Widgets funcionando.
+
+✓ Atualização automática.
+
+✓ Interface integrada.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para:
+
+Sistema de Cursos.
+
+Sistema de Certificados.
+
+Biblioteca Premium.
+
+Downloads Premium.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em arquitetura modular, JavaScript moderno, Firebase Authentication, Firestore e desenvolvimento de dashboards para aplicações escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 9 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 8;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Portal do Usuário totalmente modular, utilizando exclusivamente as APIs já desenvolvidas nas fases anteriores.
+
+Regras obrigatórias:
+
+• nunca acessar Firestore diretamente pelo Dashboard;
+• utilizar exclusivamente os serviços existentes;
+• criar widgets independentes e reutilizáveis;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar dashboard.html;
+• integrar Perfil, Assinatura, Favoritos, Histórico e Notificações;
+• preparar o Portal para futuras integrações com Cursos, Certificados, Biblioteca Premium e Downloads;
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 9
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 10 - SISTEMA DE CURSOS E TRILHAS DE APRENDIZAGEM
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 9, o sistema já possui infraestrutura completa de usuários, autenticação, permissões, assinaturas, pagamentos e Portal do Usuário.
+
+Nesta fase será desenvolvido o Sistema de Cursos.
+
+O objetivo será criar uma plataforma completa de ensino integrada ao Sistema de Contas.
+
+Esta fase não implementará certificados.
+
+A emissão de certificados será realizada na Fase 11.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Criar cursos.
+
+✓ Organizar módulos.
+
+✓ Organizar aulas.
+
+✓ Organizar capítulos.
+
+✓ Controlar progresso do aluno.
+
+✓ Controlar tempo estudado.
+
+✓ Salvar automaticamente o progresso.
+
+✓ Permitir continuar exatamente do último ponto.
+
+✓ Controlar desbloqueio de módulos.
+
+✓ Disponibilizar materiais complementares.
+
+✓ Integrar totalmente com o Portal do Usuário.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O Curso pertence ao sistema.
+
+O progresso pertence ao usuário.
+
+O conteúdo nunca deverá ser alterado diretamente pelo progresso.
+
+A arquitetura deverá separar completamente:
+
+Conteúdo
+
+↓
+
+Progresso
+
+↓
+
+Permissões
+
+↓
+
+Interface
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DOS CURSOS
+
+Criar estrutura preparada para:
+
+Curso
+
+↓
+
+Módulos
+
+↓
+
+Capítulos
+
+↓
+
+Aulas
+
+↓
+
+Materiais
+
+↓
+
+Avaliações (futura)
+
+↓
+
+Certificados (futura)
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE CURSOS
+
+Preparar arquitetura para:
+
+Cursos Gratuitos
+
+Cursos Premium
+
+Cursos Institucionais
+
+Cursos Exclusivos
+
+Cursos Temporários
+
+Cursos em Pré-lançamento
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+Criar coleções
+
+courses
+
+courseModules
+
+courseLessons
+
+courseMaterials
+
+courseProgress
+
+courseBookmarks
+
+courseStatistics
+
+courseRatings
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DOS CURSOS
+
+Cada curso deverá possuir
+
+courseId
+
+title
+
+description
+
+category
+
+subcategory
+
+language
+
+difficulty
+
+estimatedTime
+
+thumbnail
+
+coverImage
+
+status
+
+visibility
+
+requiredPlan
+
+requiredRole
+
+requiredPermissions
+
+tags
+
+author
+
+createdAt
+
+updatedAt
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DOS MÓDULOS
+
+moduleId
+
+courseId
+
+title
+
+description
+
+order
+
+estimatedTime
+
+status
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DAS AULAS
+
+lessonId
+
+moduleId
+
+title
+
+description
+
+video
+
+text
+
+attachments
+
+duration
+
+order
+
+status
+
+--------------------------------------------------------------------------------------------------------
+
+# PROGRESSO
+
+Cada usuário possuirá
+
+courseId
+
+moduleId
+
+lessonId
+
+percentage
+
+completedLessons
+
+completedModules
+
+lastAccess
+
+studyTime
+
+bookmarks
+
+notes
+
+status
+
+--------------------------------------------------------------------------------------------------------
+
+# FUNCIONALIDADES
+
+Implementar
+
+Continuar estudando
+
+↓
+
+Salvar automaticamente
+
+↓
+
+Última aula
+
+↓
+
+Último módulo
+
+↓
+
+Último minuto assistido
+
+↓
+
+Tempo estudado
+
+↓
+
+Progresso total
+
+--------------------------------------------------------------------------------------------------------
+
+# MATERIAIS
+
+Preparar suporte para
+
+PDF
+
+Vídeos
+
+Imagens
+
+Áudios
+
+Links
+
+Downloads
+
+Apresentações
+
+Arquivos ZIP
+
+--------------------------------------------------------------------------------------------------------
+
+# FAVORITOS
+
+Integrar com Fase 3.
+
+Permitir favoritar
+
+Curso
+
+Módulo
+
+Aula
+
+--------------------------------------------------------------------------------------------------------
+
+# HISTÓRICO
+
+Integrar com Fase 4.
+
+Registrar
+
+Curso iniciado
+
+Curso concluído
+
+Aula iniciada
+
+Aula concluída
+
+Tempo estudado
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTENT ACCESS ENGINE
+
+Integrar completamente.
+
+O sistema deverá respeitar
+
+Plano
+
+Permissões
+
+Licenças
+
+Role
+
+Feature Flags
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD
+
+Atualizar automaticamente
+
+Cursos iniciados
+
+Cursos concluídos
+
+Última aula
+
+Tempo estudado
+
+Progresso geral
+
+--------------------------------------------------------------------------------------------------------
+
+# PESQUISA
+
+Criar pesquisa para
+
+Cursos
+
+Módulos
+
+Aulas
+
+Materiais
+
+Categorias
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Criar filtros
+
+Categoria
+
+Idioma
+
+Nível
+
+Tempo
+
+Plano
+
+Status
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache inteligente.
+
+Nunca carregar novamente conteúdos já carregados.
+
+Atualizar somente quando necessário.
+
+--------------------------------------------------------------------------------------------------------
+
+# OFFLINE
+
+Preparar arquitetura para futura utilização offline.
+
+Não implementar nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/courses/
+
+course-service.js
+
+course-manager.js
+
+course-progress.js
+
+course-player.js
+
+course-cache.js
+
+course-events.js
+
+course-search.js
+
+course-filters.js
+
+course-bookmarks.js
+
+course-statistics.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+dashboard-service.js
+
+content-access.js
+
+authorization.js
+
+global-scripts.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca permitir acesso a cursos Premium sem autorização.
+
+Nunca confiar na interface.
+
+Toda validação deverá utilizar
+
+Authorization
+
+Subscription
+
+Content Access Engine
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Cursos cadastrados.
+
+Módulos cadastrados.
+
+Aulas cadastradas.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Curso Gratuito.
+
+Curso Premium.
+
+Troca de módulo.
+
+Troca de aula.
+
+Salvar progresso.
+
+Continuar estudando.
+
+Atualização automática.
+
+Mudança de plano.
+
+Logout.
+
+Novo Login.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando
+
+✓ Sistema de Cursos funcionando.
+
+✓ Progresso salvo automaticamente.
+
+✓ Dashboard atualizado.
+
+✓ Firestore sincronizado.
+
+✓ Favoritos integrados.
+
+✓ Histórico integrado.
+
+✓ Content Access funcionando.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Sistema de Certificados.
+
+Sem implementar certificados nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em plataformas de ensino, Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 10 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 9;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Sistema de Cursos totalmente modular, desacoplado da interface, integrado ao Portal do Usuário e compatível com toda a infraestrutura desenvolvida nas fases anteriores.
+
+Regras obrigatórias:
+
+• não implementar certificados nesta fase;
+• utilizar exclusivamente os módulos existentes para autenticação, autorização e controle de acesso;
+• manter arquitetura modular;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar toda a infraestrutura dos cursos;
+• implementar controle de progresso;
+• implementar módulos, aulas e materiais;
+• integrar Favoritos, Histórico, Dashboard e Content Access Engine;
+• preparar a arquitetura para a Fase 11 (Sistema de Certificados);
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 10
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 11 - SISTEMA DE CERTIFICADOS
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 10, o sistema já possui uma plataforma completa de cursos e controle de progresso.
+
+Nesta fase será desenvolvido o Sistema de Certificados.
+
+O objetivo será criar uma infraestrutura robusta para emissão, armazenamento, validação e gerenciamento de certificados digitais.
+
+O sistema deverá ser totalmente modular e preparado para suportar milhares de certificados emitidos.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Emitir certificados automaticamente.
+
+✓ Emitir certificados manualmente.
+
+✓ Gerar número único para cada certificado.
+
+✓ Gerar código único de validação.
+
+✓ Gerar QR Code.
+
+✓ Disponibilizar página pública de validação.
+
+✓ Permitir download em PDF.
+
+✓ Armazenar histórico completo.
+
+✓ Integrar certificados ao Portal do Usuário.
+
+✓ Preparar arquitetura para assinatura digital.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O certificado pertence ao usuário.
+
+O modelo do certificado pertence ao sistema.
+
+A validação pertence ao Sistema de Certificados.
+
+Nenhuma outra parte do sistema deverá emitir certificados diretamente.
+
+Toda emissão deverá passar pelo Certificate Engine.
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE CERTIFICADOS
+
+Preparar arquitetura para:
+
+Curso
+
+Treinamento
+
+Congresso
+
+Evento
+
+Workshop
+
+Webinar
+
+Capacitação
+
+Simulado
+
+Biblioteca
+
+Institucional
+
+Todos deverão utilizar a mesma infraestrutura.
+
+--------------------------------------------------------------------------------------------------------
+
+# FLUXO ESPERADO
+
+Usuário conclui curso
+
+↓
+
+Sistema verifica critérios
+
+↓
+
+Curso concluído?
+
+↓
+
+SIM
+
+↓
+
+Certificate Engine
+
+↓
+
+Gerar certificado
+
+↓
+
+Gerar código único
+
+↓
+
+Gerar QR Code
+
+↓
+
+Salvar Firestore
+
+↓
+
+Disponibilizar PDF
+
+↓
+
+Atualizar Dashboard
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+certificates
+
+certificateTemplates
+
+certificateHistory
+
+certificateEvents
+
+certificateValidations
+
+certificateDownloads
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO CERTIFICADO
+
+Cada certificado deverá conter
+
+certificateId
+
+certificateNumber
+
+validationCode
+
+userId
+
+courseId
+
+title
+
+description
+
+issuer
+
+issueDate
+
+completionDate
+
+workload
+
+language
+
+status
+
+pdfUrl
+
+qrCode
+
+templateId
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# NUMERAÇÃO
+
+Cada certificado deverá possuir
+
+Número único
+
+Nunca reutilizado
+
+Nunca alterado
+
+Nunca duplicado
+
+--------------------------------------------------------------------------------------------------------
+
+# QR CODE
+
+Gerar QR Code automaticamente.
+
+O QR Code deverá direcionar para
+
+certificados/validar.html
+
+ou
+
+/verificar-certificado.html
+
+A página deverá validar o certificado em tempo real.
+
+--------------------------------------------------------------------------------------------------------
+
+# PÁGINA DE VALIDAÇÃO
+
+Criar página pública
+
+validar-certificado.html
+
+Permitir
+
+Pesquisar pelo código.
+
+Pesquisar pelo número.
+
+Ler QR Code.
+
+Informar
+
+Válido
+
+Inválido
+
+Revogado
+
+Expirado
+
+--------------------------------------------------------------------------------------------------------
+
+# DOWNLOAD
+
+Permitir download em
+
+PDF
+
+Preparar estrutura para
+
+PDF/A
+
+Assinatura Digital
+
+Marca d'água
+
+--------------------------------------------------------------------------------------------------------
+
+# MODELOS
+
+Criar sistema de templates.
+
+Cada certificado poderá possuir layout próprio.
+
+Exemplo
+
+Cursos
+
+Eventos
+
+Congressos
+
+Institucional
+
+Sem necessidade de alterar código.
+
+--------------------------------------------------------------------------------------------------------
+
+# ASSINATURA DIGITAL
+
+Preparar infraestrutura.
+
+Não implementar nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD
+
+Atualizar automaticamente
+
+Quantidade de certificados.
+
+Último certificado.
+
+Downloads.
+
+Validações.
+
+--------------------------------------------------------------------------------------------------------
+
+# HISTÓRICO
+
+Registrar
+
+Emissão.
+
+Download.
+
+Reemissão.
+
+Revogação.
+
+Validação.
+
+--------------------------------------------------------------------------------------------------------
+
+# PESQUISA
+
+Criar pesquisa por
+
+Nome.
+
+Número.
+
+Código.
+
+Curso.
+
+Data.
+
+Idioma.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Criar filtros
+
+Ano.
+
+Curso.
+
+Idioma.
+
+Status.
+
+Tipo.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/certificates/
+
+certificate-engine.js
+
+certificate-service.js
+
+certificate-manager.js
+
+certificate-generator.js
+
+certificate-validator.js
+
+certificate-cache.js
+
+certificate-events.js
+
+certificate-history.js
+
+certificate-template.js
+
+certificate-pdf.js
+
+qrcode-generator.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+course-progress.js
+
+dashboard-service.js
+
+content-access.js
+
+authorization.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca permitir geração manual sem permissão.
+
+Nunca permitir alteração direta dos certificados.
+
+Toda validação deverá ocorrer utilizando
+
+Certificate Engine.
+
+Nunca confiar apenas no PDF.
+
+A validação oficial será sempre realizada pela página pública.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Certificados emitidos.
+
+Modelos criados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Emitir certificado.
+
+Emitir novamente.
+
+Download PDF.
+
+QR Code.
+
+Validação.
+
+Pesquisa.
+
+Filtros.
+
+Integração Dashboard.
+
+Integração Cursos.
+
+Integração Portal.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Sistema de Certificados funcionando.
+
+✓ PDF funcionando.
+
+✓ QR Code funcionando.
+
+✓ Página pública funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Dashboard atualizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Biblioteca Premium.
+
+Downloads.
+
+Acervo do usuário.
+
+Gerenciamento de documentos.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em geração de certificados digitais, Firebase Authentication, Firestore, geração de PDFs, QR Code, arquitetura modular e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 11 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 10;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Sistema de Certificados totalmente modular, integrado aos Cursos e ao Portal do Usuário, permitindo emissão, armazenamento, validação e download de certificados.
+
+Regras obrigatórias:
+
+• toda emissão deverá ocorrer exclusivamente pelo Certificate Engine;
+• criar numeração única para todos os certificados;
+• gerar QR Code automaticamente;
+• criar página pública de validação;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar toda a infraestrutura do Sistema de Certificados;
+• integrar Cursos, Dashboard e Portal do Usuário;
+• preparar arquitetura para assinatura digital futura;
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 11
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 12 - BIBLIOTECA PREMIUM E GERENCIADOR DE DOCUMENTOS
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 11, o sistema já possui infraestrutura completa para autenticação, usuários, permissões, cursos e certificados.
+
+Nesta fase será implementado o Sistema de Biblioteca Premium.
+
+Seu objetivo será transformar o acervo técnico do projeto em uma biblioteca digital organizada, pesquisável, sincronizada e integrada ao Sistema de Contas.
+
+O sistema deverá controlar acesso, downloads, organização do acervo e biblioteca pessoal de cada usuário.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Organizar toda a biblioteca digital.
+
+✓ Controlar documentos gratuitos.
+
+✓ Controlar documentos Premium.
+
+✓ Gerenciar downloads.
+
+✓ Criar biblioteca pessoal do usuário.
+
+✓ Sincronizar favoritos da biblioteca.
+
+✓ Sincronizar histórico de leitura.
+
+✓ Controlar licenças de documentos.
+
+✓ Disponibilizar pesquisa avançada.
+
+✓ Disponibilizar filtros inteligentes.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Os documentos pertencem ao sistema.
+
+A biblioteca pessoal pertence ao usuário.
+
+Nenhum documento deverá controlar permissões diretamente.
+
+Todo controle deverá utilizar exclusivamente:
+
+Authorization
+
+Content Access Engine
+
+Subscription
+
+License Engine
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE DOCUMENTOS
+
+Preparar arquitetura para:
+
+Protocolos
+
+POPs
+
+Livros
+
+Artigos
+
+Resoluções
+
+Portarias
+
+Diretrizes
+
+Manuais
+
+Apostilas
+
+E-books
+
+Infográficos
+
+Fluxogramas
+
+Vídeos
+
+Áudios
+
+Apresentações
+
+Arquivos ZIP
+
+Modelos
+
+Planilhas
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO FIRESTORE
+
+Criar coleções
+
+library
+
+libraryCategories
+
+libraryTags
+
+libraryDownloads
+
+libraryHistory
+
+libraryFavorites
+
+libraryBookmarks
+
+libraryRatings
+
+libraryCollections
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DOS DOCUMENTOS
+
+Cada documento deverá conter
+
+documentId
+
+title
+
+description
+
+category
+
+subcategory
+
+language
+
+authors
+
+institution
+
+year
+
+edition
+
+version
+
+keywords
+
+coverImage
+
+thumbnail
+
+fileType
+
+fileSize
+
+pages
+
+isbn
+
+doi
+
+license
+
+requiredPlan
+
+requiredRole
+
+requiredPermissions
+
+visibility
+
+status
+
+createdAt
+
+updatedAt
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# CATEGORIAS
+
+Criar sistema hierárquico.
+
+Exemplo
+
+Urgência
+
+↓
+
+Protocolos
+
+↓
+
+POP
+
+↓
+
+Emergência
+
+A arquitetura deverá permitir níveis ilimitados.
+
+--------------------------------------------------------------------------------------------------------
+
+# BIBLIOTECA DO USUÁRIO
+
+Cada usuário possuirá
+
+Documentos Favoritos
+
+Documentos Baixados
+
+Documentos Recentes
+
+Coleções
+
+Histórico
+
+Marcadores
+
+Anotações
+
+--------------------------------------------------------------------------------------------------------
+
+# DOWNLOAD MANAGER
+
+Criar sistema de downloads.
+
+Registrar
+
+Download iniciado.
+
+Download concluído.
+
+Falha.
+
+Cancelamento.
+
+Quantidade de downloads.
+
+Último download.
+
+--------------------------------------------------------------------------------------------------------
+
+# COLEÇÕES
+
+Permitir que o usuário crie coleções.
+
+Exemplo
+
+UTI
+
+Urgência
+
+APH
+
+Pediatria
+
+Protocolos
+
+Estudos
+
+Favoritos
+
+Cada coleção poderá conter documentos ilimitados.
+
+--------------------------------------------------------------------------------------------------------
+
+# MARCADORES
+
+Permitir
+
+Salvar página.
+
+Salvar posição.
+
+Salvar capítulo.
+
+Salvar observações.
+
+Preparar sincronização entre dispositivos.
+
+--------------------------------------------------------------------------------------------------------
+
+# ANOTAÇÕES
+
+Preparar estrutura para
+
+Notas.
+
+Comentários.
+
+Observações.
+
+Destaques.
+
+Não implementar colaboração nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PESQUISA
+
+Criar pesquisa avançada.
+
+Pesquisar por
+
+Título
+
+Autor
+
+Instituição
+
+Ano
+
+Categoria
+
+Palavras-chave
+
+Idioma
+
+ISBN
+
+DOI
+
+Tipo
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Criar filtros
+
+Categoria
+
+Subcategoria
+
+Idioma
+
+Ano
+
+Instituição
+
+Tipo
+
+Plano
+
+Autor
+
+Quantidade de páginas
+
+Formato
+
+--------------------------------------------------------------------------------------------------------
+
+# RANKING
+
+Preparar estrutura para
+
+Mais baixados
+
+Mais lidos
+
+Mais favoritados
+
+Mais recentes
+
+Melhor avaliados
+
+--------------------------------------------------------------------------------------------------------
+
+# FAVORITOS
+
+Integrar completamente com Fase 3.
+
+Permitir favoritar qualquer documento.
+
+--------------------------------------------------------------------------------------------------------
+
+# HISTÓRICO
+
+Integrar completamente com Fase 4.
+
+Registrar
+
+Leitura
+
+Download
+
+Pesquisa
+
+Favorito
+
+Coleção
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTENT ACCESS ENGINE
+
+Integrar completamente.
+
+Controlar
+
+Downloads Premium
+
+Biblioteca Premium
+
+Documentos exclusivos
+
+Licenças
+
+Planos
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD
+
+Atualizar automaticamente
+
+Últimos downloads
+
+Últimos documentos
+
+Coleções
+
+Favoritos
+
+Leituras recentes
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache inteligente.
+
+Carregar documentos progressivamente.
+
+Preparar paginação.
+
+Preparar Lazy Loading.
+
+Nunca consultar Firestore repetidamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# OFFLINE
+
+Preparar infraestrutura para
+
+Sincronização futura.
+
+Leitura offline.
+
+Downloads offline.
+
+Não implementar nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/library/
+
+library-service.js
+
+library-manager.js
+
+library-search.js
+
+library-filters.js
+
+library-downloads.js
+
+library-cache.js
+
+library-events.js
+
+library-history.js
+
+library-bookmarks.js
+
+library-notes.js
+
+collection-manager.js
+
+download-manager.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+dashboard-service.js
+
+content-access.js
+
+authorization.js
+
+subscription-service.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca permitir download apenas através da interface.
+
+Todo download deverá ser validado utilizando
+
+Authorization
+
+Subscription
+
+License Engine
+
+Content Access Engine
+
+Nunca confiar na URL do arquivo.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Documentos cadastrados.
+
+Downloads.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Documento Gratuito.
+
+Documento Premium.
+
+Download.
+
+Pesquisa.
+
+Filtros.
+
+Coleções.
+
+Favoritos.
+
+Histórico.
+
+Marcadores.
+
+Mudança de plano.
+
+Logout.
+
+Novo Login.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Biblioteca funcionando.
+
+✓ Pesquisa funcionando.
+
+✓ Downloads funcionando.
+
+✓ Coleções funcionando.
+
+✓ Favoritos integrados.
+
+✓ Histórico integrado.
+
+✓ Dashboard atualizado.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Sistema de Notificações.
+
+Comunicação.
+
+Mensagens.
+
+Avisos.
+
+Emails.
+
+Push Notifications.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em bibliotecas digitais, gerenciamento de documentos, Firebase Authentication, Firestore, JavaScript moderno e arquitetura modular.
+
+Sua tarefa será implementar integralmente a Fase 12 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 11;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar uma Biblioteca Premium totalmente modular, integrada ao Sistema de Contas e preparada para gerenciar milhares de documentos técnicos.
+
+Regras obrigatórias:
+
+• utilizar exclusivamente os módulos existentes para autenticação, autorização e controle de acesso;
+• nunca permitir downloads sem validação pelo Content Access Engine;
+• criar pesquisa avançada;
+• criar sistema de coleções pessoais;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar toda a infraestrutura da Biblioteca Premium;
+• integrar Downloads, Favoritos, Histórico e Dashboard;
+• preparar a arquitetura para o Sistema de Notificações da Fase 13;
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 12
+
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 13 - CENTRAL DE NOTIFICAÇÕES E COMUNICAÇÃO
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 12, o sistema já possui usuários, assinaturas, biblioteca, cursos e certificados.
+
+Nesta fase será implementada a Central de Notificações e Comunicação.
+
+O objetivo será criar um sistema único responsável por toda comunicação entre o projeto Calculadoras de Enfermagem e seus usuários.
+
+Nenhum módulo do sistema deverá enviar mensagens diretamente.
+
+Toda comunicação deverá passar exclusivamente pela Central de Notificações.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Criar notificações.
+
+✓ Exibir notificações em tempo real.
+
+✓ Organizar notificações por categoria.
+
+✓ Controlar notificações lidas.
+
+✓ Controlar notificações não lidas.
+
+✓ Enviar mensagens automáticas.
+
+✓ Integrar e-mails.
+
+✓ Preparar Push Notifications.
+
+✓ Preparar notificações Mobile.
+
+✓ Integrar todas as fases anteriores.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Nenhum módulo enviará notificações diretamente.
+
+Cursos
+
+Biblioteca
+
+Downloads
+
+Pagamentos
+
+Assinaturas
+
+Certificados
+
+Dashboard
+
+Todos deverão solicitar notificações através da Notification Engine.
+
+A Notification Engine será responsável por decidir:
+
+Quando enviar.
+
+Como enviar.
+
+Para quem enviar.
+
+--------------------------------------------------------------------------------------------------------
+
+# TIPOS DE NOTIFICAÇÕES
+
+Preparar estrutura para:
+
+Sistema
+
+Cursos
+
+Biblioteca
+
+Downloads
+
+Certificados
+
+Pagamentos
+
+Assinaturas
+
+Promoções
+
+Atualizações
+
+Segurança
+
+Administrativas
+
+Comunidade
+
+IA
+
+--------------------------------------------------------------------------------------------------------
+
+# CANAIS
+
+Preparar arquitetura para:
+
+Notificações internas
+
+E-mail
+
+Push Notification
+
+Web Push
+
+SMS (futuro)
+
+WhatsApp (futuro)
+
+Microsoft Teams (futuro)
+
+Slack (futuro)
+
+--------------------------------------------------------------------------------------------------------
+
+# PRIORIDADE
+
+Criar níveis
+
+Baixa
+
+Normal
+
+Alta
+
+Urgente
+
+Crítica
+
+Cada prioridade poderá possuir comportamento diferente.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+notifications
+
+notificationHistory
+
+notificationTemplates
+
+notificationPreferences
+
+notificationEvents
+
+notificationQueue
+
+notificationLogs
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DA NOTIFICAÇÃO
+
+notificationId
+
+userId
+
+type
+
+title
+
+message
+
+category
+
+priority
+
+icon
+
+url
+
+status
+
+read
+
+createdAt
+
+readAt
+
+expiresAt
+
+sender
+
+metadata
+
+--------------------------------------------------------------------------------------------------------
+
+# STATUS
+
+Preparar estrutura para
+
+created
+
+scheduled
+
+queued
+
+sent
+
+delivered
+
+read
+
+dismissed
+
+expired
+
+failed
+
+--------------------------------------------------------------------------------------------------------
+
+# FILAS
+
+Criar sistema de filas.
+
+Preparar para envio em massa.
+
+Evitar sobrecarga.
+
+Permitir reenvio.
+
+Registrar falhas.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREFERÊNCIAS DO USUÁRIO
+
+Cada usuário poderá configurar
+
+Receber novidades
+
+Receber promoções
+
+Receber cursos
+
+Receber certificados
+
+Receber biblioteca
+
+Receber atualizações
+
+Receber emails
+
+Receber push
+
+Receber notificações administrativas
+
+--------------------------------------------------------------------------------------------------------
+
+# CENTRAL DE NOTIFICAÇÕES
+
+Criar página
+
+conta/notificacoes.html
+
+Permitir
+
+Visualizar notificações
+
+Pesquisar
+
+Filtrar
+
+Ordenar
+
+Marcar como lida
+
+Marcar todas como lidas
+
+Excluir
+
+Excluir todas
+
+--------------------------------------------------------------------------------------------------------
+
+# EMAILS
+
+Integrar com arquitetura preparada anteriormente.
+
+Não utilizar permanentemente os modelos padrão do Firebase.
+
+Toda comunicação futura deverá utilizar templates próprios do projeto.
+
+Preparar
+
+Confirmação
+
+Recuperação
+
+Boas-vindas
+
+Pagamento
+
+Assinatura
+
+Cursos
+
+Certificados
+
+--------------------------------------------------------------------------------------------------------
+
+# TEMPLATES
+
+Criar sistema de templates.
+
+Cada categoria poderá possuir layout próprio.
+
+Preparar internacionalização para os 18 idiomas do projeto.
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD
+
+Atualizar automaticamente
+
+Quantidade de notificações.
+
+Mensagens não lidas.
+
+Avisos importantes.
+
+Últimas notificações.
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache inteligente.
+
+Atualizar automaticamente.
+
+Reduzir consultas ao Firestore.
+
+--------------------------------------------------------------------------------------------------------
+
+# EVENTOS
+
+Integrar automaticamente com
+
+Cursos
+
+Biblioteca
+
+Favoritos
+
+Histórico
+
+Assinaturas
+
+Pagamentos
+
+Certificados
+
+Dashboard
+
+Toda nova funcionalidade deverá utilizar este sistema.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/notifications/
+
+notification-engine.js
+
+notification-service.js
+
+notification-manager.js
+
+notification-cache.js
+
+notification-events.js
+
+notification-queue.js
+
+notification-email.js
+
+notification-push.js
+
+notification-templates.js
+
+notification-preferences.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+dashboard-service.js
+
+subscription-service.js
+
+payment-engine.js
+
+course-service.js
+
+certificate-service.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca permitir acesso às notificações de outro usuário.
+
+Toda validação deverá utilizar
+
+UID
+
+Authorization
+
+Notification Engine
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Notificações enviadas.
+
+Eventos registrados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Nova notificação.
+
+Leitura.
+
+Exclusão.
+
+Pesquisa.
+
+Filtros.
+
+Emails.
+
+Atualização automática.
+
+Mudança de idioma.
+
+Fila.
+
+Falha de envio.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Notification Engine funcionando.
+
+✓ Central de Notificações funcionando.
+
+✓ Templates funcionando.
+
+✓ Dashboard atualizado.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Painel Administrativo.
+
+Gestão de usuários.
+
+Gestão de cursos.
+
+Gestão da biblioteca.
+
+Gestão financeira.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em sistemas de notificações, comunicação, Firebase Authentication, Firestore, JavaScript moderno e arquitetura modular.
+
+Sua tarefa será implementar integralmente a Fase 13 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 12;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar uma Central de Notificações totalmente modular, integrada a todos os módulos do sistema e preparada para múltiplos canais de comunicação.
+
+Regras obrigatórias:
+
+• nenhuma funcionalidade poderá enviar notificações diretamente;
+• toda comunicação deverá passar pela Notification Engine;
+• criar sistema de templates reutilizáveis;
+• preparar internacionalização para os 18 idiomas do projeto;
+• utilizar a arquitetura de e-mails personalizados planejada nas fases anteriores;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar Notification Engine;
+• implementar Central de Notificações;
+• integrar Dashboard, Cursos, Biblioteca, Assinaturas, Pagamentos e Certificados;
+• preparar a arquitetura para a Fase 14 (Painel Administrativo);
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 13
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 14 - ADMIN MANAGEMENT SYSTEM (PAINEL ADMINISTRATIVO)
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 13, o sistema já possui infraestrutura completa para autenticação, usuários, cursos, certificados, biblioteca, pagamentos, assinaturas e comunicação.
+
+Nesta fase será implementado o Painel Administrativo do projeto.
+
+O objetivo será centralizar toda a administração do sistema em uma única interface, permitindo gerenciamento completo da plataforma.
+
+O painel deverá ser modular, seguro e preparado para expansão futura.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Gerenciar usuários.
+
+✓ Gerenciar permissões.
+
+✓ Gerenciar papéis.
+
+✓ Gerenciar planos.
+
+✓ Gerenciar assinaturas.
+
+✓ Gerenciar pagamentos.
+
+✓ Gerenciar biblioteca.
+
+✓ Gerenciar cursos.
+
+✓ Gerenciar certificados.
+
+✓ Gerenciar notificações.
+
+✓ Visualizar auditorias.
+
+✓ Visualizar estatísticas.
+
+✓ Configurar funcionalidades.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+O Painel Administrativo será apenas uma interface.
+
+Nenhuma regra de negócio ficará no painel.
+
+Toda operação deverá utilizar exclusivamente os serviços criados nas fases anteriores.
+
+Nenhum módulo poderá ser acessado diretamente.
+
+--------------------------------------------------------------------------------------------------------
+
+# ESTRUTURA DO PAINEL
+
+Criar estrutura preparada para
+
+Dashboard Administrativo
+
+Usuários
+
+Assinaturas
+
+Pagamentos
+
+Cursos
+
+Biblioteca
+
+Certificados
+
+Downloads
+
+Notificações
+
+Relatórios
+
+Logs
+
+Auditoria
+
+Configurações
+
+Feature Flags
+
+--------------------------------------------------------------------------------------------------------
+
+# CONTROLE DE ACESSO
+
+Somente usuários autorizados poderão acessar.
+
+Papéis permitidos
+
+administrator
+
+superAdministrator
+
+Preparar suporte para
+
+editor
+
+moderator
+
+support
+
+Todos deverão utilizar o Authorization Service.
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARD ADMINISTRATIVO
+
+Criar painel principal contendo
+
+Usuários cadastrados
+
+Usuários online
+
+Assinaturas ativas
+
+Receita
+
+Downloads
+
+Cursos
+
+Certificados
+
+Notificações
+
+Erros
+
+Logs
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE USUÁRIOS
+
+Permitir
+
+Pesquisar
+
+Filtrar
+
+Visualizar
+
+Editar
+
+Alterar plano
+
+Alterar permissões
+
+Alterar papel
+
+Bloquear
+
+Desbloquear
+
+Suspender
+
+Excluir
+
+Restaurar
+
+Visualizar histórico
+
+Nunca alterar usuários diretamente no Firestore.
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE ASSINATURAS
+
+Permitir
+
+Criar
+
+Editar
+
+Cancelar
+
+Suspender
+
+Reativar
+
+Alterar plano
+
+Visualizar histórico
+
+Visualizar pagamentos
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE PAGAMENTOS
+
+Permitir
+
+Pesquisar
+
+Filtrar
+
+Visualizar
+
+Reembolsar
+
+Cancelar
+
+Visualizar Webhooks
+
+Visualizar histórico
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE CURSOS
+
+Permitir
+
+Criar
+
+Editar
+
+Duplicar
+
+Arquivar
+
+Excluir
+
+Organizar módulos
+
+Organizar aulas
+
+Atualizar materiais
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DA BIBLIOTECA
+
+Permitir
+
+Cadastrar documentos
+
+Editar
+
+Alterar categorias
+
+Alterar autores
+
+Atualizar versões
+
+Gerenciar downloads
+
+Controlar permissões
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE CERTIFICADOS
+
+Permitir
+
+Pesquisar
+
+Emitir manualmente
+
+Reemitir
+
+Revogar
+
+Validar
+
+Download
+
+Visualizar histórico
+
+--------------------------------------------------------------------------------------------------------
+
+# GERENCIAMENTO DE NOTIFICAÇÕES
+
+Permitir
+
+Criar campanhas
+
+Enviar notificações
+
+Enviar emails
+
+Agendar
+
+Cancelar
+
+Visualizar fila
+
+Visualizar entregas
+
+--------------------------------------------------------------------------------------------------------
+
+# FEATURE FLAGS
+
+Permitir ativar ou desativar
+
+Cursos
+
+Biblioteca
+
+Premium
+
+Downloads
+
+IA
+
+Comunidade
+
+Certificados
+
+Notificações
+
+Sem alterar código.
+
+--------------------------------------------------------------------------------------------------------
+
+# LOGS
+
+Visualizar
+
+Autenticação
+
+Pagamentos
+
+Cursos
+
+Downloads
+
+Biblioteca
+
+Administração
+
+Segurança
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Visualizar
+
+Alterações
+
+Usuário responsável
+
+Data
+
+Hora
+
+IP
+
+Origem
+
+Ação executada
+
+Resultado
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+adminLogs
+
+systemSettings
+
+featureFlags
+
+maintenance
+
+adminNotifications
+
+adminTasks
+
+--------------------------------------------------------------------------------------------------------
+
+# CONFIGURAÇÕES
+
+Permitir
+
+Configurações gerais
+
+Sistema
+
+Idiomas
+
+Templates
+
+Integrações
+
+Segurança
+
+Manutenção
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/admin/
+
+admin-dashboard.js
+
+admin-users.js
+
+admin-subscriptions.js
+
+admin-payments.js
+
+admin-courses.js
+
+admin-library.js
+
+admin-certificates.js
+
+admin-notifications.js
+
+admin-settings.js
+
+admin-feature-flags.js
+
+admin-logs.js
+
+admin-audit.js
+
+admin-security.js
+
+admin-service.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+authorization.js
+
+notification-engine.js
+
+dashboard-service.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Toda operação deverá exigir
+
+Authorization
+
+Role
+
+Permission
+
+Audit Log
+
+Nunca permitir acesso direto ao Firestore.
+
+Todas as ações deverão ser registradas.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Permissões criadas.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+Registrar todas as ações administrativas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Login Administrador.
+
+Login Usuário comum.
+
+Alteração de usuário.
+
+Alteração de plano.
+
+Criação de curso.
+
+Cadastro de documento.
+
+Envio de notificação.
+
+Mudança Feature Flag.
+
+Bloqueio de usuário.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Painel Administrativo funcionando.
+
+✓ Dashboard Administrativo funcionando.
+
+✓ Gestão de usuários funcionando.
+
+✓ Gestão de cursos funcionando.
+
+✓ Gestão da biblioteca funcionando.
+
+✓ Gestão financeira funcionando.
+
+✓ Auditoria funcionando.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Business Intelligence.
+
+Analytics.
+
+Relatórios avançados.
+
+Monitoramento.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em sistemas administrativos, Firebase Authentication, Firestore, JavaScript moderno, arquitetura modular e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 14 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 13;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um Painel Administrativo completo, totalmente modular e integrado a todos os módulos desenvolvidos anteriormente.
+
+Regras obrigatórias:
+
+• nenhuma operação administrativa poderá acessar diretamente o Firestore;
+• utilizar exclusivamente os serviços existentes;
+• registrar todas as ações administrativas em logs de auditoria;
+• manter arquitetura modular;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar o Dashboard Administrativo;
+• implementar gestão completa de usuários, cursos, biblioteca, certificados, pagamentos, assinaturas e notificações;
+• implementar sistema de Feature Flags;
+• preparar a arquitetura para a Fase 15 (Business Intelligence e Analytics);
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 14
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 15 - BUSINESS INTELLIGENCE, ANALYTICS E RELATÓRIOS GERENCIAIS
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 14, o sistema já possui infraestrutura completa para usuários, cursos, certificados, biblioteca, assinaturas, pagamentos e administração.
+
+Nesta fase será implementado o módulo de Business Intelligence (BI).
+
+Seu objetivo será transformar os dados gerados pelo sistema em informações estratégicas para auxiliar a tomada de decisões administrativas.
+
+O sistema deverá coletar, consolidar, organizar e apresentar métricas em tempo real e gerar relatórios gerenciais.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Consolidar dados de todo o sistema.
+
+✓ Gerar estatísticas em tempo real.
+
+✓ Gerar indicadores de desempenho.
+
+✓ Exibir dashboards administrativos.
+
+✓ Criar relatórios exportáveis.
+
+✓ Gerar métricas financeiras.
+
+✓ Gerar métricas educacionais.
+
+✓ Gerar métricas da biblioteca.
+
+✓ Gerar métricas de usuários.
+
+✓ Preparar infraestrutura para Inteligência Artificial futura.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Business Intelligence apenas consulta informações.
+
+Nunca modifica dados.
+
+Nunca altera documentos.
+
+Toda informação deverá ser obtida através dos serviços existentes.
+
+Nenhum relatório poderá consultar Firestore diretamente.
+
+Toda coleta deverá passar pelo BI Engine.
+
+--------------------------------------------------------------------------------------------------------
+
+# BI ENGINE
+
+Criar um mecanismo centralizado responsável por:
+
+Coletar dados.
+
+Consolidar informações.
+
+Calcular indicadores.
+
+Gerar dashboards.
+
+Gerar relatórios.
+
+Gerar estatísticas.
+
+Exportar informações.
+
+--------------------------------------------------------------------------------------------------------
+
+# DASHBOARDS
+
+Criar dashboards para:
+
+Sistema
+
+Usuários
+
+Financeiro
+
+Cursos
+
+Biblioteca
+
+Downloads
+
+Certificados
+
+Assinaturas
+
+Pagamentos
+
+Administradores
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES DE USUÁRIOS
+
+Quantidade de usuários.
+
+Usuários ativos.
+
+Usuários inativos.
+
+Novos usuários.
+
+Usuários Premium.
+
+Usuários gratuitos.
+
+Tempo médio de utilização.
+
+Retenção.
+
+Crescimento mensal.
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES FINANCEIROS
+
+Receita mensal.
+
+Receita anual.
+
+MRR.
+
+ARR.
+
+Ticket médio.
+
+Assinaturas ativas.
+
+Assinaturas canceladas.
+
+Renovações.
+
+Reembolsos.
+
+Chargebacks.
+
+Conversão para Premium.
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES DOS CURSOS
+
+Cursos iniciados.
+
+Cursos concluídos.
+
+Taxa de conclusão.
+
+Tempo médio por curso.
+
+Cursos mais acessados.
+
+Cursos Premium.
+
+Cursos gratuitos.
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES DA BIBLIOTECA
+
+Downloads.
+
+Visualizações.
+
+Documentos mais acessados.
+
+Documentos Premium.
+
+Autores mais acessados.
+
+Categorias mais acessadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES DOS CERTIFICADOS
+
+Certificados emitidos.
+
+Certificados baixados.
+
+Certificados validados.
+
+Certificados revogados.
+
+--------------------------------------------------------------------------------------------------------
+
+# INDICADORES DAS NOTIFICAÇÕES
+
+Notificações enviadas.
+
+Notificações lidas.
+
+Taxa de leitura.
+
+Emails enviados.
+
+Emails entregues.
+
+Emails rejeitados.
+
+--------------------------------------------------------------------------------------------------------
+
+# RELATÓRIOS
+
+Criar sistema para geração de
+
+Relatório financeiro.
+
+Relatório de usuários.
+
+Relatório de cursos.
+
+Relatório da biblioteca.
+
+Relatório de certificados.
+
+Relatório de assinaturas.
+
+Relatório de pagamentos.
+
+Relatório administrativo.
+
+--------------------------------------------------------------------------------------------------------
+
+# EXPORTAÇÃO
+
+Preparar exportação para
+
+PDF
+
+CSV
+
+Excel
+
+JSON
+
+Preparar futuras integrações.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILTROS
+
+Criar filtros por
+
+Período.
+
+Idioma.
+
+Plano.
+
+Categoria.
+
+Curso.
+
+Documento.
+
+País.
+
+Estado.
+
+Cidade (futuro).
+
+--------------------------------------------------------------------------------------------------------
+
+# COMPARATIVOS
+
+Permitir comparar
+
+Dias.
+
+Semanas.
+
+Meses.
+
+Anos.
+
+Períodos personalizados.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+analytics
+
+analyticsCache
+
+reports
+
+reportHistory
+
+statistics
+
+businessMetrics
+
+systemMetrics
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Criar cache analítico.
+
+Atualizar automaticamente.
+
+Evitar consultas repetidas.
+
+Preparar agregações.
+
+--------------------------------------------------------------------------------------------------------
+
+# GRÁFICOS
+
+Preparar componentes reutilizáveis para
+
+Linha.
+
+Barra.
+
+Pizza.
+
+Área.
+
+Tabela.
+
+Indicadores.
+
+Mapas (futuro).
+
+--------------------------------------------------------------------------------------------------------
+
+# ALERTAS
+
+Preparar infraestrutura para alertas automáticos.
+
+Exemplo
+
+Queda de receita.
+
+Aumento de cancelamentos.
+
+Falhas.
+
+Crescimento.
+
+Novos recordes.
+
+Não implementar IA nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREVISÕES
+
+Preparar arquitetura para futuras previsões utilizando IA.
+
+Não implementar nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/analytics/
+
+bi-engine.js
+
+analytics-service.js
+
+dashboard-analytics.js
+
+statistics-manager.js
+
+reports-manager.js
+
+report-export.js
+
+chart-manager.js
+
+analytics-cache.js
+
+analytics-events.js
+
+metrics-engine.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+admin-dashboard.js
+
+admin-service.js
+
+notification-engine.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Somente administradores autorizados poderão visualizar Business Intelligence.
+
+Toda consulta deverá utilizar
+
+Authorization.
+
+Role.
+
+Permission.
+
+Nunca permitir acesso público.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Relatórios gerados.
+
+Indicadores criados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Relatórios.
+
+Gráficos.
+
+Exportação.
+
+Filtros.
+
+Comparativos.
+
+Cache.
+
+Atualização automática.
+
+Dashboard.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+A fase somente será considerada concluída quando
+
+✓ BI Engine funcionando.
+
+✓ Dashboards funcionando.
+
+✓ Relatórios funcionando.
+
+✓ Exportações funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# PREPARAÇÃO PARA PRÓXIMA FASE
+
+Preparar infraestrutura para
+
+Monitoramento.
+
+Backup.
+
+Recuperação.
+
+Logs.
+
+Segurança.
+
+Alta disponibilidade.
+
+Sem implementar essas funcionalidades nesta fase.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em Business Intelligence, Analytics, Dashboards, Firebase, Firestore, JavaScript moderno e arquitetura modular.
+
+Sua tarefa será implementar integralmente a Fase 15 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 14;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar um sistema completo de Business Intelligence integrado a todos os módulos desenvolvidos anteriormente.
+
+Regras obrigatórias:
+
+• nunca consultar Firestore diretamente pelos dashboards;
+• utilizar exclusivamente os serviços existentes;
+• criar BI Engine centralizado;
+• criar sistema de relatórios reutilizável;
+• manter arquitetura modular;
+• não modificar páginas existentes sem autorização;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados.
+
+Ao finalizar:
+
+• implementar Business Intelligence;
+• implementar Dashboards Gerenciais;
+• implementar Relatórios;
+• implementar Exportações;
+• preparar a arquitetura para a Fase 16 (Monitoramento, Backup, Segurança e Manutenção);
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 15
+
+
+
+# =====================================================================================================
+# SISTEMA DE CONTAS - CALCULADORAS DE ENFERMAGEM
+# FASE 16 - OBSERVABILIDADE, SEGURANÇA, MONITORAMENTO, BACKUP E MANUTENÇÃO
+# Versão 1.0
+# =====================================================================================================
+
+# OBJETIVO DA FASE
+
+Após a conclusão da Fase 15, o sistema já possui toda a infraestrutura funcional para usuários, assinaturas, pagamentos, cursos, certificados, biblioteca, administração e Business Intelligence.
+
+Nesta fase será implementada toda a infraestrutura operacional responsável por manter o sistema estável, seguro, monitorado e preparado para operação contínua.
+
+Nenhuma funcionalidade destinada ao usuário final será criada.
+
+Todo o foco desta fase será confiabilidade, rastreabilidade, recuperação, manutenção e segurança.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBJETIVOS
+
+Ao término desta fase o sistema deverá ser capaz de:
+
+✓ Monitorar todo o sistema.
+
+✓ Registrar erros automaticamente.
+
+✓ Gerenciar logs.
+
+✓ Criar backups.
+
+✓ Restaurar backups.
+
+✓ Detectar falhas.
+
+✓ Detectar lentidão.
+
+✓ Detectar indisponibilidades.
+
+✓ Gerar alertas administrativos.
+
+✓ Executar rotinas automáticas de manutenção.
+
+✓ Monitorar integridade do sistema.
+
+--------------------------------------------------------------------------------------------------------
+
+# FILOSOFIA DA FASE
+
+Toda operação importante deverá ser observável.
+
+Toda falha deverá ser registrada.
+
+Todo erro deverá possuir rastreabilidade.
+
+Nenhum problema deverá passar despercebido.
+
+O sistema deverá ser capaz de diagnosticar seu próprio funcionamento.
+
+--------------------------------------------------------------------------------------------------------
+
+# OBSERVABILITY ENGINE
+
+Criar um mecanismo centralizado responsável por:
+
+Monitoramento.
+
+Logs.
+
+Eventos.
+
+Métricas.
+
+Diagnóstico.
+
+Alertas.
+
+Saúde do sistema.
+
+Nenhum módulo deverá implementar monitoramento próprio.
+
+--------------------------------------------------------------------------------------------------------
+
+# HEALTH CHECK
+
+Criar verificações automáticas para:
+
+Authentication
+
+Firestore
+
+Storage
+
+Payment Engine
+
+Subscription Engine
+
+Notification Engine
+
+Dashboard
+
+Biblioteca
+
+Cursos
+
+Certificados
+
+Administração
+
+Business Intelligence
+
+Todos deverão possuir indicadores individuais.
+
+--------------------------------------------------------------------------------------------------------
+
+# LOGS
+
+Criar sistema centralizado.
+
+Registrar
+
+Informativos.
+
+Avisos.
+
+Erros.
+
+Falhas críticas.
+
+Eventos administrativos.
+
+Eventos financeiros.
+
+Eventos de autenticação.
+
+Eventos de segurança.
+
+--------------------------------------------------------------------------------------------------------
+
+# LOG LEVELS
+
+Implementar
+
+DEBUG
+
+INFO
+
+WARNING
+
+ERROR
+
+CRITICAL
+
+Todos deverão seguir padrão único.
+
+--------------------------------------------------------------------------------------------------------
+
+# BACKUP
+
+Preparar infraestrutura para:
+
+Backup automático.
+
+Backup manual.
+
+Backup incremental.
+
+Backup completo.
+
+Backup agendado.
+
+Backup sob demanda.
+
+--------------------------------------------------------------------------------------------------------
+
+# RESTAURAÇÃO
+
+Preparar funcionalidades para:
+
+Restaurar usuários.
+
+Restaurar cursos.
+
+Restaurar biblioteca.
+
+Restaurar certificados.
+
+Restaurar pagamentos.
+
+Restaurar configurações.
+
+Restaurar backups completos.
+
+--------------------------------------------------------------------------------------------------------
+
+# MONITORAMENTO
+
+Monitorar continuamente
+
+Uso de memória.
+
+Uso de CPU (quando aplicável).
+
+Tempo de resposta.
+
+Consultas ao Firestore.
+
+Falhas.
+
+Timeouts.
+
+Quantidade de erros.
+
+Latência.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Registrar automaticamente
+
+Tentativas de login.
+
+Falhas de autenticação.
+
+Alterações administrativas.
+
+Mudanças de permissões.
+
+Mudanças de plano.
+
+Eventos críticos.
+
+--------------------------------------------------------------------------------------------------------
+
+# ALERTAS
+
+Preparar infraestrutura para alertar administradores quando ocorrer
+
+Falhas críticas.
+
+Erro em pagamentos.
+
+Erro em assinaturas.
+
+Erro no Firestore.
+
+Erro de autenticação.
+
+Queda do sistema.
+
+Uso anormal.
+
+--------------------------------------------------------------------------------------------------------
+
+# INTEGRIDADE
+
+Criar verificações automáticas para detectar
+
+Registros órfãos.
+
+Assinaturas inconsistentes.
+
+Pagamentos inconsistentes.
+
+Cursos inválidos.
+
+Downloads inválidos.
+
+Referências quebradas.
+
+Permissões inválidas.
+
+--------------------------------------------------------------------------------------------------------
+
+# LIMPEZA AUTOMÁTICA
+
+Preparar rotinas para
+
+Limpar cache.
+
+Remover arquivos temporários.
+
+Remover registros expirados.
+
+Compactar logs.
+
+Arquivar auditorias antigas.
+
+--------------------------------------------------------------------------------------------------------
+
+# MANUTENÇÃO
+
+Preparar modo manutenção.
+
+Permitir
+
+Ativar.
+
+Desativar.
+
+Mensagem personalizada.
+
+Permitir exceções para administradores.
+
+--------------------------------------------------------------------------------------------------------
+
+# FIRESTORE
+
+Criar coleções
+
+systemHealth
+
+systemLogs
+
+systemAlerts
+
+systemBackups
+
+maintenanceTasks
+
+maintenanceHistory
+
+errorReports
+
+securityEvents
+
+--------------------------------------------------------------------------------------------------------
+
+# CACHE
+
+Monitorar
+
+Cache.
+
+Sincronização.
+
+Consistência.
+
+Tempo de atualização.
+
+--------------------------------------------------------------------------------------------------------
+
+# PERFORMANCE
+
+Registrar
+
+Tempo de carregamento.
+
+Tempo de autenticação.
+
+Tempo de consultas.
+
+Tempo de geração de relatórios.
+
+Tempo de downloads.
+
+Tempo de resposta.
+
+--------------------------------------------------------------------------------------------------------
+
+# RELATÓRIOS
+
+Gerar automaticamente
+
+Relatório diário.
+
+Relatório semanal.
+
+Relatório mensal.
+
+Relatório de erros.
+
+Relatório de segurança.
+
+Relatório de manutenção.
+
+--------------------------------------------------------------------------------------------------------
+
+# AGENDAMENTO
+
+Preparar execução automática de
+
+Backups.
+
+Limpeza.
+
+Verificações.
+
+Relatórios.
+
+Monitoramentos.
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS NOVOS
+
+Criar
+
+js/system/
+
+observability-engine.js
+
+health-check.js
+
+system-monitor.js
+
+backup-manager.js
+
+restore-manager.js
+
+log-manager.js
+
+error-handler.js
+
+alert-manager.js
+
+maintenance-manager.js
+
+system-diagnostics.js
+
+performance-monitor.js
+
+security-monitor.js
+
+system-reports.js
+
+--------------------------------------------------------------------------------------------------------
+
+# ARQUIVOS MODIFICADOS
+
+Modificar apenas quando necessário
+
+admin-dashboard.js
+
+admin-service.js
+
+analytics-service.js
+
+notification-engine.js
+
+Nunca alterar arquitetura existente.
+
+--------------------------------------------------------------------------------------------------------
+
+# SEGURANÇA
+
+Nunca registrar
+
+Senhas.
+
+Tokens.
+
+Credenciais.
+
+Dados sensíveis.
+
+Todos os logs deverão respeitar boas práticas de privacidade.
+
+--------------------------------------------------------------------------------------------------------
+
+# AUDITORIA
+
+Gerar automaticamente
+
+Arquivos criados.
+
+Arquivos modificados.
+
+Monitoramentos implementados.
+
+Backups preparados.
+
+Problemas encontrados.
+
+Correções realizadas.
+
+--------------------------------------------------------------------------------------------------------
+
+# TESTES
+
+Executar
+
+Falha de autenticação.
+
+Falha de pagamento.
+
+Falha de assinatura.
+
+Falha de Firestore.
+
+Modo manutenção.
+
+Logs.
+
+Backups.
+
+Restauração.
+
+Monitoramento.
+
+Alertas.
+
+Todos deverão funcionar sem erros.
+
+--------------------------------------------------------------------------------------------------------
+
+# CRITÉRIOS DE ACEITE
+
+Esta fase somente será considerada concluída quando
+
+✓ Observability Engine funcionando.
+
+✓ Logs funcionando.
+
+✓ Alertas funcionando.
+
+✓ Monitoramento funcionando.
+
+✓ Backup preparado.
+
+✓ Modo manutenção funcionando.
+
+✓ Firestore sincronizado.
+
+✓ Auditoria criada.
+
+✓ Todos os testes aprovados.
+
+--------------------------------------------------------------------------------------------------------
+
+# DOCUMENTAÇÃO FINAL
+
+Ao término desta fase deverá ser gerada automaticamente uma documentação técnica completa contendo:
+
+Arquitetura geral.
+
+Fluxo de autenticação.
+
+Fluxo de autorização.
+
+Fluxo de acesso ao conteúdo.
+
+Fluxo de assinaturas.
+
+Fluxo de pagamentos.
+
+Fluxo dos cursos.
+
+Fluxo dos certificados.
+
+Fluxo da biblioteca.
+
+Fluxo do Dashboard.
+
+Fluxo administrativo.
+
+Fluxo do Business Intelligence.
+
+Fluxo de monitoramento.
+
+Mapa completo de dependências entre módulos.
+
+Lista de APIs internas.
+
+Lista de coleções do Firestore.
+
+Lista de arquivos do projeto.
+
+Lista de Feature Flags.
+
+Diagrama completo da arquitetura.
+
+--------------------------------------------------------------------------------------------------------
+
+# PROMPT OFICIAL PARA IA
+
+Você atuará como Arquiteto de Software Full Stack especializado em observabilidade, monitoramento, segurança, backup, arquitetura modular, Firebase, Firestore e aplicações web escaláveis.
+
+Sua tarefa será implementar integralmente a Fase 16 do Sistema de Contas do projeto Calculadoras de Enfermagem.
+
+Antes de escrever qualquer código:
+
+• analisar toda a arquitetura existente;
+• analisar as Fases 1 a 15;
+• apresentar plano técnico detalhado;
+• aguardar aprovação.
+
+Objetivo:
+
+Implementar toda a infraestrutura operacional responsável por monitorar, proteger, diagnosticar e manter o sistema.
+
+Regras obrigatórias:
+
+• criar um Observability Engine centralizado;
+• nunca modificar a arquitetura existente;
+• utilizar exclusivamente os serviços já implementados;
+• criar documentação técnica completa;
+• executar auditoria automática;
+• executar testes automatizados;
+• preparar o sistema para operação em produção.
+
+Ao finalizar:
+
+• implementar monitoramento centralizado;
+• implementar sistema de logs;
+• implementar infraestrutura de backup;
+• implementar alertas administrativos;
+• implementar modo manutenção;
+• gerar documentação técnica final completa da plataforma;
+• manter compatibilidade total com todas as fases anteriores.
+
+# FIM DA FASE 16
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
