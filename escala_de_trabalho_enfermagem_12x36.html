@@ -442,10 +442,10 @@ Braden
 
 <div class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-4">
 <div>
-<label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tipo de regime de trabalho</label>
+<label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Tipo de plantão</label>
 <select id="staffRegime" class="w-full rounded-lg bg-slate-50 p-2 text-sm font-bold text-[#1A3E74] input-blue-border transition-all outline-none">
-<option value="Par">Dias Pares</option>
-<option value="Impar">Dias Ímpares</option>
+<option value="Par">Plantão Par</option>
+<option value="Impar">Plantão Ímpar</option>
 </select>
 </div>
 <div>
@@ -557,6 +557,10 @@ ADICIONAR
 </div>
 </div>
 
+<div id="dimRestricaoAlerta" class="hidden bg-red-50 border border-red-300 rounded-lg p-3 mb-3 text-[11px] font-bold text-red-700 text-center">
+⚠️ Atenção: Com mais de 30% da equipe com restrição, possivelmente o quadro de Técnicos de Enfermagem ficará defasado. Considere redistribuir ou reforçar a equipe.
+</div>
+
 <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
 <div class="bg-gradient-to-br from-blue-50 to-white border-2 border-blue-200 rounded-xl p-3 text-center heavy-shadow">
 <span class="text-[10px] font-black text-blue-600 uppercase tracking-widest block mb-1">Taxa Ocupação</span>
@@ -565,17 +569,18 @@ ADICIONAR
 <div class="bg-gradient-to-br from-emerald-50 to-white border-2 border-emerald-200 rounded-xl p-3 text-center heavy-shadow">
 <span class="text-[10px] font-black text-emerald-600 uppercase tracking-widest block mb-1">Nº Enfermeiros</span>
 <span class="text-xl font-black text-emerald-700" id="resEnfermeiros">0</span>
+<span class="text-[9px] text-emerald-500 block mt-0.5" id="resEnfRecomendado">(recom: 0)</span>
 </div>
 <div class="bg-gradient-to-br from-sky-50 to-white border-2 border-sky-200 rounded-xl p-3 text-center heavy-shadow">
 <span class="text-[10px] font-black text-sky-600 uppercase tracking-widest block mb-1">Nº Técnicos</span>
 <span class="text-xl font-black text-sky-700" id="resTecnicos">0</span>
 </div>
-<div class="bg-gradient-to-br from-amber-50 to-white border-2 border-amber-200 rounded-xl p-3 text-center heavy-shadow">
-<span class="text-[10px] font-black text-amber-600 uppercase tracking-widest block mb-1">Absenteísmo</span>
-<span class="text-xl font-black text-amber-700" id="resAbsenteismo">0%</span>
+<div class="bg-gradient-to-br from-violet-50 to-white border-2 border-violet-200 rounded-xl p-3 text-center heavy-shadow">
+<span class="text-[10px] font-black text-violet-600 uppercase tracking-widest block mb-1">% ENF / TEC</span>
+<span class="text-lg font-black text-violet-700" id="resPctEnfTec">0% / 0%</span>
 </div>
 </div>
-<p class="text-[10px] text-slate-400 mt-3 text-center">* Métricas baseadas no Parecer Normativo Cofen 01/2024. Dados atualizados automaticamente.</p>
+<p class="text-[10px] text-slate-400 mt-3 text-center">* Métricas baseadas no Parecer Normativo Cofen 01/2024. IST aplicado sobre o total da equipe.</p>
 </div>
 
 <!-- BOTÕES DE AÇÃO -->
@@ -947,25 +952,41 @@ updateDimensionamentoMetrics();
 
 // Atualizar métricas de dimensionamento automaticamente
 function updateDimensionamentoMetrics() {
-// Contar Enfermeiros e Técnicos do staffList
+// Contar Enfermeiros, Técnicos e Auxiliares do staffList
 var enf = 0, tec = 0, aux = 0;
 staffList.forEach(function(s){
 if(s.funcao === 'ENF') enf++;
 else if(s.funcao === 'TEC') tec++;
 else if(s.funcao === 'AUX') aux++;
 });
+
+// IST + Equipe Gerencial aplicado ao total de enfermeiros
+var ist = parseFloat(document.getElementById('dimIst').value) || 1.15;
+var gestao = parseInt(document.getElementById('dimGestao').value) || 0;
+var totalStaff = staffList.length;
+var enfRecomendado = Math.round(enf * ist) + gestao;
+
 document.getElementById('resEnfermeiros').textContent = enf;
+document.getElementById('resEnfRecomendado').textContent = '(recom: ' + enfRecomendado + ')';
 document.getElementById('resTecnicos').textContent = tec;
 
-// Absenteísmo: contar afastados
-var aus = 0;
-staffList.forEach(function(s){
-if(s.afastamento !== 'none') aus++;
-});
-var totalStaff = staffList.length;
-var abs = 0;
-if(totalStaff > 0) abs = Math.round((aus / totalStaff) * 100);
-document.getElementById('resAbsenteismo').textContent = abs + '%';
+// Porcentagem ENF / TEC
+if(totalStaff > 0){
+var pctEnf = Math.round((enf / totalStaff) * 100);
+var pctTec = Math.round((tec / totalStaff) * 100);
+document.getElementById('resPctEnfTec').textContent = pctEnf + '% / ' + pctTec + '%';
+} else {
+document.getElementById('resPctEnfTec').textContent = '0% / 0%';
+}
+
+// Alerta de restrição > 30%
+var restricao = document.getElementById('dimRestricao').checked;
+var alerta = document.getElementById('dimRestricaoAlerta');
+if(restricao){
+alerta.classList.remove('hidden');
+} else {
+alerta.classList.add('hidden');
+}
 
 // Taxa de ocupação já é atualizada pelo updateOcupacao
 updateOcupacao();
