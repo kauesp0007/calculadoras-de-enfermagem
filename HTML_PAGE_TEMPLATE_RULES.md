@@ -105,15 +105,191 @@ A Sidebar deverá conter:
 ---
 
 # Referências Bibliográficas
+# REGRA ABSOLUTA — PADRÃO OFICIAL DA SEÇÃO DE REFERÊNCIAS BIBLIOGRÁFICAS
 
-As referências deverão seguir obrigatoriamente:
+## Objetivo
 
-- Formatação ABNT.
-- Link direcionando para um artigo científico real relacionado à escala.
+Toda página de conteúdo, artigo, calculadora, escala, protocolo ou material científico deve obrigatoriamente possuir uma seção de **Referências Bibliográficas**, seguindo rigorosamente o mesmo padrão visual e estrutural em todo o projeto.
 
-Não utilizar referências fictícias.
+Esta seção tem como finalidade aumentar a credibilidade científica, facilitar a conferência das fontes pelo usuário, fortalecer os critérios de EEAT (Experience, Expertise, Authoritativeness e Trustworthiness) e atender às boas práticas de SEO para conteúdos da área da saúde (YMYL).
 
 ---
+
+# Localização obrigatória
+
+A seção de Referências Bibliográficas deve ser posicionada sempre ao final do conteúdo principal.
+
+A ordem obrigatória da página deve ser:
+
+1. Conteúdo principal
+2. Conclusão (quando existir)
+3. Perguntas Frequentes (FAQ), quando existir
+4. Referências Bibliográficas
+5. Informações do autor ou responsável técnico (quando existir)
+6. Data da última atualização (quando existir)
+7. Rodapé (Footer)
+
+Nunca posicionar referências bibliográficas na barra lateral, no cabeçalho ou no rodapé global do site.
+
+---
+
+# Título da seção
+
+Utilizar obrigatoriamente:
+
+```
+Referências Bibliográficas
+```
+
+O título deve utilizar a mesma hierarquia visual dos demais títulos principais da página (H2).
+
+---
+
+# Estrutura das referências
+
+As referências devem ser apresentadas em uma lista numerada.
+
+Exemplo:
+
+1.
+2.
+3.
+4.
+
+Nunca utilizar listas com marcadores (•).
+
+---
+
+# Tipografia
+
+A seção deve manter excelente legibilidade em desktop e dispositivos móveis.
+
+Padrão recomendado:
+
+- Fonte: mesma utilizada no restante do site
+- Tamanho: 16px
+- Peso: normal (400)
+- Alinhamento: esquerda
+- Altura de linha: confortável para leitura
+
+Nunca utilizar fontes pequenas (12px ou 13px).
+
+---
+
+# Cor do texto
+
+Utilizar uma cor de leitura confortável.
+
+Padrão recomendado:
+
+Texto:
+
+```
+text-gray-700
+```
+
+ou equivalente:
+
+```
+#374151
+```
+
+Nunca utilizar preto absoluto (#000000).
+
+---
+
+# Links das referências
+
+Quando existir DOI, URL oficial ou documento eletrônico, o título ou nome da publicação deve possuir link para a fonte oficial.
+
+Cor recomendada:
+
+```
+text-blue-600
+```
+
+Os links devem possuir efeito visual de foco e hover.
+
+Nunca utilizar links quebrados ou fontes não confiáveis.
+
+---
+
+# Espaçamento
+
+Manter espaçamento consistente entre cada referência.
+
+Recomendação:
+
+- margem inferior entre referências: 12–16px
+- espaçamento superior da seção: aproximadamente 48px
+
+---
+
+# Separação visual
+
+A seção deve ser separada do restante do conteúdo através de uma linha horizontal discreta.
+
+Exemplo:
+
+- borda superior cinza clara
+- padding superior confortável
+- margem superior ampla
+
+O objetivo é indicar visualmente que o conteúdo principal foi encerrado e que a partir daquele ponto começam as fontes consultadas.
+
+---
+
+# Fontes permitidas
+
+Dar preferência para documentos provenientes de instituições reconhecidas.
+
+Exemplos:
+
+- Ministério da Saúde
+- Organização Mundial da Saúde (OMS)
+- COFEN
+- ANVISA
+- American Heart Association (AHA)
+- European Resuscitation Council (ERC)
+- CDC
+- NIH
+- PubMed
+- SciELO
+- Diretrizes oficiais
+- Artigos científicos revisados por pares
+
+Evitar utilizar como referência:
+
+- blogs
+- sites sem autoria
+- fóruns
+- páginas pessoais
+- conteúdos sem embasamento científico
+
+---
+
+# Padronização
+
+Todas as páginas do projeto devem seguir exatamente o mesmo padrão visual para a seção de Referências Bibliográficas.
+
+Não criar estilos diferentes entre páginas.
+
+A padronização é obrigatória.
+
+---
+
+# Objetivos
+
+A seção de Referências Bibliográficas deve transmitir:
+
+- credibilidade científica;
+- organização;
+- facilidade de leitura;
+- consistência visual;
+- profissionalismo;
+- conformidade com boas práticas de SEO e EEAT.
+
+Qualquer alteração neste padrão somente poderá ser realizada caso exista uma nova definição oficial para todo o projeto.
 
 # JavaScript
 
