@@ -52,7 +52,7 @@ IDIOMAS_DESTINO = [
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
-MODO_TESTE = True
+MODO_TESTE = False
 
 # Dry-run: traduz, audita, mas NÃO publica (não substitui arquivos)
 DRY_RUN = False
@@ -270,37 +270,20 @@ def protect_html_blocks(html_content: str) -> tuple[str, dict, dict]:
             return key
         return replacer
 
-    # 1. Proteger <script>...</script> (nao-greedy)
-    html_content = re.sub(
-        r'<script\b[^>]*>.*?</script>',
-        make_protector("SCRIPT"),
-        html_content,
-        flags=re.DOTALL,
-    )
+    # Proteger blocos que NAO devem ser tocados pela traducao
+    protect_specs = [
+        (r'<script\b[^>]*>.*?</script>', "SCRIPT"),
+        (r'<style\b[^>]*>.*?</style>', "STYLE"),
+        (r'<svg\b[^>]*>.*?</svg>', "SVG"),
+        (r'<!--.*?-->', "COMMENT"),
+        (r'<pre\b[^>]*>.*?</pre>', "PRE"),
+        (r'<code\b[^>]*>.*?</code>', "CODE"),
+        (r'<template\b[^>]*>.*?</template>', "TEMPLATE"),
+        (r'<noscript\b[^>]*>.*?</noscript>', "NOSCRIPT"),
+    ]
 
-    # 2. Proteger <style>...</style> (nao-greedy)
-    html_content = re.sub(
-        r'<style\b[^>]*>.*?</style>',
-        make_protector("STYLE"),
-        html_content,
-        flags=re.DOTALL,
-    )
-
-    # 3. Proteger <svg>...</svg>
-    html_content = re.sub(
-        r'<svg\b[^>]*>.*?</svg>',
-        make_protector("SVG"),
-        html_content,
-        flags=re.DOTALL,
-    )
-
-    # 4. Proteger comentarios HTML
-    html_content = re.sub(
-        r'<!--.*?-->',
-        make_protector("COMMENT"),
-        html_content,
-        flags=re.DOTALL,
-    )
+    for pattern, kind in protect_specs:
+        html_content = re.sub(pattern, make_protector(kind), html_content, flags=re.DOTALL)
 
     return html_content, protected, reverse_map
 
@@ -568,18 +551,42 @@ class BatchTranslator:
             return call_openai(texts, self.target_lang, context)
 
     def _validate_response(self, response: dict, expected_count: int) -> bool:
-        """Valida resposta da API."""
+        """Valida resposta da API com verificacao rigorosa de IDs."""
         if not response or "translations" not in response:
+            log.warning("Resposta sem campo 'translations'.")
             return False
         translations = response["translations"]
+
         if len(translations) != expected_count:
-            log.warning(f"Contagem inválida: esperado {expected_count}, obtido {len(translations)}")
+            log.warning(f"Contagem: esperado {expected_count}, obtido {len(translations)}")
             return False
+
+        seen_ids = set()
         for t in translations:
             if "id" not in t or "translation" not in t:
+                log.warning("Item sem 'id' ou 'translation'.")
                 return False
             if not t["translation"] or not t["translation"].strip():
+                log.warning(f"Traducao vazia para ID {t.get('id', '?')}.")
                 return False
+            tid = t["id"]
+            if tid in seen_ids:
+                log.warning(f"ID duplicado na resposta: {tid}")
+                return False
+            seen_ids.add(tid)
+
+        # Verificar conjunto exato de IDs
+        expected_ids = {f"{i:06d}" for i in range(expected_count)}
+        returned_ids = {t["id"] for t in translations}
+        if expected_ids != returned_ids:
+            missing = expected_ids - returned_ids
+            extra = returned_ids - expected_ids
+            if missing:
+                log.warning(f"IDs faltantes: {sorted(missing)[:5]}...")
+            if extra:
+                log.warning(f"IDs extras: {sorted(extra)[:5]}...")
+            return False
+
         return True
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -709,93 +716,75 @@ def process_twitter_meta(html_content: str, target_lang: str, translator: BatchT
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 def process_schema(html_content: str, target_lang: str, translator: BatchTranslator) -> str:
-    """Processa Schema.org JSON-LD."""
+    """Processa Schema.org JSON-LD de forma cirurgica: extrai textos, traduz, substitui no JSON original."""
     schema_match = re.search(
-        r'<script\s+type="application/ld\+json">(.*?)</script>',
+        r'(<script\s+type="application/ld\+json">)(.*?)(</script>)',
         html_content, re.DOTALL
     )
     if not schema_match:
         return html_content
 
-    try:
-        schema = json.loads(schema_match.group(1))
-    except json.JSONDecodeError:
-        return html_content
+    prefix = schema_match.group(1)
+    json_str = schema_match.group(2)
+    suffix = schema_match.group(3)
 
-    # Coletar textos traduzíveis do schema
+    # Coletar textos traduziveis do JSON sem parse completo
     texts_to_translate = []
     text_positions = []
 
-    def collect_texts(obj, path=""):
-        if isinstance(obj, dict):
-            for k, v in obj.items():
-                if k in ("name", "description", "headline", "alternativeHeadline",
-                         "articleSection", "about", "text") and isinstance(v, str) and v.strip():
-                    texts_to_translate.append(v)
-                    text_positions.append((path + "." + k if path else k, "text"))
-                elif k == "url" and isinstance(v, str) and "calculadorasdeenfermagem.com.br" in v:
-                    texts_to_translate.append(v)
-                    text_positions.append((path + "." + k if path else k, "url"))
-                else:
-                    collect_texts(v, path + "." + k if path else k)
-        elif isinstance(obj, list):
-            for i, item in enumerate(obj):
-                collect_texts(item, f"{path}[{i}]")
-
-    if isinstance(schema, dict) and "@graph" in schema:
-        collect_texts(schema["@graph"], "@graph")
-    else:
-        collect_texts(schema, "")
+    # Encontrar strings dentro de propriedades traduziveis no JSON
+    translatable_keys = ["name", "description", "headline", "alternativeHeadline",
+                         "articleSection", "about", "text"]
+    for key in translatable_keys:
+        pattern = rf'"{key}"\s*:\s*"((?:[^"\\]|\\.)*)"'
+        for m in re.finditer(pattern, json_str):
+            val = m.group(1)
+            if val.strip() and len(val) > 2:
+                texts_to_translate.append(val)
+                text_positions.append((m.start(1), m.end(1), m.group(0)))
 
     if not texts_to_translate:
-        return html_content
+        # Apenas adaptar URLs internas
+        json_str = re.sub(
+            r'"(https://www\.calculadorasdeenfermagem\.com\.br)(/[^"]*\.html)"',
+            lambda m: f'"{m.group(1)}/{target_lang}{m.group(2)}"',
+            json_str,
+        )
+        # Corrigir duplo segmento (ex: /pt/en/algo.html)
+        for code in IDIOMA_MAP:
+            json_str = json_str.replace(f"/{code}//{target_lang}/", f"/{target_lang}/")
+        json_str = json_str.replace(f"//{target_lang}/", f"/{target_lang}/")
+        return html_content.replace(schema_match.group(2), json_str)
 
-    # Filtrar apenas textos (não URLs) para tradução
-    text_only = []
-    for t, (pos, kind) in zip(texts_to_translate, text_positions):
-        if kind == "text":
-            text_only.append(t)
+    # Traduzir textos
+    result = translator.translate_batch(texts_to_translate, "Schema.org structured data")
+    translations = result["translations"]
 
-    if not text_only:
-        # Só tem URLs, processar sem API
-        pass
-    else:
-        result = translator.translate_batch(text_only, "Schema.org structured data")
-        translations = result["translations"]
+    # Construir dicionario de substituicoes
+    replace_map = {}
+    for i, (start, end, full_match) in enumerate(text_positions):
+        if i < len(translations):
+            translated_val = translations[i]["translation"]
+            # Escapar caracteres especiais para JSON
+            translated_val = translated_val.replace('\\', '\\\\').replace('"', '\\"')
+            old_val = json_str[start:end]
+            replace_map[old_val] = translated_val
 
-        # Aplicar traduções de volta
-        ti = 0
-        for i, (t, (pos, kind)) in enumerate(zip(texts_to_translate, text_positions)):
-            if kind == "text" and ti < len(translations):
-                texts_to_translate[i] = translations[ti]["translation"]
-                ti += 1
+    # Aplicar substituicoes cirurgicas no texto JSON original
+    for old_val, new_val in replace_map.items():
+        json_str = json_str.replace(f'"{old_val}"', f'"{new_val}"', 1)
 
-    # Reconstruir schema com valores traduzidos e URLs adaptadas
-    ti = 0
-    url_ti = 0
+    # Adaptar URLs internas
+    json_str = re.sub(
+        r'"(https://www\.calculadorasdeenfermagem\.com\.br)(/[^"]*\.html)"',
+        lambda m: f'"{m.group(1)}/{target_lang}{m.group(2)}"',
+        json_str,
+    )
+    for code in IDIOMA_MAP:
+        json_str = json_str.replace(f"/{code}//{target_lang}/", f"/{target_lang}/")
+    json_str = json_str.replace(f"//{target_lang}/", f"/{target_lang}/")
 
-    def apply_translations(obj, path=""):
-        nonlocal ti
-        if isinstance(obj, dict):
-            for k in list(obj.keys()):
-                current_path = path + "." + k if path else k
-                if k in ("name", "description", "headline", "alternativeHeadline",
-                         "articleSection", "about", "text") and isinstance(obj[k], str):
-                    if ti < len(texts_to_translate):
-                        obj[k] = texts_to_translate[ti]
-                        ti += 1
-                elif k == "url" and isinstance(obj[k], str):
-                    obj[k] = adapt_url(obj[k], target_lang)
-                else:
-                    apply_translations(obj[k], current_path)
-        elif isinstance(obj, list):
-            for i, item in enumerate(obj):
-                apply_translations(item, f"{path}[{i}]")
-
-    apply_translations(schema)
-
-    new_schema = json.dumps(schema, ensure_ascii=False, indent=2)
-    html_content = html_content.replace(schema_match.group(1), new_schema)
+    html_content = html_content.replace(schema_match.group(2), json_str)
     return html_content
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -837,44 +826,41 @@ def process_canonical(html_content: str, target_lang: str, filename: str) -> str
     return html_content
 
 def process_hreflang(html_content: str, target_lang: str, filename: str) -> str:
-    """Reconstrói bloco hreflang com idioma de destino primeiro."""
+    """Reconstroi bloco hreflang com idioma de destino primeiro.
+    Localiza o bloco com precisao: sequencia de links hreflang apos canonical."""
+
+    # Construir novo bloco deterministico
     hreflang_lines = []
-
-    # Linha do idioma de destino primeiro
-    info = IDIOMA_MAP[target_lang]
     dest_url = f"{BASE_URL}/{target_lang}/{filename}"
-    hreflang_lines.append(
-        f'<link href="{dest_url}" hreflang="{target_lang}" rel="alternate"/>'
-    )
-
-    # Português (original)
     pt_url = f"{BASE_URL}/{filename}"
-    hreflang_lines.append(
-        f'<link href="{pt_url}" hreflang="pt-br" rel="alternate"/>'
-    )
 
-    # Demais idiomas em ordem alfabética
+    # 1. Idioma destino primeiro
+    hreflang_lines.append(f'<link href="{dest_url}" hreflang="{target_lang}" rel="alternate"/>')
+    # 2. pt-br
+    hreflang_lines.append(f'<link href="{pt_url}" hreflang="pt-br" rel="alternate"/>')
+    # 3. Demais idiomas em ordem alfabetica
     for code in sorted(IDIOMA_MAP.keys()):
-        if code == target_lang or code == "pt":
+        if code in (target_lang, "pt"):
             continue
         lang_url = f"{BASE_URL}/{code}/{filename}"
-        hreflang_lines.append(
-            f'<link href="{lang_url}" hreflang="{code}" rel="alternate"/>'
-        )
-
-    # x-default (sempre pt-br)
-    hreflang_lines.append(
-        f'<link href="{pt_url}" hreflang="x-default" rel="alternate"/>'
-    )
+        hreflang_lines.append(f'<link href="{lang_url}" hreflang="{code}" rel="alternate"/>')
+    # 4. x-default
+    hreflang_lines.append(f'<link href="{pt_url}" hreflang="x-default" rel="alternate"/>')
 
     new_block = "\n".join(hreflang_lines)
 
-    # Encontrar e substituir bloco hreflang existente
-    # Padrão: sequência de links hreflang
-    hreflang_pattern = r'(?:<link[^>]*hreflang="[^"]*"[^>]*>\s*)+'
-    match = re.search(hreflang_pattern, html_content)
-    if match:
-        html_content = html_content.replace(match.group(0), new_block + "\n")
+    # Localizar bloco hreflang existente: links hreflang consecutivos
+    # Procura apos canonical para ser especifico
+    canonical_pos = html_content.find('rel="canonical"')
+    if canonical_pos > 0:
+        search_start = html_content.find('\n', canonical_pos)
+        if search_start == -1:
+            search_start = canonical_pos + 50
+        remaining = html_content[search_start:]
+        hreflang_pattern = r'((?:<link[^>]*hreflang="[^"]*"[^>]*>\s*)+)'
+        match = re.search(hreflang_pattern, remaining)
+        if match:
+            html_content = html_content.replace(match.group(1), new_block + "\n")
 
     return html_content
 
@@ -883,10 +869,8 @@ def process_hreflang(html_content: str, target_lang: str, filename: str) -> str:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 def process_internal_links(html_content: str, target_lang: str) -> str:
-    """Adapta links internos para o idioma de destino."""
-    # Identificar links internos: href="/algo.html" ou href="/pasta/algo.html"
-    # que NÃO são de idioma (não começam com /xx/ onde xx é código de idioma)
-
+    """Adapta links internos para o idioma de destino.
+    Apenas converte links para paginas .html na raiz que nao estao em pasta de idioma."""
     lang_codes = set(IDIOMA_MAP.keys())
 
     def should_adapt(href: str) -> bool:
@@ -896,11 +880,16 @@ def process_internal_links(html_content: str, target_lang: str) -> str:
             return False
         if href.startswith("/#"):
             return False
+        # Ja esta em uma pasta de idioma
         if any(href.startswith(f"/{code}/") for code in lang_codes):
             return False
+        # Apenas .html na raiz
         if not href.endswith(".html"):
-            # Verificar se é uma página interna conhecida
-            pass
+            return False
+        # Nao sao recursos web
+        skip_patterns = ['/fonts/', '/img/', '/public/', '/src/', '/assets/', '/biblioteca/', '/blog/']
+        if any(href.startswith(p) for p in skip_patterns):
+            return False
         return True
 
     def adapt_link(match):
@@ -911,7 +900,7 @@ def process_internal_links(html_content: str, target_lang: str) -> str:
             return full.replace(f'href="{href}"', f'href="{new_href}"')
         return full
 
-    # Links em <a href="...">
+    # Links em href="..."
     html_content = re.sub(
         r'href="(/[^"]*\.html)"',
         adapt_link,
@@ -990,6 +979,267 @@ def process_footer(html_content: str) -> str:
 
     return html_content
 
+
+# ============================================================
+# MOTOR DE TRADUCAO DE JAVASCRIPT INLINE
+# Origem funcional: novo_tradutor_massivo_js_.py
+# Regra: preservar integralmente a logica de extracao,
+# protecao, traducao e reinsercao ja validada.
+# ============================================================
+
+JS_PROTECTED_LINES = [
+    "const badge = document.getElementById(`badge_${item.id}`);",
+    "const badge = document.getElementById(`badge_${id}`);",
+    "const bar = document.getElementById(`bar_${item.id}`);",
+]
+
+TERMO_SELECIONE_PT = "Selecione..."
+
+
+def js_extract_inline_scripts(html_content: str) -> list:
+    """Extrai todos os <script> inline (sem src=) do HTML.
+    Retorna lista ordenada com posicoes exatas.
+    Pula scripts de footer (footer-placeholder/footer.html)."""
+    pattern = re.compile(
+        r'(<script\b[^>]*>)(.*?)(</script>)',
+        re.IGNORECASE | re.DOTALL,
+    )
+    results = []
+    for m in pattern.finditer(html_content):
+        abertura = m.group(1)
+        conteudo = m.group(2)
+        fecha = m.group(3)
+        if 'src=' in abertura.lower():
+            continue
+        if 'footer-placeholder' in conteudo or 'footer.html' in conteudo:
+            continue
+        results.append({
+            "idx_inicio": m.start(),
+            "idx_fim": m.end(),
+            "abertura": abertura,
+            "conteudo": conteudo,
+            "fecha_tag": fecha,
+        })
+    return results
+
+
+def js_extract_translatable_strings(js_code: str) -> tuple:
+    """Extrai strings traduziveis do codigo JS.
+    Retorna: (mapeamento, strings_para_traduzir)
+    Logica identica ao novo_tradutor_massivo_js_.py."""
+    strings_para_traduzir = {}
+    mapeamento = []
+    contador = 0
+    processed_positions = set()
+
+    # 1. Strings com aspas duplas/simples
+    padrao_string = re.compile(r'(["\'])((?:[^"\\]|\\.)*?)\1')
+    for match in padrao_string.finditer(js_code):
+        start = match.start(2)
+        end = match.end(2)
+        if (start, end) in processed_positions:
+            continue
+        conteudo = match.group(2)
+        if (len(conteudo) > 3 and " " in conteudo
+                and not conteudo.startswith(('/', '#', '.', 'data-'))
+                and not conteudo.endswith('.html')
+                and not re.match(r'^[0-9\s.,;:\(\)\[\]{}\+\-\*\/=<>!&|^%]+$', conteudo)):
+            id_str = f"JS_{contador:06d}"
+            strings_para_traduzir[id_str] = conteudo
+            mapeamento.append({
+                "original": match.group(0),
+                "id": id_str,
+                "delimitador": match.group(1),
+                "tipo": "string",
+                "pos": (match.start(0), match.end(0)),
+            })
+            processed_positions.add((start, end))
+            contador += 1
+
+    # 2. Template literals
+    padrao_template = re.compile(r'`([^`]*)`')
+    for match_tmpl in padrao_template.finditer(js_code):
+        conteudo = match_tmpl.group(1)
+        if not conteudo.strip():
+            continue
+        if conteudo.strip().startswith('<!DOCTYPE') or conteudo.strip().startswith('<html'):
+            continue
+        if re.search(r'\?\s*`\s*<', conteudo):
+            continue
+
+        interps = re.findall(r'\$\{[^}]+\}', conteudo)
+        texto_limpo = conteudo
+        for i, interp in enumerate(interps):
+            texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
+
+        tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
+        if not tem_texto:
+            continue
+
+        id_str = f"JS_{contador:06d}"
+        strings_para_traduzir[id_str] = texto_limpo
+        mapeamento.append({
+            "original": match_tmpl.group(0),
+            "id": id_str,
+            "delimitador": "`",
+            "tipo": "template",
+            "interpolacoes": interps,
+            "pos": (match_tmpl.start(0), match_tmpl.end(0)),
+        })
+        contador += 1
+
+    return mapeamento, strings_para_traduzir
+
+
+def js_reinsert_translations(js_code: str, mapeamento: list, traducoes: dict) -> str:
+    """Reinsere traducoes no codigo JS, substituindo do final para preservar offsets."""
+    sorted_map = sorted(mapeamento, key=lambda x: x["pos"][0], reverse=True)
+    for item in sorted_map:
+        if item["id"] not in traducoes:
+            continue
+        texto_trad = traducoes[item["id"]]
+        if item["tipo"] == "template":
+            for i, interp in enumerate(item.get("interpolacoes", [])):
+                texto_trad = texto_trad.replace(f"__INTERP_{i}__", interp)
+        novo = f"{item['delimitador']}{texto_trad}{item['delimitador']}"
+        start, end = item["pos"]
+        js_code = js_code[:start] + novo + js_code[end:]
+    return js_code
+
+
+def js_restore_protected_lines(original_js: str, translated_js: str) -> str:
+    """Restaura linhas protegidas no JS traduzido usando a versao original pt-BR."""
+    resultado = translated_js
+    padroes = [
+        re.compile(r'const\s+badge\s*=\s*document\.getElementById\s*\(\s*`badge_\$\{item\.id\}`\s*\)\s*;'),
+        re.compile(r'const\s+badge\s*=\s*document\.getElementById\s*\(\s*`badge_\$\{id\}`\s*\)\s*;'),
+        re.compile(r'const\s+bar\s*=\s*document\.getElementById\s*\(\s*`bar_\$\{item\.id\}`\s*\)\s*;'),
+    ]
+    substituicoes = [
+        (padroes[0], JS_PROTECTED_LINES[0]),
+        (padroes[1], JS_PROTECTED_LINES[1]),
+        (padroes[2], JS_PROTECTED_LINES[2]),
+    ]
+    for padrao, original_pt in substituicoes:
+        if padrao.search(resultado):
+            resultado = padrao.sub(original_pt, resultado)
+    return resultado
+
+
+def js_fix_corrupted_templates(js_code: str) -> str:
+    """Corrige corrupcoes conhecidas em template literals."""
+    js_code = re.sub(r'\?\s*"\s*`', '? `', js_code)
+    js_code = re.sub(r'\?\s*"[^`]*`\s*`', '? `', js_code)
+    return js_code
+
+
+def translate_js_inline(html_content: str, target_lang: str,
+                        translator: BatchTranslator) -> tuple:
+    """Traduz todas as strings dentro de <script> inline no HTML.
+    Retorna: (html_modificado, relatorio_js)."""
+    report = {
+        "scripts_encontrados": 0,
+        "strings_encontradas": 0,
+        "strings_enviadas": 0,
+        "strings_traduzidas": 0,
+        "strings_reinseridas": 0,
+        "strings_perdidas": 0,
+        "erros_estrutura": 0,
+        "passed": True,
+    }
+
+    scripts = js_extract_inline_scripts(html_content)
+    report["scripts_encontrados"] = len(scripts)
+    if not scripts:
+        return html_content, report
+
+    all_strings = {}
+    all_mappings = {}
+    for idx, script in enumerate(scripts):
+        mapeamento, strings_dict = js_extract_translatable_strings(script["conteudo"])
+        if strings_dict:
+            all_mappings[idx] = mapeamento
+            all_strings.update(strings_dict)
+
+    report["strings_encontradas"] = len(all_strings)
+    if not all_strings:
+        return html_content, report
+
+    sorted_items = sorted(all_strings.items(), key=lambda x: x[0])
+    texts = [item[1] for item in sorted_items]
+    ids_list = [item[0] for item in sorted_items]
+
+    total_batches = (len(texts) + MAX_STRINGS_PER_BATCH - 1) // MAX_STRINGS_PER_BATCH
+    report["strings_enviadas"] = len(texts)
+    traducoes = {}
+
+    for i in range(0, len(texts), MAX_STRINGS_PER_BATCH):
+        batch_num = i // MAX_STRINGS_PER_BATCH + 1
+        batch_texts = texts[i:i + MAX_STRINGS_PER_BATCH]
+        batch_ids = ids_list[i:i + MAX_STRINGS_PER_BATCH]
+        result = translator.translate_batch(
+            batch_texts,
+            f"JavaScript inline batch {batch_num}/{total_batches}",
+            batch_num=batch_num,
+            total_batches=total_batches,
+        )
+        for trans in result["translations"]:
+            tid = trans["id"]
+            t_idx = int(tid)
+            if t_idx < len(batch_ids):
+                traducoes[batch_ids[t_idx]] = trans["translation"]
+
+    report["strings_traduzidas"] = len(traducoes)
+
+    html_modificado = html_content
+    for idx in sorted(all_mappings.keys(), reverse=True):
+        script = scripts[idx]
+        novo_js = js_reinsert_translations(script["conteudo"], all_mappings[idx], traducoes)
+        novo_js = js_restore_protected_lines(script["conteudo"], novo_js)
+        novo_js = js_fix_corrupted_templates(novo_js)
+        novo_bloco = f"{script['abertura']}{novo_js}{script['fecha_tag']}"
+        html_modificado = (
+            html_modificado[:script["idx_inicio"]]
+            + novo_bloco
+            + html_modificado[script["idx_fim"]:]
+        )
+
+    report["strings_reinseridas"] = report["strings_traduzidas"]
+    remaining_ids = set(all_strings.keys()) - set(traducoes.keys())
+    report["strings_perdidas"] = len(remaining_ids)
+    if remaining_ids:
+        report["passed"] = False
+
+    scripts_after = js_extract_inline_scripts(html_modificado)
+    if len(scripts_after) != len(scripts):
+        report["erros_estrutura"] += 1
+        report["passed"] = False
+
+    return html_modificado, report
+
+
+def audit_js_preservation(original_html: str, translated_html: str) -> dict:
+    """Audita preservacao dos scripts inline apos traducao."""
+    issues = []
+    scripts_orig = js_extract_inline_scripts(original_html)
+    scripts_trans = js_extract_inline_scripts(translated_html)
+
+    if len(scripts_orig) != len(scripts_trans):
+        issues.append(f"Qtd scripts: original={len(scripts_orig)}, traduzido={len(scripts_trans)}")
+
+    for i, (so, st) in enumerate(zip(scripts_orig, scripts_trans)):
+        js_orig_stripped = re.sub(r'(["\']).*?\1', r'\1\1', so["conteudo"])
+        js_orig_stripped = re.sub(r'`[^`]*`', '``', js_orig_stripped)
+        js_trans_stripped = re.sub(r'(["\']).*?\1', r'\1\1', st["conteudo"])
+        js_trans_stripped = re.sub(r'`[^`]*`', '``', js_trans_stripped)
+        if js_orig_stripped != js_trans_stripped:
+            issues.append(f"Script {i}: estrutura interna alterada")
+        if so["abertura"] != st["abertura"]:
+            issues.append(f"Script {i}: abertura alterada")
+
+    return {"passed": len(issues) == 0, "issues": issues}
+
+
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                 FASE 2 — TRADUÇÃO DO CORPO HTML                            ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
@@ -1041,40 +1291,104 @@ def translate_body_texts(html_content: str, target_lang: str, translator: BatchT
 # ║                    AUDITORIA ESTRUTURAL                                    ║
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
-def audit_structure(original: str, translated: str) -> dict:
-    """Compara estrutura do HTML original com traduzido."""
+def build_structural_signature(html_content: str) -> list:
+    """Gera assinatura estrutural hierarquica do HTML.
+    Cada elemento: (nivel, tag_name, attrs_resumo).
+    Ignora texto interno para nao ser afetado pela traducao."""
+    sig = []
+    tokens = re.split(r'(</?\w+[^>]*>)', html_content)
+    stack = []
+
+    for token in tokens:
+        token = token.strip()
+        if not token:
+            continue
+
+        if token.startswith('</'):
+            tag_match = re.match(r'</(\w+)', token)
+            if tag_match:
+                tag = tag_match.group(1).lower()
+                if stack and stack[-1] == tag:
+                    stack.pop()
+            continue
+
+        if token.startswith('<'):
+            tag_match = re.match(r'<(\w+)([^>]*?)/?>$', token)
+            if tag_match:
+                tag = tag_match.group(1).lower()
+                attrs_str = tag_match.group(2)
+                id_match = re.search(r'\bid=["\']([^"\']+)["\']', attrs_str)
+                class_match = re.search(r'\bclass=["\']([^"\']+)["\']', attrs_str)
+                attrs_resumo = ""
+                if id_match:
+                    attrs_resumo += f"#{id_match.group(1)}"
+                if class_match:
+                    classes = class_match.group(1).split()[:2]
+                    attrs_resumo += f".{'.'.join(classes)}"
+
+                nivel = len(stack)
+                sig.append((nivel, tag, attrs_resumo or "-"))
+
+                self_closing = token.endswith('/>')
+                void_tags = {'meta', 'link', 'img', 'br', 'hr', 'input', 'area', 'base', 'col', 'embed', 'source', 'track', 'wbr'}
+                if not self_closing and tag not in void_tags:
+                    stack.append(tag)
+
+    return sig
+
+
+def compare_html_structure(original: str, translated: str) -> dict:
+    """Compara estrutura hierarquica do HTML original com traduzido.
+    Retorna APROVADO apenas se as assinaturas estruturais forem equivalentes."""
     issues = []
 
-    # Contar elementos por tipo de tag
-    def count_tags(html_content):
-        tags = re.findall(r'</?(\w+)[^>]*>', html_content)
-        from collections import Counter
-        return Counter(tags)
+    sig_orig = build_structural_signature(original)
+    sig_trans = build_structural_signature(translated)
 
-    orig_tags = count_tags(original)
-    trans_tags = count_tags(translated)
+    from collections import Counter
+    orig_counts = Counter(s[1] for s in sig_orig)
+    trans_counts = Counter(s[1] for s in sig_trans)
 
-    for tag in orig_tags:
-        if orig_tags[tag] != trans_tags.get(tag, 0):
-            issues.append(f"Tag <{tag}>: original={orig_tags[tag]}, traduzido={trans_tags.get(tag, 0)}")
+    for tag in orig_counts:
+        diff = orig_counts[tag] - trans_counts.get(tag, 0)
+        if diff > 0:
+            issues.append(f"Tag <{tag}>: faltando {diff} (original={orig_counts[tag]}, traduzido={trans_counts.get(tag, 0)})")
+        elif diff < 0:
+            issues.append(f"Tag <{tag}>: extra {-diff} (original={orig_counts[tag]}, traduzido={trans_counts.get(tag, 0)})")
 
-    # Verificar placeholders não restaurados
+    if len(sig_orig) != len(sig_trans):
+        issues.append(f"Contagem de elementos: original={len(sig_orig)}, traduzido={len(sig_trans)}")
+    else:
+        diferencas = 0
+        for i, (a, b) in enumerate(zip(sig_orig, sig_trans)):
+            if a != b:
+                diferencas += 1
+                if diferencas <= 3:
+                    issues.append(f"Divergencia estrutural na posicao {i}: esperado {a}, obtido {b}")
+        if diferencas > 0:
+            issues.append(f"Total de divergencias estruturais: {diferencas}")
+
     if PLACEHOLDER_PREFIX in translated:
         remaining = re.findall(rf'{re.escape(PLACEHOLDER_PREFIX)}\w+_\d+___', translated)
         if remaining:
-            issues.append(f"Placeholders não restaurados: {len(remaining)}")
+            issues.append(f"Placeholders nao restaurados: {len(remaining)}")
 
-    # Verificar scripts preservados
-    orig_scripts = re.findall(r'<script[^>]*>.*?</script>', original, re.DOTALL)
-    trans_scripts = re.findall(r'<script[^>]*>.*?</script>', translated, re.DOTALL)
+    if '__PROTECTED_' in translated:
+        remaining_p = re.findall(r'__PROTECTED_\w+_\d+__', translated)
+        if remaining_p:
+            issues.append(f"Blocos protegidos nao restaurados: {len(remaining_p)}")
+
+    orig_scripts = re.findall(r'<script[^>]*>', original)
+    trans_scripts = re.findall(r'<script[^>]*>', translated)
     if len(orig_scripts) != len(trans_scripts):
         issues.append(f"Scripts: original={len(orig_scripts)}, traduzido={len(trans_scripts)}")
 
     return {
         "passed": len(issues) == 0,
         "issues": issues,
-        "tag_counts_original": dict(orig_tags),
-        "tag_counts_translated": dict(trans_tags),
+        "elementos_original": len(sig_orig),
+        "elementos_traduzido": len(sig_trans),
+        "divergencias_estruturais": len([1 for a, b in zip(sig_orig, sig_trans) if a != b]) if len(sig_orig) == len(sig_trans) else -1,
     }
 
 def audit_seo(html_content: str, target_lang: str, filename: str) -> dict:
@@ -1228,30 +1542,40 @@ def translate_file(filename: str, target_lang: str) -> dict:
     log.info("[14/20] Substituindo footer (PT -> internacional)...")
     html_content = process_footer(html_content)
 
+    # ═══ FASE JS INLINE ═══
+    log.info("═════ TRADUCAO DE JAVASCRIPT INLINE ═════")
+    log.info("[15/20] Extraindo e traduzindo strings em <script> inline...")
+    html_content, js_report = translate_js_inline(html_content, target_lang, translator)
+    log.info(f"       Scripts: {js_report['scripts_encontrados']}, "
+             f"Strings JS: {js_report['strings_encontradas']} encontradas, "
+             f"{js_report['strings_traduzidas']} traduzidas, "
+             f"{js_report['strings_perdidas']} perdidas.")
+    report["js_report"] = js_report
+
     # ═══ FASE 2: CORPO HTML ═══
     log.info("═════ FASE 2/2: Traduzindo corpo HTML ═════")
 
-    log.info("[15/20] Protegendo blocos tecnicos (scripts, styles, SVGs, comentarios)...")
+    log.info("[16/20] Protegendo blocos tecnicos (scripts, styles, SVGs, comentarios)...")
     html_content, protected, reverse_map = protect_html_blocks(html_content)
     log.info(f"       {len(protected)} blocos protegidos.")
 
-    log.info("[16/20] Extraindo textos de atributos (title, alt, aria-label, placeholder)...")
+    log.info("[17/20] Extraindo textos de atributos (title, alt, aria-label, placeholder)...")
     html_content, attr_map = extract_translatable_attributes(html_content)
     log.info(f"       {len(attr_map)} atributos extraidos.")
 
-    log.info("[17/20] Extraindo textos do corpo HTML...")
+    log.info("[18/20] Extraindo textos do corpo HTML...")
     html_content, text_map = extract_text_nodes(html_content)
 
     total_texts = len(text_map) + len(attr_map)
     log.info(f"       Total de textos a traduzir: {total_texts} (body: {len(text_map)}, attrs: {len(attr_map)})")
     report["strings_traduzidas"] = total_texts
 
-    log.info("[18/20] Enviando textos para traducao via API (DeepSeek <-> OpenAI)...")
+    log.info("[19/20] Enviando textos para traducao via API (DeepSeek <-> OpenAI)...")
     html_content = translate_body_texts(
         html_content, target_lang, translator, text_map, attr_map
     )
 
-    log.info("[19/20] Restaurando blocos protegidos...")
+    log.info("[20/20] Restaurando blocos protegidos...")
     html_content = restore_protected_blocks(html_content, reverse_map)
     report["deepseek"] = translator.stats["deepseek"]
     report["openai"] = translator.stats["openai"]
@@ -1259,10 +1583,11 @@ def translate_file(filename: str, target_lang: str) -> dict:
     log.info(f"       Estatisticas: DeepSeek={translator.stats['deepseek']}, OpenAI={translator.stats['openai']}, Fallbacks={translator.stats['fallbacks']}")
 
     # ═══ AUDITORIA ═══
-    log.info("[20/20] Executando auditoria estrutural...")
+    log.info("[21/21] Executando auditoria estrutural...")
 
     audit_results = {
-        "estrutura": audit_structure(original_html, html_content),
+        "estrutura": compare_html_structure(original_html, html_content),
+        "js": audit_js_preservation(original_html, html_content),
         "seo": audit_seo(html_content, target_lang, filename),
         "footer": audit_footer(html_content),
     }
@@ -1273,13 +1598,14 @@ def translate_file(filename: str, target_lang: str) -> dict:
         if all_passed:
             break
 
-        log.info(f"Correção automática - tentativa {repair_attempt + 1}/{MAX_AUDIT_REPAIRS}")
+        log.info(f"Correcao automatica - tentativa {repair_attempt + 1}/{MAX_AUDIT_REPAIRS}")
         html_content = auto_repair(html_content, target_lang, filename, audit_results)
         report["correcoes"] += 1
 
         # Re-auditar
         audit_results = {
-            "estrutura": audit_structure(original_html, html_content),
+            "estrutura": compare_html_structure(original_html, html_content),
+            "js": audit_js_preservation(original_html, html_content),
             "seo": audit_seo(html_content, target_lang, filename),
             "footer": audit_footer(html_content),
         }
