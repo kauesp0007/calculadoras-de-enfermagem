@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260808-003040";
+const CACHE_VERSION = "20260808-004535";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -126,6 +126,7 @@ const urlsToCache = [
   'automacoes/banco_nanda_2024_new_only_clean.json',
   'automacoes/banco_nanda_2024_new_only_clean_updated.json',
   'automacoes/catalogador/catalogador_cache.json',
+  'automacoes/correspondencias_sinan_notificacao.json',
   'automacoes/extrator_infograficos/cache/0056d773697805b8342670164c1bc8b5d7431218466fe94b36aea707884b5f61.json',
   'automacoes/extrator_infograficos/cache/04b00e7b0327efd81cec3c7ae2728e6318afb4b75ae224f8fac281a6353e65de.json',
   'automacoes/extrator_infograficos/cache/079b76433a0f0e2fbdace2b815bfad674e3737afaa8c0eac36fbcda06e9b213b.json',
@@ -247,8 +248,10 @@ const urlsToCache = [
   'automacoes/extrator_infograficos/saida/layout.json',
   'automacoes/extrator_infograficos/saida/manifest.json',
   'automacoes/mapa_notificacao_compulsoria.json',
+  'automacoes/mapa_notificacao_compulsoria_final.json',
   'automacoes/relatorio_botoes_impressao_pdf.json',
   'automacoes/svg_cache.json',
+  'automacoes/validacao_mapa_notificacao_compulsoria.json',
   'automation-guard.js',
   'automatizador-em-massa.js',
   'banco_nanda.json',
