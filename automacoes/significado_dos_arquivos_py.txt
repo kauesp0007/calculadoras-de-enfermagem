@@ -1,0 +1,438 @@
+================================================================================
+  SIGNIFICADO DOS ARQUIVOS .PY — AUTOMACOES
+  Projeto: calculadoras-de-enfermagem
+  Data: 08/08/2026
+================================================================================
+
+📊 TOTAL: 144 arquivos Python, organizados em 21 grupos funcionais.
+
+================================================================================
+🔷 GRUPO 1: catalogador/ — Catalogador Inteligente de PDFs (17 arquivos)
+================================================================================
+  Monitora docs/, detecta PDFs, extrai metadados, faz OCR, classifica via
+  DeepSeek, renomeia com padrão SEO e gera manifesto.json/csv.
+
+  ENTRY POINT: catalogador/main.py
+
+  docs/*.pdf
+     │
+     ▼
+  catalogador/watcher.py ── (watchdog monitora docs/)
+     │
+     ▼
+  catalogador/pdf_reader.py ── (PyMuPDF extrai texto/metadados)
+  catalogador/ocr_engine.py  ── (Tesseract OCR para PDFs escaneados)
+     │
+     ▼
+  catalogador/hash_manager.py ── (SHA-256, detecta duplicatas)
+  catalogador/cache_manager.py ── (cache JSON p/ evitar re-chamadas API)
+  catalogador/snippet_builder.py ── (trechos otimizados p/ IA)
+     │
+     ▼
+  catalogador/deepseek_client.py ── (API DeepSeek via OpenAI SDK)
+  catalogador/classifier.py ── (valida/normaliza resposta JSON da IA)
+     │
+     ▼
+  catalogador/rename_engine.py ── (padrão SEO: ANO_INSTITUICAO_CODIGO_TITULO.pdf)
+  catalogador/output_generator.py ── (renomeia arquivo, atualiza DB, gera manifesto)
+     │
+     ▼
+  catalogador/database.py ── (SQLite)
+  catalogador/tui.py ── (Rich TUI)
+  catalogador/logger.py ── (logs rotativos)
+  catalogador/config.py ── (config centralizada)
+  catalogador/utils.py ── (sanitização, Unicode, hash)
+
+
+================================================================================
+🔷 GRUPO 2: auditor_seo/ — Auditoria Corretiva de SEO (11 arquivos)
+================================================================================
+  Varre todos os HTMLs e corrige <head>: canonical, og:url, hreflang, schema,
+  Twitter Card. Faz backup antes de modificar.
+
+  ENTRY POINT: auditor_seo/main.py
+
+  auditor_seo/scanner.py ── (varredura recursiva de HTMLs)
+     │
+     ▼
+  auditor_seo/head_parser.py ── (BeautifulSoup extrai elementos do <head>)
+  auditor_seo/auditor.py ── (analisa e gera PlanoCorrecao)
+     │
+     ▼
+  auditor_seo/backup_manager.py ── (backup SHA-256 antes de modificar)
+  auditor_seo/corrector.py ── (aplica correções via string replacement)
+     │
+     ▼
+  auditor_seo/validar.py ── (valida pós-correção, restaura backup se falhar)
+  auditor_seo/relatorio.py ── (relatório final)
+  auditor_seo/url_resolver.py ── (calcula URL canônica pelo caminho)
+  auditor_seo/config.py ── (domínio, pastas/arquivos ignorados)
+  auditor_seo/logger.py ── (logs rotativos)
+
+
+================================================================================
+🔷 GRUPO 3: ui_catalog_engine/ — Catálogo do Design System (7 arquivos)
+================================================================================
+  Analisa cores, fontes, tipografia, componentes Tailwind de todo o site.
+  READ-ONLY. Gera CATALOGO_DO_DESIGN_SYSTEM.txt/.md.
+
+  ENTRY POINT: ui_catalog_engine/main.py
+
+  ui_catalog_engine/parsers/css_parser.py ── (extrai cores, fontes, espaçamentos)
+  ui_catalog_engine/parsers/html_parser.py ── (detecta componentes Tailwind)
+     │
+     ▼
+  ui_catalog_engine/reporters/txt_reporter.py ── (gera .txt)
+  ui_catalog_engine/reporters/md_reporter.py ── (gera .md)
+  ui_catalog_engine/config.py
+
+
+================================================================================
+🔷 GRUPO 4: repository_catalog_engine/ — Catálogo do Repositório (10 arquivos)
+================================================================================
+  Cataloga todo o repositório em 5 fases: inventário, análise estrutural,
+  mapa de dependências, mapa de navegação, auditoria técnica.
+  READ-ONLY. Gera CATALOGO_DO_REPOSITORIO.txt/.md em CATALOGO_DO_SITE/.
+
+  ENTRY POINT: repository_catalog_engine/main.py
+
+  repository_catalog_engine/scanner.py ── (F1: inventário de arquivos)
+  repository_catalog_engine/analyzer.py ── (estatísticas)
+  repository_catalog_engine/content_parser.py ── (F2: análise de conteúdo)
+  repository_catalog_engine/dependency_mapper.py ── (F3: grafo HTML→CSS/JS/img)
+  repository_catalog_engine/navigation_mapper.py ── (F4: links, órfãs, breadcrumbs)
+  repository_catalog_engine/auditor.py ── (F5: SEO, performance, acessibilidade)
+     │
+     ▼
+  repository_catalog_engine/tree_builder.py ── (árvore ASCII)
+  repository_catalog_engine/report_generator.py ── (relatórios .txt/.md)
+  repository_catalog_engine/config.py
+
+
+================================================================================
+🔷 GRUPO 5: extrator_infograficos/ — Extrator de Infográficos (10 arquivos)
+================================================================================
+  Pipeline 8 etapas: recebe PNG de infográfico, detecta componentes via OpenCV,
+  classifica via OpenAI GPT-4.1, exporta WebP e gera HTML responsivo.
+
+  ENTRY POINT: extrator_infograficos/extrair.py
+
+  PNG infográfico
+     │
+     ▼
+  etapa_01_abrir_imagem.py ── (OpenCV valida PNG)
+  etapa_02_detectar_regioes.py ── (threshold binário, contornos, bounding boxes)
+  etapa_03_exportar_objetos.py ── (exporta cada objeto como PNG temp)
+  etapa_04_analisar_openai.py ── (OpenAI classifica: logo, ícone, imagem, texto...)
+  etapa_05_extrair_objetos.py ── (filtra aprovados)
+  etapa_06_exportar_webp.py ── (converte para WebP qualidade 90%)
+  etapa_07_manifest.py ── (JSON com metadados)
+  etapa_08_html.py ── (galeria HTML responsiva)
+  extrator_infograficos/config.py
+  extrator_infograficos/openai_client.py
+
+
+================================================================================
+🔷 GRUPO 6: seo_catalog_engine/ (1 arquivo)
+================================================================================
+  Analisa meta tags, schema, hreflang, og:, twitter: de todos os HTMLs em 19
+  idiomas. READ-ONLY. Gera CATALOGO_SEO_DO_PROJETO.txt/.md.
+
+  ENTRY POINT: seo_catalog_engine/main.py
+
+
+================================================================================
+🔷 GRUPO 7: architecture_catalog_engine/ (1 arquivo)
+================================================================================
+  Documenta arquitetura estrutural (HTML, CSS, JS, JSON, imagens, fontes)
+  por tipo e idioma. READ-ONLY. Gera ARQUITETURA_DO_PROJETO.txt/.md.
+
+  ENTRY POINT: architecture_catalog_engine/main.py
+
+
+================================================================================
+🔷 GRUPO 8: component_standardizer/ (1 arquivo)
+================================================================================
+  Padroniza botões de impressão/PDF para o componente oficial action-buttons.
+
+  ENTRY POINT: component_standardizer/standardize_pdf_buttons.py
+
+
+================================================================================
+🔷 GRUPO 9: Pipeline de Notificação Compulsória — Fases 1 a 5.3 (16 arquivos)
+================================================================================
+  Extrai, mapeia, audita, valida, consolida e integra dados epidemiológicos de
+  doenças de notificação compulsória (SINAN, CVE-SP, Ministério da Saúde) no
+  HTML notificacao-compulsoria.html.
+
+  FLUXO SEQUENCIAL (executar na ordem):
+
+  FASE 1 ─ MAPEAMENTO INICIAL
+  ─────────────────────────────────────────────────────────────────
+  mapear_notificacao_compulsoria.py
+    Extrai entradas do array dadosNotificacao do HTML → gera mapa JSON.
+     │
+     ▼
+  validar_mapa_notificacao_compulsoria.py
+    Validação semântica (CONFIRMADO/CONFIRMADO_COM_RESSALVA/REVISÃO).
+     │
+     ▼
+  consolidar_mapa_final.py
+    Resolve duplicidades (Poliomielite/PFA) → mapa final com 3 níveis.
+
+  FASE 2 ─ LOCALIZAÇÃO DE FONTES
+  ─────────────────────────────────────────────────────────────────
+  localizar_sinan.py
+    Localiza páginas correspondentes no portal SINAN.
+     │
+     ▼
+  localizar_cve_sp.py
+    Localiza fontes complementares no índice A-Z do CVE-SP.
+
+  FASE 3 ─ EXTRAÇÃO DE DADOS
+  ─────────────────────────────────────────────────────────────────
+  extrair_dados_epidemiologicos.py
+    Extrai dados brutos das páginas SINAN e CVE-SP via scraping.
+     │
+     ▼
+  validar_dados_epidemiologicos.py
+    Corrige duplicidades, reprocessa Violência, auditoria de integridade.
+     │
+     ▼
+  gerar_fontes_complementares.py
+    Gera JSON de fontes complementares (MS Saúde de A a Z, VISAT, ESAVI).
+     │
+     ▼
+  extrair_fontes_complementares.py
+    Extrai dados brutos das 11 fontes complementares do MS.
+
+  FASE 4 ─ CONSOLIDAÇÃO
+  ─────────────────────────────────────────────────────────────────
+  consolidar_biblioteca.py
+    Consolida SINAN + CVE-SP + MS → biblioteca_doencas_notificacao_compulsoria.json
+     │
+     ▼
+  validar_biblioteca_doencas.py
+    Valida biblioteca JSON (nomes únicos, campos obrigatórios, fontes).
+
+  FASE 5 ─ INTEGRAÇÃO NO HTML
+  ─────────────────────────────────────────────────────────────────
+  mapear_integracao_biblioteca_html.py
+    Mapeia entradas do HTML → entidades da biblioteca JSON.
+     │
+     ▼
+  integrar_biblioteca_no_html.py (v1) / integrar_biblioteca_no_html_v2.py (v2)
+    Substitui dados inline no array dadosNotificacao pelos da biblioteca.
+     │
+     ▼
+  auditar_semantica_fase_5_3.py
+    Auditoria semântica final (read-only): HTML vs backup vs biblioteca.
+
+  ─────────────────────────────────────────────────────────────────
+  auditar_notificacao_compulsoria.py (Fase 1 preliminar, standalone)
+
+
+================================================================================
+🔷 GRUPO 10: Extratores de Bases de Enfermagem — NANDA e NIC (2 arquivos)
+================================================================================
+  Extraem diagnósticos (NANDA) e intervenções (NIC) de PDFs via PyMuPDF +
+  DeepSeek API, gerando bancos JSON completos com processamento em lotes
+  e checkpoint para retomada.
+
+  extrator_nanda.py ── banco_nanda.json / banco_nanda_en.json / banco_nanda_es.json
+  extrator_nic.py   ── banco_nic_completo.json / banco_nic_en.json
+
+
+================================================================================
+🔷 GRUPO 11: Corretores Pontuais de Escalas/Traduções (6 arquivos)
+================================================================================
+  Scripts de correção de bugs específicos em escalas clínicas traduzidas.
+
+  corrigir_saps_dados.py ── Reinjeta bloco "Dados do Paciente" no SAPS III
+  corrigir_painad.py      ── Corrige } extra + cor vermelha val===2 na PAINAD
+  corrigir_norton.py      ── Corrige } extra + cor vermelha val===1 na Norton
+  corrigir_nips.py        ── Corrige } extra + cores val===1 e val===2 na NIPS
+  reparar_fast_traduzidos.py ── Repara corrupções JS nos fast.html traduzidos
+  corrige_keywords_nanda.py  ── Traduz keywords NANDA PT→EN com super dicionário
+
+
+================================================================================
+🔷 GRUPO 12: Corretores e Otimizadores de HTML em Massa (22 arquivos)
+================================================================================
+  Varrem TODOS os HTMLs (raiz + 18 idiomas) aplicando correções estruturais,
+  SEO, performance e acessibilidade. Executar individualmente conforme
+  necessidade.
+
+  📌 ESTRUTURA HTML / ACESSIBILIDADE
+  ─────────────────────────────────────────────────────────────────
+  corrigir_main_tags.py          ── Padroniza <main> sem container/max-w
+  corrigir_lang_html.py          ── Corrige lang="..." na tag <html>
+  corrigir_acessibilidade_h1h2h3.py ── Hierarquia h1/h2/h3 (Lighthouse)
+  remover_espacos_inicio_linha.py ── Remove espaços/TABs do início de linhas
+  remover_botoes_escalas.py      ── Remove botões de escalas obsoletos
+
+  📌 SEO / HEAD
+  ─────────────────────────────────────────────────────────────────
+  otimizador_head.py             ── Reestrutura <head> (Core Web Vitals)
+  adicionar_hreflang_x-default.py ── Adiciona hreflang="x-default"
+  corretor_hreflang.py           ── Gera bloco hreflang completo (19 idiomas)
+  corretor_hreflang_ogurl.py     ── Remove hreflangs órfãos, corrige og:url
+  corrigir_breadcrumbs.py        ── Corrige JSON-LD Breadcrumbs
+
+  📌 FONTES
+  ─────────────────────────────────────────────────────────────────
+  corrigir_fontes_inline.py      ── font-display: optional → swap
+  minificar_critical_fonts.py    ── Minifica <style id="critical-fonts">
+  atualizar_fonte_black.py       ── font-weight 900 → 700 (Inter)
+  limpa_fontawesome.py           ── Remove FontAwesome residual
+  open-dyslexic.py               ── Remove Open Dyslexic
+  corretor_fontes_lote.py        ── Fontes específicas (ar, hi, zh, ja, ko)
+  adicionar_preloads_fonte_awesome.py ── Preloads FA Solid + Brands
+
+  📌 PERFORMANCE
+  ─────────────────────────────────────────────────────────────────
+  corrigir_jspdf_preload.py      ── preload → prefetch nos links jsPDF
+  corrigir_carregamento_css_cls.py ── CSS assíncrono → <link> normal
+  corrigir_cls_acessibilidade.py ── Script anti-CLS acessibilidade
+  mover_scripts_js_para_cima_da_head.py ── Move <script> para <head>
+  adicionar_preload.py           ── Preload do LCP (ícone topbar)
+
+  📌 VISUAL
+  ─────────────────────────────────────────────────────────────────
+  corrigir_hero_cards.py         ── Padroniza Hero Cards (max-w, gradientes)
+  corrigir_css.py                ── Injeta CSS grade de acessos rápidos
+  otimizador_acessibilidade_footer.py ── Aria-labels/alts nos footers
+
+  📌 LIMPEZA
+  ─────────────────────────────────────────────────────────────────
+  remover_comentarios_supabase.py ── Remove scripts/chaves Supabase
+  reservar_espaco_multiplex.py   ── Reserva espaço p/ anúncio Multiplex
+
+
+================================================================================
+🔷 GRUPO 13: Corretores de SEO — Hreflang e FontAwesome (4 arquivos)
+================================================================================
+  corretor_hreflang_ogurl.py     ── Verifica traduções reais, remove hreflangs
+                                     órfãos, corrige og:url (--dry-run / --fix)
+  corretor_hreflang.py           ── Gera bloco hreflang completo (19 idiomas)
+  corretor_fontawesome.py        ── Remove FontAwesome fantasma via relatório JSON
+  corretor_fontes_lote.py        ── Corrige fontes específicas por idioma
+
+
+================================================================================
+🔷 GRUPO 14: Conversão FontAwesome → SVG Inline (4 arquivos)
+================================================================================
+  Substituem <i class="fa-..."> por SVGs inline, eliminando CDN.
+
+  fontawesome_trocando-i-por-svg_inline.py
+  fontawesome_icones_menores.py
+  trocando_fonteawesome_i_por_svg_arquivo_unico.py
+  corretor_localdosjs_cssinlineglobalheader_duplicidadesjs.py
+
+
+================================================================================
+🔷 GRUPO 15: Tradutores (5 arquivos)
+================================================================================
+  tradutor_inteligente.py        ── Tradutor principal: DeepL (HTML) + DeepSeek
+                                     (JS, SEO, Schema). Prepara rotas, canonical,
+                                     hreflang, lang, fontes, og:url, twitter:url.
+  tradutor_cirurgico.py          ── Tradutor alternativo com mapa de idiomas,
+                                     SPECIAL_FONTS e proteção de pastas.
+  correcoes_traducoes_api.py     ── Corrige placeholders header/footer + scripts
+                                     globais nos HTMLs traduzidos.
+  tradutor_antigo.py             ── (stub)
+  translate.py                   ── (stub)
+
+
+================================================================================
+🔷 GRUPO 16: Admissão e Download de Arquivos (3 arquivos)
+================================================================================
+  admitir_arquivos.py            ── Pipeline: recebe arquivos de admissao_file/,
+                                     processa PDFs/imagens/vídeos, OCR, OpenAI,
+                                     renomeia e publica.
+  baixar_provas_enfermagem.py    ── Baixa provas do PCI Concursos
+  baixar_artigos_enfermagem.py   ── Baixa artigos open-access via Europe PMC
+
+
+================================================================================
+🔷 GRUPO 17: Auditoria de Botões e CWV (3 arquivos)
+================================================================================
+  auditor_botoes_impressao_pdf.py ── Audita/corrige botões de impressão/PDF
+  auditar_corrigir_cwv_html.py   ── Auditoria Core Web Vitals: width/height em <img>
+  auditor_fontes.py              ── (stub)
+
+
+================================================================================
+🔷 GRUPO 18: Manutenção/Atualização (5 arquivos)
+================================================================================
+  atualiza_nanda.py              ── Troca banco_nanda.json → banco_nanda_en.json
+                                     nos HTMLs de idiomas
+  atualizar_index_bloco_h1_idiomas.py ── Atualiza banner H1 do index via DeepSeek
+  atualizar_fonte_black.py       ── font-weight 900 → 700 nas fontes Inter
+  reservar_espaco_multiplex.py   ── Reserva espaço p/ anúncio Multiplex
+  mapeador_raiz.py               ── (stub)
+
+
+================================================================================
+🔷 GRUPO 19: Otimização de Imagens e PDFs (3 arquivos)
+================================================================================
+  otimizador_imagens.py          ── Redimensiona (max 800px), converte WebP,
+                                     renomeia com SEO
+  otimizar_pdf.py                ── Lazy-load jsPDF no evento btnGerarPDF
+  processar_imagem_kit_intubacao.py ── Recorta frasco/ampola de foto, exporta WebP
+
+
+================================================================================
+🔷 GRUPO 20: Relatórios e Scanners (4 arquivos)
+================================================================================
+  ⚠️ STUBS (apenas import os) — funcionalidade movida para outros scripts:
+  relatorio_site.py
+  gerar_relatorio_paginas.py
+  scanner_em_massa.py
+  teste_automacao.py
+
+
+================================================================================
+🔷 GRUPO 21: Ferramentas Avulsas (5 arquivos)
+================================================================================
+  ⚠️ STUBS ou funcionalidade movida:
+  verificar_seo.py
+  auditor_mestre.py
+
+
+================================================================================
+📊 ESTATÍSTICAS FINAIS
+================================================================================
+  Total de arquivos .py:          144
+  Pacotes (subdiretórios):          8
+  Arquivos com conteúdo real:    ~118
+  Stubs (só import os):           ~26
+  Read-only (não modificam):      ~30
+  Modificam HTMLs:                ~55
+  Maior grupo:  Grupo 12 (22 corretores/otimizadores HTML)
+  2º maior:     Grupo 9  (16 pipeline notificação compulsória)
+
+================================================================================
+⚡ COMANDOS MAIS USADOS NO DIA A DIA
+================================================================================
+  # Traduzir uma página:
+  py automacoes/tradutor_inteligente.py
+
+  # Corrigir hreflangs órfãos e og:url:
+  py automacoes/corretor_hreflang_ogurl.py --dry-run   (simular)
+  py automacoes/corretor_hreflang_ogurl.py --fix        (aplicar)
+
+  # Auditar SEO completo:
+  py automacoes/auditor_seo/main.py --audit
+
+  # Gerar catálogo do repositório:
+  py automacoes/repository_catalog_engine/main.py
+
+  # Catalogar PDFs:
+  py automacoes/catalogador/main.py --once
+
+  # Baixar provas de concursos:
+  py automacoes/baixar_provas_enfermagem.py
+
+  # Otimizar imagens:
+  py automacoes/otimizador_imagens.py
