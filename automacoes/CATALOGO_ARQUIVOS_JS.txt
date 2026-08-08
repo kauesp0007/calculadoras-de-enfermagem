@@ -1,0 +1,542 @@
+================================================================================
+  CATALOGO DOS ARQUIVOS JAVASCRIPT — CALCULADORAS DE ENFERMAGEM
+  Projeto: calculadoras-de-enfermagem
+  Data: 08/08/2026
+================================================================================
+
+TOTAL: 65 arquivos JavaScript, organizados em 9 grupos funcionais.
+  41 na raiz | 7 em js/ | 10 em js/auth/ | 1 em js/firebase/ | 6 em scripts/
+
+================================================================================
+🔷 GRUPO 1: SCRIPTS DE PÁGINA (Runtime — Executados no navegador)
+================================================================================
+
+  📌 GLOBAIS (carregados por TODAS as páginas)
+  ─────────────────────────────────────────────────────────────────
+
+  global-scripts.js
+    Script mais importante do site. Carregado em ~200+ páginas HTML.
+    Orquestra: (a) anti-bot (detecta navegadores sem navigator.language);
+    (b) detecção de idioma via window.__LANG + prefixo de fetch;
+    (c) registro do Service Worker; (d) carregamento diferido do menu
+    global (menu-global.html) e dos elementos do body (acessibilidade,
+    cookies, modais, back-to-top). DEVE ser carregado com defer.
+    Depende de: menu-global.html, global-body-elements.html, sw.js
+
+  lang-selector.js
+    Injeção e gerenciamento do seletor de idiomas flutuante.
+    Faz fetch("_language_selector.html"), injeta no placeholder
+    #language-selector-placeholder, implementa dropdown com bandeiras,
+    redirecionamento para as 18 pastas de idioma.
+    Depende de: _language_selector.html
+    Carregado em: index.html (raiz) + index.html das pastas de idioma
+
+  js/web-vitals-reporter.js
+    Coleta métricas Core Web Vitals (LCP, INP, CLS, FCP, TTFB) em
+    produção. Carrega web-vitals@5.3.0 via CDN unpkg e envia para
+    window.dataLayer (Google Tag Manager) como eventos web_vital.
+    Carregado em: TODAS as páginas HTML
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 CARREGADOS DINAMICAMENTE (injetados pelo global-scripts.js)
+  ─────────────────────────────────────────────────────────────────
+
+  js/menu.js
+    Menu hambúrguer + dropdowns desktop/mobile. Gerencia: botão
+    hambúrguer, accordions móveis, dropdowns de "Sobre Nós",
+    "Calculadoras", "Conteúdo", "Carreira", "Fale Conosco", e
+    seletor de idioma mobile/desktop. Injetado com menu-global.html.
+
+  js/cookies.js
+    Gestor de consentimento LGPD. Classe CookieManager com banner,
+    modal de preferências, toggles analytics/marketing, persistência
+    em localStorage. Injetado com global-body-elements.html.
+
+  js/accessibility.js
+    Acessibilidade global (tipo VLibras). Classe AccessibilityManager:
+    tamanho de fonte, tipo de fonte (serif/bold), espaçamento,
+    contraste (dark/light/monochrome), saturação, highlight de links,
+    máscara/guia de leitura, reset. Injetado com global-body-elements.html.
+
+  js/backToTop.js
+    Botão "Voltar ao Topo". Exibe após 300px de scroll com animação
+    suave. Injetado com global-body-elements.html.
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 STANDALONE (páginas específicas)
+  ─────────────────────────────────────────────────────────────────
+
+  ce-calculadora-padrao.js
+    Calculadora aritmética inline (sem eval). Parser de expressões
+    matemáticas com tokenizer: +, -, *, /, parênteses, decimal,
+    menos unário. Vinculada via data-ce-* attributes no HTML.
+    Exemplo de uso: calculadoravacina.html
+
+  glossary-search.js
+    Busca com autocomplete para páginas de glossário/terminologia.
+    Constrói índice a partir de elementos .term-container .term-title,
+    normaliza texto (remove acentos), scroll até o termo com highlight.
+    Uso: terminologias-de-enfermagem.html, classificacao_intervencoes-enfermagem.html
+
+  main.js (raiz)
+    Fallback para páginas sem global-scripts.js: botão "Voltar ao
+    Topo" (scroll >300px) + registro do Service Worker.
+
+  js/main.js (subdiretório)
+    ARQUIVO VAZIO — placeholder/resquício de refatoração.
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 AUTENTICAÇÃO (js/auth/ + js/firebase/) — 11 arquivos
+  ─────────────────────────────────────────────────────────────────
+
+  js/firebase/firebase-init.js
+    ÚNICO ponto de configuração do Firebase. Singleton com lazy
+    loading do SDK. Configura Firebase App, Auth e Firestore.
+
+  js/auth/auth-core.js
+    API pública centralizada (padrão Facade). Expõe Auth.init(),
+    Auth.isLoggedIn(), Auth.currentUser(), Auth.hasPlan().
+    Delega para auth-session.js, auth-permissions.js, auth-providers.js.
+
+  js/auth/auth-providers.js
+    Fábrica de provedores OAuth: Google, Microsoft, Apple, Email.
+    Cada um implementa interface { signIn, isAvailable }.
+
+  js/auth/auth-ui.js
+    Bindings de UI para página de login: cliques em provedores,
+    formulário email/senha, toggle login/registro/recuperação,
+    loading states, redirecionamento pós-login.
+
+  js/auth/auth-session.js      — Persistência de sessão
+  js/auth/auth-permissions.js  — Verificação de permissões/planos
+  js/auth/auth-email.js        — Provider: email/senha
+  js/auth/auth-google.js       — Provider: Google OAuth
+  js/auth/auth-microsoft.js    — Provider: Microsoft OAuth
+  js/auth/auth-apple.js        — Provider: Apple OAuth
+  js/auth/auth-user-profile.js — Perfil do usuário
+
+  Uso: Apenas nas páginas da pasta conta/ (login, perfil, dashboard)
+
+
+================================================================================
+🔷 GRUPO 2: BUILD SCRIPTS (Node.js — Geram páginas estáticas a partir de dados)
+================================================================================
+
+  📌 FLUXO PRINCIPAL DE BUILD
+  ─────────────────────────────────────────────────────────────────
+
+  biblioteca-automation.js
+    PIPELINE COMPLETO de catalogação (8 etapas sequenciais):
+    (0) Catalogador Python (DeepSeek renomeia PDFs)
+    (1) Scanner de arquivos
+    (2) Limpeza de órfãos
+    (3) Limpeza de HTMLs órfãos
+    (4) Geração de capas (thumbnails WebP)
+    (5) Build da biblioteca HTML
+    (6) Build de downloads
+    (7) Build Tailwind CSS
+    (8) Regeneração do Service Worker
+
+  ─────────────────────────────────────────────────────────────────
+
+  build.js
+    Gera downloads.html + paginação a partir de biblioteca.json e
+    downloads.template.html. Cards com badges de tipo (PDF, Word,
+    Excel, Vídeo), paginação 20 itens/página, otimização LCP/CLS.
+    Depende: biblioteca.json, downloads.template.html
+    Output: downloads.html, downloads/page2.html, ...
+
+  build-downloads.js
+    Versão alternativa do build de downloads. Cards estilo Google
+    Images, paginação 250 itens/página, correção de mídia para
+    PDFs sem capa (previne broken images).
+    Depende: biblioteca.json, downloads.template.html
+
+  build-biblioteca.js
+    Gera HTMLs individuais para cada item da biblioteca
+    (biblioteca/*.html). Usa item.template.html como molde,
+    extrai metadados do nome (padrão ANO_INSTITUICAO_CODIGO_TITULO),
+    gera SEO automático por tipo de conteúdo.
+    Depende: biblioteca.json, item.template.html
+
+  build-fale.js
+    Reconstrói fale.html (página de contato) com HTML/CSS hardcoded.
+    Design navy, formulário funcional, cards laterais de suporte.
+    Output: fale.html
+
+  build-nanda.js
+    Reconstrói nanda.html (guia NANDA-NIC-NOC) com conteúdo
+    educacional completo: head SEO, CSS inline, hero cards,
+    seções de diagnóstico e intervenção.
+    Depende: banco_nanda.json, banco_nic_completo.json
+
+  build-pdf_provas_de_concursos.js
+    Scanner de PDFs de provas. Varre provas-pdf/, extrai metadados:
+    ano, banca (FGV, VUNESP, CESPE), estado, cidade, cargo
+    (Enfermeiro/Técnico). Exporta adicionarPDF() para uso pelo watcher.
+    Depende: pasta provas-pdf/
+    Output: biblioteca-provas.json
+
+  scripts/build-blog.js
+    Build do blog. Lê Markdown de posts-markdown/, converte
+    frontmatter YAML, parseia datas em português, renderiza com
+    post.template.html e index.template.html.
+    Depende: posts-markdown/, blog-templates/
+    Output: blog/*.html
+
+
+================================================================================
+🔷 GRUPO 3: SCRIPTS DE AUTOMAÇÃO EM MASSA (Node.js — Modificam HTMLs em lote)
+================================================================================
+
+  automatizador-em-massa.js
+    4 operações configuráveis: REPLACE (substitui tags), DELETE
+    (remove linhas), UNIFY (mantém 1ª ocorrência, remove duplicatas),
+    MOVE/CREATE (move/cria tags abaixo de âncoras). Varre raiz + 18
+    pastas de idioma.
+
+  corrigir-badges.js
+    Corrige badges de pontuação nas escalas (escore 0 deve ser verde).
+    Detecta atualizarCardIndividual(), adiciona badge.style.background
+    correspondente ao bar.style.backgroundColor.
+    Opções: --dry-run, --verbose, --only=filename
+
+  atualizar-scripts.js
+    Atualiza scripts Google (gtag + AdSense) em todos os HTMLs.
+    Nova versão opt-out com: modo admin, verificação de consentimento,
+    Google Tag (AW-952633102), AdSense, consentimento padrão.
+
+  otimizador-imagens.js
+    Otimiza <img> para LCP/CLS e acessibilidade: width/height
+    explícitos, loading="lazy", decoding="async", alt descritivo,
+    srcset/sizes.
+
+  otimizar-imagens.js
+    Versão alternativa do otimizador de imagens com abordagem
+    diferente de parsing e regras.
+
+  padronizar-largura.js
+    Remove wrappers max-w container, padroniza <main> para
+    largura total. Corrige tag <main> e remove divs wrapper
+    como main-content-wrapper.
+
+  remover-circulo-hero-card.js
+    Remove círculo decorativo + SVG dos hero cards H1.
+    Detecta wrappers flex com md:w-1/3 + rounded-full contendo
+    SVGs e os remove preservando layout.
+
+  scanner-footer-chain.js
+    Otimiza cadeia crítica do footer. Substitui scripts de
+    carregamento do footer em TODOS os HTMLs com DOMContentLoaded
+    + setTimeout(150ms) para adiar fetch não-crítico.
+
+  force-fix-lang-bar.js
+    Corrige barra de idiomas nos index.html traduzidos.
+    position:relative → position:absolute no #top-controls-wrapper
+    para corrigir sobreposição.
+
+
+================================================================================
+🔷 GRUPO 4: CONVERSÃO DE MÍDIA (Node.js — Imagens, PDFs, Vídeos)
+================================================================================
+
+  📌 FLUXO DE CONVERSÃO DE IMAGENS
+  ─────────────────────────────────────────────────────────────────
+
+  imagens/*.png, *.jpg
+     │
+     ▼
+  convert-webp.js ── (batch: converte tudo para WebP qualidade 85)
+  watch-images.js  ── (incremental: chokidar monitora img/,
+                       converte novas imagens automaticamente)
+     │
+     ▼
+  img/*.webp
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 FLUXO DE GERAÇÃO DE CAPAS (THUMBNAILS)
+  ─────────────────────────────────────────────────────────────────
+
+  gerarCapasPDF.js
+    Extrai 1ª página de PDFs como PNG via pdf-poppler/pdf2pic,
+    converte para WebP. Atualiza campo capa no biblioteca.json.
+
+  gerarCapasVideo.js
+    Captura screenshot a 10% da duração de .mp4/.webm via ffmpeg,
+    salva como .webp. Atualiza biblioteca.json com blindagem
+    anti-sobrescrita.
+
+  ─────────────────────────────────────────────────────────────────
+
+  watch-pdfs.js
+    Watcher incremental. Monitora provas-pdf/ com chokidar,
+    chama adicionarPDF() do build-pdf_provas_de_concursos.js
+    automaticamente quando novos PDFs são detectados.
+    Executado como tarefa VS Code: "Watch PDFs".
+
+
+================================================================================
+🔷 GRUPO 5: INFRAESTRUTURA WEB (Node.js — Service Worker, SEO, Build)
+================================================================================
+
+  sw-template.js ── Template com placeholders __CACHE_VERSION__ e
+                     //INJETAR_ARQUIVOS_AQUI. Eventos: install,
+                     activate, fetch com cache-first.
+     │
+     ▼
+  gerar-sw.js ── Varre o projeto, coleta CSS/JS/JSON/SVG/fontes,
+                  injeta lista + versão (timestamp) no template.
+     │
+     ▼
+  sw.js ── Service Worker final. Cache-first para assets estáticos,
+           Network First para HTML, tratamento especial para
+           bloqueadores de anúncio (Google Syndication).
+
+  ─────────────────────────────────────────────────────────────────
+
+  generate-sitemap.js
+    Gera sitemap.xml multilíngue. Varre raiz (PT) + 18 idiomas,
+    coleta .html, ignora templates/sistema, organiza por página/idioma,
+    gera XML com priority, changefreq e xhtml:link para hreflang.
+
+  tailwind.config.js
+    Configuração do Tailwind CSS. Define content paths: raiz,
+    18 idiomas, biblioteca/, downloads/, blog/, conta/, js/.
+
+  lighthouserc.js
+    Config do Lighthouse CI. ~70 calculadoras + 5 amostras
+    multilíngue para auditoria automatizada em localhost:8080.
+
+  automation-guard.js
+    Guardião de arquivos protegidos. Lê .automationignore,
+    expõe isProtected(filePath) para outros scripts.
+
+  scaffold-lang.js
+    Scaffolder de novas pastas de idioma. Copia HTMLs da raiz
+    (ignorando exclusões) + assets comuns (global-scripts.js,
+    global-styles.css, lang-selector.js, bandeiras), ajusta paths.
+
+
+================================================================================
+🔷 GRUPO 6: SCANNERS DE BIBLIOTECA (Node.js — Catalogação de arquivos)
+================================================================================
+
+  scanner-biblioteca.js
+    Scanner completo. Varre 3 pastas (img/ → fotos, docs/ →
+    documentos, videos/ → vídeos), detecta novos arquivos, gera
+    títulos legíveis, slugs, descrições SEO automáticas por
+    categoria. Invoca gerarCapasVideo.js e gerarCapasPDF.js.
+
+  scan-biblioteca.js
+    Versão simplificada. Scan das mesmas 3 pastas com lógica
+    direta: verifica extensões por categoria, evita duplicatas,
+    adiciona entradas com título normalizado.
+
+  force-clear-capas.js
+    Limpa campos capa dos itens da categoria documentos no
+    biblioteca.json. Cria backup antes de modificar. Uso único.
+
+
+================================================================================
+🔷 GRUPO 7: EXTRAÇÃO DE DADOS (Node.js + APIs externas)
+================================================================================
+
+  extrator-hospitais.js
+    Puppeteer para scraping de páginas web + OpenAI (GPT-4o-mini)
+    para estruturar dados em JSON: nome, tipo, localização, gestão,
+    telefone, email dos hospitais. Output: hospitais.json.
+
+  fetch-analytics.js
+    Coletor do Google Analytics Data API. Busca: (1) top 7 páginas
+    mais acessadas no mês; (2) top 5 países por usuários ativos.
+    Acumula dados mensais, reseta na virada do mês.
+    Output: analytics-data.json.
+
+
+================================================================================
+🔷 GRUPO 8: TERMINOLOGIA MÉDICA (Node.js — Pipeline de extração)
+================================================================================
+
+  scripts/extract-docx.js
+    Extrai texto bruto de termos_medicos.docx usando mammoth.
+    Output: termos_medicos_extraido.txt
+
+  scripts/parse-dictionary.js
+    Parseia o texto extraído: detecta padrão "TERMO - significado",
+    remove cabeçalhos e números de página, extrai pares termo/significado.
+    Output: terminologias.json
+
+  scripts/parse-glossario.js
+    Extrai glossário do HTML terminologias-de-enfermagem.html.
+    Parseia .term-container, .term-title, .term-meaning → JSON.
+
+  scripts/remove-static-glossary.js
+    Remove seções A-Z antigas do HTML, mantém loader dinâmico +
+    glossary-wrapper + referências bibliográficas.
+
+
+================================================================================
+🔷 GRUPO 9: UTILITÁRIOS AVULSOS
+================================================================================
+
+  log-imagens.js
+    Auditoria simples: lista .png/.jpg/.jpeg/.webp de img/
+    e escreve entrada com timestamp em img-log.txt.
+
+  scripts/find-css-duplicates.js
+    Detecta regras CSS duplicadas em global-styles.css.
+    Normaliza seletores/propriedades, identifica blocos idênticos.
+    Output: css-duplicates-report.json.
+
+  simpleRename.js
+    Utilitário AMP: gera strings srcset anexando largura ao
+    nome do arquivo (ex: image.jpg → image.32w.jpg).
+    Licença Apache 2.0.
+
+  js/main.js (subdiretório)
+    ARQUIVO VAZIO.
+
+
+================================================================================
+📊 TABELA: QUAL JS É CARREGADO EM QUAL TIPO DE PÁGINA
+================================================================================
+
+  ┌──────────────────────────────────┬──────────────────────────────────┐
+  │ TIPO DE PÁGINA                   │ JS CARREGADO                     │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ TODAS as páginas                 │ global-scripts.js                │
+  │                                  │ js/web-vitals-reporter.js        │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Páginas com seletor de idioma    │ lang-selector.js                 │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Páginas com calculadora inline   │ ce-calculadora-padrao.js         │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Glossário / Terminologia         │ glossary-search.js               │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ Login / Perfil / Dashboard       │ js/firebase/firebase-init.js     │
+  │ (pasta conta/)                   │ js/auth/auth-core.js             │
+  │                                  │ js/auth/auth-providers.js        │
+  │                                  │ js/auth/auth-ui.js               │
+  │                                  │ js/auth/auth-session.js          │
+  │                                  │ js/auth/auth-permissions.js      │
+  │                                  │ js/auth/auth-*.js (providers)    │
+  ├──────────────────────────────────┼──────────────────────────────────┤
+  │ CARREGADOS DINAMICAMENTE         │ js/menu.js                       │
+  │ (pelo global-scripts.js)         │ js/cookies.js                    │
+  │                                  │ js/accessibility.js              │
+  │                                  │ js/backToTop.js                  │
+  └──────────────────────────────────┴──────────────────────────────────┘
+
+
+================================================================================
+🔗 PIPELINES PRINCIPAIS (Fluxos que envolvem múltiplos arquivos)
+================================================================================
+
+  📌 PIPELINE DE CATALOGAÇÃO COMPLETA
+  ─────────────────────────────────────────────────────────────────
+  arquivos em docs/ + img/ + videos/
+     │
+     ▼
+  [1] scanner-biblioteca.js ── detecta novos arquivos
+     │
+     ▼
+  [2] gerarCapasPDF.js + gerarCapasVideo.js ── thumbnails WebP
+     │
+     ▼
+  [3] build-biblioteca.js ── gera biblioteca/*.html
+  [4] build-downloads.js ── gera downloads.html + paginação
+     │
+     ▼
+  [5] tailwindcss ── compila CSS
+  [6] gerar-sw.js ── regenera Service Worker
+     │
+     ▼
+  Site atualizado com novos itens
+
+  ─────────────────────────────────────────────────────────────────
+  TUDO ISSO PODE SER EXECUTADO DE UMA VEZ COM:
+  node biblioteca-automation.js
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 PIPELINE DE BUILD DE PROVAS
+  ─────────────────────────────────────────────────────────────────
+  PDFs adicionados em provas-pdf/
+     │
+     ▼
+  [1] build-pdf_provas_de_concursos.js ── extrai metadados dos nomes
+     │
+     ▼
+  [2] watch-pdfs.js (watcher) ── detecta novos PDFs automaticamente
+     │
+     ▼
+  [3] biblioteca-provas.json atualizado
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 PIPELINE DE TRADUÇÃO (JS envolvido)
+  ─────────────────────────────────────────────────────────────────
+  [1] tradutor_inteligente.py ── traduz HTML + SEO + Schema
+     │
+     ▼
+  [2] tailwindcss ── compila CSS
+  [3] gerar-sw.js ── regenera Service Worker
+  [4] generate-sitemap.js ── atualiza sitemap multilíngue
+
+  ─────────────────────────────────────────────────────────────────
+
+  📌 PIPELINE DE IMAGENS
+  ─────────────────────────────────────────────────────────────────
+  imagens adicionadas manualmente ou por upload
+     │
+     ▼
+  [1] watch-images.js (watcher contínuo) ── converte para WebP
+     │
+     ▼
+  [2] otimizador-imagens.js ── adiciona width/height/alt/lazy
+     │
+     ▼
+  Imagens otimizadas + HTMLs atualizados
+
+
+================================================================================
+⚡ COMANDOS PRINCIPAIS (ordem por frequência de uso)
+================================================================================
+
+  # TRADUÇÃO
+  py automacoes/tradutor_inteligente.py
+
+  # BUILD APÓS TRADUÇÃO (executado automaticamente pelo tradutor)
+  tailwindcss -i ./src/input.css -o ./public/output.css --minify
+  node gerar-sw.js
+
+  # PIPELINE DE CATALOGAÇÃO COMPLETA
+  node biblioteca-automation.js
+
+  # CORRIGIR HREFLANGS ÓRFÃOS
+  py automacoes/corretor_hreflang_ogurl.py --dry-run
+  py automacoes/corretor_hreflang_ogurl.py --fix
+
+  # BUILD DE PÁGINAS ESTÁTICAS
+  node build.js                (downloads + paginação)
+  node build-biblioteca.js     (páginas da biblioteca)
+  node build-nanda.js          (guia NANDA-NIC-NOC)
+  node build-fale.js           (página de contato)
+
+  # SEO
+  node generate-sitemap.js     (sitemap multilíngue)
+
+  # MÍDIA
+  node convert-webp.js         (converter todas imagens para WebP)
+  node gerarCapasPDF.js        (thumbnails de PDFs)
+  node gerarCapasVideo.js      (thumbnails de vídeos)
+
+  # AUTOMAÇÃO EM MASSA (usar com cautela)
+  node automatizador-em-massa.js
+  node corrigir-badges.js --dry-run
+  node atualizar-scripts.js
+  node scanner-footer-chain.js
