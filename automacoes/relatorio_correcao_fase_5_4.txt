@@ -1,0 +1,140 @@
+======================================================================
+FASE 5.4 — RELATÓRIO DE CORREÇÃO PÓS-AUDITORIA
+Data: 2026-08-08 02:00:00
+======================================================================
+
+CORREÇÕES REALIZADAS: 0
+CORREÇÕES PENDENTES:   4
+
+----------------------------------------------------------------------
+1. DCJ — referencia_nacional
+----------------------------------------------------------------------
+STATUS: FALSO POSITIVO DA AUDITORIA
+
+Análise:
+  A FASE 5.3 reportou o campo referencia_nacional da DCJ como vazio.
+  Após inspeção direta do HTML (linha 1475), o campo está PRESENTE:
+
+    referencia_nacional: "Portaria GM/MS nº 10.175/2026"
+
+  O falso positivo ocorreu porque:
+  - O campo descricao da DCJ foi preenchido com conteúdo PDF bruto
+    (a página CVE-SP para DCJ é um arquivo PDF)
+  - O conteúdo PDF contém caracteres como }, ", etc. que confundiram
+    o regex de extração da auditoria
+  - O regex não conseguiu atravessar o PDF para encontrar referencia_nacional
+
+  A referência NÃO foi perdida — está intacta no HTML.
+  NENHUMA correção necessária para este campo.
+
+NOTA ADICIONAL:
+  O campo descricao da DCJ contém texto PDF bruto (%PDF-1.2 ... endobj).
+  Isso é um problema de qualidade de conteúdo (o PDF não deveria ter sido
+  inserido como descricao), mas NÃO afeta a integridade da notificação.
+  Recomenda-se correção do descricao da DCJ em fase futura.
+
+----------------------------------------------------------------------
+2. Rubéola Congênita — observacoes
+----------------------------------------------------------------------
+STATUS: PENDENTE_REVISAO_SEMANTICA
+
+VALOR HTML:
+  "Triagem pré-natal para rubéola é recomendada."
+
+VALOR BIBLIOTECA:
+  "Conteúdo completo extraído como texto contínuo — sem seções identificadas"
+  (texto SINAN bruto com navegação, não é conteúdo epidemiológico)
+
+ORIGEM: sinan
+
+AVALIAÇÃO:
+  O placeholder do HTML é mais informativo e semanticamente adequado que
+  o texto bruto do SINAN (que contém menus, navegação, etc.).
+  Substituir pelo texto SINAN bruto DEGRADARIA a qualidade do acordeão.
+
+DECISÃO: PRESERVAR o placeholder atual.
+
+----------------------------------------------------------------------
+3. Zika (casos) — descricao
+----------------------------------------------------------------------
+STATUS: PENDENTE_REVISAO_SEMANTICA
+
+VALOR HTML:
+  "Infecção pelo vírus Zika caracterizada por febre baixa, exantema
+   maculopapular, conjuntivite e dores articulares."
+
+VALOR BIBLIOTECA:
+  Texto SINAN bruto com navegação ("SINANWEB - Zika", "Ir direto para
+  menu de acessibilidade", "Portal do Governo Brasileiro", etc.)
+
+ORIGEM: sinan, cve_sp
+
+AVALIAÇÃO:
+  O texto SINAN bruto contém lixo de navegação que não deveria aparecer
+  no acordeão. O placeholder atual é conciso e informativo.
+  A biblioteca precisa de limpeza do texto SINAN antes da substituição.
+
+DECISÃO: PRESERVAR o placeholder atual.
+
+----------------------------------------------------------------------
+4. Zika (casos) — observacoes
+----------------------------------------------------------------------
+STATUS: PENDENTE_REVISAO_SEMANTICA
+
+VALOR HTML:
+  "Diagnóstico diferencial com dengue e chikungunya."
+
+VALOR BIBLIOTECA:
+  "Conteúdo completo extraído como texto contínuo — sem seções identificadas"
+  (texto SINAN bruto)
+
+ORIGEM: sinan
+
+AVALIAÇÃO:
+  Mesma situação — texto SINAN bruto contém navegação, não é adequado
+  para exibição direta no acordeão.
+
+DECISÃO: PRESERVAR o placeholder atual.
+
+======================================================================
+RESUMO FINAL
+======================================================================
+
+Correções realizadas:           0
+  (DCJ referencia_nacional já estava correta — falso positivo)
+
+Correções pendentes:             4
+  (3 divergências preservadas + 1 descricao DCJ com PDF)
+
+Campos não rastreáveis (389):   0 alterações
+  (preservados conforme instrução)
+
+Entradas perdidas:              0
+Nomes alterados:                0
+Classificações alteradas:       0
+Periodicidades alteradas:       0
+Prazos alterados:               0
+
+======================================================================
+CONCLUSÃO
+======================================================================
+
+A FASE 5.3 gerou 1 falso positivo (DCJ referencia_nacional) devido
+a conteúdo PDF corrompido no campo descricao da mesma entrada.
+
+As 3 divergências identificadas são casos em que:
+  - O HTML possui placeholder conciso e informativo
+  - A biblioteca possui texto SINAN bruto com navegação
+  - Substituir DEGRADARIA a qualidade do acordeão
+
+Os 389 campos "não rastreáveis" são dados pré-existentes que foram
+preservados corretamente.
+
+RECOMENDAÇÕES PARA FASES FUTURAS:
+  1. Limpar o texto SINAN bruto na biblioteca (remover navegação)
+  2. Corrigir o descricao da DCJ (remover PDF, usar texto real)
+  3. Após limpeza, reprocessar a integração dos campos pendentes
+
+======================================================================
+FASE 5.4 CONCLUÍDA
+======================================================================
