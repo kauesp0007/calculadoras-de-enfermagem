@@ -49,7 +49,10 @@ ARQUIVOS_PARA_TRADUZIR = [
 ]
 
 IDIOMAS_DESTINO = [
-    "hi", "zh", "ar", "ja", "ko"
+    "en", "es", "fr", "it", "de",
+    "hi", "zh", "ja", "ru", "ko",
+    "tr", "nl", "pl", "sv", "id",
+    "vi", "uk", "ar",
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
@@ -1063,7 +1066,7 @@ TERMO_SELECIONE_PT = "Selecione..."
 def js_extract_inline_scripts(html_content: str) -> list:
     """Extrai todos os <script> inline (sem src=) do HTML.
     Retorna lista ordenada com posicoes exatas.
-    Pula scripts de footer (footer-placeholder/footer.html)."""
+    Pula JSON-LD, scripts de dados e scripts do footer."""
     pattern = re.compile(
         r'(<script\b[^>]*>)(.*?)(</script>)',
         re.IGNORECASE | re.DOTALL,
@@ -1073,7 +1076,10 @@ def js_extract_inline_scripts(html_content: str) -> list:
         abertura = m.group(1)
         conteudo = m.group(2)
         fecha = m.group(3)
-        if 'src=' in abertura.lower():
+        abertura_lower = abertura.lower()
+        if 'src=' in abertura_lower:
+            continue
+        if re.search(r'\btype=["\'](?:application/ld\+json|application/json)["\']', abertura_lower):
             continue
         if 'footer-placeholder' in conteudo or 'footer.html' in conteudo:
             continue
@@ -1087,81 +1093,234 @@ def js_extract_inline_scripts(html_content: str) -> list:
     return results
 
 
-def js_extract_translatable_strings(js_code: str) -> tuple:
-    """Extrai strings traduziveis do codigo JS.
-    Retorna: (mapeamento, strings_para_traduzir)
-    Logica identica ao novo_tradutor_massivo_js_.py."""
+def _skip_js_quoted(js_code: str, start: int, quote: str) -> int:
+    """Retorna a posicao seguinte ao fim de uma string JS simples/dupla."""
+    i = start + 1
+    while i < len(js_code):
+        if js_code[i] == '\\':
+            i += 2
+            continue
+        if js_code[i] == quote:
+            return i + 1
+        i += 1
+    return len(js_code)
+
+
+def _scan_js_templates(js_code: str) -> tuple[list, list]:
+    """Localiza template literals e seus trechos literais, inclusive aninhados.
+
+    Retorna (regioes_completas, templates), onde cada template contem somente
+    os intervalos fora de ${...}. Esses intervalos nunca se sobrepoem.
+    """
+    regions = []
+    templates = []
+
+    def skip_comment(i: int) -> int:
+        if js_code.startswith('//', i):
+            end = js_code.find('\n', i + 2)
+            return len(js_code) if end == -1 else end + 1
+        if js_code.startswith('/*', i):
+            end = js_code.find('*/', i + 2)
+            return len(js_code) if end == -1 else end + 2
+        return i
+
+    def scan_expression(i: int) -> int:
+        depth = 1
+        while i < len(js_code):
+            ch = js_code[i]
+            if ch in ('"', "'"):
+                i = _skip_js_quoted(js_code, i, ch)
+                continue
+            if ch == '`':
+                i = scan_template(i)
+                continue
+            if js_code.startswith('//', i) or js_code.startswith('/*', i):
+                i = skip_comment(i)
+                continue
+            if ch == '{':
+                depth += 1
+            elif ch == '}':
+                depth -= 1
+                if depth == 0:
+                    return i + 1
+            i += 1
+        return len(js_code)
+
+    def scan_template(start: int) -> int:
+        i = start + 1
+        literal_start = i
+        segments = []
+        while i < len(js_code):
+            if js_code[i] == '\\':
+                i += 2
+                continue
+            if js_code[i] == '`':
+                if literal_start < i:
+                    segments.append((literal_start, i))
+                end = i + 1
+                regions.append((start, end))
+                templates.append({"pos": (start, end), "segments": segments})
+                return end
+            if js_code.startswith('${', i):
+                if literal_start < i:
+                    segments.append((literal_start, i))
+                i = scan_expression(i + 2)
+                literal_start = i
+                continue
+            i += 1
+
+        regions.append((start, len(js_code)))
+        templates.append({"pos": (start, len(js_code)), "segments": segments})
+        return len(js_code)
+
+    i = 0
+    while i < len(js_code):
+        ch = js_code[i]
+        if ch in ('"', "'"):
+            i = _skip_js_quoted(js_code, i, ch)
+            continue
+        if js_code.startswith('//', i) or js_code.startswith('/*', i):
+            i = skip_comment(i)
+            continue
+        if ch == '`':
+            i = scan_template(i)
+            continue
+        i += 1
+
+    return sorted(regions), templates
+
+
+def _is_translatable_js_text(text: str) -> bool:
+    stripped = text.strip()
+    if len(stripped) < 3 or not re.search(r'[A-Za-zÀ-ÿ]', stripped):
+        return False
+    if stripped in {'use strict', 'application/json', 'application/ld+json'}:
+        return False
+    if stripped.startswith(('/', '#', '.', 'data-')) or '://' in stripped:
+        return False
+    if stripped.endswith(('.html', '.js', '.css')) or '.com' in stripped or '.br' in stripped:
+        return False
+    if re.search(r'\b(?:rgba?|hsla?|px|rem|em|deg)\s*\(?', stripped, re.IGNORECASE):
+        return False
+    if re.match(r'^(?:scale|rotate|translate)[XYZ3d]*\s*\(', stripped, re.IGNORECASE):
+        return False
+    if re.fullmatch(r'[A-Za-z0-9_.:/#%+-]+', stripped) and re.search(r'[_./#%+-]', stripped):
+        return False
+    # Identificadores, eventos, valores CSS e chaves tecnicas de uma palavra.
+    # Termos de interface iniciados por maiuscula continuam traduziveis.
+    if re.fullmatch(r'[a-zà-ÿ][\wÀ-ÿ-]*', stripped):
+        return False
+    if re.fullmatch(r'[A-Z0-9_]{2,}', stripped) and stripped not in {'NORMAL', 'ANORMAL'}:
+        return False
+    if re.search(r'\b(function|const|let|var|return|if|else|for|while)\b', stripped):
+        return False
+    return True
+
+
+def _visible_html_text_spans(text: str, base_offset: int = 0,
+                             initial_in_tag: bool = False) -> tuple[list, bool]:
+    """Extrai apenas texto visivel; tags e atributos permanecem intocados."""
+    spans = []
+    in_tag = initial_in_tag
+    text_start = None
+
+    for i, ch in enumerate(text):
+        if ch == '<' and not in_tag:
+            if text_start is not None and text_start < i:
+                spans.append((base_offset + text_start, base_offset + i))
+            text_start = None
+            in_tag = True
+        elif ch == '>' and in_tag:
+            in_tag = False
+            text_start = i + 1
+        elif not in_tag and text_start is None:
+            text_start = i
+
+    if not in_tag and text_start is not None and text_start < len(text):
+        spans.append((base_offset + text_start, base_offset + len(text)))
+    return spans, in_tag
+
+
+def js_extract_translatable_strings(js_code: str, id_prefix: str = "JS") -> tuple:
+    """Extrai textos JS sem sobrepor codigo, tags HTML ou interpolacoes."""
     strings_para_traduzir = {}
     mapeamento = []
     contador = 0
-    processed_positions = set()
+    template_regions, templates = _scan_js_templates(js_code)
 
-    # 1. Strings com aspas duplas/simples
-    padrao_string = re.compile(r'(["\'])((?:[^"\\]|\\.)*?)\1')
-    for match in padrao_string.finditer(js_code):
-        start = match.start(2)
-        end = match.end(2)
-        if (start, end) in processed_positions:
+    def add_mapping(start: int, end: int, tipo: str,
+                    delimitador: str = ""):
+        nonlocal contador
+        raw = js_code[start:end]
+        leading = len(raw) - len(raw.lstrip())
+        trailing = len(raw) - len(raw.rstrip())
+        core_start = start + leading
+        core_end = end - trailing if trailing else end
+        text = js_code[core_start:core_end]
+        if not _is_translatable_js_text(text):
+            return
+        id_str = f"{id_prefix}_{contador:06d}"
+        contador += 1
+        strings_para_traduzir[id_str] = text
+        mapeamento.append({
+            "id": id_str,
+            "delimitador": delimitador,
+            "tipo": tipo,
+            "pos": (core_start, core_end),
+        })
+
+    # Template literals: traduzir somente texto visivel fora de ${...}.
+    for template in templates:
+        start, end = template["pos"]
+        raw_template = js_code[start + 1:end - 1].lstrip()
+        # O laudo HTML completo contem CSS e JS embutidos; permanece protegido.
+        if raw_template.lower().startswith(('<!doctype', '<html')):
             continue
-        conteudo = match.group(2)
-        # Filtrar: pular URLs, codigo JS, placeholders tecnicos
-        skip = (
-            len(conteudo) < 4
-            or " " not in conteudo
-            or conteudo.startswith(('/', '#', '.', 'data-'))
-            or conteudo.endswith('.html')
-            or '://' in conteudo
-            or '.com' in conteudo
-            or '.br' in conteudo
-            or '=>' in conteudo
-            or conteudo.startswith('function')
-            or re.match(r'^[0-9\s.,;:\(\)\[\]{}\+\-\*\/=<>!&|^%]+$', conteudo)
-            or re.search(r'\b(function|const|let|var|return|if|else|for|while)\b', conteudo)
-        )
-        if not skip:
-            id_str = f"JS_{contador:06d}"
+        in_tag = False
+        has_html = any('<' in js_code[s:e] or '>' in js_code[s:e]
+                       for s, e in template["segments"])
+        for seg_start, seg_end in template["segments"]:
+            segment = js_code[seg_start:seg_end]
+            if has_html:
+                spans, in_tag = _visible_html_text_spans(segment, seg_start, in_tag)
+                for text_start, text_end in spans:
+                    add_mapping(text_start, text_end, "template_text", "`")
+            else:
+                add_mapping(seg_start, seg_end, "template_text", "`")
+
+    def inside_template(pos: int) -> bool:
+        return any(start <= pos < end for start, end in template_regions)
+
+    # Strings simples/duplas fora dos templates.
+    padrao_string = re.compile(
+        r'"((?:[^"\\]|\\.)*)"|\'((?:[^\'\\]|\\.)*)\''
+    )
+    for match in padrao_string.finditer(js_code):
+        match_start = match.start(0)
+        if match.group(1) is not None:
+            delimitador = '"'
+            conteudo = match.group(1)
+            content_start = match.start(1)
+        else:
+            delimitador = "'"
+            conteudo = match.group(2)
+            content_start = match.start(2)
+        if inside_template(match_start):
+            continue
+        if '<' in conteudo and '>' in conteudo:
+            spans, _ = _visible_html_text_spans(conteudo, content_start)
+            for text_start, text_end in spans:
+                add_mapping(text_start, text_end, "quoted_text", delimitador)
+        elif _is_translatable_js_text(conteudo):
+            id_str = f"{id_prefix}_{contador:06d}"
+            contador += 1
             strings_para_traduzir[id_str] = conteudo
             mapeamento.append({
-                "original": match.group(0),
                 "id": id_str,
-                "delimitador": match.group(1),
+                "delimitador": delimitador,
                 "tipo": "string",
-                "pos": (match.start(0), match.end(0)),
+                "pos": (match_start, match.end(0)),
             })
-            processed_positions.add((start, end))
-            contador += 1
-
-    # 2. Template literals
-    padrao_template = re.compile(r'`([^`]*)`')
-    for match_tmpl in padrao_template.finditer(js_code):
-        conteudo = match_tmpl.group(1)
-        if not conteudo.strip():
-            continue
-        if conteudo.strip().startswith('<!DOCTYPE') or conteudo.strip().startswith('<html'):
-            continue
-        if re.search(r'\?\s*`\s*<', conteudo):
-            continue
-
-        interps = re.findall(r'\$\{[^}]+\}', conteudo)
-        texto_limpo = conteudo
-        for i, interp in enumerate(interps):
-            texto_limpo = texto_limpo.replace(interp, f'__INTERP_{i}__', 1)
-
-        tem_texto = bool(re.search(r'[a-zA-ZÀ-ÿ]', re.sub(r'__INTERP_\d+__', '', texto_limpo)))
-        if not tem_texto:
-            continue
-
-        id_str = f"JS_{contador:06d}"
-        strings_para_traduzir[id_str] = texto_limpo
-        mapeamento.append({
-            "original": match_tmpl.group(0),
-            "id": id_str,
-            "delimitador": "`",
-            "tipo": "template",
-            "interpolacoes": interps,
-            "pos": (match_tmpl.start(0), match_tmpl.end(0)),
-        })
-        contador += 1
 
     return mapeamento, strings_para_traduzir
 
@@ -1173,10 +1332,17 @@ def js_reinsert_translations(js_code: str, mapeamento: list, traducoes: dict) ->
         if item["id"] not in traducoes:
             continue
         texto_trad = traducoes[item["id"]]
-        if item["tipo"] == "template":
-            for i, interp in enumerate(item.get("interpolacoes", [])):
-                texto_trad = texto_trad.replace(f"__INTERP_{i}__", interp)
-        novo = f"{item['delimitador']}{texto_trad}{item['delimitador']}"
+        delimitador = item.get("delimitador", "")
+        texto_trad = texto_trad.replace('\r', ' ').replace('\n', ' ')
+        if delimitador:
+            texto_trad = re.sub(rf'(?<!\\){re.escape(delimitador)}',
+                                rf'\\{delimitador}', texto_trad)
+        if delimitador == '`':
+            texto_trad = texto_trad.replace('${', r'\${')
+        if item["tipo"] == "string":
+            novo = f"{delimitador}{texto_trad}{delimitador}"
+        else:
+            novo = texto_trad
         start, end = item["pos"]
         js_code = js_code[:start] + novo + js_code[end:]
     return js_code
@@ -1231,7 +1397,9 @@ def translate_js_inline(html_content: str, target_lang: str,
     all_strings = {}
     all_mappings = {}
     for idx, script in enumerate(scripts):
-        mapeamento, strings_dict = js_extract_translatable_strings(script["conteudo"])
+        mapeamento, strings_dict = js_extract_translatable_strings(
+            script["conteudo"], id_prefix=f"JS{idx}"
+        )
         if strings_dict:
             all_mappings[idx] = mapeamento
             all_strings.update(strings_dict)
@@ -1294,8 +1462,7 @@ def translate_js_inline(html_content: str, target_lang: str,
 
 
 def audit_js_preservation(original_html: str, translated_html: str) -> dict:
-    """Audita preservacao dos scripts inline. Confia no js_report
-    para strings perdidas/erros; aqui verifica apenas integridade estrutural."""
+    """Audita preservacao dos scripts inline: integridade estrutural + sintaxe JS."""
     issues = []
     scripts_orig = js_extract_inline_scripts(original_html)
     scripts_trans = js_extract_inline_scripts(translated_html)
@@ -1308,11 +1475,50 @@ def audit_js_preservation(original_html: str, translated_html: str) -> dict:
         if so["abertura"] != st["abertura"]:
             issues.append(f"Script {i}: abertura alterada")
         elif len(so["conteudo"]) < 20 and so["conteudo"] != st["conteudo"]:
-            # So auditar scripts muito pequenos (menos de 20 chars)
-            # Scripts grandes tem a integridade garantida pelo js_report
             issues.append(f"Script {i}: conteudo alterado em script pequeno")
 
+        # Validar sintaxe JavaScript do script traduzido
+        js_syntax_issues = validate_js_syntax(st["conteudo"])
+        for js_issue in js_syntax_issues:
+            issues.append(f"Script {i} - sintaxe JS: {js_issue}")
+
     return {"passed": len(issues) == 0, "issues": issues}
+
+
+def validate_js_syntax(js_code: str) -> list:
+    """Valida sintaxe JavaScript com Node.js, sem executar o codigo."""
+    issues = []
+    tmp_path = None
+    try:
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.js', encoding='utf-8', delete=False) as tmp:
+            tmp.write(js_code)
+            tmp_path = tmp.name
+        result = subprocess.run(
+            ["node", "--check", tmp_path],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            timeout=15,
+        )
+        if result.returncode != 0:
+            error_msg = (result.stderr or result.stdout or "erro de sintaxe").strip()[:500]
+            issues.append(f"Node.js: {error_msg}")
+    except FileNotFoundError:
+        log.warning("Node.js nao encontrado; validacao sintatica JS completa ignorada.")
+    except subprocess.TimeoutExpired:
+        issues.append("Node.js excedeu 15s ao validar o script")
+    except OSError as exc:
+        issues.append(f"Falha ao validar JavaScript: {exc}")
+    finally:
+        if tmp_path:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    return issues
 
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
@@ -1370,6 +1576,20 @@ def build_structural_signature(html_content: str) -> list:
     """Gera assinatura estrutural hierarquica do HTML.
     Cada elemento: (nivel, tag_name, attrs_resumo).
     Ignora texto interno para nao ser afetado pela traducao."""
+    # Tags escritas dentro de strings JavaScript/CSS nao fazem parte da arvore
+    # HTML real e nao podem entrar na contagem estrutural.
+    html_content = re.sub(
+        r'(<script\b[^>]*>).*?(</script>)',
+        r'\1\2',
+        html_content,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    html_content = re.sub(
+        r'(<style\b[^>]*>).*?(</style>)',
+        r'\1\2',
+        html_content,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
     sig = []
     tokens = re.split(r'(</?\w+[^>]*>)', html_content)
     stack = []
@@ -1423,27 +1643,17 @@ def build_structural_signature(html_content: str) -> list:
 
 
 def compare_html_structure(original: str, translated: str) -> dict:
-    """Compara estrutura hierarquica do HTML original com traduzido.
-    Ignora diferencas de tags de fontes (substituicao intencional)."""
+    """Compara a estrutura esperada com o HTML depois da traducao textual."""
     issues = []
 
     sig_orig = build_structural_signature(original)
     sig_trans = build_structural_signature(translated)
 
-    # Remover elementos de fontes (link/style) das assinaturas para comparacao justa
-    sig_orig = [s for s in sig_orig if not (s[1] in ('link', 'style') and 'font' in s[2].lower())]
-    sig_trans = [s for s in sig_trans if not (s[1] in ('link', 'style') and 'font' in s[2].lower())]
-
     from collections import Counter
     orig_counts = Counter(s[1] for s in sig_orig)
     trans_counts = Counter(s[1] for s in sig_trans)
 
-    # Tags que podem variar legitimamente devido a fontes especiais
-    IGNORE_TAG_DIFFS = {'link', 'style'}
-
     for tag in orig_counts:
-        if tag in IGNORE_TAG_DIFFS:
-            continue
         diff = orig_counts[tag] - trans_counts.get(tag, 0)
         if diff > 0:
             issues.append(f"Tag <{tag}>: faltando {diff} (original={orig_counts[tag]}, traduzido={trans_counts.get(tag, 0)})")
@@ -1637,6 +1847,10 @@ def translate_file(filename: str, target_lang: str) -> dict:
     log.info("[14/20] Substituindo footer (PT -> internacional)...")
     html_content = process_footer(html_content)
 
+    # Referencia estrutural apos todas as mudancas intencionais de idioma.
+    # A traducao de textos/JS nao pode alterar esta estrutura.
+    structural_reference = html_content
+
     # ═══ FASE JS INLINE ═══
     log.info("═════ TRADUCAO DE JAVASCRIPT INLINE ═════")
     log.info("[15/20] Extraindo e traduzindo strings em <script> inline...")
@@ -1682,7 +1896,7 @@ def translate_file(filename: str, target_lang: str) -> dict:
     log.info("[21/21] Executando auditoria estrutural...")
 
     audit_results = {
-        "estrutura": compare_html_structure(original_html, html_content),
+        "estrutura": compare_html_structure(structural_reference, html_content),
         "js": audit_js_preservation(original_html, html_content),
         "seo": audit_seo(html_content, target_lang, filename),
         "footer": audit_footer(html_content),
@@ -1700,7 +1914,7 @@ def translate_file(filename: str, target_lang: str) -> dict:
 
         # Re-auditar
         audit_results = {
-            "estrutura": compare_html_structure(original_html, html_content),
+            "estrutura": compare_html_structure(structural_reference, html_content),
             "js": audit_js_preservation(original_html, html_content),
             "seo": audit_seo(html_content, target_lang, filename),
             "footer": audit_footer(html_content),
