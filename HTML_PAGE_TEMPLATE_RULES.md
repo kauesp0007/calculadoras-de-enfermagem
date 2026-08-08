@@ -87,20 +87,18 @@ O resultado deverá possuir o mesmo padrão visual utilizado em **`fugulin.html`
 
 Após o resultado deverão existir:
 
-- Botão de gerar Laudo.
-- Botão PDF.
-- Botão Print.
+
+- Botão Gerar PDF.
+- Botão Imprimir.
 
 Todos deverão utilizar exatamente a mesma implementação existente em **`fugulin.html`**.
 
 ---
 
-# Sidebar
+# Exceto Sidebar
 
-A Sidebar deverá conter:
+A Sidebar não deverá ter na página
 
-- Veja Também.
-- Escalas Relacionadas.
 
 ---
 
