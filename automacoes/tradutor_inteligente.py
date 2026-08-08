@@ -76,7 +76,7 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=120)
+        response = requests.post(url, headers=headers, json=payload, timeout=40)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -167,7 +167,7 @@ def traduzir_schema_ld_json_com_deepseek(html, idioma_alvo):
                 "response_format": {"type": "json_object"}
             }
 
-            response = requests.post(url, headers=headers, json=payload, timeout=120)
+            response = requests.post(url, headers=headers, json=payload, timeout=40)
             response.raise_for_status()
             resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -458,7 +458,8 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
         scripts_para_traduzir = {}
         contador = [0]
         
-        padrao = re.compile(r'(<(script|style)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
+        # Protege scripts, styles E SVGs inline contra corrupção pelo DeepL
+        padrao = re.compile(r'(<(script|style|svg)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
         
         def proteger_bloco(match):
             codigo_original = match.group(1)
@@ -524,9 +525,9 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["index.html"] 
+    arquivos_originais = ["conteudos_da_pagina.html"] 
      
-    idiomas_alvo = ["uk"] 
+    idiomas_alvo = ["es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
@@ -590,8 +591,8 @@ if __name__ == "__main__":
                     is_last_lang = (idioma_alvo == idiomas_alvo[-1])
                     
                     if not (is_last_file and is_last_lang):
-                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 120 segundos para evitar bloqueios da API...{RESET}")
-                        time.sleep(120)
+                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 40 segundos para evitar bloqueios da API...{RESET}")
+                        time.sleep(40)
                     # === FIM DA PAUSA DE SEGURANÇA ===
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
