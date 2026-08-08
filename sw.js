@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260808-014046";
+const CACHE_VERSION = "20260808-015112";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -253,6 +253,7 @@ const urlsToCache = [
   'automacoes/extrator_infograficos/cache/fbcc7354ebb1307d29bfea18377c0550ecb4809ceda17151c2305e4c00001921.json',
   'automacoes/extrator_infograficos/saida/layout.json',
   'automacoes/extrator_infograficos/saida/manifest.json',
+  'automacoes/mapa_integracao_biblioteca_html.json',
   'automacoes/mapa_notificacao_compulsoria.json',
   'automacoes/mapa_notificacao_compulsoria_final.json',
   'automacoes/relatorio_botoes_impressao_pdf.json',
