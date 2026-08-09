@@ -20,8 +20,8 @@ const config = {
   markerCacheVersion: "__CACHE_VERSION__",
 
   // QUAIS EXTENSÕES PRE-CACHEAR? (App Shell)
-  // Removemos .html, .jpg, .webp, etc. para não explodir o cache do utilizador.
-  // Ficheiros pesados e páginas serão cacheados dinamicamente durante a navegação.
+  // HTML é cacheado dinamicamente via Network First — não pré-cachear para evitar
+  // explosão de storage com 100+ páginas e necessidade de rebuild a cada edição.
   extensionsToCache: [
     ".css",
     ".js",
