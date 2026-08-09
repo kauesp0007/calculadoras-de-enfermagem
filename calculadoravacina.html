@@ -1534,11 +1534,19 @@ function initQuizCard(){
     var letters = ["A","B","C","D"];
     var optsHtml = "";
     q.opts.forEach(function(opt, oi){
-      optsHtml += '<button class="qq-opt" onclick="quizAnswer('+qi+','+oi+')" id="qqo-'+qi+'-'+oi+'">'+letters[oi]+') '+opt+'</button>';
+      optsHtml += '<button class="qq-opt" data-qi="'+qi+'" data-oi="'+oi+'" id="qqo-'+qi+'-'+oi+'">'+letters[oi]+') '+opt+'</button>';
     });
     html += '<div class="quiz-q" id="qq-'+qi+'"><p class="qq-title">'+(qi+1)+'. '+q.q+'</p><div class="qq-opts">'+optsHtml+'</div><p class="qq-ref">'+q.ref+'</p><p class="qq-feedback" id="qqfb-'+qi+'"></p></div>';
   });
   body.innerHTML = html;
+  // Attach click handlers (avoid inline onclick — IIFE scope)
+  body.querySelectorAll(".qq-opt").forEach(function(btn){
+    btn.addEventListener("click", function(){
+      var qi = parseInt(this.getAttribute("data-qi"));
+      var oi = parseInt(this.getAttribute("data-oi"));
+      quizAnswer(qi, oi);
+    });
+  });
   document.getElementById("quizHits").textContent = "0";
   document.getElementById("quizMisses").textContent = "0";
   document.getElementById("quizResultBar").classList.remove("show");
@@ -1561,11 +1569,11 @@ function quizAnswer(qi, oi){
   }
   if (isCorrect){
     quizHits++;
-    fb.textContent = "✓ Correto!";
+    fb.textContent = "Correto!";
     fb.style.color = "#16a34a";
   } else {
     quizMisses++;
-    fb.textContent = "✗ Resposta correta: " + String.fromCharCode(65+q.ans);
+    fb.textContent = "Resposta correta: " + String.fromCharCode(65+q.ans);
     fb.style.color = "#e11d48";
   }
   fb.classList.add("show");
