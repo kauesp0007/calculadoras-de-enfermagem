@@ -49,7 +49,7 @@ ARQUIVOS_PARA_TRADUZIR = [
 ]
 
 IDIOMAS_DESTINO = [
-    "hi"
+    "zh", "ja", "ko", "ar"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
@@ -766,6 +766,29 @@ def process_twitter_meta(html_content: str, target_lang: str, translator: BatchT
                     1,
                 )
     return html_content
+
+
+def process_social_urls(html_content: str, target_lang: str, filename: str) -> str:
+    """Corrige og:url e twitter:url para apontar para a pagina traduzida.
+    Ex: /index.html → /zh/index.html"""
+    dest_url = f"{BASE_URL}/{target_lang}/{filename}"
+
+    # Corrigir og:url
+    html_content = re.sub(
+        r'(<meta\s+content=")[^"]*("\s+property="og:url")',
+        rf'\1{dest_url}\2',
+        html_content,
+    )
+
+    # Corrigir twitter:url
+    html_content = re.sub(
+        r'(<meta\s+content=")[^"]*("\s+name="twitter:url")',
+        rf'\1{dest_url}\2',
+        html_content,
+    )
+
+    return html_content
+
 
 # ╔══════════════════════════════════════════════════════════════════════════════╗
 # ║                    PROCESSAMENTO DE SCHEMA.ORG                             ║
@@ -1873,6 +1896,8 @@ def translate_file(filename: str, target_lang: str) -> dict:
     html_content = process_twitter_meta(html_content, target_lang, translator)
     log.info("[11/20] Processando Schema.org JSON-LD...")
     html_content = process_schema(html_content, target_lang, translator)
+    log.info("[11a] Corrigindo og:url e twitter:url para idioma destino...")
+    html_content = process_social_urls(html_content, target_lang, filename)
 
     log.info("[12/20] Adaptando links internos...")
     html_content = process_internal_links(html_content, target_lang)
@@ -1882,6 +1907,10 @@ def translate_file(filename: str, target_lang: str) -> dict:
 
     log.info("[14/20] Substituindo footer (PT -> internacional)...")
     html_content = process_footer(html_content)
+
+    # Normalizar caminhos de imagem ANTES da referencia estrutural
+    log.info("[14a] Normalizando caminhos de imagem (garantindo absolutos /img/)...")
+    html_content = normalize_image_paths(html_content)
 
     # Referencia estrutural apos todas as mudancas intencionais de idioma.
     # A traducao de textos/JS nao pode alterar esta estrutura.
@@ -1922,10 +1951,6 @@ def translate_file(filename: str, target_lang: str) -> dict:
 
     log.info("[20/20] Restaurando blocos protegidos...")
     html_content = restore_protected_blocks(html_content, reverse_map)
-
-    log.info("[20a] Normalizando caminhos de imagem (garantindo absolutos /img/)...")
-    html_content = normalize_image_paths(html_content)
-
     report["deepseek"] = translator.stats["deepseek"]
     report["openai"] = translator.stats["openai"]
     report["deepl"] = translator.stats["deepl"]
