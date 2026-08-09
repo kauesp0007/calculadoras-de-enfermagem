@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "gotejamento.html"
+    "insulina.html"
 ]
 
 IDIOMAS_DESTINO = [
