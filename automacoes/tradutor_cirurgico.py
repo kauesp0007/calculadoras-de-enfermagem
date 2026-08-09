@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "balancohidrico.html"
+    "gotejamento.html"
 ]
 
 IDIOMAS_DESTINO = [

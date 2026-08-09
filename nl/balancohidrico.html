@@ -230,7 +230,7 @@
 
 <!-- Overlay + Popup -->
 <div class="ce-share-overlay" id="shareOverlay"></div>
-<div class="ce-share-popup" id="sharePopup" role="dialog" aria-label="Delen"><h4>Delen Hydrobalans</h4><div><a class="ce-share-btn" href="#" data-share="gmail" target="_blank" rel="noopener">Gmail</a><a class="ce-share-btn" href="#" data-share="outlook" target="_blank" rel="noopener">Outlook</a><a class="ce-share-btn" href="#" data-share="facebook" target="_blank" rel="noopener">Facebook</a></div><button class="ce-share-close" id="shareClose">Sluiten</button></div>
+<div class="ce-share-popup" id="sharePopup" role="dialog" aria-label="Delen"><h4>Deel Hydrobalans</h4><div><a class="ce-share-btn" href="#" data-share="gmail" target="_blank" rel="noopener">Gmail</a><a class="ce-share-btn" href="#" data-share="outlook" target="_blank" rel="noopener">Outlook</a><a class="ce-share-btn" href="#" data-share="facebook" target="_blank" rel="noopener">Facebook</a></div><button class="ce-share-close" id="shareClose">Sluiten</button></div>
 
 <!-- DADOS DO PACIENTE -->
 <div class="fugulin-card mb-2 no-print" style="overflow:hidden">
@@ -267,7 +267,7 @@
 <!-- RESULTADO -->
 <div id="resultado-section">
 <div class="fugulin-card-navy p-8 md:p-10 mb-6 text-center"><div style="position:relative;z-index:1">
-<p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-3">Eindbalans van het waterhuishouding</p>
+<p class="text-blue-200 text-xs font-bold uppercase tracking-widest mb-3">Eindbalans van het waterverbruik</p>
 <div class="flex items-end justify-center gap-3 mb-5"><span id="scoreValor" class="score-big">0</span><span class="text-2xl font-bold text-blue-200 mb-3">mL</span></div>
 <div id="statusPill" class="status-pill bg-amber-600 mb-6">NEUTRAAL</div>
 <div class="bg-white/10 border border-white/20 rounded-xl p-5 text-left max-w-2xl mx-auto backdrop-blur-sm"><p id="resultadoMensagem" class="text-white text-[15px] font-medium leading-relaxed m-0 text-center"></p></div>
@@ -348,7 +348,7 @@ function calcular(){
 var vals={},totalE=0,totalS=0,incompleto=false;
 ITENS_BH.forEach(function(i){var v=parseFloat(document.getElementById(i.id).value)||0;vals[i.id]=v;if(i.tipo==="entrada")totalE+=v;else totalS+=v;if(v===0)incompleto=true;});
 calcBalanco=totalE-totalS;
-if(calcBalanco>0){calcClasse="POSITIVO";calcBg="#16a34a";calcConduta="Geeft aan dat er vochtretentie is. Monitor edemen, verhoogde bloeddruk en risico op acuut longoedeem. Beoordeel de noodzaak van vochtbeperking en diuretica.";}
+if(calcBalanco>0){calcClasse="POSITIVO";calcBg="#16a34a";calcConduta="Geeft aan dat er vochtretentie is. Monitor edemen, hoge bloeddruk en risico op acuut longoedeem. Beoordeel de noodzaak van vochtbeperking en diuretica.";}
 else if(calcBalanco<0){calcClasse="NEGATIVO";calcBg="#e11d48";calcConduta="Geeft aan dat er uitdroging is. Monitor huidturgor, droge slijmvliezen en hypotensie. Beoordeel de noodzaak van volumevervanging.";}
 else{calcClasse="NEUTRO";calcBg="#0284c7";calcConduta="Vochtbalans bereikt. Blijf routine monitoring uitvoeren en registreer in het dossier.";}
 document.getElementById("scoreValor").textContent=calcBalanco;
@@ -369,7 +369,7 @@ async function chamarNanda(){
 var lista=document.getElementById("lista-nanda");
 lista.innerHTML='<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg>NANDA-I-database raadplegen...</li>';
 try{
-var resp=await fetch("/banco_nanda.json");if(!resp.ok)throw new Error("Fout");var banco=await resp.json();
+var resp=await fetch("/banco_nanda_en.json");if(!resp.ok)throw new Error("Fout");var banco=await resp.json();
 var kw=["volume","líquido","hidratação","eliminação","urinária","edema","débito","perfusão","eletrólito"];
 if(calcBalanco>0)kw.push("edema","sobrecarga","excesso","hipertensão");
 else if(calcBalanco<0)kw.push("desidratação","déficit","hipotensão","mucosa","turgescência");
@@ -433,7 +433,7 @@ var so=document.getElementById("shareOverlay"),sp=document.getElementById("share
 function os(){so.classList.add("open");sp.classList.add("open");var u=encodeURIComponent(location.href),t=encodeURIComponent(document.title);var l={gmail:"https://mail.google.com/mail/?view=cm&su="+t+"&body="+u,outlook:"https://outlook.live.com/mail/0/deeplink/compose?subject="+t+"&body="+u,facebook:"https://www.facebook.com/sharer/sharer.php?u="+u};sp.querySelectorAll("[data-share]").forEach(function(b){var p=b.getAttribute("data-share");if(l[p])b.href=l[p];});}
 function cs(){so.classList.remove("open");sp.classList.remove("open");}
 so.addEventListener("click",cs);document.getElementById("shareClose").addEventListener("click",cs);
-document.querySelectorAll(".ce-action[data-action]").forEach(function(b){b.addEventListener("click",function(e){var a=this.getAttribute("data-action");if(a==="favorite"){e.preventDefault();try{var k="cko:favorieten",l=JSON.parse(localStorage.getItem(k)||"[]"),id=location.pathname;if(!l.includes(id))l.push(id);localStorage.setItem(k,JSON.stringify(l));alert("Aan favorieten toegevoegd!");}catch(ex){alert("Druk op Ctrl+D om te favoriseren.");}}if(a==="share"){e.preventDefault();os();}if(a==="report"){e.preventDefault();location.href="fale.html";}});});
+document.querySelectorAll(".ce-action[data-action]").forEach(function(b){b.addEventListener("click",function(e){var a=this.getAttribute("data-action");if(a==="favorite"){e.preventDefault();try{var k="cko:favorites",l=JSON.parse(localStorage.getItem(k)||"[]"),id=location.pathname;if(!l.includes(id))l.push(id);localStorage.setItem(k,JSON.stringify(l));alert("Toegevoegd aan favorieten!");}catch(ex){alert("Druk op Ctrl+D om te favoriseren.");}}if(a==="share"){e.preventDefault();os();}if(a==="report"){e.preventDefault();location.href="fale.html";}});});
 })();
 
 renderizarForm();

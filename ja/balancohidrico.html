@@ -248,7 +248,7 @@
 <!-- FORMULÁRIO -->
 <div class="p-6 bg-white rounded-2xl shadow-xl border border-gray-200 no-print">
 <div class="mb-6 pb-4 border-b-2 border-slate-100 flex justify-between items-center">
-<h2 class="text-lg md:text-xl font-black text-navy m-0">液体記録 (mL)</h2>
+<h2 class="text-lg md:text-xl font-black text-navy m-0">液体の記録 (mL)</h2>
 <div class="bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 text-xs font-bold text-navy">入力済み： <span id="contadorPreenchidos" class="text-blue-600">0</span>/8</div>
 </div>
 <form id="bhForm" class="grid grid-cols-1 md:grid-cols-2 gap-5" onsubmit="return false;"></form>
@@ -289,14 +289,14 @@
 "use strict";
 
 var ITENS_BH=[
-{id:"ingestaoOral",label:"経口",tipo:"entrada",max:5000,desc:"経口で摂取された液体."},
-{id:"ingestaoSonda",label:"経腸",tipo:"entrada",max:5000,desc:"経腸で投与された液体."},
-{id:"ingestaoParenteral",label:"静脈内 (EV)",tipo:"entrada",max:5000,desc:"静脈内で注入された液体."},
-{id:"ingestaoOutros",label:"その他の摂取",tipo:"entrada",max:5000,desc:"液体の他の摂取源."},
-{id:"eliminacaoUrina",label:"尿",tipo:"saida",max:5000,desc:"排出された尿の量."},
-{id:"eliminacaoVomito",label:"嘔吐",tipo:"saida",max:5000,desc:"嘔吐によって失われた量."},
-{id:"eliminacaoDrenos",label:"ドレイン",tipo:"saida",max:5000,desc:"デバイスによって排出された量."},
-{id:"eliminacaoOutros",label:"その他の排出",tipo:"saida",max:5000,desc:"液体の他の損失."}
+{id:"ingestaoOral",label:"経口",tipo:"entrada",max:5000,desc:"経口で摂取された液体。"},
+{id:"ingestaoSonda",label:"経腸",tipo:"entrada",max:5000,desc:"経腸で投与された液体。"},
+{id:"ingestaoParenteral",label:"静脈内（EV）",tipo:"entrada",max:5000,desc:"静脈内で注入された液体。"},
+{id:"ingestaoOutros",label:"その他の摂取",tipo:"entrada",max:5000,desc:"液体の他の摂取源。"},
+{id:"eliminacaoUrina",label:"尿",tipo:"saida",max:5000,desc:"排出された尿量。"},
+{id:"eliminacaoVomito",label:"嘔吐",tipo:"saida",max:5000,desc:"嘔吐による喪失量。"},
+{id:"eliminacaoDrenos",label:"ドレイン",tipo:"saida",max:5000,desc:"デバイスによって排出された量。"},
+{id:"eliminacaoOutros",label:"その他の排出",tipo:"saida",max:5000,desc:"その他の液体の喪失。"}
 ];
 
 var calcBalanco=0,calcClasse="",calcBg="",calcConduta="";
@@ -342,13 +342,13 @@ function calcular(){
 var vals={},totalE=0,totalS=0,incompleto=false;
 ITENS_BH.forEach(function(i){var v=parseFloat(document.getElementById(i.id).value)||0;vals[i.id]=v;if(i.tipo==="entrada")totalE+=v;else totalS+=v;if(v===0)incompleto=true;});
 calcBalanco=totalE-totalS;
-if(calcBalanco>0){calcClasse="POSITIVO";calcBg="#16a34a";calcConduta="液体貯留を示唆します。浮腫、高血圧、急性肺浮腫のリスクを監視します。水分制限と利尿剤の必要性を評価します.";}
-else if(calcBalanco<0){calcClasse="NEGATIVO";calcBg="#e11d48";calcConduta="脱水を示唆します。皮膚の緊張、乾燥した粘膜、低血圧を監視します。血液量の補充の必要性を評価します.";}
-else{calcClasse="NEUTRO";calcBg="#0284c7";calcConduta="水分バランスが達成されました。ルーチンの監視を維持し、カルテに記録します.";}
+if(calcBalanco>0){calcClasse="POSITIVO";calcBg="#16a34a";calcConduta="液体貯留を示唆します。浮腫、高血圧、急性肺浮腫のリスクを監視します。水分制限と利尿剤の必要性を評価します。";}
+else if(calcBalanco<0){calcClasse="NEGATIVO";calcBg="#e11d48";calcConduta="脱水を示唆します。皮膚の緊張、乾燥した粘膜、低血圧を監視します。血液量補充の必要性を評価します。";}
+else{calcClasse="NEUTRO";calcBg="#0284c7";calcConduta="水分バランスが達成されました。定期的な監視を維持し、カルテに記録します。";}
 document.getElementById("scoreValor").textContent=calcBalanco;
 var pill=document.getElementById("statusPill"),msg=document.getElementById("resultadoMensagem");
 pill.textContent=calcClasse;pill.style.backgroundColor=calcBg;
-msg.innerHTML='患者は水分バランスを示しました <strong>'+calcClasse.toLowerCase()+'</strong> de <strong>'+calcBalanco+' mL</strong> 過去24時間で.<br><br><strong>行動:</strong> '+calcConduta;
+msg.innerHTML='患者は水分バランスを示しました <strong>'+calcClasse.toLowerCase()+'</strong> de <strong>'+calcBalanco+' mL</strong> 過去24時間で。<br><br><strong>対応:</strong> '+calcConduta;
 var tbody=document.getElementById("tabelaDominios");tbody.innerHTML="";
 ITENS_BH.forEach(function(i){var v=vals[i.id];var cor=i.tipo==="entrada"?"#0284c7":"#d97706";var tr=document.createElement("tr");tr.innerHTML='<td class="font-bold text-slate-700">'+i.label+'</td><td class="text-center font-black" style="color:'+cor+'">'+v+'</td><td class="text-center"><span class="text-[10px] font-bold px-2 py-0.5 rounded-full" style="background:'+cor+'15;color:'+cor+'">'+(i.tipo==="entrada"?"ENTRADA":"出口")+'</span></td>';tbody.appendChild(tr);});
 document.getElementById("totalObtidoTd").textContent=calcBalanco;document.getElementById("totalObtidoTd").style.color=calcBg;
@@ -363,7 +363,7 @@ async function chamarNanda(){
 var lista=document.getElementById("lista-nanda");
 lista.innerHTML='<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg>NANDA-Iデータベースを検索中...</li>';
 try{
-var resp=await fetch("/banco_nanda.json");if(!resp.ok)throw new Error("エラー");var banco=await resp.json();
+var resp=await fetch("/banco_nanda_en.json");if(!resp.ok)throw new Error("エラー");var banco=await resp.json();
 var kw=["volume","líquido","hidratação","eliminação","urinária","edema","débito","perfusão","eletrólito"];
 if(calcBalanco>0)kw.push("edema","sobrecarga","excesso","hipertensão");
 else if(calcBalanco<0)kw.push("desidratação","déficit","hipotensão","mucosa","turgescência");
@@ -405,7 +405,7 @@ doc.setFillColor.apply(doc,navy);doc.roundedRect(ml,y,us,22,3,3,"F");doc.setText
 doc.setFillColor.apply(doc,calcBg==="#16a34a"?[22,163,74]:calcBg==="#e11d48"?[225,29,72]:[2,132,199]);doc.roundedRect(ml,y,us,8,2,2,"F");doc.setTextColor(255,255,255);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.text(d.classe.toUpperCase(),W/2,y+5.5,{align:"center"});y+=12;
 doc.setFillColor(248,250,252);doc.roundedRect(ml,y,us,16,2,2,"F");doc.setTextColor(30,41,59);doc.setFont("helvetica","normal");doc.setFontSize(9);var lns=doc.splitTextToSize("対応："+d.conduta,us-8);doc.text(lns,ml+4,y+6);y+=20;
 doc.setFillColor.apply(doc,sl);doc.roundedRect(ml,y,us,8,2,2,"F");doc.setTextColor.apply(doc,navy);doc.setFont("helvetica","bold");doc.setFontSize(9);doc.text("水分記録",ml+4,y+5.5);y+=11;
-var bd=ITENS_BH.map(function(i){var v=parseFloat(document.getElementById(i.id).value)||0;return[i.label,v,i.tipo==="entrada"?"ENTRADA":"排出量"];});
+var bd=ITENS_BH.map(function(i){var v=parseFloat(document.getElementById(i.id).value)||0;return[i.label,v,i.tipo==="entrada"?"ENTRADA":"排出"];});
 doc.autoTable({startY:y,margin:{left:ml,right:mr},head:[["項目","量（mL）","種類"]],body:bd,foot:[["総バランス",d.balanco,"24時間"]],styles:{fontSize:9,cellPadding:3,lineColor:[226,232,240],lineWidth:0.3},headStyles:{fillColor:navy,textColor:255,fontStyle:"bold"},footStyles:{fillColor:[239,246,255],textColor:navy,fontStyle:"bold"},columnStyles:{0:{cellWidth:80},1:{halign:"center"},2:{halign:"center"}},alternateRowStyles:{fillColor:[248,250,252]}});
 y=280;doc.setDrawColor.apply(doc,sl);doc.setLineWidth(0.3);doc.line(ml,y,W-mr,y);doc.setTextColor(148,163,184);doc.setFontSize(7.5);doc.text("COFEN. Resolução Nº 328/2008 | www.calculadorasdeenfermagem.com.br",ml,y+5);
 doc.save("laudo-balanco-hidrico-"+new Date().toISOString().slice(0,10)+".pdf");
@@ -427,7 +427,7 @@ var so=document.getElementById("shareOverlay"),sp=document.getElementById("share
 function os(){so.classList.add("open");sp.classList.add("open");var u=encodeURIComponent(location.href),t=encodeURIComponent(document.title);var l={gmail:"https://mail.google.com/mail/?view=cm&su="+t+"&body="+u,outlook:"https://outlook.live.com/mail/0/deeplink/compose?subject="+t+"&body="+u,facebook:"https://www.facebook.com/sharer/sharer.php?u="+u};sp.querySelectorAll("[data-share]").forEach(function(b){var p=b.getAttribute("data-share");if(l[p])b.href=l[p];});}
 function cs(){so.classList.remove("open");sp.classList.remove("open");}
 so.addEventListener("click",cs);document.getElementById("shareClose").addEventListener("click",cs);
-document.querySelectorAll(".ce-action[data-action]").forEach(function(b){b.addEventListener("click",function(e){var a=this.getAttribute("data-action");if(a==="favorite"){e.preventDefault();try{var k="cko:favorites",l=JSON.parse(localStorage.getItem(k)||"[]"),id=location.pathname;if(!l.includes(id))l.push(id);localStorage.setItem(k,JSON.stringify(l));alert("お気に入りに追加しました！");}catch(ex){alert("Ctrl+Dを押してお気に入りに登録してください。");}}if(a==="share"){e.preventDefault();os();}if(a==="report"){e.preventDefault();location.href="fale.html";}});});
+document.querySelectorAll(".ce-action[data-action]").forEach(function(b){b.addEventListener("click",function(e){var a=this.getAttribute("data-action");if(a==="favorite"){e.preventDefault();try{var k="cko:favorites",l=JSON.parse(localStorage.getItem(k)||"[]"),id=location.pathname;if(!l.includes(id))l.push(id);localStorage.setItem(k,JSON.stringify(l));alert("お気に入りに追加しました！");}catch(ex){alert("Ctrl+Dを押してお気に入りに追加してください。");}}if(a==="share"){e.preventDefault();os();}if(a==="report"){e.preventDefault();location.href="fale.html";}});});
 })();
 
 renderizarForm();
