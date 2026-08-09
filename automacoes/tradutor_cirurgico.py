@@ -45,11 +45,11 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "index.html",
+    "integracoes_calculadora_de_gasometria.html"
 ]
 
 IDIOMAS_DESTINO = [
-    "id", "vi", "uk"
+    "en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
