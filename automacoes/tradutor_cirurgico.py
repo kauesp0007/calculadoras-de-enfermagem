@@ -49,7 +49,7 @@ ARQUIVOS_PARA_TRADUZIR = [
 ]
 
 IDIOMAS_DESTINO = [
-    "zh", "ja", "ko", "ar"
+    "id", "vi", "uk"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
