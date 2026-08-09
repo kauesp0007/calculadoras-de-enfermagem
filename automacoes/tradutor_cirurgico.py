@@ -45,11 +45,11 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "fugulin.html",
+    "index.html",
 ]
 
 IDIOMAS_DESTINO = [
-    "es"
+    "hi"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
@@ -282,6 +282,7 @@ def protect_html_blocks(html_content: str) -> tuple[str, dict, dict]:
         (r'<code\b[^>]*>.*?</code>', "CODE"),
         (r'<template\b[^>]*>.*?</template>', "TEMPLATE"),
         (r'<noscript\b[^>]*>.*?</noscript>', "NOSCRIPT"),
+        (r'<img\b[^>]*/?>', "IMG"),
     ]
 
     for pattern, kind in protect_specs:
@@ -1040,6 +1041,44 @@ def process_footer(html_content: str) -> str:
     match = re.search(footer_pattern, html_content, re.DOTALL)
     if match:
         html_content = html_content.replace(match.group(0), FOOTER_INTERNATIONAL)
+
+    return html_content
+
+
+def normalize_image_paths(html_content: str) -> str:
+    """Garante que TODOS os caminhos de imagem permaneçam absolutos (/img/...).
+    Corrige src, srcset, data-src, content (og:image), href (link icon/preload).
+    Esta função roda APÓS a restauração dos blocos protegidos (incluindo <img>).
+    """
+    # Atributos que contêm caminhos de imagem
+    img_attrs = ['src', 'data-src', 'data-lazy-src', 'data-original']
+
+    for attr in img_attrs:
+        # Corrige caminhos relativos: img/... → /img/...
+        # Mas NÃO altera caminhos que já são absolutos ou URLs externas
+        pattern = rf'({attr}=["\'])(?!/|https?://|data:)(img/[^"\']+)(["\'])'
+        html_content = re.sub(pattern, rf'\1/\2\3', html_content, flags=re.IGNORECASE)
+
+    # Corrigir og:image content
+    html_content = re.sub(
+        r'(content=")(?!/|https?://)(img/[^"]+)(")',
+        r'\1/\2\3',
+        html_content,
+    )
+
+    # Corrigir link icon / apple-touch-icon
+    html_content = re.sub(
+        r'(href=")(?!/|https?://)(img/[^"]+)(")',
+        r'\1/\2\3',
+        html_content,
+    )
+
+    # Corrigir preload de imagens (as="image")
+    html_content = re.sub(
+        r'(<link[^>]*href=")(?!/|https?://)(img/[^"]+)("[^>]*as="image")',
+        r'\1/\2\3',
+        html_content,
+    )
 
     return html_content
 
@@ -1883,6 +1922,10 @@ def translate_file(filename: str, target_lang: str) -> dict:
 
     log.info("[20/20] Restaurando blocos protegidos...")
     html_content = restore_protected_blocks(html_content, reverse_map)
+
+    log.info("[20a] Normalizando caminhos de imagem (garantindo absolutos /img/)...")
+    html_content = normalize_image_paths(html_content)
+
     report["deepseek"] = translator.stats["deepseek"]
     report["openai"] = translator.stats["openai"]
     report["deepl"] = translator.stats["deepl"]
