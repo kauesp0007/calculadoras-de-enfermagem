@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "nanda.html"
+    "balancohidrico.html"
 ]
 
 IDIOMAS_DESTINO = [
@@ -1433,6 +1433,69 @@ def js_fix_corrupted_templates(js_code: str) -> str:
     return js_code
 
 
+def preprocess_nanda_and_diagnosticos(html_content: str) -> str:
+    """Pre-processamento ANTES da traducao JS inline:
+    1. Substitui /banco_nanda.json por /banco_nanda_en.json em todo HTML
+    2. Extrai strings de diagnosticosKeywords.push("...") em JS inline,
+       traduz PT→EN (sempre ingles, independente do idioma destino),
+       e reinsere no codigo."""
+    
+    # 1. Banco NANDA: sempre usar versao em ingles nas paginas traduzidas
+    count_nanda = html_content.count('/banco_nanda.json')
+    if count_nanda > 0:
+        html_content = html_content.replace('/banco_nanda.json', '/banco_nanda_en.json')
+        log.info(f"       [nanda] /banco_nanda.json → /banco_nanda_en.json ({count_nanda} ocorrencia(s))")
+    
+    # 2. diagnosticosKeywords.push("..."): extrair e traduzir PT→EN
+    pattern = r'diagnosticosKeywords\.push\s*\(\s*"((?:[^"\\]|\\.)*)"\s*\)'
+    matches = list(re.finditer(pattern, html_content))
+    
+    if not matches:
+        return html_content
+    
+    log.info(f"       [diag] {len(matches)} diagnosticosKeywords.push() encontrados — traduzindo PT→EN")
+    
+    # Coletar strings (desescapando aspas internas)
+    strings_pt = []
+    for m in matches:
+        text = m.group(1)
+        text = text.replace('\\"', '"').replace('\\n', '\n').replace('\\t', '\t')
+        strings_pt.append(text)
+    
+    # Traduzir para ingles com tradutor dedicado
+    translator_en = BatchTranslator("en")
+    translated = {}
+    
+    total_batches = (len(strings_pt) + MAX_STRINGS_PER_BATCH - 1) // MAX_STRINGS_PER_BATCH
+    for i in range(0, len(strings_pt), MAX_STRINGS_PER_BATCH):
+        batch = strings_pt[i:i + MAX_STRINGS_PER_BATCH]
+        batch_num = i // MAX_STRINGS_PER_BATCH + 1
+        result = translator_en.translate_batch(
+            batch,
+            "NANDA nursing diagnoses keywords — ALWAYS translate from Portuguese to English",
+            batch_num=batch_num,
+            total_batches=total_batches,
+        )
+        for t in result["translations"]:
+            idx = int(t["id"])
+            if idx < len(batch):
+                translated[i + idx] = t["translation"]
+    
+    # Reinserir do final para preservar offsets
+    for idx in range(len(matches) - 1, -1, -1):
+        if idx not in translated:
+            continue
+        m = matches[idx]
+        en_text = translated[idx]
+        # Escapar para JSON/JS dentro de aspas duplas
+        en_text = en_text.replace('\\', '\\\\').replace('"', '\\"')
+        replacement = f'diagnosticosKeywords.push("{en_text}")'
+        html_content = html_content[:m.start()] + replacement + html_content[m.end():]
+    
+    log.info(f"       [diag] {len(translated)} diagnosticos traduzidos PT→EN com sucesso.")
+    return html_content
+
+
 def translate_js_inline(html_content: str, target_lang: str,
                         translator: BatchTranslator) -> tuple:
     """Traduz todas as strings dentro de <script> inline no HTML.
@@ -1911,6 +1974,10 @@ def translate_file(filename: str, target_lang: str) -> dict:
     # Normalizar caminhos de imagem ANTES da referencia estrutural
     log.info("[14a] Normalizando caminhos de imagem (garantindo absolutos /img/)...")
     html_content = normalize_image_paths(html_content)
+
+    # Pre-processamento: banco NANDA EN + diagnosticosKeywords.push PT→EN
+    log.info("[14b] Pre-processando /banco_nanda.json → EN e diagnosticosKeywords (PT→EN)...")
+    html_content = preprocess_nanda_and_diagnosticos(html_content)
 
     # Referencia estrutural apos todas as mudancas intencionais de idioma.
     # A traducao de textos/JS nao pode alterar esta estrutura.
