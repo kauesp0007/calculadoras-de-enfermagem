@@ -143,8 +143,9 @@
       const sliderFill = document.getElementById('sliderFill');
 
       // Create every graduation from 0 through 100.
+      // 0 = needle tip (right), 100 = plunger end (left)
       for (let i = 0; i <= 100; i++) {
-        const x = minX + (i / 100) * (maxX - minX);
+        const x = maxX - (i / 100) * (maxX - minX);
         const major = i % 10 === 0;
         const mid = i % 5 === 0 && !major;
         const y1 = major ? 330 : (mid ? 340 : 348);
@@ -178,15 +179,15 @@
 
       function setDose(v) {
         dose = Math.max(0, Math.min(100, Math.round(v)));
-        const x = minX + (dose / 100) * (maxX - minX);
+        const x = maxX - (dose / 100) * (maxX - minX);
 
-        // O amarelo preenche TODO o interior da seringa até a graduação escolhida.
-        liquid.setAttribute('x', minX);
-        liquid.setAttribute('width', Math.max(0, x - minX));
+        // Preenchimento amarelo da agulha (direita) em direção ao êmbolo (esquerda)
+        liquid.setAttribute('x', x);
+        liquid.setAttribute('width', Math.max(0, maxX - x));
         const gloss = document.getElementById('liquidGloss');
         if (gloss) {
-          gloss.setAttribute('x', minX);
-          gloss.setAttribute('width', Math.max(0, x - minX));
+          gloss.setAttribute('x', x);
+          gloss.setAttribute('width', Math.max(0, maxX - x));
         }
 
         doseText.textContent = dose;

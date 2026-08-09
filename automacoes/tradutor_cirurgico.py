@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "integracoes_calculadora_de_gasometria.html"
+    "nanda.html"
 ]
 
 IDIOMAS_DESTINO = [
