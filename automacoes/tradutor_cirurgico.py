@@ -45,14 +45,11 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "fast.html",
+    "fugulin.html",
 ]
 
 IDIOMAS_DESTINO = [
-    "en", "es", "fr", "it", "de",
-    "hi", "zh", "ja", "ru", "ko",
-    "tr", "nl", "pl", "sv", "id",
-    "vi", "uk", "ar",
+    "es"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
