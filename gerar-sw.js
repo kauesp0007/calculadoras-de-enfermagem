@@ -46,6 +46,8 @@ const config = {
     ".gitignore",
     "README.md",
     "limpar-cache-buster.js",
+    ".chrome-perfil-pci",
+    ".tradutor_cache",
   ],
 };
 // --------------------
