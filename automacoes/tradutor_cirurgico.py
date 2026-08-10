@@ -1445,8 +1445,31 @@ def preprocess_ce_actionbar_and_buttons(html_content: str, translator: BatchTran
     """
     
     texts_to_translate = []
-    replacements = []  # (start, end, placeholder_id)
+    replacements = []  # (start, end, new_block, [text_indices])
     counter = [0]
+    
+    # Proteger <script> e <style> para evitar que regex capturem conteudo interno
+    protected_blocks = []
+    
+    # Funcao para proteger blocos sem corromper offsets entre chamadas
+    def protect_all_blocks(html):
+        """Protege <script> e <style> de uma vez, do final para o inicio."""
+        result = html
+        all_matches = []
+        for pattern, kind in [(r'<script\b[^>]*>.*?</script>', "SCRIPT"),
+                               (r'<style\b[^>]*>.*?</style>', "STYLE")]:
+            for m in re.finditer(pattern, result, re.DOTALL):
+                all_matches.append((m.start(), m.end(), m.group(0), kind))
+        # Ordenar do final para inicio para preservar offsets
+        all_matches.sort(key=lambda x: x[0], reverse=True)
+        new_protected = []
+        for start, end, original, kind in all_matches:
+            key = f"__PROTECTED_{kind}_{len(new_protected)}__"
+            new_protected.append((key, original))
+            result = result[:start] + key + result[end:]
+        return result, new_protected
+    
+    html_content, protected_blocks = protect_all_blocks(html_content)
     
     def make_placeholder():
         idx = counter[0]
@@ -1576,34 +1599,51 @@ def preprocess_ce_actionbar_and_buttons(html_content: str, translator: BatchTran
             if idx < len(batch):
                 translated[i + idx] = t["translation"]
     
-    # Reinserir do final para preservar offsets
-    # Primeiro, aplicar as substituicoes dos placeholders nos blocos
+    # Reinserir do final para preservar offsets.
+    # Cada replacement guarda: (start, end, bloco_final, lista_de_indices_texto)
+    # onde lista_de_indices_texto contem os indices em texts_to_translate/translated
+    # que devem ser usados para substituir os placeholders nesse bloco.
+    
+    # Reconstruir replacements com indices de texto corretos
+    final_replacements = []
     text_idx = 0
-    processed_replacements = []
-    for start, end, new_block, placeholder in replacements:
+    for item in replacements:
+        start, end, new_block, placeholder = item
         if placeholder:
-            # Bloco com placeholder — usar traducao correspondente
-            if text_idx in translated:
-                final_block = new_block.replace(placeholder, translated[text_idx])
-            else:
-                final_block = new_block
+            # Bloco simples: 1 texto
+            final_replacements.append((start, end, new_block, [text_idx]))
             text_idx += 1
         else:
-            # Bloco do share popup — ja tem placeholders inseridos no inner
-            # Substituir todos os placeholders restantes
-            for j in range(text_idx, text_idx + len(texts_to_translate)):
+            # Bloco do share popup: varios textos
+            # Contar quantos placeholders ___CKO_ACTIONBAR_ existem nesse bloco
+            ph_indices = []
+            for j in range(text_idx, len(texts_to_translate)):
                 ph = f"___CKO_ACTIONBAR_{j:06d}___"
-                if ph in new_block and j in translated:
-                    new_block = new_block.replace(ph, translated[j])
-            final_block = new_block
-        
-        processed_replacements.append((start, end, final_block))
+                if ph in new_block:
+                    ph_indices.append(j)
+                else:
+                    break  # placeholders sao sequenciais
+            final_replacements.append((start, end, new_block, ph_indices))
+            text_idx += len(ph_indices)
     
-    # Aplicar substituicoes do final para o inicio
-    for start, end, final_block in sorted(processed_replacements, key=lambda x: x[0], reverse=True):
-        html_content = html_content[:start] + final_block + html_content[end:]
+    # Aplicar do final para o inicio
+    for start, end, new_block, ph_indices in sorted(final_replacements, key=lambda x: x[0], reverse=True):
+        final_text = new_block
+        for j in ph_indices:
+            ph = f"___CKO_ACTIONBAR_{j:06d}___"
+            if j in translated:
+                final_text = final_text.replace(ph, translated[j])
+            else:
+                # Placeholder sem traducao — restaurar texto original
+                final_text = final_text.replace(ph, texts_to_translate[j])
+        html_content = html_content[:start] + final_text + html_content[end:]
     
     log.info(f"       [actionbar] {len(translated)} textos traduzidos com sucesso.")
+    
+    # Restaurar blocos protegidos (script/style)
+    for key, original in protected_blocks:
+        html_content = html_content.replace(key, original)
+    
     return html_content
 
 

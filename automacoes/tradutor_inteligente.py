@@ -525,7 +525,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["conteudos_da_pagina.html"] 
+    arquivos_originais = ["guia_rapido_seringa_insulina.html"] 
      
     idiomas_alvo = ["es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
