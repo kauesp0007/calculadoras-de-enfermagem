@@ -121,12 +121,25 @@ window.salvarPosCirurgico = function(){
 };
 
 // ==================== TABS ====================
-window.switchTab = function(tabId, groupId){
-  var parent = document.getElementById(tabId).parentElement;
+window.switchTab = function(tabId, groupId, btn){
+  var tab = document.getElementById(tabId);
+  if(!tab) return;
+  var parent = tab.parentElement;
   parent.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
-  parent.previousElementSibling.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
-  document.getElementById(tabId).classList.add('active');
-  event.target.classList.add('active');
+  // localizar o container de abas dentro do mesmo parent, fallback para document-wide
+  var tabsContainer = parent.querySelector('.tabs') || document.querySelector('.tabs');
+  var tabBtns = tabsContainer ? tabsContainer.querySelectorAll('.tab-btn') : document.querySelectorAll('.tab-btn');
+  tabBtns.forEach(function(b){ b.classList.remove('active'); });
+  tab.classList.add('active');
+  // se foi passado o elemento (this) ou o event, usa-o; senão procura o botão cujo onclick referencia o tabId
+  if(btn && btn.nodeType === 1){ btn.classList.add('active'); return; }
+  for(var i=0;i<tabBtns.length;i++){
+    var b = tabBtns[i];
+    var onclickAttr = b.getAttribute('onclick') || '';
+    if(onclickAttr.indexOf("'" + tabId + "'") !== -1 || onclickAttr.indexOf('"' + tabId + '"') !== -1){
+      b.classList.add('active'); break;
+    }
+  }
 };
 
 // ==================== AVISO DE CIRURGIA ====================
@@ -767,11 +780,22 @@ window.cmeInit=function(){
 var indCharts={};
 var indChartsInit=false;
 
-window.indShowTab=function(id){
+window.indShowTab=function(id, btn){
+  var panel = document.getElementById(id);
+  if(!panel) return;
   document.querySelectorAll('.ind-panel').forEach(function(p){p.classList.remove('active');});
   document.querySelectorAll('.ind-tab').forEach(function(t){t.classList.remove('active');});
-  document.getElementById(id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  panel.classList.add('active');
+  if(btn && btn.nodeType===1){ btn.classList.add('active'); return; }
+  var tabs = document.querySelectorAll('.ind-tab');
+  for(var i=0;i<tabs.length;i++){
+    var b = tabs[i];
+    var onclickAttr = b.getAttribute('onclick') || '';
+    if(onclickAttr.indexOf("'" + id + "'") !== -1 || onclickAttr.indexOf('\"' + id + '\"') !== -1){
+      b.classList.add('active');
+      break;
+    }
+  }
 };
 
 function barLabelPlugin(){
