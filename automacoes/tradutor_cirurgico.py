@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "gasometria.html"
+    "integracoes_calculadora_de_gasometria.html"
 ]
 
 IDIOMAS_DESTINO = [
@@ -1433,6 +1433,180 @@ def js_fix_corrupted_templates(js_code: str) -> str:
     return js_code
 
 
+def preprocess_ce_actionbar_and_buttons(html_content: str, translator: BatchTranslator) -> str:
+    """Pre-processamento ANTES do JS inline:
+    Traduz textos da barra de acoes compacta (ce-actionbar), popup de compartilhamento,
+    e nomes de botoes com SVG (btnCalcular, btnLimpar, etc).
+    
+    Alvos:
+    1. <button class="ce-action"> e <a class="ce-action"> — texto apos </svg>
+    2. <div class="ce-share-popup"> — h4, links, botao fechar
+    3. <button id="..."> com SVG — nome do botao apos </svg>
+    """
+    
+    texts_to_translate = []
+    replacements = []  # (start, end, placeholder_id)
+    counter = [0]
+    
+    def make_placeholder():
+        idx = counter[0]
+        counter[0] += 1
+        return f"___CKO_ACTIONBAR_{idx:06d}___"
+    
+    # --- 1. ce-action buttons e links ---
+    # Captura o bloco inteiro: <button class="ce-action"...> ou <a class="ce-action"...>
+    ce_pattern = re.compile(
+        r'(<(?:button|a)\s+class="ce-action"[^>]*>)(.*?)(</(?:button|a)>)',
+        re.DOTALL
+    )
+    
+    for m in ce_pattern.finditer(html_content):
+        opening = m.group(1)
+        inner = m.group(2)
+        closing = m.group(3)
+        # Encontrar texto apos </svg>
+        svg_end = inner.rfind('</svg>')
+        if svg_end == -1:
+            continue
+        after_svg = inner[svg_end + 6:]  # +6 = len('</svg>')
+        stripped = after_svg.strip()
+        if not stripped or len(stripped) < 2:
+            continue
+        # Verificar se é texto traduzivel (nao é HTML)
+        if '<' in stripped:
+            continue
+        placeholder = make_placeholder()
+        texts_to_translate.append(stripped)
+        # Construir novo inner com placeholder
+        new_inner = inner[:svg_end + 6] + after_svg.replace(stripped, placeholder)
+        replacements.append((m.start(), m.end(), opening + new_inner + closing, placeholder))
+    
+    # --- 2. Share popup ---
+    share_pattern = re.compile(
+        r'(<div\s+class="ce-share-popup"[^>]*>)(.*?)(</div>)',
+        re.DOTALL
+    )
+    
+    for m in share_pattern.finditer(html_content):
+        opening = m.group(1)
+        inner = m.group(2)
+        closing = m.group(3)
+        block_start = m.start()
+        block_end = m.end()
+        
+        # Extrair textos do h4, links e botao fechar
+        # h4
+        for h4m in re.finditer(r'<h4[^>]*>(.*?)</h4>', inner, re.DOTALL):
+            text = h4m.group(1).strip()
+            if text and len(text) > 2:
+                placeholder = make_placeholder()
+                texts_to_translate.append(text)
+                inner = inner.replace(h4m.group(1), placeholder)
+        
+        # links de compartilhamento
+        for am in re.finditer(r'<a\s+class="ce-share-btn"[^>]*>(.*?)</a>', inner, re.DOTALL):
+            text = am.group(1).strip()
+            if text and len(text) >= 2 and '<' not in text:
+                placeholder = make_placeholder()
+                texts_to_translate.append(text)
+                inner = inner.replace(am.group(1), placeholder)
+        
+        # botao fechar
+        for bm in re.finditer(r'<button\s+class="ce-share-close"[^>]*>(.*?)</button>', inner, re.DOTALL):
+            text = bm.group(1).strip()
+            if text and len(text) > 2:
+                placeholder = make_placeholder()
+                texts_to_translate.append(text)
+                inner = inner.replace(bm.group(1), placeholder)
+        
+        replacements.append((block_start, block_end, opening + inner + closing, None))
+    
+    # --- 3. Botoes com id= e SVG ---
+    btn_pattern = re.compile(
+        r'(<button\s+[^>]*id="[^"]*"[^>]*>)(.*?)(</button>)',
+        re.DOTALL
+    )
+    
+    for m in btn_pattern.finditer(html_content):
+        opening = m.group(1)
+        inner = m.group(2)
+        closing = m.group(3)
+        
+        # So processa se contem <svg
+        if '<svg' not in inner.lower():
+            continue
+        # Se ja foi capturado como ce-action, pular
+        if 'ce-action' in opening:
+            continue
+        
+        svg_end = inner.rfind('</svg>')
+        if svg_end == -1:
+            continue
+        after_svg = inner[svg_end + 6:]
+        stripped = after_svg.strip()
+        if not stripped or len(stripped) < 2:
+            continue
+        if '<' in stripped:
+            continue
+        
+        placeholder = make_placeholder()
+        texts_to_translate.append(stripped)
+        new_inner = inner[:svg_end + 6] + after_svg.replace(stripped, placeholder)
+        replacements.append((m.start(), m.end(), opening + new_inner + closing, placeholder))
+    
+    if not texts_to_translate:
+        return html_content
+    
+    log.info(f"       [actionbar] {len(texts_to_translate)} textos de botoes/acoes encontrados — traduzindo")
+    
+    # Traduzir
+    translated = {}
+    total_batches = (len(texts_to_translate) + MAX_STRINGS_PER_BATCH - 1) // MAX_STRINGS_PER_BATCH
+    for i in range(0, len(texts_to_translate), MAX_STRINGS_PER_BATCH):
+        batch = texts_to_translate[i:i + MAX_STRINGS_PER_BATCH]
+        batch_num = i // MAX_STRINGS_PER_BATCH + 1
+        result = translator.translate_batch(
+            batch,
+            "UI action buttons and share popup — button labels, link text, popup headings",
+            batch_num=batch_num,
+            total_batches=total_batches,
+        )
+        for t in result["translations"]:
+            idx = int(t["id"])
+            if idx < len(batch):
+                translated[i + idx] = t["translation"]
+    
+    # Reinserir do final para preservar offsets
+    # Primeiro, aplicar as substituicoes dos placeholders nos blocos
+    text_idx = 0
+    processed_replacements = []
+    for start, end, new_block, placeholder in replacements:
+        if placeholder:
+            # Bloco com placeholder — usar traducao correspondente
+            if text_idx in translated:
+                final_block = new_block.replace(placeholder, translated[text_idx])
+            else:
+                final_block = new_block
+            text_idx += 1
+        else:
+            # Bloco do share popup — ja tem placeholders inseridos no inner
+            # Substituir todos os placeholders restantes
+            for j in range(text_idx, text_idx + len(texts_to_translate)):
+                ph = f"___CKO_ACTIONBAR_{j:06d}___"
+                if ph in new_block and j in translated:
+                    new_block = new_block.replace(ph, translated[j])
+            final_block = new_block
+        
+        processed_replacements.append((start, end, final_block))
+    
+    # Aplicar substituicoes do final para o inicio
+    for start, end, final_block in sorted(processed_replacements, key=lambda x: x[0], reverse=True):
+        html_content = html_content[:start] + final_block + html_content[end:]
+    
+    log.info(f"       [actionbar] {len(translated)} textos traduzidos com sucesso.")
+    return html_content
+
+
 def preprocess_nanda_and_diagnosticos(html_content: str) -> str:
     """Pre-processamento ANTES da traducao JS inline:
     1. Substitui /banco_nanda.json por /banco_nanda_en.json em todo HTML
@@ -1978,6 +2152,10 @@ def translate_file(filename: str, target_lang: str) -> dict:
     # Pre-processamento: banco NANDA EN + diagnosticosKeywords.push PT→EN
     log.info("[14b] Pre-processando /banco_nanda.json → EN e diagnosticosKeywords (PT→EN)...")
     html_content = preprocess_nanda_and_diagnosticos(html_content)
+
+    # Pre-processamento: barra de acoes, share popup e nomes de botoes
+    log.info("[14c] Pre-processando ce-actionbar, share popup e nomes de botoes...")
+    html_content = preprocess_ce_actionbar_and_buttons(html_content, translator)
 
     # Referencia estrutural apos todas as mudancas intencionais de idioma.
     # A traducao de textos/JS nao pode alterar esta estrutura.
