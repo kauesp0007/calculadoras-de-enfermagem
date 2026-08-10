@@ -1,12 +1,4 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-const CACHE_VERSION = "20260810-032745";
-=======
-const CACHE_VERSION = "20260810-023344";
->>>>>>> parent of 4baca08ea1 (tentativa de corrigir centro cirurgico)
-=======
-const CACHE_VERSION = "20260810-023344";
->>>>>>> parent of 4baca08ea1 (tentativa de corrigir centro cirurgico)
+const CACHE_VERSION = "20260810-035537";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
