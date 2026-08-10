@@ -59,6 +59,8 @@ document.addEventListener("DOMContentLoaded", function () {
         initializeNavigationMenu();
         // Inicializa auth no menu (não bloqueante)
         initializeAuthMenu();
+        // Inicializa busca global (gp-search)
+        if(typeof initGPSearch === 'function'){ setTimeout(initGPSearch, 50); }
       });
     }
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
