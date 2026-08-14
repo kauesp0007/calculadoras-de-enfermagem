@@ -1204,6 +1204,10 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
       <div id="checklist-counter" style="font-size:12px;color:var(--slate-500);font-weight:600">0/14 concluídos</div>
     </div>
     <div class="card-body">
+      <div class="form-group" style="margin-bottom:12px;max-width:520px">
+        <label>Paciente Registrado no Aviso de Cirurgia (selecione antes de preencher o checklist)</label>
+        <select id="bate-paciente" onchange="batePacienteChange()"><option value="">Selecione o paciente...</option></select>
+      </div>
       <div class="tabs">
         <button class="tab-btn active" onclick="switchTab('tab-admin','tabg-bate')">Administrativo</button>
         <button class="tab-btn" onclick="switchTab('tab-clinico','tabg-bate')">Clínico/Anestesia</button>
@@ -1227,6 +1231,7 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Via aérea avaliada (Mallampati, abertura de boca)</label></div>
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Exames pré-operatórios dentro do prazo e validade</label></div>
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Jejum adequado confirmado (6h sólidos, 2h líquidos claros)</label></div>
+          <div class="cl-item"><label style="flex:1">Necessidade de Retaguarda de UTI?</label><select id="bate-uti" onchange="marcarItemSelect(this,this.closest('.cl-item'))" style="padding:6px 8px;border:1.5px solid var(--slate-300);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink)"><option value="">Selecione...</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         </div>
       </div>
 
@@ -1235,7 +1240,7 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Caixa cirúrgica separada e esterilizada (CECC)</label><span class="cl-badge"><span class="badge badge-red">Crítico</span></span></div>
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Fios, drenos e materiais específicos disponíveis</label></div>
           <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Equipamentos funcionando (bisturi elétrico, laparoscópio, etc.)</label></div>
-          <div class="cl-item" onclick="toggleCheck(this)"><input type="checkbox"><label>Reserva de hemocomponentes confirmada no banco de sangue</label></div>
+          <div class="cl-item"><label style="flex:1">Reserva de hemoderivados?</label><select id="bate-hemoderivados" onchange="marcarItemSelect(this,this.closest('.cl-item'))" style="padding:6px 8px;border:1.5px solid var(--slate-300);border-radius:8px;font-size:12.5px;font-weight:600;color:var(--ink)"><option value="">Selecione...</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
         </div>
       </div>
 
@@ -1250,9 +1255,9 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
       </div>
 
       <div class="btn-row" style="margin-top:20px">
-        <button class="btn btn-primary" onclick="confirmarBateMapa()">
+        <button class="btn btn-primary" onclick="salvarBateMapa()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          Confirmar Bate-Mapa
+          Salvar Bate-Mapa
         </button>
         <button class="btn btn-ghost" onclick="resetChecklist()">Resetar checklist</button>
       </div>
@@ -1274,13 +1279,21 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
       <table class="tbl" id="tbl-alocacao">
         <thead>
           <tr>
-            <th>Sala</th><th>Horário</th><th>Paciente</th><th>Procedimento</th><th>Cirurgião</th><th>Anestesia</th><th>Status Bate-Mapa</th><th>Ações</th>
+            <th>Sala</th><th>Horário</th><th>Paciente</th><th>Procedimento</th><th>Cirurgião</th><th>Anestesia</th><th>Hemoderivados</th><th>Retaguarda UTI</th><th>Status Bate-Mapa</th><th>Ações</th>
           </tr>
         </thead>
         <tbody id="body-alocacao">
-          <tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:30px">Salve avisos de cirurgia na etapa 1 para alocar aqui.</td></tr>
+          <tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Salve avisos de cirurgia na etapa 1 para alocar aqui.</td></tr>
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- CHECKLIST DO FLUXOGRAMA DO BATE-MAPA -->
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Checklist do Fluxograma do Bate-Mapa</h3><button class="btn btn-ghost btn-sm" onclick="limparChecklistBate()">Limpar registros</button></div>
+    <div class="card-body" style="padding:0">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Paciente</th><th>Checklist</th><th>Reserva de Hemoderivados</th><th>Retaguarda de UTI</th><th>Salvo em</th></tr></thead><tbody id="body-checklist-bate"><tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr></tbody></table></div>
     </div>
   </div>
 </div>
@@ -1420,12 +1433,14 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
             <th>Leito</th>
             <th>Sangue<span class="tip"><span class="tip-icon">?</span><div class="tip-box">S = Tipagem Sanguínea solicitada; R = Reserva de hemocomponente.</div></span></th>
             <th>UTI<span class="tip"><span class="tip-icon">?</span><div class="tip-box">Reserva de leito de UTI pós-operatória solicitada.</div></span></th>
+            <th>Hemoderiv.</th>
+            <th>Retag. UTI</th>
             <th>Circulante</th>
             <th>Status<span class="tip"><span class="tip-icon">?</span><div class="tip-box">Status da sala em tempo real. Clique para atualizar o status.</div></span></th>
           </tr>
         </thead>
         <tbody id="body-mapa">
-          <tr><td colspan="13" style="text-align:center;color:var(--slate-400);padding:40px">Clique em "+ Exemplos" para carregar dados demonstrativos ou salve avisos de cirurgia na Etapa 1.</td></tr>
+          <tr><td colspan="15" style="text-align:center;color:var(--slate-400);padding:40px">Clique em "+ Exemplos" para carregar dados demonstrativos ou salve avisos de cirurgia na Etapa 1.</td></tr>
         </tbody>
       </table>
     </div>

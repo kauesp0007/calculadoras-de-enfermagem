@@ -14,6 +14,7 @@ window.goStep = function(n){
   if(n===7) renderStatusSalas();
   if(n===9) renderRelatorios();
   if(n===0) renderAgendamentos();
+  if(n===2){ carregarSelectBatePacientes(); renderChecklistBate(); }
   if(n===3) carregarSelectsPreparo();
   if(n===6) carregarSelectsOms();
   if(n===8) carregarSelectsPos();
@@ -510,7 +511,7 @@ window.carregarAvisos = function(){
   var tbAl = document.getElementById('body-alocacao');
   if(!avisos.length){
     tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
-    tbAl.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
+    tbAl.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
     return;
   }
   var statusLabels = {agendada:'Agendada',confirmada:'Confirmada',cancelada:'Cancelada',em_curso:'Em curso',concluida:'Concluída'};
@@ -547,6 +548,8 @@ window.carregarAvisos = function(){
       '<td style="font-size:11.5px">'+esc(sanitizeFieldForExport(a.procedimento||'—'))+'</td>' +
       '<td>'+esc(displayProfissional(a, a.cirurgiao||'—'))+'</td>' +
       '<td style="font-size:12px">'+esc(a.anestesia||'')+'</td>' +
+      '<td class="center">'+(a.hemoderivados==='sim'?'<span title="Reserva de hemoderivados" style="font-size:15px">🩸</span>':(a.hemoderivados==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':'')+'</td>' +
       '<td><span class="badge '+bateClass+'">'+bateLabel+'</span></td>' +
       '<td><button class="btn btn-success btn-sm" onclick="confirmarAviso('+a.id+')">Confirmar</button></td>' +
     '</tr>';
@@ -604,7 +607,10 @@ window.toggleCheck = function(el){
 window.resetChecklist = function(){
   document.querySelectorAll('.cl-item').forEach(function(el){
     el.classList.remove('checked');
-    el.querySelector('input').checked = false;
+    var cb = el.querySelector('input[type=checkbox]');
+    if(cb) cb.checked = false;
+    var sl = el.querySelector('select');
+    if(sl) sl.value='';
   });
   atualizarContador();
 };
@@ -615,14 +621,129 @@ function atualizarContador(){
   document.getElementById('checklist-counter').textContent = done+'/'+total+' concluídos';
 }
 
-window.confirmarBateMapa = function(){
-  var done = document.querySelectorAll('.cl-item.checked').length;
-  var total = document.querySelectorAll('.cl-item').length;
-  if(done < total * 0.7){
-    showToast('Complete pelo menos 70% do checklist antes de confirmar.','warning'); return;
+window.confirmarBateMapa = function(){ salvarBateMapa(); };
+
+// ==================== BATE-MAPA: PACIENTE + CHECKLIST ====================
+function parseIdadeAviso(a){
+  try{
+    var m = String(a.idade||'').match(/(\d+)/);
+    if(m) return parseInt(m[1],10);
+    var dn = String(a.dn||'');
+    if(!dn) return null;
+    var d;
+    if(dn.indexOf('-')!==-1){ var p=dn.split('-'); d=new Date(+p[0], +p[1]-1, +p[2]); }
+    else { var q=dn.split('/'); d=new Date(+q[2], +q[1]-1, +q[0]); }
+    if(isNaN(d)) return null;
+    var hoje=new Date();
+    var idade=hoje.getFullYear()-d.getFullYear();
+    var mm=hoje.getMonth()-d.getMonth();
+    if(mm<0||(mm===0&&hoje.getDate()<d.getDate())) idade--;
+    return idade;
+  }catch(e){ return null; }
+}
+
+window.marcarItemSelect = function(sel, item){
+  if(!item) return;
+  item.classList.toggle('checked', !!sel.value);
+  atualizarContador();
+};
+
+window.carregarSelectBatePacientes = function(){
+  var sel = document.getElementById('bate-paciente');
+  if(!sel) return;
+  var avisos = getAvisos();
+  var html = '<option value="">Selecione o paciente...</option>';
+  avisos.forEach(function(a,i){
+    var nome = (typeof displayPacienteName==='function')?displayPacienteName(a):sanitizePacienteNome(a.nome||'');
+    html += '<option value="'+a.id+'">#'+(i+1)+' — '+esc(nome)+'</option>';
+  });
+  sel.innerHTML = html;
+  try{ batePacienteChange(); }catch(e){}
+};
+
+window.batePacienteChange = function(){
+  var sel = document.getElementById('bate-paciente');
+  var selHemo = document.getElementById('bate-hemoderivados');
+  var selUti = document.getElementById('bate-uti');
+  if(!sel || !selHemo || !selUti) return;
+  var id = sel.value;
+  var a = getAvisos().find(function(x){ return String(x.id)===String(id); });
+  if(!a){ selHemo.value=''; selUti.value=''; marcarItemSelect(selHemo, selHemo.closest('.cl-item')); marcarItemSelect(selUti, selUti.closest('.cl-item')); return; }
+  var idade = parseIdadeAviso(a);
+  selHemo.value = (a.hemoderivados==='sim'||a.hemoderivados==='nao') ? a.hemoderivados : ((idade!==null && idade>75) ? 'sim' : '');
+  selUti.value = (a.retaguardaUti==='sim'||a.retaguardaUti==='nao') ? a.retaguardaUti : '';
+  marcarItemSelect(selHemo, selHemo.closest('.cl-item'));
+  marcarItemSelect(selUti, selUti.closest('.cl-item'));
+};
+
+window.salvarBateMapa = function(){
+  var sel = document.getElementById('bate-paciente');
+  if(!sel || !sel.value){ showToast('Selecione o paciente do aviso de cirurgia antes de salvar.','warning'); return; }
+  var selHemo = document.getElementById('bate-hemoderivados');
+  var selUti = document.getElementById('bate-uti');
+  var avisos = getAvisos();
+  var a = avisos.find(function(x){ return String(x.id)===String(sel.value); });
+  if(!a){ showToast('Paciente não encontrado na lista de avisos.','warning'); return; }
+  var idade = parseIdadeAviso(a);
+  var hemo = selHemo ? selHemo.value : '';
+  if(!hemo && idade!==null && idade>75) hemo = 'sim';
+  if(selHemo && idade!==null && idade>75 && !selHemo.value) selHemo.value = 'sim';
+  var uti = selUti ? selUti.value : '';
+  var itens = [];
+  document.querySelectorAll('.cl-item').forEach(function(el){
+    if(el.classList.contains('checked')){
+      var lb = el.querySelector('label');
+      if(lb) itens.push(lb.textContent.trim());
+    }
+  });
+  a.hemoderivados = hemo || 'nao';
+  a.retaguardaUti = uti || 'nao';
+  a.bateItens = itens;
+  a.bateSalvoEm = new Date().toLocaleString('pt-BR');
+  setAvisos(avisos);
+  carregarAvisos();
+  renderChecklistBate();
+  renderMapa();
+  try{ logEventLocal('batemapa_saved',{id:a.id, hemoderivados:a.hemoderivados, retaguardaUti:a.retaguardaUti, itens: itens.length}); }catch(e){}
+  showToast('Bate-mapa salvo! Mapa cirúrgico atualizado.','success');
+  setTimeout(function(){ goStep(2); }, 1000);
+};
+
+window.renderChecklistBate = function(){
+  var tb = document.getElementById('body-checklist-bate');
+  if(!tb) return;
+  var avisos = getAvisos().filter(function(a){ return a.bateSalvoEm; });
+  if(!avisos.length){
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr>';
+    return;
   }
-  showToast('Bate-mapa confirmado! Mapa cirúrgico gerado.','success');
-  setTimeout(function(){ goStep(2); }, 1200);
+  var total = document.querySelectorAll('.cl-item').length;
+  tb.innerHTML = avisos.map(function(a){
+    var nome = (typeof displayPacienteName==='function')?displayPacienteName(a):sanitizePacienteNome(a.nome||'');
+    var feitos = (a.bateItens||[]).length;
+    var ok = feitos >= total;
+    var hemo = a.hemoderivados==='sim' ? '<span style="font-size:15px" title="Reserva de hemoderivados">🩸</span>' : (a.hemoderivados==='nao'?'Não':'—');
+    var uti = a.retaguardaUti==='sim' ? 'Sim' : '';
+    return '<tr>' +
+      '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
+      '<td>'+(ok?'<span style="font-size:15px">✅</span>':'<span style="font-size:15px">✔️</span>')+' '+feitos+'/'+total+' itens</td>' +
+      '<td class="center">'+hemo+'</td>' +
+      '<td class="center">'+uti+'</td>' +
+      '<td style="color:var(--slate-500);font-size:12px">'+esc(a.bateSalvoEm)+'</td>' +
+    '</tr>';
+  }).join('');
+};
+
+window.limparChecklistBate = function(){
+  if(!confirm('Remover os registros salvos do bate-mapa?')) return;
+  var avisos = getAvisos().map(function(a){
+    delete a.bateItens; delete a.bateSalvoEm; a.hemoderivados=''; a.retaguardaUti='';
+    return a;
+  });
+  setAvisos(avisos);
+  renderChecklistBate();
+  carregarAvisos();
+  showToast('Registros do bate-mapa removidos.');
 };
 
 // ==================== MAPA CIRÚRGICO ====================
@@ -681,7 +802,7 @@ window.renderMapa = function(){
   if(totalEl) totalEl.textContent = avisos.length;
   if(!tb) return;
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
     return;
   }
   tb.innerHTML = avisos.map(function(a){
@@ -708,6 +829,8 @@ window.renderMapa = function(){
       '<td style="font-size:11px;color:var(--slate-500)">'+(a.leito||'—')+'</td>' +
       '<td class="center">'+sangueDisplay+'</td>' +
       '<td class="center">'+utiDisplay+'</td>' +
+      '<td class="center">'+(a.hemoderivados==='sim'?'<span title="Reserva de hemoderivados" style="font-size:14px">🩸</span>':'—')+'</td>' +
+      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':'—')+'</td>' +
       '<td style="font-size:12px">'+esc(displayProfissional(a, a.enfermeiro||'—'))+'</td>' +
       '<td><span onclick="alterarStatus('+a.id+')" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:'+cor+'20;color:'+cor+';border:1px solid '+cor+'50">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';display:inline-block"></span>'+label+'</span></td>' +
