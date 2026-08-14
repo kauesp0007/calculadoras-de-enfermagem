@@ -1100,14 +1100,53 @@ window.alterarStatus = function(id){
 };
 
 // ==================== PAINEL DE SALAS ====================
+var painelDiaFiltro = '';
+
+window.simularDiaCirurgico = function(){
+  var inp = document.getElementById('painel-dia');
+  painelDiaFiltro = (inp && inp.value) ? inp.value : '';
+  var btn = document.getElementById('btn-limpar-dia');
+  if(btn) btn.style.display = painelDiaFiltro ? 'inline-flex' : 'none';
+  try{ if(painelDiaFiltro){ localStorage.setItem('cc_painel_dia', painelDiaFiltro); } else { localStorage.removeItem('cc_painel_dia'); } }catch(e){}
+  renderPainel();
+  if(painelDiaFiltro){
+    try{
+      var diaTexto = new Date(painelDiaFiltro+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+      showToast('Painel simulado para: '+diaTexto,'success');
+    }catch(e){}
+  }
+};
+
+window.limparDiaPainel = function(){
+  var inp = document.getElementById('painel-dia');
+  if(inp) inp.value = '';
+  painelDiaFiltro = '';
+  try{ localStorage.removeItem('cc_painel_dia'); }catch(e){}
+  var btn = document.getElementById('btn-limpar-dia');
+  if(btn) btn.style.display = 'none';
+  renderPainel();
+};
+
 window.renderPainel = function(){
   var avisos = getAvisos();
   var grid = document.getElementById('painel-grid');
   var ultimaAttEl = document.getElementById('ultima-att');
+  var tvDiaEl = document.getElementById('painel-tv-dia');
+  var tvHoraEl = document.getElementById('painel-tv-hora');
+  var tvTituloEl = document.getElementById('painel-tv-titulo');
   if(ultimaAttEl) ultimaAttEl.textContent = new Date().toLocaleTimeString('pt-BR');
+  if(tvHoraEl) tvHoraEl.textContent = new Date().toLocaleTimeString('pt-BR');
+  var filtroAtivo = !!painelDiaFiltro;
+  var diaTexto = '';
+  if(filtroAtivo){
+    try{ diaTexto = new Date(painelDiaFiltro+'T12:00:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'}); }catch(e){ diaTexto = painelDiaFiltro; }
+    avisos = avisos.filter(function(a){ return a.data===painelDiaFiltro; });
+  }
+  if(tvTituloEl) tvTituloEl.textContent = filtroAtivo ? 'Simulação de dia cirúrgico' : 'Programação geral';
+  if(tvDiaEl) tvDiaEl.textContent = filtroAtivo ? diaTexto : 'Todos os dias';
   if(!grid) return;
   if(!avisos.length){
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--slate-400)"><p>Nenhuma cirurgia carregada. Use "+ Exemplos".</p></div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:rgba(147,197,253,.75)"><p>' + (filtroAtivo ? ('Nenhuma cirurgia cadastrada para <strong>'+diaTexto+'</strong>. Use "Limpar dia" para ver a programação geral.') : 'Nenhuma cirurgia carregada. Use "Carregar Painel com Exemplos".') + '</p></div>';
     return;
   }
   grid.innerHTML = avisos.map(function(a){
@@ -1116,6 +1155,8 @@ window.renderPainel = function(){
     var livre = a.statusSala==='livre'||a.statusSala==='agendada'||!a.statusSala;
     var pct = a.progresso||0;
     var barClass = pct>=100?'sc-bar-fill red':'sc-bar-fill';
+    var idadeTxt = a.idade || (a.dn ? calcIdade(a.dn) : '');
+    var nomeTxt = ((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome));
     var icons = '';
     if(a.latex==='sim') icons+='<span title="Látex-free" style="font-size:16px">⚠️</span>';
     if(a.hm==='confirmado'||a.hm==='suspeita') icons+='<span title="Hipertermia Maligna" style="font-size:16px">🔥</span>';
@@ -1129,13 +1170,13 @@ window.renderPainel = function(){
         '<span class="sc-sala">'+a.sala+'</span>' +
         '<div style="display:flex;align-items:center;gap:8px">' +
           '<span class="sc-hora">'+a.hora+'</span>' +
-          '<span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;background:'+cor+'20;color:'+cor+';border:1px solid '+cor+'50">'+
-          '<span style="width:7px;height:7px;border-radius:50%;background:'+cor+';display:inline-block"></span>'+label+'</span>' +
+          '<span style="display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:800;padding:3px 10px;border-radius:999px;background:'+cor+';color:#fff;border:1px solid '+cor+';box-shadow:0 0 14px '+cor+'70">'+
+          '<span style="width:7px;height:7px;border-radius:50%;background:#fff;display:inline-block"></span>'+label+'</span>' +
         '</div>' +
       '</div>' +
       '<div class="sc-body">' +
-        '<p class="sc-pac">'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome))+'</p>' +
-        '<p class="sc-proc">'+a.procedimento+'</p>' +
+        '<p class="sc-pac">'+esc(nomeTxt)+(idadeTxt?' <span class="sc-idade">'+esc(idadeTxt)+'</span>':'')+'</p>' +
+        '<p class="sc-proc">'+esc(sanitizeFieldForExport(a.procedimento))+'</p>' +
         '<div class="sc-team">' +
           (a.cirurgiao?'<span class="member">+ '+esc(displayProfissional(a, a.cirurgiao))+'</span>':'')+
           (a.anestesista?'<span class="member">A '+esc(displayProfissional(a, a.anestesista))+'</span>':'')+
@@ -1384,6 +1425,18 @@ carregarSelectEspecialidades();
 carregarSelectAvPacientes();
 carregarAvisos();
 renderIndicadoresVazios();
+
+// Restaura o dia simulado do painel de salas (persistido em cache local)
+(function(){
+  try{
+    var dia = localStorage.getItem('cc_painel_dia');
+    if(dia){
+      painelDiaFiltro = dia;
+      var inp = document.getElementById('painel-dia'); if(inp) inp.value = dia;
+      var btn = document.getElementById('btn-limpar-dia'); if(btn) btn.style.display = 'inline-flex';
+    }
+  }catch(e){}
+})();
 
 // Campo Nome do Usuário: aceita nome completo sem conversão automática para iniciais
 
