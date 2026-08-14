@@ -185,8 +185,9 @@ input[type=text],input:not([type]),input[type=search],input[type=tel],input[type
 .wrap{max-width:1200px;margin:0 auto;padding:0 20px}
 .section{padding:28px 0}
 
-/* HEADER — card estilo mapa-do-site (gradiente navy + vidro) */
-.page-header{background:linear-gradient(135deg,var(--navy) 0%,#1E4D8C 60%,#163269 100%);color:#fff;padding:24px 34px 20px;margin:18px auto 0;max-width:1200px;border-radius:16px;box-shadow:0 8px 24px rgba(26,62,116,.35);overflow:hidden;position:relative}
+/* HEADER — card estilo mapa-do-site (gradiente navy + vidro) — mesma largura do conteúdo abaixo (p-4 sm:p-8 do main) */
+.page-header{background:linear-gradient(135deg,var(--navy) 0%,#1E4D8C 60%,#163269 100%);color:#fff;padding:24px 34px 20px;margin:18px 16px 0;border-radius:16px;box-shadow:0 8px 24px rgba(26,62,116,.35);overflow:hidden;position:relative}
+@media(min-width:640px){.page-header{margin:18px 32px 0}}
 .page-header::before{content:"";position:absolute;top:0;right:0;width:180px;height:180px;background:#fff;opacity:.05;border-radius:50%;filter:blur(20px);transform:translate(30%,-30%);pointer-events:none}
 .page-header::after{content:"";position:absolute;bottom:0;left:0;width:140px;height:140px;background:#4A90E2;opacity:.2;border-radius:50%;filter:blur(15px);transform:translate(-20%,30%);pointer-events:none}
 .page-header .wrap{max-width:none;padding:0;position:relative;z-index:1}
@@ -439,27 +440,7 @@ input[type=text],input:not([type]),input[type=search],input[type=tel],input[type
 @media print{.step-nav,.btn,.no-print{display:none!important}.step-panel{display:block!important}}
 </style>
 
-<!-- Global print template used by JS print routines (template: não aplica estilos à tela) -->
-<template id="global-print-styles">
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}
-.hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
-.hdr h1{font-size:13pt;font-weight:900}
-.hdr p{font-size:8pt;opacity:0.8;margin-top:3px}
-h2{font-size:14pt;font-weight:900;color:#1A3E74;margin:20px 0 8px;border-bottom:2px solid #BFDBFE;padding-bottom:4px}
-h3{font-size:11pt;font-weight:800;color:#1E4D8C;margin:14px 0 6px}
-p{font-size:10pt;line-height:1.6;margin-bottom:8px;text-align:justify}
-table{width:100%;border-collapse:collapse;margin:10px 0}
-th{background:#1A3E74;color:white;font-size:9pt;padding:6px 8px;text-align:left}
-td{font-size:9pt;padding:5px 8px;border-bottom:1px solid #E2E8F0}
-blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;margin:8px 0;font-size:9pt}
-.footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
-
-@media print{
-  .no-print{display:none!important}
-  body{font-size:11pt}
-}
-</template>
+<!-- Modelo antigo de impressão removido: o novo sistema de impressão está no script inline do final da página (modelo integracoes_escala_de_fugulin.html) -->
 
 <style>
 /* RESPONSIVE */
@@ -2510,6 +2491,131 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
 
 <script src="centro-cirurgico-script.js" defer></script>
 <!-- Aldrete handlers and SAEP print/export were migrated to centro-cirurgico-script.js -->
+
+<script>
+// ==================== IMPRESSÃO — modelo integracoes_escala_de_fugulin.html ====================
+function getDadosImpressaoCC() {
+  return {
+    titulo: "Simulador de Centro Cirúrgico",
+    subtitulo: "Gestão Perioperatória Educativa",
+    data: new Date().toLocaleDateString("pt-BR")
+  };
+}
+
+function prepararConteudoEtapa() {
+  var active = document.querySelector('.step-panel.active');
+  if (!active) { if (typeof showToast === "function") showToast("Nenhuma etapa ativa."); return null; }
+  var clone = active.cloneNode(true);
+  clone.querySelectorAll('.btn-row,.btn,.no-print,.tip,.step-actions,.modal-overlay,.hc-fab,.painel-dia-picker').forEach(function(el){ el.remove(); });
+  clone.querySelectorAll('input,select,textarea').forEach(function(el){
+    var tag = el.tagName.toLowerCase();
+    var span = document.createElement('span');
+    span.style.fontWeight = '600';
+    var v = '';
+    if (tag === 'select') v = el.options[el.selectedIndex] ? el.options[el.selectedIndex].textContent : '';
+    else if (tag === 'input' && el.type === 'checkbox') v = el.checked ? 'Sim' : 'Não';
+    else v = el.value || '';
+    span.textContent = v || '—';
+    el.parentNode.replaceChild(span, el);
+  });
+  return clone;
+}
+
+function nomeEtapaAtiva() {
+  var panels = document.querySelectorAll('.step-panel'), num = -1;
+  panels.forEach(function(p, i){ if (p.classList.contains('active')) num = i; });
+  var btn = document.querySelector('.step-btn[data-step="' + num + '"]');
+  return btn ? btn.textContent.trim().replace(/^\d+/, '').trim() : ('Etapa ' + (num + 1));
+}
+
+function imprimirHTML(conteudoHTML, titulo, subtitulo) {
+  var data = getDadosImpressaoCC().data;
+  var html = "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><title>Centro Cirurgico - Calculadoras de Enfermagem</title>\n<style>\n" +
+  "*{margin:0;padding:0;box-sizing:border-box}\n" +
+  "body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:24px 32px}\n" +
+  ".hdr{background:#1A3E74;color:white;padding:14px 20px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}\n" +
+  ".hdr h1{font-size:13pt;font-weight:900}\n" +
+  ".hdr p{font-size:8pt;opacity:0.8;margin-top:3px}\n" +
+  "h2{font-size:14pt;font-weight:900;color:#1A3E74;margin:20px 0 8px;border-bottom:2px solid #BFDBFE;padding-bottom:4px}\n" +
+  "h3{font-size:11pt;font-weight:800;color:#1E4D8C;margin:14px 0 6px}\n" +
+  "p{font-size:10pt;line-height:1.6;margin-bottom:8px;text-align:justify}\n" +
+  "table{width:100%;border-collapse:collapse;margin:10px 0}\n" +
+  "th{background:#1A3E74;color:white;font-size:9pt;padding:6px 8px;text-align:left}\n" +
+  "td{font-size:9pt;padding:5px 8px;border-bottom:1px solid #E2E8F0}\n" +
+  "blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;margin:8px 0;font-size:9pt}\n" +
+  ".footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}\n" +
+  "svg{width:14px;height:14px;max-width:14px;max-height:14px}\n" +
+  ".btn,.no-print,.btn-row,.step-actions,.tip,.modal-overlay,.hc-fab{display:none!important}\n" +
+  ".card{border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;margin:10px 0}\n" +
+  ".card-head{font-weight:800;color:#1A3E74;margin-bottom:6px}\n" +
+  ".explainer{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;margin:10px 0}\n" +
+  ".badge{display:inline-block;padding:2px 8px;border-radius:999px;font-size:8pt;font-weight:800;border:1px solid #E2E8F0}\n" +
+  "</style></head><body>\n" +
+  "<div class=\"hdr\"><div><h1>" + titulo + "</h1><p>" + subtitulo + "</p></div><div style=\"text-align:right;color:white\"><div style=\"font-size:10pt;font-weight:900\">DATA: " + data + "</div></div></div>\n" +
+  conteudoHTML +
+  "\n<div class=\"footer\">Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br | Ferramenta educacional — dados fictícios armazenados localmente (LGPD)</div>\n" +
+  "<script>window.onload=function(){window.print()}<\\/script></body></html>";
+  var janela = window.open("", "_blank");
+  if (!janela) { if (typeof showToast === "function") showToast("Permita pop-ups para imprimir."); return; }
+  janela.document.write(html);
+  janela.document.close();
+}
+
+function imprimirEtapaAtual() {
+  var active = document.querySelector('.step-panel.active');
+  if (!active) { if (typeof showToast === "function") showToast("Nenhuma etapa ativa."); return; }
+  // SAEP: imprime todos os subpainéis concatenados
+  if (active.id === 'panel-saep') {
+    var ids = ['saep-anamnese','saep-exame','saep-nanda','saep-prescricao','saep-evolucao'];
+    var parts = [];
+    ids.forEach(function(id){
+      var el = document.getElementById(id);
+      if (!el) return;
+      var clone = el.cloneNode(true);
+      clone.querySelectorAll('.btn-row,.btn,.no-print,.tip,.step-actions').forEach(function(x){ x.remove(); });
+      clone.querySelectorAll('input,select,textarea').forEach(function(elm){
+        var tag = elm.tagName.toLowerCase();
+        var span = document.createElement('span');
+        span.style.fontWeight = '600';
+        var v = '';
+        if (tag === 'select') v = elm.options[elm.selectedIndex] ? elm.options[elm.selectedIndex].textContent : '';
+        else if (tag === 'input' && elm.type === 'checkbox') v = elm.checked ? 'Sim' : 'Não';
+        else v = elm.value || '';
+        span.textContent = v || '—';
+        elm.parentNode.replaceChild(span, elm);
+      });
+      parts.push(clone.innerHTML);
+    });
+    if (!parts.length) { if (typeof showToast === "function") showToast("Nenhum painel SAEP encontrado."); return; }
+    imprimirHTML(parts.join('\n'), 'SAEP — Sistematização da Assistência de Enfermagem Perioperatória', 'Centro Cirúrgico — Calculadoras de Enfermagem');
+    return;
+  }
+  var clone = prepararConteudoEtapa();
+  if (!clone) return;
+  var dados = getDadosImpressaoCC();
+  imprimirHTML(clone.innerHTML, dados.titulo, nomeEtapaAtiva() + ' — Calculadoras de Enfermagem');
+}
+
+function imprimirMapa() {
+  var el = document.getElementById('panel-2');
+  var clone = el ? el.cloneNode(true) : prepararConteudoEtapa();
+  if (!clone) return;
+  clone.querySelectorAll('.btn-row,.btn,.no-print,.tip,.step-actions,.modal-overlay,.hc-fab').forEach(function(x){ x.remove(); });
+  clone.querySelectorAll('input,select,textarea').forEach(function(elm){
+    var tag = elm.tagName.toLowerCase();
+    var span = document.createElement('span');
+    span.style.fontWeight = '600';
+    var v = '';
+    if (tag === 'select') v = elm.options[elm.selectedIndex] ? elm.options[elm.selectedIndex].textContent : '';
+    else if (tag === 'input' && elm.type === 'checkbox') v = elm.checked ? 'Sim' : 'Não';
+    else v = elm.value || '';
+    span.textContent = v || '—';
+    elm.parentNode.replaceChild(span, elm);
+  });
+  imprimirHTML(clone.innerHTML, 'Mapa Cirúrgico — Documento Oficial', 'Simulador de Centro Cirúrgico — Calculadoras de Enfermagem');
+}
+</script>
+
 <script>
 function openChecklistQuick(){
   // prioriza a navegação via goStep se disponível
