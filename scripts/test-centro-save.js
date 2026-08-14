@@ -82,7 +82,7 @@ const path = require('path');
 
     // Test 1: salvarAgendamento
     try{
-      setVal('agd-origem','Ambulatorial'); setVal('agd-convenio','SUS'); setVal('agd-nome','J.S.'); setVal('agd-procedimento','TESTE AGD PROC'); setVal('agd-medico','Dr. Teste'); setVal('agd-data','2026-08-14'); setVal('agd-hora','08:00'); setVal('agd-hospital','Hospital Teste'); setVal('agd-leito','UTI 1');
+      setVal('agd-origem','Ambulatorial'); setVal('agd-convenio','SUS'); setVal('agd-nome','J.S.'); setVal('agd-procedimento','APENDICECTOMIA'); setVal('agd-medico','Dr. Teste'); setVal('agd-data','2026-08-14'); setVal('agd-hora','08:00'); setVal('agd-hospital','Hospital Teste'); setVal('agd-leito','UTI 1');
       if(typeof w.salvarAgendamento === 'function') {
         w.salvarAgendamento();
         const ags = JSON.parse(w.localStorage.getItem('cc_agendamentos')||'[]');
@@ -92,7 +92,7 @@ const path = require('path');
 
     // Test 2: salvarAviso
     try{
-      setVal('av-nome','J.S.'); setVal('av-procedimento','TESTE AVISO PROC'); setVal('av-cirurgiao','Dr. Cirurgiao'); setVal('av-dn','1980-01-01'); setVal('av-hora','09:00');
+      setVal('av-nome','J.S.'); setVal('av-procedimento','COLECISTECTOMIA'); setVal('av-cirurgiao','Dr. Cirurgiao'); setVal('av-dn','1980-01-01'); setVal('av-hora','09:00');
       if(typeof w.salvarAviso === 'function'){
         w.salvarAviso();
         const avis = JSON.parse(w.localStorage.getItem('cc_avisos_v1')||'[]');

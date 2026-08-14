@@ -16,6 +16,7 @@ window.goStep = function(n){
   if(n===7) renderStatusSalas();
   if(n===9) renderRelatorios();
   if(n===0) renderAgendamentos();
+  if(n===1) carregarSelectAvPacientes();
   if(n===2){ carregarSelectsPreparo(); renderPreBateMapa(); }
   if(n===3){ carregarSelectBatePacientes(); renderChecklistBate(); }
   if(n===6) carregarSelectsOms();
@@ -25,6 +26,70 @@ window.goStep = function(n){
   if(n===12) initIndicadores();
   if(n===13) saepInit();
   window.scrollTo({top:0,behavior:'smooth'});
+};
+
+// ==================== CATÁLOGO DE PROCEDIMENTOS CIRÚRGICOS ====================
+var PROCEDIMENTOS = [
+  {g:'Pequeno porte — Cirurgia Geral', itens:['Apendicectomia','Colecistectomia','Herniorrafia inguinal','Herniorrafia umbilical','Herniorrafia epigástrica','Herniorrafia incisional','Hemorroidectomia','Fissurectomia anal','Drenagem de abscesso','Exérese de cisto','Exérese de lipoma','Biópsia de pele','Biópsia de tecido subcutâneo','Laparotomia exploradora','Tratamento cirúrgico de ferimentos']},
+  {g:'Pequeno porte — Proctologia', itens:['Hemorroidectomia','Fistulotomia anal','Fissurectomia','Drenagem de abscesso perianal','Exérese de lesões anais']},
+  {g:'Pequeno porte — Ginecologia', itens:['Curetagem uterina','Histeroscopia diagnóstica','Histeroscopia cirúrgica simples','Laqueadura tubária','Conização do colo uterino','Exérese de cistos vulvares','Drenagem de abscesso de glândula de Bartholin']},
+  {g:'Pequeno porte — Obstetrícia', itens:['Parto cesáreo','Curetagem pós-abortamento','Tratamento cirúrgico de complicações obstétricas selecionadas']},
+  {g:'Pequeno porte — Urologia', itens:['Postectomia','Vasectomia','Orquiectomia simples','Circuncisão','Tratamento cirúrgico de hidrocele','Tratamento cirúrgico de varicocele','Cistoscopia','Procedimentos urológicos endoscópicos simples']},
+  {g:'Pequeno porte — Ortopedia', itens:['Tratamento cirúrgico de fraturas simples','Osteossíntese de fraturas selecionadas','Redução e fixação de fraturas','Tratamento cirúrgico de luxações','Drenagem de infecção osteoarticular selecionada','Retirada de material de síntese','Tenorrafia','Sutura de tendão']},
+  {g:'Pequeno porte — Otorrinolaringologia', itens:['Amigdalectomia','Adenoidectomia','Amigdalectomia + adenoidectomia','Septoplastia','Turbinectomia','Drenagem de abscesso peritonsilar','Timpanoplastia em casos selecionados']},
+  {g:'Pequeno porte — Oftalmologia', itens:['Cirurgia de catarata','Pterígio','Calázio','Biópsias oculares selecionadas','Procedimentos palpebrais simples']},
+  {g:'Pequeno porte — Cirurgia Vascular', itens:['Tratamento cirúrgico de varizes','Flebectomia','Ligadura de veias','Tratamento de pequenas lesões vasculares']},
+  {g:'Pequeno porte — Cirurgia Plástica', itens:['Exérese de lesões cutâneas','Reconstrução de pequenas lesões','Enxerto de pele em casos selecionados','Tratamento cirúrgico de cicatrizes']},
+  {g:'Pequeno porte — Dermatologia cirúrgica', itens:['Exérese de nevos','Exérese de cistos','Exérese de lipomas','Biópsia de pele','Tratamento cirúrgico de lesões benignas']},
+  {g:'Médio porte — Cirurgia Geral', itens:['Apendicectomia laparoscópica','Colecistectomia laparoscópica','Hernioplastia laparoscópica','Laparotomia exploradora','Ressecções intestinais','Enterectomia','Colectomia segmentar','Tratamento cirúrgico de obstrução intestinal','Tratamento de perfuração intestinal','Gastrostomia','Jejunostomia','Esplenectomia','Drenagem de coleções intra-abdominais']},
+  {g:'Médio porte — Coloproctologia', itens:['Hemorroidectomia','Fistulotomia','Fistulectomia','Esfincterotomia','Colectomia','Ressecção de tumores colorretais selecionados','Tratamento cirúrgico de doença diverticular','Cirurgia para doença inflamatória intestinal selecionada']},
+  {g:'Médio porte — Ginecologia', itens:['Histerectomia abdominal','Histerectomia vaginal','Histerectomia laparoscópica','Miomectomia','Ooforectomia','Salpingectomia','Cistectomia ovariana','Endometriose cirúrgica','Histeroscopia cirúrgica','Tratamento cirúrgico de prolapsos']},
+  {g:'Médio porte — Obstetrícia', itens:['Cesárea','Cesárea de emergência','Cesárea com procedimentos associados','Tratamento cirúrgico de hemorragias obstétricas','Histerectomia obstétrica em casos selecionados']},
+  {g:'Médio porte — Ortopedia e Traumatologia', itens:['Osteossíntese de fraturas complexas','Fixação interna de fraturas','Fixação externa','Artroscopia de joelho','Artroscopia de ombro','Reconstrução de ligamentos','Meniscectomia','Sutura meniscal','Tratamento de lesões tendíneas','Artroplastia selecionada','Cirurgia de mão','Cirurgia de pé e tornozelo']},
+  {g:'Médio porte — Urologia', itens:['Ressecção transuretral de próstata (RTU)','Ressecção transuretral de tumores vesicais','Ureteroscopia','Litotripsia','Nefrolitotomia em casos selecionados','Nefrectomia','Prostatectomia','Cirurgia de estenose uretral','Tratamento cirúrgico de cálculos urinários']},
+  {g:'Médio porte — Otorrinolaringologia', itens:['Septoplastia','Rinoplastia funcional','Turbinectomia','Cirurgia endoscópica nasal','Sinusectomia endoscópica','Amigdalectomia','Adenoidectomia','Timpanoplastia','Mastoidectomia em casos selecionados']},
+  {g:'Médio porte — Oftalmologia', itens:['Facectomia com implante de lente intraocular','Cirurgia de catarata','Cirurgia de glaucoma','Vitrectomia em centros habilitados','Cirurgias de retina selecionadas','Cirurgia de pterígio','Cirurgias palpebrais']},
+  {g:'Médio porte — Vascular', itens:['Cirurgia de varizes','Safenectomia','Flebectomia','Trombectomia em casos selecionados','Tratamento cirúrgico de doença arterial periférica','Confecção de acesso vascular para hemodiálise']},
+  {g:'Médio porte — Neurocirurgia', itens:['Drenagem de hematoma intracraniano','Craniotomia selecionada','Derivação ventricular','Tratamento cirúrgico de hidrocefalia','Cirurgia de coluna selecionada']},
+  {g:'Grande porte — Cirurgia Cardíaca', itens:['Revascularização do miocárdio','Troca de válvula cardíaca','Plastia valvar','Cirurgia da aorta','Correção de aneurisma de aorta','Cirurgias cardíacas congênitas','Correção de defeitos cardíacos','Implante cirúrgico de dispositivos cardíacos selecionados']},
+  {g:'Grande porte — Cirurgia Vascular', itens:['Cirurgia de aneurisma de aorta','Endarterectomia de carótida','Revascularização arterial','Bypass arterial','Cirurgia de doença arterial periférica complexa','Tratamento de isquemia crítica','Cirurgia vascular de emergência']},
+  {g:'Grande porte — Neurocirurgia', itens:['Craniotomia','Ressecção de tumores cerebrais','Cirurgia de aneurisma cerebral','Cirurgia de malformações vasculares','Derivação ventricular','Cirurgia de hidrocefalia','Cirurgia complexa da coluna','Artrodese de coluna','Descompressão medular','Tratamento cirúrgico de traumatismos cranianos complexos']},
+  {g:'Grande porte — Cirurgia Oncológica', itens:['Gastrectomia oncológica','Colectomia oncológica','Retossigmoidectomia','Esofagectomia','Pancreatectomia','Duodenopancreatectomia','Hepatectomia','Nefrectomia oncológica','Cistectomia radical','Prostatectomia radical','Mastectomia','Cirurgia conservadora da mama','Esvaziamento linfonodal','Ressecção de tumores de cabeça e pescoço']},
+  {g:'Grande porte — Hepatobiliopancreática', itens:['Hepatectomia','Segmentectomia hepática','Ressecção de tumores hepáticos','Pancreatectomia distal','Duodenopancreatectomia','Cirurgia das vias biliares','Reconstruções biliares','Transplante hepático']},
+  {g:'Grande porte — Cirurgia Torácica', itens:['Lobectomia pulmonar','Pneumonectomia','Segmentectomia pulmonar','Ressecção de tumores pulmonares','Decorticação pulmonar','Pleurectomia','Mediastinoscopia','Cirurgia de tumores mediastinais','Cirurgia toracoscópica']},
+  {g:'Grande porte — Aparelho Digestivo', itens:['Esofagectomia','Gastrectomia','Colectomia','Retossigmoidectomia','Amputação abdominoperineal','Cirurgias complexas de intestino delgado','Cirurgia bariátrica','Cirurgia de refluxo gastroesofágico','Cirurgia de hérnias complexas']},
+  {g:'Grande porte — Transplantes', itens:['Transplante renal','Transplante hepático','Transplante cardíaco','Transplante pulmonar','Transplante de pâncreas','Transplantes combinados em centros especializados']},
+  {g:'Grande porte — Cirurgia Pediátrica', itens:['Correção de hérnias','Apendicectomia','Correção de malformações congênitas','Cirurgia neonatal','Atresia intestinal','Gastrosquise','Onfalocele','Atresia de esôfago','Estenose hipertrófica do piloro','Correção de malformações urológicas','Cirurgias pediátricas oncológicas']},
+  {g:'Grande porte — Cirurgia Plástica Reconstrutiva', itens:['Reconstrução mamária','Enxertos de pele','Retalhos cutâneos','Retalhos musculares','Retalhos microcirúrgicos','Reconstrução de membros','Reconstrução após grandes traumas','Tratamento cirúrgico de queimaduras extensas']},
+  {g:'Grande porte — Queimados', itens:['Desbridamento cirúrgico','Escarectomia','Enxertia de pele','Reconstrução de áreas queimadas','Tratamento cirúrgico de sequelas de queimaduras']},
+  {g:'Grande porte — Bucomaxilofacial', itens:['Tratamento de fraturas faciais','Fixação de fraturas mandibulares','Fixação de fraturas maxilares','Cirurgia ortognática','Ressecção de tumores maxilofaciais','Reconstrução facial','Tratamento de deformidades craniofaciais']}
+];
+
+window.carregarSelectProcedimentos = function(){
+  var html = '<option value="">Selecione o procedimento...</option>';
+  PROCEDIMENTOS.forEach(function(gr){
+    html += '<optgroup label="'+esc(gr.g.toUpperCase())+'">' + gr.itens.map(function(i){ var up = i.toUpperCase(); return '<option value="'+esc(up)+'">'+esc(up)+'</option>'; }).join('') + '</optgroup>';
+  });
+  html += '<optgroup label="OUTROS"><option value="__outro__">OUTROS (DIGITAR O NOME DA CIRURGIA)</option></optgroup>';
+  ['agd-procedimento','av-procedimento'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el){ el.innerHTML = html; }
+  });
+};
+
+window.procedimentoChange = function(sel){
+  var outro = document.getElementById(sel.id + '-outro');
+  if(outro) outro.style.display = sel.value === '__outro__' ? 'block' : 'none';
+};
+
+window.obterProcedimento = function(selId){
+  var sel = document.getElementById(selId);
+  if(!sel) return '';
+  if(sel.value === '__outro__'){
+    var outro = document.getElementById(selId + '-outro');
+    return outro ? outro.value.trim() : '';
+  }
+  return sel.value;
 };
 
 // ==================== HELPERS: NOME PACIENTE (iniciais) ====================
@@ -271,12 +336,17 @@ window.salvarAgendamento = function(){
 
     var nomeRaw = agdNomeEl ? agdNomeEl.value.trim() : '';
     var nomeSan = nomeRaw.toUpperCase();
+    var dnEl = document.getElementById('agd-dn');
+    var dn = dnEl ? dnEl.value : '';
+    var proc = (typeof obterProcedimento==='function') ? obterProcedimento('agd-procedimento') : (procedimentoEl?procedimentoEl.value:'');
 
     var data = {
       origem: origem,
       nome: nomeSan,
+      dn: dn,
+      idade: calcIdade(dn),
       convenio: convenio,
-      procedimento: (procedimentoEl?procedimentoEl.value:''),
+      procedimento: proc,
       codsus: (codsusEl?codsusEl.value:''),
       medico: (medicoEl?medicoEl.value:''),
       crm: (crmEl?crmEl.value:''),
@@ -296,7 +366,8 @@ window.salvarAgendamento = function(){
 };
 
 window.limparAgendamento = function(){
-  ['agd-origem','agd-convenio','agd-nome','agd-procedimento','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  ['agd-origem','agd-convenio','agd-nome','agd-dn','agd-procedimento','agd-procedimento-outro','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  var pOut = document.getElementById('agd-procedimento-outro'); if(pOut) pOut.style.display = 'none';
   var motivoRej = document.getElementById('agd-motivo-rejeicao'); if(motivoRej) motivoRej.style.display = 'none';
   var alertBox = document.getElementById('agd-alertas-box'); if(alertBox) alertBox.style.display = 'none';
 };
@@ -307,14 +378,14 @@ window.renderAgendamentos = function(){
   var tb = document.getElementById('body-agendamentos');
   if(!tb) return;
   try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]');
-    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
+    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
     tb.innerHTML = arr.map(function(a){
       var cor = a.status === 'autorizada' ? 'var(--green)' : 'var(--red)';
       var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
       var procedimentoDisplay = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'—') : (a.procedimento||'—');
       var pacienteDisplay = a.nome ? esc(a.nome) : '—';
       var medicoDisplay = a.medico ? esc(a.medico) : '—';
-      return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
+      return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + esc(a.idade||'—') + '</td><td>' + esc(a.dn||'—') + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
     }).join('');
   } catch(e){}
 };
@@ -367,7 +438,7 @@ window.renderPreBateMapa = function(){
   if(!tb) return;
   var avisos = getAvisos();
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr>';
     return;
   }
   tb.innerHTML = avisos.map(function(a){
@@ -376,6 +447,8 @@ window.renderPreBateMapa = function(){
     var cons = a.consignado==='sim'?'<span class="badge badge-blue">Sim</span>':(a.consignado==='nao'?'Não':'—');
     return '<tr>' +
       '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
+      '<td>'+esc(a.idade||'—')+'</td>' +
+      '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.procedimento||'—')+'</td>' +
       '<td class="center">'+opme+'</td>' +
       '<td class="center">'+cons+'</td>' +
@@ -525,7 +598,7 @@ window.salvarAviso = function(){
   var cirEl = document.getElementById('av-cirurgiao');
   if(!nomeEl || !procEl || !cirEl) return;
   var nome = nomeEl.value.trim();
-  var proc = procEl.value.trim();
+  var proc = (typeof obterProcedimento==='function') ? obterProcedimento('av-procedimento') : procEl.value.trim();
   var cirurgiao = cirEl.value.trim();
   if(!nome || !proc || !cirurgiao){
     showToast('Preencha Nome do Usuário, Procedimento e Cirurgião para salvar.','warning'); return;
@@ -577,9 +650,50 @@ window.salvarAviso = function(){
 };
 
 window.limparAviso = function(){
-  ['av-nome','av-dn','av-prontuario','av-leito','av-peso','av-procedimento','av-tuss','av-cirurgiao','av-aux1','av-anestesista','av-enfermeiro','av-instrumentador','av-obs'].forEach(function(id){
+  ['av-nome','av-dn','av-prontuario','av-leito','av-peso','av-procedimento','av-procedimento-outro','av-tuss','av-cirurgiao','av-aux1','av-anestesista','av-enfermeiro','av-instrumentador','av-obs'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
+  var aOut = document.getElementById('av-procedimento-outro'); if(aOut) aOut.style.display = 'none';
+};
+
+// Paciente do Agendamento: reaproveita dados da etapa anterior no Aviso de Cirurgia
+window.carregarSelectAvPacientes = function(){
+  var sel = document.getElementById('av-paciente');
+  if(!sel) return;
+  try{
+    var arr = JSON.parse(localStorage.getItem('cc_agendamentos')||'[]');
+    sel.innerHTML = '<option value="">Selecione o paciente...</option>' + arr.map(function(a,i){
+      return '<option value="'+i+'">#'+(i+1)+' — '+esc(a.nome||'')+'</option>';
+    }).join('');
+  }catch(e){}
+};
+
+window.avPacienteChange = function(){
+  var sel = document.getElementById('av-paciente');
+  if(!sel || sel.value === '' || sel.value === null) return;
+  try{
+    var arr = JSON.parse(localStorage.getItem('cc_agendamentos')||'[]');
+    var a = arr[Number(sel.value)];
+    if(!a) return;
+    var set = function(id,v){ var el=document.getElementById(id); if(el) el.value = v||''; };
+    set('av-nome', a.nome||'');
+    set('av-dn', a.dn||'');
+    set('av-convenio', a.convenio||'');
+    set('av-data', a.data||'');
+    set('av-hora', a.hora||'');
+    set('av-cirurgiao', a.medico||'');
+    set('av-leito', a.hospital||a.leito||'');
+    var procSel = document.getElementById('av-procedimento');
+    var procOut = document.getElementById('av-procedimento-outro');
+    if(procSel){
+      var v = a.procedimento||'';
+      var existe = false;
+      for(var i=0;i<procSel.options.length;i++){ if(procSel.options[i].value===v){ existe=true; break; } }
+      if(existe){ procSel.value = v; }
+      else if(v){ procSel.value = '__outro__'; if(procOut) procOut.value = v; }
+      procedimentoChange(procSel);
+    }
+  }catch(e){}
 };
 
 window.carregarAvisos = function(){
@@ -587,8 +701,8 @@ window.carregarAvisos = function(){
   var tb = document.getElementById('body-avisos');
   var tbAl = document.getElementById('body-alocacao');
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
-    tbAl.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
+    tbAl.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
     return;
   }
   var statusLabels = {agendada:'Agendada',confirmada:'Confirmada',cancelada:'Cancelada',em_curso:'Em curso',concluida:'Concluída'};
@@ -606,6 +720,7 @@ window.carregarAvisos = function(){
       '<td><strong>'+(a.data||'—')+'</strong><br><span style="color:var(--slate-500);font-size:11px">'+(a.hora||'—')+'</span></td>' +
       '<td title="'+esc(nomeSan)+'">'+esc(nomeFormatado)+'</td>' +
       '<td>'+esc(idadeDisplay)+'</td>' +
+      '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
       '<td title="'+esc(a.procedimento)+'" style="font-size:12px">'+esc(procFormatado)+'</td>' +
       '<td>'+esc(cirurgiaoDisplay)+'</td>' +
       '<td>'+convenioDisplay+'</td>' +
@@ -622,6 +737,8 @@ window.carregarAvisos = function(){
       '<td><strong style="color:var(--navy);font-size:16px">'+(a.sala||'?')+'</strong></td>' +
       '<td><strong>'+(a.hora||'—')+'</strong></td>' +
       '<td>' + esc((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)) + '</td>' +
+      '<td>'+esc(a.idade||'—')+'</td>' +
+      '<td style="font-size:11.5px">'+esc(a.dn||'—')+'</td>' +
       '<td style="font-size:11.5px">'+esc(sanitizeFieldForExport(a.procedimento||'—'))+'</td>' +
       '<td>'+esc(displayProfissional(a, a.cirurgiao||'—'))+'</td>' +
       '<td style="font-size:12px">'+esc(a.anestesia||'')+'</td>' +
@@ -791,7 +908,7 @@ window.renderChecklistBate = function(){
   if(!tb) return;
   var avisos = getAvisos().filter(function(a){ return a.bateSalvoEm; });
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr>';
     return;
   }
   var total = document.querySelectorAll('.cl-item').length;
@@ -803,6 +920,8 @@ window.renderChecklistBate = function(){
     var uti = a.retaguardaUti==='sim' ? 'Sim' : '';
     return '<tr>' +
       '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
+      '<td>'+esc(a.idade||'—')+'</td>' +
+      '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
       '<td>'+(ok?'<span style="font-size:15px">✅</span>':'<span style="font-size:15px">✔️</span>')+' '+feitos+'/'+total+' itens</td>' +
       '<td class="center">'+hemo+'</td>' +
       '<td class="center">'+uti+'</td>' +
@@ -879,7 +998,7 @@ window.renderMapa = function(){
   if(totalEl) totalEl.textContent = avisos.length;
   if(!tb) return;
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="17" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
     return;
   }
   tb.innerHTML = avisos.map(function(a){
@@ -897,6 +1016,8 @@ window.renderMapa = function(){
       '<td><strong style="font-size:16px;color:var(--navy)">'+a.sala+'</strong></td>' +
       '<td><strong>'+a.hora+'</strong><br><span style="font-size:10px;color:var(--slate-400)">'+a.prontuario+'</span></td>' +
       '<td><strong>'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)).split('—')[0].trim()+'</strong>'+latexIcon+hmIcon+vadIcon+'</td>' +
+      '<td class="center">'+esc(a.idade || (a.dn ? calcIdade(a.dn) : '—'))+'</td>' +
+      '<td style="font-size:11px">'+esc(a.dn||'—')+'</td>' +
       '<td style="font-size:12px">'+(a.procedimento||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.lateralidade||'—')+'</td>' +
       '<td style="font-size:12px">'+cirurgiaoDisplay+'</td>' +
@@ -1211,6 +1332,8 @@ document.addEventListener('input', function(e){
 // ==================== INIT ====================
 document.getElementById('av-data').value = new Date().toISOString().split('T')[0];
 document.getElementById('filtro-data-mapa') && (document.getElementById('filtro-data-mapa').value = new Date().toISOString().split('T')[0]);
+carregarSelectProcedimentos();
+carregarSelectAvPacientes();
 carregarAvisos();
 renderIndicadoresVazios();
 
