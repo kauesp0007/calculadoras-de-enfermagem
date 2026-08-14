@@ -672,11 +672,11 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
     </button>
     <span class="step-sep">›</span>
     <button class="step-btn" data-step="2" onclick="goStep(2)">
-      <span class="snum">3</span>Bate-Mapa
+      <span class="snum">3</span>Preparo de Materiais
     </button>
     <span class="step-sep">›</span>
     <button class="step-btn" data-step="3" onclick="goStep(3)">
-      <span class="snum">4</span>Preparo de Materiais
+      <span class="snum">4</span>Bate-Mapa
     </button>
     <span class="step-sep">›</span>
     <button class="step-btn" data-step="4" onclick="goStep(4)">
@@ -1129,8 +1129,8 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
           Salvar Aviso de Cirurgia
         </button>
         <button class="btn btn-ghost" onclick="limparAviso()">Limpar formulário</button>
-        <button class="btn btn-ghost" onclick="goStep(1)" style="margin-left:auto">
-          Ir para Bate-Mapa →
+        <button class="btn btn-ghost" onclick="goStep(2)" style="margin-left:auto">
+          Próximo: Preparo de Materiais →
         </button>
       </div>
     </div>
@@ -1274,7 +1274,7 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
   <div class="card">
     <div class="card-head">
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9" stroke-linecap="round"/></svg></span>Grade de Alocação</h3>
-      <button class="btn btn-success btn-sm" onclick="goStep(2)">Gerar Mapa →</button>
+      <button class="btn btn-success btn-sm" onclick="goStep(4)">Gerar Mapa →</button>
     </div>
     <div class="tbl-wrap">
       <table class="tbl" id="tbl-alocacao">
@@ -1305,7 +1305,7 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
 <div class="step-panel" id="panel-preparo">
   <div class="explainer">
     <div class="explainer-head">
-      <h3>Etapa 4 — Preparo de Materiais, OPME e Consignação</h3>
+      <h3>Etapa 3 — Preparo de Materiais, OPME e Consignação</h3>
       <p>Montagem dos kits cirúrgicos com 12h de antecedência, gestão de OPME e itens consignados vinculados à NF-e de remessa. Conforme processo 2.0 e diretrizes SOBECC.</p>
     </div>
   </div>
@@ -1314,6 +1314,10 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
       <h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14l-8 4m0 0L4 7m8 4v10" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Kits Cirúrgicos e OPME</h3>
     </div>
     <div class="card-body">
+      <div class="form-group" style="margin-bottom:12px;max-width:620px">
+        <label>Paciente (selecione antes de preencher o kit)</label>
+        <select id="prep-paciente" onchange="prepPacienteChange()"><option value="">Selecione o paciente...</option></select>
+      </div>
       <div class="form-grid">
         <div class="form-group"><label>Cirurgia Vinculada</label><select id="prep-cirurgia" onchange="carregarCirurgiaPreparo()"><option value="">Selecione um agendamento...</option></select></div>
         <div class="form-group"><label>Tipo de Kit</label><select id="prep-kit"><option value="">Selecione...</option><option value="Cirurgia Geral">Cirurgia Geral</option><option value="Ortopedia">Ortopedia</option><option value="Cardiaca">Cardiaca</option><option value="Neurocirurgia">Neurocirurgia</option><option value="Videolaparoscopia">Videolaparoscopia</option><option value="Urologia">Urologia</option><option value="Ginecologia">Ginecologia</option><option value="Oftalmologia">Oftalmologia</option></select></div>
@@ -1321,6 +1325,7 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
         <div class="form-group" id="prep-opme-tipo-group" style="display:none"><label>Tipo de OPME</label><input type="text" id="prep-opme-tipo" placeholder="Ex: Prótese de quadril, Stent coronário..."/></div>
         <div class="form-group"><label>Itens Consignados</label><select id="prep-consignado" onchange="toggleConsignacao()"><option value="nao">Não</option><option value="sim">Sim</option></select></div>
         <div class="form-group" id="prep-nfe-group" style="display:none"><label>NF-e de Remessa</label><input type="text" id="prep-nfe" placeholder="Número da NF-e"/></div>
+        <div class="form-group"><label>Fornecedor</label><input type="text" id="prep-fornecedor" placeholder="Nome do fornecedor"/></div>
       </div>
       <div style="margin-top:16px">
         <h4 style="font-size:13px;font-weight:700;color:var(--navy-deep);margin:0 0 10px;text-transform:uppercase;letter-spacing:.04em">Checklist de Montagem (12h de antecedência)</h4>
@@ -1336,8 +1341,16 @@ blockquote{border-left:3px solid #1A3E74;background:#EFF6FF;padding:8px 12px;mar
       </div>
       <div class="btn-row" style="padding:18px 0 0">
         <button type="button" class="btn btn-primary" onclick="salvarPreparo()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Salvar Preparo</button>
-        <button type="button" class="btn btn-success" onclick="goStep(4)">Próximo: Mapa Cirúrgico →</button>
+        <button type="button" class="btn btn-success" onclick="goStep(3)">Próximo: Bate-Mapa →</button>
       </div>
+    </div>
+  </div>
+
+  <!-- PRÉ BATE-MAPA -->
+  <div class="card" style="margin-top:12px">
+    <div class="card-head"><h3><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Pré Bate-Mapa</h3><button class="btn btn-ghost btn-sm" onclick="renderPreBateMapa()">Atualizar</button></div>
+    <div class="card-body" style="padding:0">
+      <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Paciente</th><th>Procedimento</th><th>OPME Necessária?</th><th>Consignado?</th><th>Fornecedor</th></tr></thead><tbody id="body-pre-bate"><tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr></tbody></table></div>
     </div>
   </div>
 </div>

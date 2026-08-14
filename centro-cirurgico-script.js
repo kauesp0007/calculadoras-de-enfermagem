@@ -5,8 +5,10 @@ var SK_STATUS = "cc_status_v1";
 var currentStep = 0;
 
 // ==================== NAVIGATION ====================
+var PANEL_ORDER = ['panel-agendamento','panel-0','panel-preparo','panel-1','panel-2','panel-3','panel-cirurgia-segura','panel-4','panel-pos-cirurgico','panel-5','panel-checklist-oms','panel-rastreabilidade','panel-indicadores','panel-saep'];
 window.goStep = function(n){
-  document.querySelectorAll('.step-panel').forEach(function(p,i){ p.classList.toggle('active', i===n); });
+  var panelId = PANEL_ORDER[n] || '';
+  document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.toggle('active', panelId ? p.id===panelId : false); });
   document.querySelectorAll('.step-btn').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.step)===n); });
   currentStep = n;
   if(n===4) renderMapa();
@@ -14,8 +16,8 @@ window.goStep = function(n){
   if(n===7) renderStatusSalas();
   if(n===9) renderRelatorios();
   if(n===0) renderAgendamentos();
-  if(n===2){ carregarSelectBatePacientes(); renderChecklistBate(); }
-  if(n===3) carregarSelectsPreparo();
+  if(n===2){ carregarSelectsPreparo(); renderPreBateMapa(); }
+  if(n===3){ carregarSelectBatePacientes(); renderChecklistBate(); }
   if(n===6) carregarSelectsOms();
   if(n===8) carregarSelectsPos();
   if(n===10) initOmsChecklist();
@@ -323,26 +325,97 @@ window.toggleConsignacao = function(){ document.getElementById('prep-nfe-group')
 window.toggleChecklist = function(el){ el.classList.toggle('done'); };
 
 window.carregarSelectsPreparo = function(){
-  var sel = document.getElementById('prep-cirurgia'); if(!sel) return;
-  try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]'); var autorizadas = arr.filter(function(a){ return a.status === 'autorizada'; });
-    sel.innerHTML = '<option value="">Selecione um agendamento...</option>' + autorizadas.map(function(a, i){
-      var medicoText = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.medico||'') : (a.medico||'');
-      var procText = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'Cirurgia') : (a.procedimento||'Cirurgia');
-      return '<option value="' + i + '">' + procText + ' — ' + (a.data||'') + ' ' + medicoText + '</option>';
-    }).join('');
-  } catch(e){}
+  var sel = document.getElementById('prep-cirurgia');
+  if(sel){
+    try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]'); var autorizadas = arr.filter(function(a){ return a.status === 'autorizada'; });
+      sel.innerHTML = '<option value="">Selecione um agendamento...</option>' + autorizadas.map(function(a, i){
+        var medicoText = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.medico||'') : (a.medico||'');
+        var procText = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'Cirurgia') : (a.procedimento||'Cirurgia');
+        return '<option value="' + i + '">' + procText + ' — ' + (a.data||'') + ' ' + medicoText + '</option>';
+      }).join('');
+    } catch(e){}
+  }
+  var selPac = document.getElementById('prep-paciente');
+  if(selPac){
+    try{
+      var avisos = getAvisos();
+      selPac.innerHTML = '<option value="">Selecione o paciente...</option>' + avisos.map(function(a, i){
+        var nome = (typeof displayPacienteName==='function')?displayPacienteName(a):sanitizePacienteNome(a.nome||'');
+        return '<option value="' + a.id + '">#' + (i+1) + ' — ' + esc(nome) + '</option>';
+      }).join('');
+      try{ prepPacienteChange(); }catch(e){}
+    }catch(e){}
+  }
+};
+
+window.prepPacienteChange = function(){
+  var sel = document.getElementById('prep-paciente');
+  if(!sel) return;
+  var a = getAvisos().find(function(x){ return String(x.id)===String(sel.value); });
+  if(!a) return;
+  var opmeEl = document.getElementById('prep-opme');
+  var consEl = document.getElementById('prep-consignado');
+  var fornEl = document.getElementById('prep-fornecedor');
+  if(opmeEl && (a.opme==='sim'||a.opme==='nao')) opmeEl.value = a.opme;
+  if(consEl && (a.consignado==='sim'||a.consignado==='nao')) consEl.value = a.consignado;
+  if(fornEl) fornEl.value = a.fornecedor || '';
+  try{ toggleOpme(); toggleConsignacao(); }catch(e){}
+};
+
+window.renderPreBateMapa = function(){
+  var tb = document.getElementById('body-pre-bate');
+  if(!tb) return;
+  var avisos = getAvisos();
+  if(!avisos.length){
+    tb.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr>';
+    return;
+  }
+  tb.innerHTML = avisos.map(function(a){
+    var nome = (typeof displayPacienteName==='function')?displayPacienteName(a):sanitizePacienteNome(a.nome||'');
+    var opme = a.opme==='sim'?'<span class="badge badge-green">Sim</span>':(a.opme==='nao'?'Não':'—');
+    var cons = a.consignado==='sim'?'<span class="badge badge-blue">Sim</span>':(a.consignado==='nao'?'Não':'—');
+    return '<tr>' +
+      '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
+      '<td style="font-size:12px">'+esc(a.procedimento||'—')+'</td>' +
+      '<td class="center">'+opme+'</td>' +
+      '<td class="center">'+cons+'</td>' +
+      '<td>'+esc(a.fornecedor||'—')+'</td>' +
+    '</tr>';
+  }).join('');
 };
 
 window.salvarPreparo = function(){
-  var cirurgia = document.getElementById('prep-cirurgia').value; var kit = document.getElementById('prep-kit').value;
-  if(!cirurgia){ showToast('Selecione a cirurgia vinculada.'); return; }
+  var cirurgiaEl = document.getElementById('prep-cirurgia');
+  var kitEl = document.getElementById('prep-kit');
+  var pacSel = document.getElementById('prep-paciente');
+  var cirurgia = cirurgiaEl ? cirurgiaEl.value : '';
+  var kit = kitEl ? kitEl.value : '';
+  if(!cirurgia && !(pacSel && pacSel.value)){ showToast('Selecione a cirurgia vinculada ou o paciente.'); return; }
+  var opmeEl = document.getElementById('prep-opme');
+  var consEl = document.getElementById('prep-consignado');
+  var fornEl = document.getElementById('prep-fornecedor');
+  var opme = opmeEl ? opmeEl.value : '';
+  var consignado = consEl ? consEl.value : '';
+  var fornecedor = fornEl ? fornEl.value.trim() : '';
   var checks = document.querySelectorAll('#prep-checklist .checklist-item.done').length; var total = document.querySelectorAll('#prep-checklist .checklist-item').length;
-  var prep = { cirurgiaIdx: cirurgia, kit: kit, opme: document.getElementById('prep-opme').value, opmeTipo: document.getElementById('prep-opme-tipo').value, consignado: document.getElementById('prep-consignado').value, nfe: document.getElementById('prep-nfe').value, checklist: checks + '/' + total, data: new Date().toLocaleDateString('pt-BR') };
+  var prep = { cirurgiaIdx: cirurgia, kit: kit, opme: opme, opmeTipo: document.getElementById('prep-opme-tipo').value, consignado: consignado, nfe: document.getElementById('prep-nfe').value, fornecedor: fornecedor, checklist: checks + '/' + total, data: new Date().toLocaleDateString('pt-BR') };
+  if(pacSel && pacSel.value){
+    var avisos = getAvisos();
+    var a = avisos.find(function(x){ return String(x.id)===String(pacSel.value); });
+    if(a){
+      a.opme = opme; a.consignado = consignado; a.fornecedor = fornecedor;
+      setAvisos(avisos);
+      renderPreBateMapa();
+      try{ carregarAvisos(); }catch(e){}
+      try{ logEventLocal('prep_opme_saved',{id:a.id, opme:opme, consignado:consignado, fornecedor:fornecedor}); }catch(e){}
+    }
+  }
   try {
     var arr = JSON.parse(localStorage.getItem('cc_preparos') || '[]'); arr.push(prep); localStorage.setItem('cc_preparos', JSON.stringify(arr));
     try{ logEventLocal('preparo_saved', { cirurgiaIdx: prep.cirurgiaIdx, kit: prep.kit, checklist: prep.checklist }); }catch(e){}
     showToast('Preparo salvo. Checklist: ' + checks + '/' + total + ' itens conferidos.');
   } catch(e){ showToast('Erro ao salvar preparo.'); }
+  try{ renderPreBateMapa(); }catch(e){}
 };
 
 // ==================== ETAPA 7: CIRURGIA SEGURA OMS ====================
@@ -597,7 +670,7 @@ window.salvarListaAvisos = function(){
 window.avancarBateMapa = function(){
   carregarAvisos();
   try{ renderMapa(); }catch(e){}
-  goStep(2);
+  goStep(3);
 };
 
 // ==================== CHECKLIST BATE-MAPA ====================
@@ -710,7 +783,7 @@ window.salvarBateMapa = function(){
   renderMapa();
   try{ logEventLocal('batemapa_saved',{id:a.id, hemoderivados:a.hemoderivados, retaguardaUti:a.retaguardaUti, itens: itens.length}); }catch(e){}
   showToast('Bate-mapa salvo! Mapa cirúrgico atualizado.','success');
-  setTimeout(function(){ goStep(2); }, 1000);
+  setTimeout(function(){ goStep(4); }, 1000);
 };
 
 window.renderChecklistBate = function(){
@@ -817,7 +890,6 @@ window.renderMapa = function(){
     var latexIcon = a.latex==='sim'?' <span title="Látex-free" style="font-size:13px">⚠️</span>':'';
     var hmIcon = a.hm==='confirmado'||a.hm==='suspeita'?' <span title="Hipertermia Maligna" style="font-size:13px">🔥</span>':'';
     var vadIcon = a.vad==='sim'||a.vad==='suspeita'?' <span title="Via Aérea Difícil" style="font-size:13px">🩺</span>':'';
-    var latIcon = a.lateralidade!=='Não se aplica'&&a.lateralidade!=='nao_se_aplica'?' <span title="Lateralidade marcada" style="font-size:13px">🎯</span>':'';
     var cirurgiaoDisplay = displayProfissional(a, a.cirurgiao||'—');
     var anestesistaDisplay = displayProfissional(a, a.anestesista||'—');
     var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
@@ -826,7 +898,7 @@ window.renderMapa = function(){
       '<td><strong>'+a.hora+'</strong><br><span style="font-size:10px;color:var(--slate-400)">'+a.prontuario+'</span></td>' +
       '<td><strong>'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)).split('—')[0].trim()+'</strong>'+latexIcon+hmIcon+vadIcon+'</td>' +
       '<td style="font-size:12px">'+(a.procedimento||'—')+'</td>' +
-      '<td style="font-size:12px">'+(a.lateralidade||'—')+latIcon+'</td>' +
+      '<td style="font-size:12px">'+esc(a.lateralidade||'—')+'</td>' +
       '<td style="font-size:12px">'+cirurgiaoDisplay+'</td>' +
       '<td style="font-size:12px">'+anestesistaDisplay+'</td>' +
       '<td style="font-size:12px">'+convenioDisplay+'</td>' +
