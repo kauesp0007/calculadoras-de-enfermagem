@@ -266,23 +266,54 @@ window.setAutorizacao = function(status){
 };
 
 window.salvarAgendamento = function(){
-  var origem = document.getElementById('agd-origem').value;
-  var convenio = document.getElementById('agd-convenio').value;
-  if(!origem || !convenio){ showToast('Preencha origem e convênio.'); return; }
-  var data = { origem: origem, convenio: convenio, procedimento: document.getElementById('agd-procedimento').value, codsus: document.getElementById('agd-codsus').value, medico: document.getElementById('agd-medico').value, crm: document.getElementById('agd-crm').value, data: document.getElementById('agd-data').value, hora: document.getElementById('agd-hora').value, hospital: document.getElementById('agd-hospital').value, leito: document.getElementById('agd-leito').value, status: 'autorizada', motivo: '' };
-  var motivoBox = document.getElementById('agd-motivo-rejeicao');
-  if(motivoBox.style.display === 'block'){ data.status = (document.getElementById('agd-motivo').value) ? 'rejeitada' : 'perdida'; data.motivo = document.getElementById('agd-motivo').value; }
-  try {
+  try{
+    var origemEl = document.getElementById('agd-origem');
+    var convenioEl = document.getElementById('agd-convenio');
+    var origem = origemEl ? origemEl.value : '';
+    var convenio = convenioEl ? convenioEl.value : '';
+    if(!origem || !convenio){ showToast('Preencha origem e convênio.'); return; }
+    var agdNomeEl = document.getElementById('agd-nome');
+    var procedimentoEl = document.getElementById('agd-procedimento');
+    var codsusEl = document.getElementById('agd-codsus');
+    var medicoEl = document.getElementById('agd-medico');
+    var crmEl = document.getElementById('agd-crm');
+    var dataEl = document.getElementById('agd-data');
+    var horaEl = document.getElementById('agd-hora');
+    var hospitalEl = document.getElementById('agd-hospital');
+    var leitoEl = document.getElementById('agd-leito');
+    var motivoEl = document.getElementById('agd-motivo');
+    var motivoBox = document.getElementById('agd-motivo-rejeicao');
+
+    var nomeRaw = agdNomeEl ? agdNomeEl.value.trim() : '';
+    var nomeSan = (typeof sanitizePacienteNome === 'function') ? sanitizePacienteNome(nomeRaw) : nomeRaw;
+
+    var data = {
+      origem: origem,
+      nome: nomeSan,
+      convenio: convenio,
+      procedimento: (procedimentoEl?procedimentoEl.value:''),
+      codsus: (codsusEl?codsusEl.value:''),
+      medico: (medicoEl?medicoEl.value:''),
+      crm: (crmEl?crmEl.value:''),
+      data: (dataEl?dataEl.value:''),
+      hora: (horaEl?horaEl.value:''),
+      hospital: (hospitalEl?hospitalEl.value:''),
+      leito: (leitoEl?leitoEl.value:''),
+      status: 'autorizada',
+      motivo: ''
+    };
+    if(motivoBox && motivoBox.style.display === 'block'){ data.status = (motivoEl && motivoEl.value) ? 'rejeitada' : 'perdida'; data.motivo = motivoEl ? motivoEl.value : ''; }
+
     var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]'); arr.push(data); localStorage.setItem('cc_agendamentos', JSON.stringify(arr)); renderAgendamentos(); limparAgendamento();
-    try{ logEventLocal('agendamento_saved', { origem: data.origem, convenio: (typeof neutralizeConvenioText==='function'?neutralizeConvenioText(data.convenio):(data.convenio||'')), procedimento: (typeof sanitizeFieldForExport==='function'?sanitizeFieldForExport(data.procedimento):data.procedimento), dataCirurgia: data.data, hora: data.hora, medico: (typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(data.medico):data.medico) }); }catch(e){}
+    try{ logEventLocal('agendamento_saved', { origem: data.origem, nome: data.nome, convenio: (typeof neutralizeConvenioText==='function'?neutralizeConvenioText(data.convenio):(data.convenio||'')), procedimento: (typeof sanitizeFieldForExport==='function'?sanitizeFieldForExport(data.procedimento):data.procedimento), dataCirurgia: data.data, hora: data.hora, medico: (typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(data.medico):data.medico) }); }catch(e){}
     showToast('Agendamento salvo com sucesso.');
-  } catch(e){ showToast('Erro ao salvar agendamento.'); }
+  }catch(e){ showToast('Erro ao salvar agendamento.'); }
 };
 
 window.limparAgendamento = function(){
-  ['agd-origem','agd-convenio','agd-procedimento','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
-  document.getElementById('agd-motivo-rejeicao').style.display = 'none';
-  document.getElementById('agd-alertas-box').style.display = 'none';
+  ['agd-origem','agd-convenio','agd-nome','agd-procedimento','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  var motivoRej = document.getElementById('agd-motivo-rejeicao'); if(motivoRej) motivoRej.style.display = 'none';
+  var alertBox = document.getElementById('agd-alertas-box'); if(alertBox) alertBox.style.display = 'none';
 };
 
 window.limparAgendamentos = function(){ if(confirm('Apagar todos os agendamentos?')){ localStorage.removeItem('cc_agendamentos'); renderAgendamentos(); } };
@@ -291,13 +322,14 @@ window.renderAgendamentos = function(){
   var tb = document.getElementById('body-agendamentos');
   if(!tb) return;
   try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]');
-    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
+    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
     tb.innerHTML = arr.map(function(a){
       var cor = a.status === 'autorizada' ? 'var(--green)' : 'var(--red)';
       var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
       var procedimentoDisplay = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'—') : (a.procedimento||'—');
+      var pacienteDisplay = (typeof sanitizePacienteNome === 'function') ? (a.nome ? sanitizePacienteNome(a.nome) : '—') : (a.nome||'—');
       var medicoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.medico||'—') : (a.medico||'—');
-      return '<tr><td>' + (a.origem||'—') + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
+      return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
     }).join('');
   } catch(e){}
 };
@@ -1284,6 +1316,31 @@ window.initIndicadores=function(){
 };
 
 // ==================== GLOBAL: IMPRIMIR / EXCEL / ZERAR ====================
+// helper: impressão resiliente (tenta window.open, fallback para iframe)
+window._cc_printHtml = function(html, name){
+  try{
+    var w = null;
+    try{ w = window.open('','_blank'); }catch(e){ w = null; }
+    if(w && w.document){
+      w.document.write(html);
+      w.document.close();
+      try{ w.focus(); }catch(e){}
+      return w;
+    }
+    // fallback: create hidden iframe
+    var iframe = document.createElement('iframe');
+    iframe.style.visibility = 'hidden'; iframe.style.position = 'fixed'; iframe.style.right = '0'; iframe.style.bottom = '0'; iframe.style.width='0'; iframe.style.height='0'; iframe.setAttribute('aria-hidden','true');
+    document.body.appendChild(iframe);
+    var doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open(); doc.write(html); doc.close();
+    iframe.onload = function(){
+      try{ iframe.contentWindow.focus(); iframe.contentWindow.print(); }catch(e){ if(window.showToast) showToast('Erro ao imprimir. Permita pop-ups no navegador.','warning'); }
+      setTimeout(function(){ try{ document.body.removeChild(iframe); }catch(e){} },1500);
+    };
+    return iframe;
+  }catch(e){ try{ if(window.showToast) showToast('Erro ao preparar impressão.'); }catch(x){} }
+};
+
 window.imprimirEtapaAtual=function(){
   var active=document.querySelector('.step-panel.active');if(!active){showToast('Nenhuma etapa ativa.');return;}
   var panels=document.querySelectorAll('.step-panel'),stepNum=-1;
@@ -1373,7 +1430,7 @@ window.imprimirEtapaAtual=function(){
         '<div class="hdr"><div><h1>SAEP — Sistematização da Assistência de Enfermagem Perioperatória</h1><p>Centro Cirúrgico — Calculadoras de Enfermagem</p></div><div style="text-align:right;font-size:8.5pt"><strong>Data:</strong> '+new Date().toLocaleDateString('pt-BR')+'</div></div>'+
         bodyHtml + '<div class="footer-print">Ferramenta educacional — Dados fictícios armazenados localmente (LGPD) — calculadorasdeenfermagem.com.br</div>'+
         '<script>window.onload=function(){window.print();}<'+'/script></body></html>';
-      var w = window.open('','_blank'); w.document.write(html); w.document.close();
+      window._cc_printHtml(html, title);
       try{ logEventLocal('print_saep_all', {count: parts.length}); }catch(e){}
     }catch(e){ showToast('Erro ao gerar impressão SAEP.'); }
   };
@@ -1434,7 +1491,7 @@ window.imprimirEtapaAtual=function(){
     '<div class="footer-print">Ferramenta educacional — Dados fictícios armazenados localmente (LGPD)<br>Baseado nas diretrizes SOBECC, OMS e ANVISA RDC 36/2013 | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>'+
     '<script>window.onload=function(){window.print();}<'+'/script></body></html>';
   try{ logEventLocal('print_step',{step: stepName}); }catch(e){}
-  var janela=window.open('','_blank');janela.document.write(html);janela.document.close();
+  window._cc_printHtml(html, stepName);
 };
 
 window.exportarExcelEtapaAtual=function(){
