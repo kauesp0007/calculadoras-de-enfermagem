@@ -26,92 +26,71 @@ window.goStep = function(n){
 
 // ==================== HELPERS: NOME PACIENTE (iniciais) ====================
 function toInitials(raw){
-  if(!raw) return '';
-  try{
-    var s = String(raw).trim();
-    // ignore suffix after em-dash
-    var left = s.split('—')[0].trim();
-    if(!left) return '';
-    // If already looks like initials (e.g. A.S.N. or A.S.N), normalize dots
-    var compact = left.replace(/\s+/g,'');
-    if(/^([A-Za-zÀ-ÖØ-öø-ÿ]\.?)+$/.test(compact)){
-      // insert dots where missing and uppercase
-      var letters = compact.replace(/\./g,'').split('');
-      return letters.map(function(c){ return c.toUpperCase(); }).join('.') + '.';
-    };
+  if(raw===null||raw===undefined) return '';
+  var s=String(raw).trim();
+  if(!s) return '';
+  if(/^[A-ZÀ-Ý\.\s]{1,20}$/.test(s.replace(/\s+/g,''))) return s.toUpperCase();
+  var parts=s.split(/\s+/).filter(Boolean);
+  var stopwords=/^(da|de|do|dos|das|e|y|la|el)$/i;
+  var filtered=parts.filter(function(p){return !stopwords.test(p);});
+  if(!filtered.length) filtered=parts;
+  var initials=filtered.map(function(p){return p.charAt(0).toUpperCase();}).join('.');
+  return initials? initials + '.' : '';
+}
 
-    // ==================== SANITIZAÇÃO / ANONIMIZAÇÃO
-    function toInitials(raw){
-      if(raw===null||raw===undefined) return '';
-      var s=String(raw).trim();
-      if(!s) return '';
-      if(/^[A-ZÀ-Ý\.\s]{1,20}$/.test(s.replace(/\s+/g,''))){
-        return s.toUpperCase();
-      }
-      var parts=s.split(/\s+/).filter(Boolean);
-      var stopwords=/^(da|de|do|dos|das|e|y|la|el)$/i;
-      var filtered=parts.filter(function(p){return !stopwords.test(p);});
-      if(!filtered.length) filtered=parts;
-      var initials=filtered.map(function(p){return p.charAt(0).toUpperCase();}).join('.');
-      return initials? initials + '.' : '';
-    }
+function neutralizeOrgNames(text){
+  if(text===null||text===undefined) return '';
+  var out=String(text);
+  var map={
+    'bradesco saude':'Plano de Saúde',
+    'bradesco saúde':'Plano de Saúde',
+    'sulamerica':'Plano de Saúde',
+    'sulamérica':'Plano de Saúde',
+    'unimed':'Plano de Saúde',
+    'amil':'Plano de Saúde',
+    'allianz':'Plano de Saúde',
+    'porto seguro':'Plano de Saúde',
+    'hospital particular':'Hospital Particular',
+    'hospital sus':'Hospital SUS',
+    'hospital convênio':'Hospital Convênio',
+    'hospital convenio':'Hospital Convênio',
+    'sterrad':'Autoclave',
+    'ster rad':'Autoclave'
+  };
+  Object.keys(map).forEach(function(k){
+    var re=new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'ig');
+    out=out.replace(re,map[k]);
+  });
+  return out;
+}
 
-    function neutralizeOrgNames(text){
-      if(text===null||text===undefined) return '';
-      var out=String(text);
-      var map={
-        'bradesco saude':'Plano de Saúde',
-        'bradesco saúde':'Plano de Saúde',
-        'sulamerica':'Plano de Saúde',
-        'sulamérica':'Plano de Saúde',
-        'unimed':'Plano de Saúde',
-        'amil':'Plano de Saúde',
-        'allianz':'Plano de Saúde',
-        'porto seguro':'Plano de Saúde',
-        'hospital particular':'Hospital Particular',
-        'hospital sus':'Hospital SUS',
-        'hospital convênio':'Hospital Convênio',
-        'hospital convenio':'Hospital Convênio',
-        'sterrad':'Autoclave',
-        'ster rad':'Autoclave'
-      };
-      Object.keys(map).forEach(function(k){
-        var re=new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'ig');
-        out=out.replace(re,map[k]);
-      });
-      return out;
-    }
+function maskNamesInText(text){
+  if(text===null||text===undefined) return '';
+  var out=String(text);
+  out = out.replace(/\b([A-ZÀ-Ý][a-zà-ÿ-]+(?:\s+[A-ZÀ-Ý][a-zà-ÿ-]+)+)\b/g, function(m){
+    return toInitials(m);
+  });
+  return out;
+}
 
-    function maskNamesInText(text){
-      if(text===null||text===undefined) return '';
-      var out=String(text);
-      out = out.replace(/\b([A-ZÀ-Ý][a-zà-ÿ-]+(?:\s+[A-ZÀ-Ý][a-zà-ÿ-]+)+)\b/g, function(m){
-        return toInitials(m);
-      });
-      return out;
-    }
+function sanitizeFieldForExport(text){
+  if(text===null||text===undefined) return '';
+  var s=String(text);
+  s = neutralizeOrgNames(s);
+  s = maskNamesInText(s);
+  return s.trim();
+}
 
-    function sanitizeFieldForExport(text){
-      if(text===null||text===undefined) return '';
-      var s=String(text);
-      s = neutralizeOrgNames(s);
-      s = maskNamesInText(s);
-      return s.trim();
-    }
-
-    function sanitizeResponsavelField(raw){
-      if(raw===null||raw===undefined) return '';
-      return toInitials(raw);
-    }
-
-    // ==================== GLOBAL: IMPRIMIR / EXCEL / ZERAR
-    if(parts.length===0){ // fallback: take first letter
-      var ch = left.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').charAt(0) || '';
-      return ch ? ch.toUpperCase()+'.' : '';
-    }
-    var initials = parts.map(function(p){ return p.charAt(0).toUpperCase(); }).join('.') + '.';
-    return initials;
-  }catch(e){ return ''; }
+function sanitizeResponsavelField(raw){
+  if(raw===null||raw===undefined) return '';
+  var s=String(raw).trim();
+  if(!s) return '';
+  var m = s.match(/^(Dr\.?a?|Enf\.?a?|Inst\.?|Tec\.?)\s+(.+)$/i);
+  if(m){
+    var iniciais = toInitials(m[2]);
+    return (m[1].replace(/\./g,'') + (iniciais ? ' ' + iniciais : ''));
+  }
+  return toInitials(s);
 }
 
 function sanitizePacienteNome(raw){
@@ -208,7 +187,7 @@ function isFullyDocumentedForAviso(aviso){
 
 // Helpers para exibição (usar onde apropriado)
 function displayPacienteName(aviso){
-  try{ return (isFullyDocumentedForAviso(aviso) && aviso && aviso.nome) ? aviso.nome : sanitizePacienteNome(aviso?aviso.nome:''); }catch(e){ return sanitizePacienteNome(aviso?aviso.nome:''); }
+  try{ return (aviso && !aviso.isExemplo && aviso.nome) ? aviso.nome : sanitizePacienteNome(aviso?aviso.nome:''); }catch(e){ return sanitizePacienteNome(aviso?aviso.nome:''); }
 }
 function displayConvenio(aviso){
   try{ if(isFullyDocumentedForAviso(aviso) && aviso && aviso.convenio) return '<span title="'+(aviso.convenio||'')+'">'+(aviso.convenio||'')+'</span>'; return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }catch(e){ return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }
@@ -428,39 +407,60 @@ window.switchTab = function(tabId, groupId, btn){
 };
 
 // ==================== AVISO DE CIRURGIA ====================
+function esc(s){ try{ return String(s==null?'':s).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }catch(e){ return ''; } }
+
+function calcIdade(dn){
+  try{
+    if(!dn) return '';
+    var parts = String(dn).split('-');
+    if(parts.length!==3) return '';
+    var d = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    var hoje = new Date();
+    var idade = hoje.getFullYear() - d.getFullYear();
+    var m = hoje.getMonth() - d.getMonth();
+    if(m<0 || (m===0 && hoje.getDate() < d.getDate())) idade--;
+    return (idade>0 ? idade : 0) + ' anos';
+  }catch(e){ return ''; }
+}
+
+// Profissionais: completos para cadastros do usuário, apenas iniciais para exemplos
+function displayProfissional(aviso, val){
+  try{
+    var v = val || '';
+    if(aviso && !aviso.isExemplo && v) return v;
+    return (typeof sanitizeResponsavelField==='function') ? sanitizeResponsavelField(v) : v;
+  }catch(e){ return val || ''; }
+}
+
 function getAvisos(){
   try{
     var raw = JSON.parse(localStorage.getItem(SK_AVISOS)||"[]");
     if(!Array.isArray(raw)) raw = [];
-    var changed = false;
-    var norm = raw.map(function(a){
-      try{
-        var copy = Object.assign({}, a);
-        var newNome = sanitizePacienteNome(copy.nome || '');
-        if(newNome !== (copy.nome || '')){ copy.nome = newNome; changed = true; }
-        return copy;
-      }catch(e){ return a; }
-    });
-    if(changed){ try{ localStorage.setItem(SK_AVISOS, JSON.stringify(norm)); }catch(e){} }
-    return norm;
+    return raw;
   }catch(e){ return []; }
 }
 function setAvisos(a){ try{ localStorage.setItem(SK_AVISOS, JSON.stringify(a)); }catch(e){} }
 
 window.salvarAviso = function(){
-  var nome = document.getElementById('av-nome').value.trim();
-  var proc = document.getElementById('av-procedimento').value.trim();
-  var cirurgiao = document.getElementById('av-cirurgiao').value.trim();
+  var nomeEl = document.getElementById('av-nome');
+  var procEl = document.getElementById('av-procedimento');
+  var cirEl = document.getElementById('av-cirurgiao');
+  if(!nomeEl || !procEl || !cirEl) return;
+  var nome = nomeEl.value.trim();
+  var proc = procEl.value.trim();
+  var cirurgiao = cirEl.value.trim();
   if(!nome || !proc || !cirurgiao){
-    showToast('Preencha Iniciais do paciente, Procedimento e Cirurgião para salvar.','warning'); return;
+    showToast('Preencha Nome do Usuário, Procedimento e Cirurgião para salvar.','warning'); return;
   }
-  // Garantir que apenas iniciais sejam salvas no campo nome
-  nome = sanitizePacienteNome(nome);
+  var dnEl = document.getElementById('av-dn');
+  var dn = dnEl ? dnEl.value : '';
   var avisos = getAvisos();
   var aviso = {
     id: Date.now(),
+    isExemplo: false,
     nome: nome,
-    dn: document.getElementById('av-dn').value,
+    dn: dn,
+    idade: calcIdade(dn),
     sexo: document.getElementById('av-sexo').value,
     prontuario: document.getElementById('av-prontuario').value,
     leito: document.getElementById('av-leito').value,
@@ -509,7 +509,7 @@ window.carregarAvisos = function(){
   var tb = document.getElementById('body-avisos');
   var tbAl = document.getElementById('body-alocacao');
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
     tbAl.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
     return;
   }
@@ -520,17 +520,19 @@ window.carregarAvisos = function(){
     var nomeSan = (typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome || '');
     var nomeFormatado = nomeSan.length > 28 ? nomeSan.substring(0,25)+'...' : nomeSan;
     var procFormatado = a.procedimento.length > 35 ? a.procedimento.substring(0,32)+'...' : a.procedimento;
-    var cirurgiaoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.cirurgiao||'—') : (a.cirurgiao||'—');
+    var cirurgiaoDisplay = displayProfissional(a, a.cirurgiao||'—');
     var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
+    var idadeDisplay = a.idade || (a.dn ? calcIdade(a.dn) : '—');
     return '<tr>' +
       '<td><strong style="color:var(--navy)">#'+(i+1)+'</strong></td>' +
       '<td><strong>'+(a.data||'—')+'</strong><br><span style="color:var(--slate-500);font-size:11px">'+(a.hora||'—')+'</span></td>' +
-      '<td title="'+nomeSan+'">'+nomeFormatado+'</td>' +
-      '<td title="'+a.procedimento+'" style="font-size:12px">'+procFormatado+'</td>' +
-      '<td>'+cirurgiaoDisplay+'</td>' +
+      '<td title="'+esc(nomeSan)+'">'+esc(nomeFormatado)+'</td>' +
+      '<td>'+esc(idadeDisplay)+'</td>' +
+      '<td title="'+esc(a.procedimento)+'" style="font-size:12px">'+esc(procFormatado)+'</td>' +
+      '<td>'+esc(cirurgiaoDisplay)+'</td>' +
       '<td>'+convenioDisplay+'</td>' +
-      '<td><span class="badge '+caraterColors[a.carater]+'">'+a.carater+'</span></td>' +
-      '<td><span class="badge '+(statusClasses[a.statusMapa]||'badge-slate')+'">'+(statusLabels[a.statusMapa]||a.statusMapa)+'</span></td>' +
+      '<td><span class="badge '+caraterColors[a.carater]+'">'+esc(a.carater)+'</span></td>' +
+      '<td><span class="badge '+(statusClasses[a.statusMapa]||'badge-slate')+'">'+(statusLabels[a.statusMapa]||esc(a.statusMapa))+'</span></td>' +
       '<td><button class="btn btn-ghost btn-sm" onclick="confirmarAviso('+a.id+')" style="margin-right:4px">Confirmar</button><button class="btn btn-danger btn-sm" onclick="excluirAviso('+a.id+')">X</button></td>' +
     '</tr>';
   }).join('');
@@ -541,10 +543,10 @@ window.carregarAvisos = function(){
     return '<tr>' +
       '<td><strong style="color:var(--navy);font-size:16px">'+(a.sala||'?')+'</strong></td>' +
       '<td><strong>'+(a.hora||'—')+'</strong></td>' +
-      '<td>' + ((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)) + '</td>' +
-      '<td style="font-size:11.5px">'+sanitizeFieldForExport(a.procedimento||'—')+'</td>' +
-      '<td>'+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.cirurgiao||'—'):(a.cirurgiao||'—'))+'</td>' +
-      '<td style="font-size:12px">'+a.anestesia+'</td>' +
+      '<td>' + esc((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)) + '</td>' +
+      '<td style="font-size:11.5px">'+esc(sanitizeFieldForExport(a.procedimento||'—'))+'</td>' +
+      '<td>'+esc(displayProfissional(a, a.cirurgiao||'—'))+'</td>' +
+      '<td style="font-size:12px">'+esc(a.anestesia||'')+'</td>' +
       '<td><span class="badge '+bateClass+'">'+bateLabel+'</span></td>' +
       '<td><button class="btn btn-success btn-sm" onclick="confirmarAviso('+a.id+')">Confirmar</button></td>' +
     '</tr>';
@@ -565,6 +567,30 @@ window.excluirAviso = function(id){
   setAvisos(avisos);
   carregarAvisos();
   showToast('Aviso excluído.');
+};
+
+window.limparExemplosAvisos = function(){
+  if(!confirm('Remover todos os registros de exemplo da lista de avisos? Os cadastros feitos por você serão mantidos.')) return;
+  var avisos = getAvisos().filter(function(a){ return !(a.isExemplo || (a.id>=1000 && a.id<2000)); });
+  setAvisos(avisos);
+  carregarAvisos();
+  try{ renderMapa(); renderPainel(); renderStatusSalas(); }catch(e){}
+  try{ logEventLocal('avisos_exemplos_cleared',{restantes: avisos.length}); }catch(e){}
+  showToast('Lista de exemplo removida. Apenas seus cadastros permanecem.','success');
+};
+
+window.salvarListaAvisos = function(){
+  var avisos = getAvisos();
+  setAvisos(avisos);
+  carregarAvisos();
+  try{ logEventLocal('avisos_list_saved',{count: avisos.length}); }catch(e){}
+  showToast('Lista de avisos salva localmente ('+avisos.length+' registro(s)).','success');
+};
+
+window.avancarBateMapa = function(){
+  carregarAvisos();
+  try{ renderMapa(); }catch(e){}
+  goStep(2);
 };
 
 // ==================== CHECKLIST BATE-MAPA ====================
@@ -601,13 +627,13 @@ window.confirmarBateMapa = function(){
 
 // ==================== MAPA CIRÚRGICO ====================
 var EXEMPLOS = [
-  {id:1001,nome:'A.S.N. — 10/06/1940 (80 anos)',prontuario:'287098',procedimento:'IMPLANTE DE DESFIBRILADOR',lateralidade:'Não se aplica',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'Dr. Victor Branco',convenio:'Sul América Saúde',leito:'Semi Intensiva 622',sangue:'S',uti:'Sim',enfermeiro:'Marcelo Guimarães',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 01',hora:'08:00',duracao:'2h',data:'',carater:'eletiva',sexo:'Masculino',latex:'nao',hm:'nao',vad:'nao',munro:'moderado',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:68},
-  {id:1002,nome:'M.C.B.A. — 48 anos',prontuario:'287273',procedimento:'COLOCAÇÃO URETEROSCÓPICA DE DUPLO J',lateralidade:'Não se aplica',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'',convenio:'Allianz Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 02',hora:'11:20',duracao:'1h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Raquidiana / Subaracnóidea',posicao:'Litotomia',progresso:45},
-  {id:1003,nome:'C.C.O.Z. — 25 anos',prontuario:'287280',procedimento:'COLECISTECTOMIA COM COLANGIOGRAFIA POR VÍDEO',lateralidade:'Não se aplica',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'Dr. Victor Branco',convenio:'Sul América Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 03',hora:'13:30',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:22},
-  {id:1004,nome:'P.R.P.R. — 46 anos',prontuario:'287372',procedimento:'COLOCAÇÃO DE SHUNT DEFINITIVO',lateralidade:'Não se aplica',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'',convenio:'Seguros Unimed',leito:'',sangue:'Não',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'paciente_sala',statusMapa:'confirmada',sala:'Sala 04',hora:'14:00',duracao:'3h',data:'',carater:'eletiva',sexo:'Masculino',latex:'nao',hm:'nao',vad:'suspeita',munro:'moderado',precaucao:'nenhuma',anestesia:'Geral TIVA (via venosa)',posicao:'Supino (dorsal)',progresso:0},
-  {id:1005,nome:'G.L.P.A. — 23 anos',prontuario:'287271',procedimento:'SEPTO NASAL — SEPTOPLASTIA',lateralidade:'Não se aplica',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'',convenio:'Bradesco Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'inicio_anestesia',statusMapa:'confirmada',sala:'Sala 06',hora:'10:20',duracao:'1h',data:'',carater:'eletiva',sexo:'Feminino',latex:'sim',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:0},
-  {id:1006,nome:'L.C.A.D.S.G. — 53 anos',prontuario:'287310',procedimento:'COLECISTECTOMIA COM COLANGIOGRAFIA POR VÍDEO',lateralidade:'Não se aplica',cirurgiao:'Dr. Esther Maria',anestesista:'',convenio:'Sompo Saúde',leito:'',sangue:'S',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 08',hora:'11:45',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'sim',vad:'nao',munro:'alto',precaucao:'contato',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:55},
-  {id:1007,nome:'I.X.D.R. — 67 anos',prontuario:'287283',procedimento:'VARIZES — TRATAMENTO CIRÚRGICO BILATERAL',lateralidade:'Bilateral',cirurgiao:'Dr. Adolpho Carvalho',anestesista:'',convenio:'Particular',leito:'',sangue:'Não',uti:'Não',enfermeiro:'Marcelo Guimarães',statusSala:'agendada',statusMapa:'agendada',sala:'Sala 10',hora:'09:00',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'moderado',precaucao:'nenhuma',anestesia:'Raquidiana / Subaracnóidea',posicao:'Supino (dorsal)',progresso:0}
+  {id:1001,isExemplo:true,nome:'A.S.N.',dn:'10/06/1940',idade:'80 anos',prontuario:'287098',procedimento:'IMPLANTE DE DESFIBRILADOR',lateralidade:'Não se aplica',cirurgiao:'Dr. A.C.',anestesista:'Dr. V.B.',convenio:'Sul América Saúde',leito:'Semi Intensiva 622',sangue:'S',uti:'Sim',enfermeiro:'M.G.',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 01',hora:'08:00',duracao:'2h',data:'',carater:'eletiva',sexo:'Masculino',latex:'nao',hm:'nao',vad:'nao',munro:'moderado',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:68},
+  {id:1002,isExemplo:true,nome:'M.C.B.A.',dn:'',idade:'48 anos',prontuario:'287273',procedimento:'COLOCAÇÃO URETEROSCÓPICA DE DUPLO J',lateralidade:'Não se aplica',cirurgiao:'Dr. A.C.',anestesista:'',convenio:'Allianz Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'M.G.',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 02',hora:'11:20',duracao:'1h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Raquidiana / Subaracnóidea',posicao:'Litotomia',progresso:45},
+  {id:1003,isExemplo:true,nome:'C.C.O.Z.',dn:'',idade:'25 anos',prontuario:'287280',procedimento:'COLECISTECTOMIA COM COLANGIOGRAFIA POR VÍDEO',lateralidade:'Não se aplica',cirurgiao:'Dr. A.C.',anestesista:'Dr. V.B.',convenio:'Sul América Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'M.G.',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 03',hora:'13:30',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:22},
+  {id:1004,isExemplo:true,nome:'P.R.P.R.',dn:'',idade:'46 anos',prontuario:'287372',procedimento:'COLOCAÇÃO DE SHUNT DEFINITIVO',lateralidade:'Não se aplica',cirurgiao:'Dr. A.C.',anestesista:'',convenio:'Seguros Unimed',leito:'',sangue:'Não',uti:'Não',enfermeiro:'M.G.',statusSala:'paciente_sala',statusMapa:'confirmada',sala:'Sala 04',hora:'14:00',duracao:'3h',data:'',carater:'eletiva',sexo:'Masculino',latex:'nao',hm:'nao',vad:'suspeita',munro:'moderado',precaucao:'nenhuma',anestesia:'Geral TIVA (via venosa)',posicao:'Supino (dorsal)',progresso:0},
+  {id:1005,isExemplo:true,nome:'G.L.P.A.',dn:'',idade:'23 anos',prontuario:'287271',procedimento:'SEPTO NASAL — SEPTOPLASTIA',lateralidade:'Não se aplica',cirurgiao:'Dr. A.C.',anestesista:'',convenio:'Bradesco Saúde',leito:'',sangue:'Não',uti:'Não',enfermeiro:'M.G.',statusSala:'inicio_anestesia',statusMapa:'confirmada',sala:'Sala 06',hora:'10:20',duracao:'1h',data:'',carater:'eletiva',sexo:'Feminino',latex:'sim',hm:'nao',vad:'nao',munro:'baixo',precaucao:'nenhuma',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:0},
+  {id:1006,isExemplo:true,nome:'L.C.A.D.S.G.',dn:'',idade:'53 anos',prontuario:'287310',procedimento:'COLECISTECTOMIA COM COLANGIOGRAFIA POR VÍDEO',lateralidade:'Não se aplica',cirurgiao:'Dr. E.M.',anestesista:'',convenio:'Sompo Saúde',leito:'',sangue:'S',uti:'Não',enfermeiro:'M.G.',statusSala:'inicio_cirurgia',statusMapa:'em_curso',sala:'Sala 08',hora:'11:45',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'sim',vad:'nao',munro:'alto',precaucao:'contato',anestesia:'Geral inalatória (IOT)',posicao:'Supino (dorsal)',progresso:55},
+  {id:1007,isExemplo:true,nome:'I.X.D.R.',dn:'',idade:'67 anos',prontuario:'287283',procedimento:'VARIZES — TRATAMENTO CIRÚRGICO BILATERAL',lateralidade:'Bilateral',cirurgiao:'Dr. A.C.',anestesista:'',convenio:'Particular',leito:'',sangue:'Não',uti:'Não',enfermeiro:'M.G.',statusSala:'agendada',statusMapa:'agendada',sala:'Sala 10',hora:'09:00',duracao:'2h',data:'',carater:'eletiva',sexo:'Feminino',latex:'nao',hm:'nao',vad:'nao',munro:'moderado',precaucao:'nenhuma',anestesia:'Raquidiana / Subaracnóidea',posicao:'Supino (dorsal)',progresso:0}
 ];
 
 window.adicionarExemplos = function(){
@@ -615,6 +641,8 @@ window.adicionarExemplos = function(){
   EXEMPLOS.forEach(function(e){ e.data = today; });
   var avisos = getAvisos();
   EXEMPLOS.forEach(function(ex){
+    ex.isExemplo = true;
+    if(!ex.idade && ex.dn) ex.idade = calcIdade(ex.dn);
     if(!avisos.find(function(a){ return a.id===ex.id; })){
       avisos.push(ex);
     }
@@ -665,8 +693,8 @@ window.renderMapa = function(){
     var hmIcon = a.hm==='confirmado'||a.hm==='suspeita'?' <span title="Hipertermia Maligna" style="font-size:13px">🔥</span>':'';
     var vadIcon = a.vad==='sim'||a.vad==='suspeita'?' <span title="Via Aérea Difícil" style="font-size:13px">🩺</span>':'';
     var latIcon = a.lateralidade!=='Não se aplica'&&a.lateralidade!=='nao_se_aplica'?' <span title="Lateralidade marcada" style="font-size:13px">🎯</span>':'';
-    var cirurgiaoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.cirurgiao||'—') : (a.cirurgiao||'—');
-    var anestesistaDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.anestesista||'—') : (a.anestesista||'—');
+    var cirurgiaoDisplay = displayProfissional(a, a.cirurgiao||'—');
+    var anestesistaDisplay = displayProfissional(a, a.anestesista||'—');
     var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
     return '<tr>' +
       '<td><strong style="font-size:16px;color:var(--navy)">'+a.sala+'</strong></td>' +
@@ -680,7 +708,7 @@ window.renderMapa = function(){
       '<td style="font-size:11px;color:var(--slate-500)">'+(a.leito||'—')+'</td>' +
       '<td class="center">'+sangueDisplay+'</td>' +
       '<td class="center">'+utiDisplay+'</td>' +
-      '<td style="font-size:12px">'+(a.enfermeiro||'—')+'</td>' +
+      '<td style="font-size:12px">'+esc(displayProfissional(a, a.enfermeiro||'—'))+'</td>' +
       '<td><span onclick="alterarStatus('+a.id+')" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:'+cor+'20;color:'+cor+';border:1px solid '+cor+'50">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';display:inline-block"></span>'+label+'</span></td>' +
     '</tr>';
@@ -742,9 +770,9 @@ window.renderPainel = function(){
         '<p class="sc-pac">'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome))+'</p>' +
         '<p class="sc-proc">'+a.procedimento+'</p>' +
         '<div class="sc-team">' +
-          (a.cirurgiao?'<span class="member">+ '+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.cirurgiao||''):(a.cirurgiao||''))+'</span>':'')+
-          (a.anestesista?'<span class="member">A '+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.anestesista||''):(a.anestesista||''))+'</span>':'')+
-          (a.enfermeiro?'<span class="member">C '+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.enfermeiro||''):(a.enfermeiro||''))+'</span>':'')+
+          (a.cirurgiao?'<span class="member">+ '+esc(displayProfissional(a, a.cirurgiao))+'</span>':'')+
+          (a.anestesista?'<span class="member">A '+esc(displayProfissional(a, a.anestesista))+'</span>':'')+
+          (a.enfermeiro?'<span class="member">C '+esc(displayProfissional(a, a.enfermeiro))+'</span>':'')+
         '</div>' +
         (icons?'<div class="sc-icons">'+icons+'</div>':'')+
         (munroBadge?'<div style="margin-bottom:8px">'+munroBadge+'</div>':'')+
@@ -872,7 +900,7 @@ window.abrirModal = function(id){
   if(modalBodyEl){
     var procedimento = sanitizeFieldForExport(a.procedimento||'—');
     var convenio = (typeof displayConvenio === 'function') ? displayConvenio(a) : (neutralizeOrgNames(sanitizeFieldForExport(a.convenio||'—'))||'—');
-    var cirurgiao = sanitizeResponsavelField(a.cirurgiao||'—')||'—';
+    var cirurgiao = displayProfissional(a, a.cirurgiao||'—')||'—';
     var anestesia = sanitizeFieldForExport(a.anestesia||'—')||'—';
     var posicao = sanitizeFieldForExport(a.posicao||'—')||'—';
     var lateralidade = sanitizeFieldForExport(a.lateralidade||'—')||'—';
@@ -972,17 +1000,7 @@ document.getElementById('filtro-data-mapa') && (document.getElementById('filtro-
 carregarAvisos();
 renderIndicadoresVazios();
 
-// Normalizar campo de Iniciais do Paciente: uppercase e conversão para iniciais ao sair do campo
-(function(){
-  var el = document.getElementById('av-nome');
-  if(!el) return;
-  el.addEventListener('input', function(){ this.value = this.value.toUpperCase(); });
-  el.addEventListener('blur', function(){
-    var v = (this.value||'').trim(); if(!v) return;
-    var newV = toInitials(v.split('—')[0].trim());
-    if(newV && newV !== v){ this.value = newV; showToast('Iniciais ajustadas: '+newV,'info'); }
-  });
-})();
+// Campo Nome do Usuário: aceita nome completo sem conversão automática para iniciais
 
 function renderIndicadoresVazios(){
   var grid=document.getElementById('indicadores-grid');
