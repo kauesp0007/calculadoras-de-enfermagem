@@ -343,7 +343,9 @@ window.renderMapa = function(){
   if(filtroSala) avisos = avisos.filter(function(a){ return a.sala===filtroSala; });
   if(filtroData) avisos = avisos.filter(function(a){ return a.data===filtroData; });
   var tb = document.getElementById('body-mapa');
-  document.getElementById('total-cirurgias').textContent = avisos.length;
+  var totalEl = document.getElementById('total-cirurgias');
+  if(totalEl) totalEl.textContent = avisos.length;
+  if(!tb) return;
   if(!avisos.length){
     tb.innerHTML = '<tr><td colspan="13" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
     return;
@@ -397,7 +399,9 @@ window.alterarStatus = function(id){
 window.renderPainel = function(){
   var avisos = getAvisos();
   var grid = document.getElementById('painel-grid');
-  document.getElementById('ultima-att').textContent = new Date().toLocaleTimeString('pt-BR');
+  var ultimaAttEl = document.getElementById('ultima-att');
+  if(ultimaAttEl) ultimaAttEl.textContent = new Date().toLocaleTimeString('pt-BR');
+  if(!grid) return;
   if(!avisos.length){
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--slate-400)"><p>Nenhuma cirurgia carregada. Use "+ Exemplos".</p></div>';
     return;
@@ -449,6 +453,7 @@ window.renderPainel = function(){
 window.renderStatusSalas = function(){
   var avisos = getAvisos();
   var grid = document.getElementById('status-salas-grid');
+  if(!grid) return;
   if(!avisos.length){
     grid.innerHTML = '<div style="color:var(--slate-400);padding:20px;text-align:center">Carregue exemplos ou salve avisos para ver as salas.</div>';
     return;
@@ -494,6 +499,7 @@ window.setStatusSala = function(id, status){
 window.renderRelatorios = function(){
   var avisos = getAvisos();
   var grid = document.getElementById('indicadores-grid');
+  if(!grid) return;
   var total = avisos.length;
   var concluidas = avisos.filter(function(a){ return a.statusMapa==='concluida'||a.statusSala==='livre'; }).length;
   var em_curso = avisos.filter(function(a){ return a.statusMapa==='em_curso'||a.statusSala==='inicio_cirurgia'; }).length;
@@ -517,6 +523,7 @@ window.renderRelatorios = function(){
     indicador('Taxa de Conclusão', total>0?Math.round((concluidas/total)*100)+'%':'—', 'var(--teal)', 'concluídas / agendadas');
 
   var tb = document.getElementById('body-relatorio');
+  if(!tb) return;
   var porSala = {};
   avisos.forEach(function(a){
     if(!porSala[a.sala]) porSala[a.sala]={sala:a.sala,n:0,concluidas:0};
@@ -547,39 +554,46 @@ window.abrirModal = function(id){
   var avisos = getAvisos();
   var a = avisos.find(function(x){ return x.id===id; });
   if(!a) return;
-  document.getElementById('modal-title').textContent = a.sala+' — '+a.nome;
+  var modalTitleEl = document.getElementById('modal-title');
+  var modalBodyEl = document.getElementById('modal-body');
+  var modalSalaEl = document.getElementById('modal-sala');
+  if(modalTitleEl) modalTitleEl.textContent = a.sala+' — '+a.nome;
   var cor = STATUS_CORES[a.statusSala]||'#94A3B8';
   var label = STATUS_LABELS[a.statusSala]||'—';
-  document.getElementById('modal-body').innerHTML =
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Procedimento</p><p style="font-weight:600">'+a.procedimento+'</p></div>' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Convênio</p><p>'+a.convenio+'</p></div>' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Cirurgião</p><p>'+a.cirurgiao+'</p></div>' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Anestesia</p><p>'+a.anestesia+'</p></div>' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Posição</p><p>'+a.posicao+'</p></div>' +
-      '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Lateralidade</p><p>'+a.lateralidade+'</p></div>' +
-    '</div>' +
-    '<div style="background:'+cor+'15;border:1px solid '+cor+'50;border-radius:10px;padding:12px;text-align:center;margin-bottom:16px">' +
-      '<p style="font-size:11px;color:var(--slate-500);margin-bottom:4px">Status atual</p>' +
-      '<p style="font-size:16px;font-weight:800;color:'+cor+'">'+label+'</p>' +
-    '</div>' +
-    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">' +
-      (a.latex==='sim'?'<span class="badge badge-red">⚠️ Látex-free</span>':'')+
-      (a.hm!=='nao'?'<span class="badge badge-red">🔥 Hipertermia Maligna</span>':'')+
-      (a.vad!=='nao'?'<span class="badge badge-amber">🩺 Via Aérea Difícil</span>':'')+
-      (a.sangue!=='nao'?'<span class="badge badge-red">🩸 '+a.sangue+'</span>':'')+
-      (a.uti==='Sim'?'<span class="badge badge-amber">🏥 UTI reservada</span>':'')+
-      (a.precaucao!=='nenhuma'?'<span class="badge badge-purple">🛡️ '+a.precaucao+'</span>':'')+
-    '</div>' +
-    '<button class="btn btn-ghost" style="width:100%" onclick="fecharModal()">Fechar</button>';
-  document.getElementById('modal-sala').classList.add('open');
+  if(modalBodyEl){
+    modalBodyEl.innerHTML =
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Procedimento</p><p style="font-weight:600">'+(a.procedimento||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Convênio</p><p>'+(a.convenio||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Cirurgião</p><p>'+(a.cirurgiao||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Anestesia</p><p>'+(a.anestesia||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Posição</p><p>'+(a.posicao||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Lateralidade</p><p>'+(a.lateralidade||'—')+'</p></div>' +
+      '</div>' +
+      '<div style="background:'+cor+'15;border:1px solid '+cor+'50;border-radius:10px;padding:12px;text-align:center;margin-bottom:16px">' +
+        '<p style="font-size:11px;color:var(--slate-500);margin-bottom:4px">Status atual</p>' +
+        '<p style="font-size:16px;font-weight:800;color:'+cor+'">'+label+'</p>' +
+      '</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">' +
+        (a.latex==='sim'?'<span class="badge badge-red">⚠️ Látex-free</span>':'')+
+        (a.hm && a.hm!=='nao'?'<span class="badge badge-red">🔥 Hipertermia Maligna</span>':'')+
+        (a.vad && a.vad!=='nao'?'<span class="badge badge-amber">🩺 Via Aérea Difícil</span>':'')+
+        (a.sangue && a.sangue!=='nao'?'<span class="badge badge-red">🩸 '+a.sangue+'</span>':'')+
+        (a.uti==='Sim'?'<span class="badge badge-amber">🏥 UTI reservada</span>':'')+
+        (a.precaucao && a.precaucao!=='nenhuma'?'<span class="badge badge-purple">🛡️ '+a.precaucao+'</span>':'')+
+      '</div>' +
+      '<button class="btn btn-ghost" style="width:100%" onclick="fecharModal()">Fechar</button>';
+  }
+  if(modalSalaEl) modalSalaEl.classList.add('open');
 };
 
 window.fecharModal = function(){
-  document.getElementById('modal-sala').classList.remove('open');
+  var modalSalaEl = document.getElementById('modal-sala');
+  if(modalSalaEl) modalSalaEl.classList.remove('open');
 };
 
-document.getElementById('modal-sala').addEventListener('click', function(e){
+var modalSalaClickEl = document.getElementById('modal-sala');
+if(modalSalaClickEl) modalSalaClickEl.addEventListener('click', function(e){
   if(e.target===this) fecharModal();
 });
 
@@ -684,6 +698,77 @@ window.initOmsChecklist=function(){
 };
 
 // ==================== ETAPA 12: RASTREABILIDADE CME ====================
+// Compatibilidade de chaves: mantém em sincronia 'cc_cme_hist' <-> 'cme_historico' e
+// 'cc_cme_lotes' <-> 'cme_lotes'. Use estas funções para ler/gravar/remover.
+function readCmeHist(){
+  try{
+    var a = JSON.parse(localStorage.getItem('cc_cme_hist') || localStorage.getItem('cme_historico') || '[]');
+    // Se existia apenas a chave antiga/nova, escreva a outra para garantir compatibilidade
+    if(!localStorage.getItem('cc_cme_hist') && localStorage.getItem('cme_historico')){
+      try{ localStorage.setItem('cc_cme_hist', JSON.stringify(a)); }catch(e){}
+    }
+    if(!localStorage.getItem('cme_historico') && (a && a.length)){
+      try{ localStorage.setItem('cme_historico', JSON.stringify(a)); }catch(e){}
+    }
+    return Array.isArray(a) ? a : [];
+  }catch(e){ return []; }
+}
+function writeCmeHist(arr){
+  try{ localStorage.setItem('cc_cme_hist', JSON.stringify(arr)); }catch(e){}
+  try{ localStorage.setItem('cme_historico', JSON.stringify(arr)); }catch(e){}
+}
+function removeCmeHist(){ try{ localStorage.removeItem('cc_cme_hist'); }catch(e){} try{ localStorage.removeItem('cme_historico'); }catch(e){} }
+
+function readCmeLotes(){
+  try{
+    var a = JSON.parse(localStorage.getItem('cc_cme_lotes') || localStorage.getItem('cme_lotes') || '[]');
+    if(!localStorage.getItem('cc_cme_lotes') && localStorage.getItem('cme_lotes')){
+      try{ localStorage.setItem('cc_cme_lotes', JSON.stringify(a)); }catch(e){}
+    }
+    if(!localStorage.getItem('cme_lotes') && (a && a.length)){
+      try{ localStorage.setItem('cme_lotes', JSON.stringify(a)); }catch(e){}
+    }
+    return Array.isArray(a) ? a : [];
+  }catch(e){ return []; }
+}
+function writeCmeLotes(arr){ try{ localStorage.setItem('cc_cme_lotes', JSON.stringify(arr)); }catch(e){} try{ localStorage.setItem('cme_lotes', JSON.stringify(arr)); }catch(e){} }
+function removeCmeLotes(){ try{ localStorage.removeItem('cc_cme_lotes'); }catch(e){} try{ localStorage.removeItem('cme_lotes'); }catch(e){} }
+
+// Migração canônica: mescla 'cc_cme_*' e 'cme_*' para usar 'cc_cme_*' como canonical,
+// cria backup e remove as chaves antigas ('cme_historico' e 'cme_lotes').
+function migrateCmeKeysIfNeeded(){
+  try{
+    if(localStorage.getItem('cc_cme_migrated_v1')) return;
+    var aHist = JSON.parse(localStorage.getItem('cc_cme_hist')||'[]');
+    var bHist = JSON.parse(localStorage.getItem('cme_historico')||'[]');
+    aHist = Array.isArray(aHist)?aHist:[]; bHist = Array.isArray(bHist)?bHist:[];
+    // merge by id (preserve object; bHist overrides aHist on same id)
+    var map = {};
+    aHist.forEach(function(it){ if(it && it.id) map[it.id]=it; else map['a_'+Math.random()]=it; });
+    bHist.forEach(function(it){ if(it && it.id) map[it.id]=it; else map['b_'+Math.random()]=it; });
+    var mergedHist = Object.keys(map).map(function(k){ return map[k]; });
+    // lotes: merge by numero
+    var aL = JSON.parse(localStorage.getItem('cc_cme_lotes')||'[]');
+    var bL = JSON.parse(localStorage.getItem('cme_lotes')||'[]');
+    aL = Array.isArray(aL)?aL:[]; bL = Array.isArray(bL)?bL:[];
+    var mapL = {};
+    aL.forEach(function(l){ if(l && l.numero) mapL[l.numero]=l; else mapL['a_'+Math.random()]=l; });
+    bL.forEach(function(l){ if(l && l.numero) mapL[l.numero]=l; else mapL['b_'+Math.random()]=l; });
+    var mergedLotes = Object.keys(mapL).map(function(k){ return mapL[k]; });
+    // backups (keep original cme_* in backup keys before removal)
+    try{ if(bHist && bHist.length) localStorage.setItem('cme_historico_backup_v1', JSON.stringify(bHist)); }catch(e){}
+    try{ if(bL && bL.length) localStorage.setItem('cme_lotes_backup_v1', JSON.stringify(bL)); }catch(e){}
+    // write canonical keys
+    try{ writeCmeHist(mergedHist); }catch(e){}
+    try{ writeCmeLotes(mergedLotes); }catch(e){}
+    // remove old keys
+    try{ localStorage.removeItem('cme_historico'); localStorage.removeItem('cme_lotes'); }catch(e){}
+    try{ localStorage.setItem('cc_cme_migrated_v1', '1'); }catch(e){}
+    try{ if(typeof showToast==='function') showToast('Migração CME concluída — chaves antigas removidas.','success'); }
+    catch(e){}
+  }catch(e){ console.error('Erro na migração CME', e); }
+}
+
 window.cmeSetEtapa=function(etapa){
   var sel=document.getElementById('cme-etapa');
   if(sel)sel.value=etapa;
@@ -697,9 +782,9 @@ window.cmeSalvarMov=function(){
   if(!etapa||!caixa){showToast('Selecione a etapa e informe a caixa.');return;}
   var reg={id:Date.now(),etapa:etapa,caixa:caixa.toUpperCase(),esp:document.getElementById('cme-esp').value,resp:document.getElementById('cme-resp').value.toUpperCase(),obs:document.getElementById('cme-obs').value,dh:document.getElementById('cme-dh').value||new Date().toLocaleString('pt-BR')};
   try{
-    var arr=JSON.parse(localStorage.getItem('cc_cme_hist')||'[]');
+    var arr = readCmeHist();
     arr.unshift(reg);
-    localStorage.setItem('cc_cme_hist',JSON.stringify(arr));
+    writeCmeHist(arr);
     cmeAtualizarContadores();cmeRenderHist();cmeLimparForm();
     showToast('Movimentação registrada: '+etapa+' — '+caixa);
   }catch(e){showToast('Erro ao salvar.');}
@@ -713,18 +798,18 @@ window.cmeSalvarLote=function(){
   if(!num||!met){showToast('Preencha nº do lote e método.');return;}
   var lote={numero:num,metodo:met,eq:document.getElementById('cme-lote-eq').value,dh:document.getElementById('cme-lote-dh').value,val:document.getElementById('cme-lote-val').value,resp:document.getElementById('cme-lote-resp').value.toUpperCase(),indQ:document.getElementById('cme-ind-q').checked,indB:document.getElementById('cme-ind-b').checked,indBD:document.getElementById('cme-ind-bd').checked,indImp:document.getElementById('cme-ind-imp').checked};
   try{
-    var arr=JSON.parse(localStorage.getItem('cc_cme_lotes')||'[]');
+    var arr = readCmeLotes();
     arr.unshift(lote);
-    localStorage.setItem('cc_cme_lotes',JSON.stringify(arr));
+    writeCmeLotes(arr);
     cmeRenderLotes();
     showToast('Lote '+num+' salvo.');
   }catch(e){showToast('Erro ao salvar lote.');}
 };
-window.cmeLimparLotes=function(){if(confirm('Apagar todos os lotes?')){localStorage.removeItem('cc_cme_lotes');cmeRenderLotes();}};
-window.cmeLimparHist=function(){if(confirm('Apagar todo o histórico?')){localStorage.removeItem('cc_cme_hist');cmeRenderHist();cmeAtualizarContadores();}};
+window.cmeLimparLotes=function(){if(confirm('Apagar todos os lotes?')){removeCmeLotes();cmeRenderLotes();}};
+window.cmeLimparHist=function(){if(confirm('Apagar todo o histórico?')){removeCmeHist();cmeRenderHist();cmeAtualizarContadores();}};
 window.cmeExportar=function(){
   try{
-    var arr=JSON.parse(localStorage.getItem('cc_cme_hist')||'[]');
+    var arr = readCmeHist();
     if(!arr.length){showToast('Nenhum dado.');return;}
     var csv='Data/Hora,Etapa,Caixa,Especialidade,Resp,Obs\n';
     arr.forEach(function(h){csv+='"'+h.dh+'","'+h.etapa+'","'+h.caixa+'","'+(h.esp||'')+'","'+(h.resp||'')+'","'+(h.obs||'')+'"\n';});
@@ -737,14 +822,14 @@ window.cmeExportar=function(){
 window.cmeAtualizarContadores=function(){
   var etapas=['expurgo','lavagem','inspecao','preparo','esterilizacao','armazenamento'];
   try{
-    var hist=JSON.parse(localStorage.getItem('cc_cme_hist')||'[]');
+    var hist = readCmeHist();
     etapas.forEach(function(e){var cnt=hist.filter(function(h){return h.etapa===e;}).length;var el=document.getElementById('cnt-'+e);if(el)el.textContent=cnt;});
   }catch(e){}
 };
 window.cmeRenderLotes=function(){
   var tb=document.getElementById('cme-body-lotes');if(!tb)return;
   try{
-    var arr=JSON.parse(localStorage.getItem('cc_cme_lotes')||'[]');
+    var arr = readCmeLotes();
     if(!arr.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum lote registrado.</td></tr>';return;}
     tb.innerHTML=arr.map(function(l){
       var inds=[];
@@ -759,7 +844,7 @@ window.cmeRenderLotes=function(){
 window.cmeRenderHist=function(){
   var tb=document.getElementById('cme-body-hist');if(!tb)return;
   try{
-    var arr=JSON.parse(localStorage.getItem('cc_cme_hist')||'[]');
+    var arr = readCmeHist();
     if(!arr.length){tb.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--slate-400);padding:20px">Nenhuma movimentação.</td></tr>';return;}
     var cores={'expurgo':'badge-red','lavagem':'badge-blue','inspecao':'badge-gray','preparo':'badge-amber','esterilizacao':'badge-teal','armazenamento':'badge-green'};
     var labels={'expurgo':'Expurgo','lavagem':'Lavagem','inspecao':'Inspeção','preparo':'Preparo','esterilizacao':'Esterilização','armazenamento':'Distribuição'};
@@ -769,6 +854,7 @@ window.cmeRenderHist=function(){
   }catch(e){}
 };
 window.cmeInit=function(){
+  try{ if(typeof migrateCmeKeysIfNeeded==='function') migrateCmeKeysIfNeeded(); }catch(e){}
   cmeAtualizarContadores();cmeRenderLotes();cmeRenderHist();
   var now=new Date(),pad=function(n){return String(n).padStart(2,'0');};
   var dh=document.getElementById('cme-dh');if(dh&&!dh.value)dh.value=now.getFullYear()+'-'+pad(now.getMonth()+1)+'-'+pad(now.getDate())+'T'+pad(now.getHours())+':'+pad(now.getMinutes());
