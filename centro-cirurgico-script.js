@@ -161,6 +161,60 @@ try{
   };
 }catch(e){}
 
+// ==================== FULL-DISPLAY LOGIC (nomes/convênio completos) ====================
+// Exibe nomes/convênios completos apenas quando a cirurgia estiver documentada
+// em todas as etapas principais (agendamento -> preparo -> OMS -> pós).
+function findAgendamentoIndexByAviso(aviso){
+  try{
+    if(!aviso) return -1;
+    var ags = JSON.parse(localStorage.getItem('cc_agendamentos')||'[]');
+    for(var i=0;i<ags.length;i++){
+      var a = ags[i]||{};
+      if((a.procedimento||'').trim() && (aviso.procedimento||'').trim() && a.procedimento.trim()===aviso.procedimento.trim()){
+        // prefer strict date+hora match when available
+        if(a.data && aviso.data && a.hora && aviso.hora){ if(a.data===aviso.data && a.hora===aviso.hora) return i; }
+        // fallback: match by procedimento+data
+        if(a.data && aviso.data && a.data===aviso.data) return i;
+      }
+      // fallback: match by prontuario when present
+      if(a.prontuario && aviso.prontuario && String(a.prontuario)===String(aviso.prontuario)) return i;
+    }
+    return -1;
+  }catch(e){ return -1; }
+}
+
+function isFullyDocumentedForAgendamentoIndex(idx){
+  try{
+    if(idx===null||idx===undefined||idx<0) return false;
+    var preps = JSON.parse(localStorage.getItem('cc_preparos')||'[]');
+    var oms = JSON.parse(localStorage.getItem('cc_oms')||'[]');
+    var pos = JSON.parse(localStorage.getItem('cc_pos')||'[]');
+    var prepOK = preps.some(function(p){ return String(p.cirurgiaIdx) === String(idx); });
+    var omsOK = oms.some(function(o){ return String(o.cirurgiaIdx) === String(idx); });
+    var posOK = pos.some(function(p){ return String(p.cirurgiaIdx) === String(idx); });
+    return !!(prepOK && omsOK && posOK);
+  }catch(e){ return false; }
+}
+
+function isFullyDocumentedForAviso(aviso){
+  try{
+    if(!aviso) return false;
+    if(!aviso.nome || !aviso.convenio) return false;
+    var idx = findAgendamentoIndexByAviso(aviso);
+    if(idx===-1) return false;
+    return isFullyDocumentedForAgendamentoIndex(idx);
+  }catch(e){ return false; }
+}
+
+// Helpers para exibição (usar onde apropriado)
+function displayPacienteName(aviso){
+  try{ return (isFullyDocumentedForAviso(aviso) && aviso && aviso.nome) ? aviso.nome : sanitizePacienteNome(aviso?aviso.nome:''); }catch(e){ return sanitizePacienteNome(aviso?aviso.nome:''); }
+}
+function displayConvenio(aviso){
+  try{ if(isFullyDocumentedForAviso(aviso) && aviso && aviso.convenio) return '<span title="'+(aviso.convenio||'')+'">'+(aviso.convenio||'')+'</span>'; return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }catch(e){ return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }
+}
+try{ window.isFullyDocumentedForAviso = isFullyDocumentedForAviso; window.displayPacienteName = displayPacienteName; window.displayConvenio = displayConvenio; }catch(e){}
+
 // Auditoria / Logs locais (gravados em localStorage 'cc_logs')
 function logEventLocal(action, details){
   try{
@@ -431,11 +485,11 @@ window.carregarAvisos = function(){
   var statusClasses = {agendada:'badge-blue',confirmada:'badge-green',cancelada:'badge-red',em_curso:'badge-amber',concluida:'badge-slate'};
   var caraterColors = {eletiva:'badge-blue',urgencia:'badge-amber',emergencia:'badge-red'};
   tb.innerHTML = avisos.map(function(a, i){
-    var nomeSan = sanitizePacienteNome(a.nome || '');
+    var nomeSan = (typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome || '');
     var nomeFormatado = nomeSan.length > 28 ? nomeSan.substring(0,25)+'...' : nomeSan;
     var procFormatado = a.procedimento.length > 35 ? a.procedimento.substring(0,32)+'...' : a.procedimento;
     var cirurgiaoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.cirurgiao||'—') : (a.cirurgiao||'—');
-    var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
+    var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
     return '<tr>' +
       '<td><strong style="color:var(--navy)">#'+(i+1)+'</strong></td>' +
       '<td><strong>'+(a.data||'—')+'</strong><br><span style="color:var(--slate-500);font-size:11px">'+(a.hora||'—')+'</span></td>' +
@@ -455,7 +509,7 @@ window.carregarAvisos = function(){
     return '<tr>' +
       '<td><strong style="color:var(--navy);font-size:16px">'+(a.sala||'?')+'</strong></td>' +
       '<td><strong>'+(a.hora||'—')+'</strong></td>' +
-      '<td>'+sanitizePacienteNome(a.nome)+'</td>' +
+      '<td>' + ((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)) + '</td>' +
       '<td style="font-size:11.5px">'+sanitizeFieldForExport(a.procedimento||'—')+'</td>' +
       '<td>'+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.cirurgiao||'—'):(a.cirurgiao||'—'))+'</td>' +
       '<td style="font-size:12px">'+a.anestesia+'</td>' +
@@ -581,11 +635,11 @@ window.renderMapa = function(){
     var latIcon = a.lateralidade!=='Não se aplica'&&a.lateralidade!=='nao_se_aplica'?' <span title="Lateralidade marcada" style="font-size:13px">🎯</span>':'';
     var cirurgiaoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.cirurgiao||'—') : (a.cirurgiao||'—');
     var anestesistaDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.anestesista||'—') : (a.anestesista||'—');
-    var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
+    var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
     return '<tr>' +
       '<td><strong style="font-size:16px;color:var(--navy)">'+a.sala+'</strong></td>' +
       '<td><strong>'+a.hora+'</strong><br><span style="font-size:10px;color:var(--slate-400)">'+a.prontuario+'</span></td>' +
-      '<td><strong>'+sanitizePacienteNome(a.nome).split('—')[0].trim()+'</strong>'+latexIcon+hmIcon+vadIcon+'</td>' +
+      '<td><strong>'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)).split('—')[0].trim()+'</strong>'+latexIcon+hmIcon+vadIcon+'</td>' +
       '<td style="font-size:12px">'+(a.procedimento||'—')+'</td>' +
       '<td style="font-size:12px">'+(a.lateralidade||'—')+latIcon+'</td>' +
       '<td style="font-size:12px">'+cirurgiaoDisplay+'</td>' +
@@ -653,7 +707,7 @@ window.renderPainel = function(){
         '</div>' +
       '</div>' +
       '<div class="sc-body">' +
-        '<p class="sc-pac">'+sanitizePacienteNome(a.nome)+'</p>' +
+        '<p class="sc-pac">'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome))+'</p>' +
         '<p class="sc-proc">'+a.procedimento+'</p>' +
         '<div class="sc-team">' +
           (a.cirurgiao?'<span class="member">+ '+(typeof sanitizeResponsavelField==='function'?sanitizeResponsavelField(a.cirurgiao||''):(a.cirurgiao||''))+'</span>':'')+
@@ -687,7 +741,7 @@ window.renderStatusSalas = function(){
     return '<div class="card" style="border-top:3px solid '+cor+'">' +
       '<div class="card-body" style="padding:16px">' +
         '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">' +
-          '<div><strong style="font-size:18px;color:var(--navy)">'+a.sala+'</strong><br><span style="font-size:12px;color:var(--slate-500)">'+sanitizePacienteNome(a.nome).split('—')[0].trim()+'</span></div>' +
+          '<div><strong style="font-size:18px;color:var(--navy)">'+a.sala+'</strong><br><span style="font-size:12px;color:var(--slate-500)">' + ((typeof displayPacienteName === 'function') ? displayPacienteName(a).split('—')[0].trim() : sanitizePacienteNome(a.nome).split('—')[0].trim()) + '</span></div>' +
           '<span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:'+cor+';box-shadow:0 0 0 3px '+cor+'30"></span>' +
         '</div>' +
         '<p style="font-size:12px;color:var(--slate-500);margin-bottom:10px">'+a.procedimento.substring(0,45)+(a.procedimento.length>45?'...':'')+'</p>' +
@@ -780,12 +834,12 @@ window.abrirModal = function(id){
   var modalTitleEl = document.getElementById('modal-title');
   var modalBodyEl = document.getElementById('modal-body');
   var modalSalaEl = document.getElementById('modal-sala');
-  if(modalTitleEl) modalTitleEl.textContent = a.sala+' — '+sanitizePacienteNome(a.nome);
+  if(modalTitleEl) modalTitleEl.textContent = a.sala+' — '+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome));
   var cor = STATUS_CORES[a.statusSala]||'#94A3B8';
   var label = STATUS_LABELS[a.statusSala]||'—';
   if(modalBodyEl){
     var procedimento = sanitizeFieldForExport(a.procedimento||'—');
-    var convenio = neutralizeOrgNames(sanitizeFieldForExport(a.convenio||'—'))||'—';
+    var convenio = (typeof displayConvenio === 'function') ? displayConvenio(a) : (neutralizeOrgNames(sanitizeFieldForExport(a.convenio||'—'))||'—');
     var cirurgiao = sanitizeResponsavelField(a.cirurgiao||'—')||'—';
     var anestesia = sanitizeFieldForExport(a.anestesia||'—')||'—';
     var posicao = sanitizeFieldForExport(a.posicao||'—')||'—';
@@ -839,13 +893,13 @@ window.exportarExcel = function(){
   var rows = avisos.map(function(a){
     var sala = sanitizeFieldForExport(a.sala);
     var hora = sanitizeFieldForExport(a.hora);
-    var paciente = sanitizePacienteNome(a.nome);
+    var paciente = (typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome);
     var prontuario = sanitizeFieldForExport(a.prontuario);
     var procedimento = sanitizeFieldForExport(a.procedimento);
     var lateralidade = sanitizeFieldForExport(a.lateralidade);
     var cirurgiao = sanitizeResponsavelField(a.cirurgiao);
     var anestesista = sanitizeResponsavelField(a.anestesista);
-    var convenio = neutralizeOrgNames(sanitizeFieldForExport(a.convenio));
+    var convenio = (isFullyDocumentedForAviso(a) && a.convenio) ? (function(){ try{ logEventLocal('export_expose_convenio',{id: a.id}); }catch(e){} return a.convenio; })() : neutralizeOrgNames(sanitizeFieldForExport(a.convenio||''));
     var leito = sanitizeFieldForExport(a.leito);
     var sangue = sanitizeFieldForExport(a.sangue);
     var uti = sanitizeFieldForExport(a.uti);
