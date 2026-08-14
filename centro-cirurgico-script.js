@@ -188,7 +188,10 @@ function isFullyDocumentedForAviso(aviso){
 
 // Helpers para exibição (usar onde apropriado)
 function displayPacienteName(aviso){
-  try{ return (aviso && !aviso.isExemplo && aviso.nome) ? aviso.nome : sanitizePacienteNome(aviso?aviso.nome:''); }catch(e){ return sanitizePacienteNome(aviso?aviso.nome:''); }
+  try{
+    var ehExemplo = !!(aviso && (aviso.isExemplo || (aviso.id>=1000 && aviso.id<2000)));
+    return (aviso && !ehExemplo && aviso.nome) ? aviso.nome : sanitizePacienteNome(aviso?aviso.nome:'');
+  }catch(e){ return sanitizePacienteNome(aviso?aviso.nome:''); }
 }
 function displayConvenio(aviso){
   try{ if(isFullyDocumentedForAviso(aviso) && aviso && aviso.convenio) return '<span title="'+(aviso.convenio||'')+'">'+(aviso.convenio||'')+'</span>'; return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }catch(e){ return (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(aviso.convenio||'—') : (aviso.convenio||'—'); }
@@ -265,7 +268,7 @@ window.salvarAgendamento = function(){
     var motivoBox = document.getElementById('agd-motivo-rejeicao');
 
     var nomeRaw = agdNomeEl ? agdNomeEl.value.trim() : '';
-    var nomeSan = (typeof sanitizePacienteNome === 'function') ? sanitizePacienteNome(nomeRaw) : nomeRaw;
+    var nomeSan = nomeRaw.toUpperCase();
 
     var data = {
       origem: origem,
@@ -307,8 +310,8 @@ window.renderAgendamentos = function(){
       var cor = a.status === 'autorizada' ? 'var(--green)' : 'var(--red)';
       var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
       var procedimentoDisplay = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'—') : (a.procedimento||'—');
-      var pacienteDisplay = (typeof sanitizePacienteNome === 'function') ? (a.nome ? sanitizePacienteNome(a.nome) : '—') : (a.nome||'—');
-      var medicoDisplay = (typeof sanitizeResponsavelField === 'function') ? sanitizeResponsavelField(a.medico||'—') : (a.medico||'—');
+      var pacienteDisplay = a.nome ? esc(a.nome) : '—';
+      var medicoDisplay = a.medico ? esc(a.medico) : '—';
       return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
     }).join('');
   } catch(e){}
@@ -428,7 +431,8 @@ function calcIdade(dn){
 function displayProfissional(aviso, val){
   try{
     var v = val || '';
-    if(aviso && !aviso.isExemplo && v) return v;
+    var ehExemplo = !!(aviso && (aviso.isExemplo || (aviso.id>=1000 && aviso.id<2000)));
+    if(!ehExemplo && v) return v;
     return (typeof sanitizeResponsavelField==='function') ? sanitizeResponsavelField(v) : v;
   }catch(e){ return val || ''; }
 }
@@ -1116,6 +1120,21 @@ window.showToast = function(m,type){
   clearTimeout(tt);
   tt=setTimeout(function(){ toastEl.classList.remove('show'); },3000);
 };
+
+// ==================== MAIÚSCULAS AUTOMÁTICAS (texto/textarea, independente do Caps Lock) ====================
+document.addEventListener('input', function(e){
+  try{
+    var t = e.target;
+    if(!t || !t.tagName) return;
+    var tag = t.tagName.toLowerCase();
+    var type = String(t.type||'').toLowerCase();
+    var ok = (tag==='input' && (!type || ['text','search','tel','email','url'].indexOf(type)!==-1)) || tag==='textarea';
+    if(!ok) return;
+    var pos = (typeof t.selectionStart === 'number') ? t.selectionStart : null;
+    var v = String(t.value||'').toUpperCase();
+    if(v !== t.value){ t.value = v; if(pos!==null){ try{ t.setSelectionRange(pos,pos); }catch(err){} } }
+  }catch(e){}
+});
 
 // ==================== INIT ====================
 document.getElementById('av-data').value = new Date().toISOString().split('T')[0];
