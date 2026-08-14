@@ -92,6 +92,32 @@ window.obterProcedimento = function(selId){
   return sel.value;
 };
 
+// ==================== ESPECIALIDADES CIRÚRGICAS ====================
+var ESPECIALIDADES = ['Ortopedia','Cirurgia Geral','Vascular','Obstetrícia','Urologia','Neurocirurgia','Oftalmologia','Dermatologia','Cirurgia Plástica','Cabeça e Pescoço','Ginecologia','Otorrino','Cirurgia Pediátrica','Cardíaca','Cirurgia de Tórax'];
+
+window.carregarSelectEspecialidades = function(){
+  var html = '<option value="">Selecione a especialidade...</option>' + ESPECIALIDADES.map(function(e){ var up = e.toUpperCase(); return '<option value="'+esc(up)+'">'+esc(up)+'</option>'; }).join('') + '<option value="__outro__">OUTROS (DIGITAR A ESPECIALIDADE)</option>';
+  ['agd-especialidade','av-especialidade'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.innerHTML = html;
+  });
+};
+
+window.especialidadeChange = function(sel){
+  var outro = document.getElementById(sel.id + '-outro');
+  if(outro) outro.style.display = sel.value === '__outro__' ? 'block' : 'none';
+};
+
+window.obterEspecialidade = function(selId){
+  var sel = document.getElementById(selId);
+  if(!sel) return '';
+  if(sel.value === '__outro__'){
+    var outro = document.getElementById(selId + '-outro');
+    return outro ? outro.value.trim() : '';
+  }
+  return sel.value;
+};
+
 // ==================== HELPERS: NOME PACIENTE (iniciais) ====================
 function toInitials(raw){
   if(raw===null||raw===undefined) return '';
@@ -346,6 +372,7 @@ window.salvarAgendamento = function(){
       dn: dn,
       idade: calcIdade(dn),
       convenio: convenio,
+      especialidade: (typeof obterEspecialidade==='function') ? obterEspecialidade('agd-especialidade') : '',
       procedimento: proc,
       codsus: (codsusEl?codsusEl.value:''),
       medico: (medicoEl?medicoEl.value:''),
@@ -366,8 +393,9 @@ window.salvarAgendamento = function(){
 };
 
 window.limparAgendamento = function(){
-  ['agd-origem','agd-convenio','agd-nome','agd-dn','agd-procedimento','agd-procedimento-outro','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+  ['agd-origem','agd-convenio','agd-nome','agd-dn','agd-procedimento','agd-procedimento-outro','agd-especialidade','agd-especialidade-outro','agd-codsus','agd-medico','agd-crm','agd-data','agd-hora','agd-hospital','agd-leito','agd-motivo'].forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
   var pOut = document.getElementById('agd-procedimento-outro'); if(pOut) pOut.style.display = 'none';
+  var eOut = document.getElementById('agd-especialidade-outro'); if(eOut) eOut.style.display = 'none';
   var motivoRej = document.getElementById('agd-motivo-rejeicao'); if(motivoRej) motivoRej.style.display = 'none';
   var alertBox = document.getElementById('agd-alertas-box'); if(alertBox) alertBox.style.display = 'none';
 };
@@ -378,14 +406,14 @@ window.renderAgendamentos = function(){
   var tb = document.getElementById('body-agendamentos');
   if(!tb) return;
   try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]');
-    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="10" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
+    if(arr.length === 0){ tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum agendamento salvo.</td></tr>'; return; }
     tb.innerHTML = arr.map(function(a){
       var cor = a.status === 'autorizada' ? 'var(--green)' : 'var(--red)';
       var convenioDisplay = (typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—');
       var procedimentoDisplay = (typeof sanitizeFieldForExport === 'function') ? sanitizeFieldForExport(a.procedimento||'—') : (a.procedimento||'—');
       var pacienteDisplay = a.nome ? esc(a.nome) : '—';
       var medicoDisplay = a.medico ? esc(a.medico) : '—';
-      return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + esc(a.idade||'—') + '</td><td>' + esc(a.dn||'—') + '</td><td>' + convenioDisplay + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
+      return '<tr><td>' + (a.origem||'—') + '</td><td>' + pacienteDisplay + '</td><td>' + esc(a.idade||'—') + '</td><td>' + esc(a.dn||'—') + '</td><td>' + convenioDisplay + '</td><td>' + esc(a.especialidade||'—') + '</td><td>' + (procedimentoDisplay||'—') + '</td><td>' + medicoDisplay + '</td><td>' + (a.data||'—') + '</td><td>' + (a.hora||'—') + '</td><td style="color:' + cor + ';font-weight:700">' + a.status + '</td></tr>';
     }).join('');
   } catch(e){}
 };
@@ -438,7 +466,7 @@ window.renderPreBateMapa = function(){
   if(!tb) return;
   var avisos = getAvisos();
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum aviso registrado na lista de avisos.</td></tr>';
     return;
   }
   tb.innerHTML = avisos.map(function(a){
@@ -449,6 +477,7 @@ window.renderPreBateMapa = function(){
       '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
       '<td>'+esc(a.idade||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
+      '<td>'+esc(a.especialidade||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.procedimento||'—')+'</td>' +
       '<td class="center">'+opme+'</td>' +
       '<td class="center">'+cons+'</td>' +
@@ -613,6 +642,7 @@ window.salvarAviso = function(){
     dn: dn,
     idade: calcIdade(dn),
     sexo: document.getElementById('av-sexo').value,
+    especialidade: (typeof obterEspecialidade==='function') ? obterEspecialidade('av-especialidade') : '',
     prontuario: document.getElementById('av-prontuario').value,
     leito: document.getElementById('av-leito').value,
     convenio: document.getElementById('av-convenio').value,
@@ -650,10 +680,11 @@ window.salvarAviso = function(){
 };
 
 window.limparAviso = function(){
-  ['av-nome','av-dn','av-prontuario','av-leito','av-peso','av-procedimento','av-procedimento-outro','av-tuss','av-cirurgiao','av-aux1','av-anestesista','av-enfermeiro','av-instrumentador','av-obs'].forEach(function(id){
+  ['av-nome','av-dn','av-prontuario','av-leito','av-peso','av-procedimento','av-procedimento-outro','av-especialidade','av-especialidade-outro','av-tuss','av-cirurgiao','av-aux1','av-anestesista','av-enfermeiro','av-instrumentador','av-obs'].forEach(function(id){
     var el = document.getElementById(id); if(el) el.value='';
   });
   var aOut = document.getElementById('av-procedimento-outro'); if(aOut) aOut.style.display = 'none';
+  var eOut = document.getElementById('av-especialidade-outro'); if(eOut) eOut.style.display = 'none';
 };
 
 // Paciente do Agendamento: reaproveita dados da etapa anterior no Aviso de Cirurgia
@@ -693,6 +724,16 @@ window.avPacienteChange = function(){
       else if(v){ procSel.value = '__outro__'; if(procOut) procOut.value = v; }
       procedimentoChange(procSel);
     }
+    var espSel = document.getElementById('av-especialidade');
+    var espOut = document.getElementById('av-especialidade-outro');
+    if(espSel){
+      var ev = (a.especialidade||'').toUpperCase();
+      var existe2 = false;
+      for(var j=0;j<espSel.options.length;j++){ if(espSel.options[j].value===ev){ existe2=true; break; } }
+      if(existe2){ espSel.value = ev; }
+      else if(ev){ espSel.value = '__outro__'; if(espOut) espOut.value = ev; }
+      especialidadeChange(espSel);
+    }
   }catch(e){}
 };
 
@@ -701,8 +742,8 @@ window.carregarAvisos = function(){
   var tb = document.getElementById('body-avisos');
   var tbAl = document.getElementById('body-alocacao');
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
-    tbAl.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="12" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso registrado.</td></tr>';
+    tbAl.innerHTML = '<tr><td colspan="16" style="text-align:center;color:var(--slate-400);padding:30px">Nenhum aviso encontrado.</td></tr>';
     return;
   }
   var statusLabels = {agendada:'Agendada',confirmada:'Confirmada',cancelada:'Cancelada',em_curso:'Em curso',concluida:'Concluída'};
@@ -721,6 +762,7 @@ window.carregarAvisos = function(){
       '<td title="'+esc(nomeSan)+'">'+esc(nomeFormatado)+'</td>' +
       '<td>'+esc(idadeDisplay)+'</td>' +
       '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
+      '<td>'+esc(a.especialidade||'—')+'</td>' +
       '<td title="'+esc(a.procedimento)+'" style="font-size:12px">'+esc(procFormatado)+'</td>' +
       '<td>'+esc(cirurgiaoDisplay)+'</td>' +
       '<td>'+convenioDisplay+'</td>' +
@@ -739,11 +781,15 @@ window.carregarAvisos = function(){
       '<td>' + esc((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)) + '</td>' +
       '<td>'+esc(a.idade||'—')+'</td>' +
       '<td style="font-size:11.5px">'+esc(a.dn||'—')+'</td>' +
+      '<td>'+esc(a.especialidade||'—')+'</td>' +
       '<td style="font-size:11.5px">'+esc(sanitizeFieldForExport(a.procedimento||'—'))+'</td>' +
       '<td>'+esc(displayProfissional(a, a.cirurgiao||'—'))+'</td>' +
       '<td style="font-size:12px">'+esc(a.anestesia||'')+'</td>' +
       '<td class="center">'+(a.hemoderivados==='sim'?'<span title="Reserva de hemoderivados" style="font-size:15px">🩸</span>':(a.hemoderivados==='nao'?'Não':'—'))+'</td>' +
-      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':'')+'</td>' +
+      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':(a.retaguardaUti==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.opme==='sim'?'<span class="badge badge-green">Sim</span>':(a.opme==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.consignado==='sim'?'<span class="badge badge-blue">Sim</span>':(a.consignado==='nao'?'Não':'—'))+'</td>' +
+      '<td style="font-size:11.5px">'+esc(a.fornecedor||'—')+'</td>' +
       '<td><span class="badge '+bateClass+'">'+bateLabel+'</span></td>' +
       '<td><button class="btn btn-success btn-sm" onclick="confirmarAviso('+a.id+')">Confirmar</button></td>' +
     '</tr>';
@@ -908,7 +954,7 @@ window.renderChecklistBate = function(){
   if(!tb) return;
   var avisos = getAvisos().filter(function(a){ return a.bateSalvoEm; });
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--slate-400);padding:20px">Nenhum paciente salvo no bate-mapa ainda.</td></tr>';
     return;
   }
   var total = document.querySelectorAll('.cl-item').length;
@@ -917,11 +963,12 @@ window.renderChecklistBate = function(){
     var feitos = (a.bateItens||[]).length;
     var ok = feitos >= total;
     var hemo = a.hemoderivados==='sim' ? '<span style="font-size:15px" title="Reserva de hemoderivados">🩸</span>' : (a.hemoderivados==='nao'?'Não':'—');
-    var uti = a.retaguardaUti==='sim' ? 'Sim' : '';
+    var uti = a.retaguardaUti==='sim' ? 'Sim' : (a.retaguardaUti==='nao'?'Não':'—');
     return '<tr>' +
       '<td><strong style="color:var(--navy)">'+esc(nome)+'</strong></td>' +
       '<td>'+esc(a.idade||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.dn||'—')+'</td>' +
+      '<td>'+esc(a.especialidade||'—')+'</td>' +
       '<td>'+(ok?'<span style="font-size:15px">✅</span>':'<span style="font-size:15px">✔️</span>')+' '+feitos+'/'+total+' itens</td>' +
       '<td class="center">'+hemo+'</td>' +
       '<td class="center">'+uti+'</td>' +
@@ -998,36 +1045,36 @@ window.renderMapa = function(){
   if(totalEl) totalEl.textContent = avisos.length;
   if(!tb) return;
   if(!avisos.length){
-    tb.innerHTML = '<tr><td colspan="17" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
+    tb.innerHTML = '<tr><td colspan="19" style="text-align:center;color:var(--slate-400);padding:40px">Nenhuma cirurgia encontrada. Ajuste os filtros ou adicione exemplos.</td></tr>';
     return;
   }
   tb.innerHTML = avisos.map(function(a){
     var cor = STATUS_CORES[a.statusSala]||STATUS_CORES[a.statusMapa]||'#94A3B8';
     var label = STATUS_LABELS[a.statusSala]||STATUS_LABELS[a.statusMapa]||'—';
-    var sangueDisplay = a.sangue==='S'?'<span class="badge badge-red">S</span>':a.sangue==='R'?'<span class="badge badge-red">R</span>':'Não';
-    var utiDisplay = a.uti==='Sim'?'<span class="badge badge-amber">Sim</span>':'Não';
-    var latexIcon = a.latex==='sim'?' <span title="Látex-free" style="font-size:13px">⚠️</span>':'';
-    var hmIcon = a.hm==='confirmado'||a.hm==='suspeita'?' <span title="Hipertermia Maligna" style="font-size:13px">🔥</span>':'';
-    var vadIcon = a.vad==='sim'||a.vad==='suspeita'?' <span title="Via Aérea Difícil" style="font-size:13px">🩺</span>':'';
     var cirurgiaoDisplay = displayProfissional(a, a.cirurgiao||'—');
     var anestesistaDisplay = displayProfissional(a, a.anestesista||'—');
     var convenioDisplay = (typeof displayConvenio === 'function') ? displayConvenio(a) : ((typeof renderConvenioLabel === 'function') ? renderConvenioLabel(a.convenio||'—') : (a.convenio||'—'));
+    var latexIcon = a.latex==='sim'?' <span title="Látex-free" style="font-size:13px">⚠️</span>':'';
+    var hmIcon = a.hm==='confirmado'||a.hm==='suspeita'?' <span title="Hipertermia Maligna" style="font-size:13px">🔥</span>':'';
+    var vadIcon = a.vad==='sim'||a.vad==='suspeita'?' <span title="Via Aérea Difícil" style="font-size:13px">🩺</span>':'';
     return '<tr>' +
       '<td><strong style="font-size:16px;color:var(--navy)">'+a.sala+'</strong></td>' +
       '<td><strong>'+a.hora+'</strong><br><span style="font-size:10px;color:var(--slate-400)">'+a.prontuario+'</span></td>' +
       '<td><strong>'+((typeof displayPacienteName === 'function') ? displayPacienteName(a) : sanitizePacienteNome(a.nome)).split('—')[0].trim()+'</strong>'+latexIcon+hmIcon+vadIcon+'</td>' +
       '<td class="center">'+esc(a.idade || (a.dn ? calcIdade(a.dn) : '—'))+'</td>' +
       '<td style="font-size:11px">'+esc(a.dn||'—')+'</td>' +
+      '<td>'+esc(a.especialidade||'—')+'</td>' +
       '<td style="font-size:12px">'+(a.procedimento||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(a.lateralidade||'—')+'</td>' +
       '<td style="font-size:12px">'+cirurgiaoDisplay+'</td>' +
       '<td style="font-size:12px">'+anestesistaDisplay+'</td>' +
       '<td style="font-size:12px">'+convenioDisplay+'</td>' +
       '<td style="font-size:11px;color:var(--slate-500)">'+(a.leito||'—')+'</td>' +
-      '<td class="center">'+sangueDisplay+'</td>' +
-      '<td class="center">'+utiDisplay+'</td>' +
-      '<td class="center">'+(a.hemoderivados==='sim'?'<span title="Reserva de hemoderivados" style="font-size:14px">🩸</span>':'—')+'</td>' +
-      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':'—')+'</td>' +
+      '<td class="center">'+(a.hemoderivados==='sim'?'<span title="Reserva de hemoderivados" style="font-size:14px">🩸</span>':(a.hemoderivados==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.retaguardaUti==='sim'?'Sim':(a.retaguardaUti==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.opme==='sim'?'<span class="badge badge-green">Sim</span>':(a.opme==='nao'?'Não':'—'))+'</td>' +
+      '<td class="center">'+(a.consignado==='sim'?'<span class="badge badge-blue">Sim</span>':(a.consignado==='nao'?'Não':'—'))+'</td>' +
+      '<td style="font-size:11.5px">'+esc(a.fornecedor||'—')+'</td>' +
       '<td style="font-size:12px">'+esc(displayProfissional(a, a.enfermeiro||'—'))+'</td>' +
       '<td><span onclick="alterarStatus('+a.id+')" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:11px;font-weight:700;padding:4px 8px;border-radius:999px;background:'+cor+'20;color:'+cor+';border:1px solid '+cor+'50">'+
       '<span style="width:8px;height:8px;border-radius:50%;background:'+cor+';display:inline-block"></span>'+label+'</span></td>' +
@@ -1333,6 +1380,7 @@ document.addEventListener('input', function(e){
 document.getElementById('av-data').value = new Date().toISOString().split('T')[0];
 document.getElementById('filtro-data-mapa') && (document.getElementById('filtro-data-mapa').value = new Date().toISOString().split('T')[0]);
 carregarSelectProcedimentos();
+carregarSelectEspecialidades();
 carregarSelectAvPacientes();
 carregarAvisos();
 renderIndicadoresVazios();
