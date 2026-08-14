@@ -175,6 +175,32 @@ const path = require('path');
       } else { fail('painel SAEP não encontrado'); }
     }catch(e){ fail('SAEP print exception: '+e.message); }
 
+    // ---- NOVO MODELO: Painel de Salas (etapa 6) — impressão sem máscara e com CSS claro ----
+    try{
+      const panelSalas = d.getElementById('panel-3');
+      if(panelSalas){
+        d.querySelectorAll('.step-panel').forEach(p=>p.classList.remove('active'));
+        panelSalas.classList.add('active');
+        if(typeof w.adicionarExemplos === 'function') w.adicionarExemplos();
+        if(typeof w.renderPainel === 'function') w.renderPainel();
+        printedHtml = null;
+        w.imprimirEtapaAtual();
+        if(printedHtml === null){ fail('Painel de Salas: window.open não chamado'); }
+        else{
+          const textoIntegral = printedHtml.indexOf('Painel Cirúrgico') !== -1;
+          const semMascara = printedHtml.indexOf('P.C.') === -1;
+          const painelClaro = printedHtml.indexOf('.painel-tv{background:#fff!important') !== -1;
+          const cardClaro = printedHtml.indexOf('.painel-tv .sala-card{background:#fff!important') !== -1;
+          const gridPrint = printedHtml.indexOf('.painel-tv .mapa-grid{display:grid') !== -1;
+          if(textoIntegral) ok('Painel de Salas: texto integral "Painel Cirúrgico" preservado (sem máscara antiga)'); else fail('texto do painel foi mascarado/corrompido');
+          if(semMascara) ok('sem conversão para iniciais (sanitização antiga ausente)'); else fail('sanitização antiga de iniciais ainda presente');
+          if(painelClaro) ok('painel TV impresso com fundo branco (CSS claro)'); else fail('painel TV sem regra de fundo claro');
+          if(cardClaro) ok('cards de sala impressos com fundo branco e borda'); else fail('cards de sala sem regra de impressão clara');
+          if(gridPrint) ok('cards em grade 2 colunas na impressão'); else fail('grid de impressão do painel ausente');
+        }
+      } else { fail('painel de salas não encontrado'); }
+    }catch(e){ fail('Painel de Salas print exception: '+e.message); }
+
     const fails = results.filter(r=>!r.ok).length;
     console.log('\nTEST SUMMARY:');
     results.forEach(r=>console.log((r.ok?'\u2714':'\u2716'), r.msg));
