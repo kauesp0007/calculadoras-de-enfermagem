@@ -1358,16 +1358,18 @@ window.imprimirEtapaAtual=function(){
       if(!parts.length){ showToast('Nenhum painel SAEP encontrado para impressão.','warning'); return; }
       var bodyHtml = parts.join('\n');
       var title = 'SAEP — Centro Cirúrgico';
-      var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+title+'</title><style>'+
-        '*{margin:0;padding:0;box-sizing:border-box} body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px}'+
-        '.hdr{background:#1A3E74;color:#fff;padding:14px 20px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}'+
-        '.hdr h1{font-size:13pt;font-weight:900}.hdr p{font-size:8pt;opacity:.8;margin-top:3px}'+
-        '.card{border:1px solid #E2E8F0;border-radius:8px;margin-bottom:14px;overflow:hidden}'+
-        '.card-head{background:#F8FAFC;padding:10px 16px;border-bottom:1px solid #E2E8F0;font-weight:700;font-size:11pt;color:#1A3E74}'+
-        '.card-body{padding:14px 16px} .tbl{width:100%;border-collapse:collapse;font-size:9pt}.tbl th{background:#1A3E74;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}.tbl td{padding:5px 8px;border-bottom:1px solid #F1F5F9}'+
-        '.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.form-group{margin-bottom:8px}.form-group label{font-size:8pt;font-weight:700;color:#475569;display:block;margin-bottom:2px}'+
-        '.footer-print{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}'+
-      '</style></head><body>'+
+      var globalStyles = (function(){
+        try{ var el = document.getElementById('global-print-styles'); if(el) return el.innerHTML; }catch(e){}
+        return '*{margin:0;padding:0;box-sizing:border-box} body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px} '+
+               '.hdr{background:#1A3E74;color:#fff;padding:14px 20px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center} '+
+               '.hdr h1{font-size:13pt;font-weight:900}.hdr p{font-size:8pt;opacity:.8;margin-top:3px} '+
+               '.card{border:1px solid #E2E8F0;border-radius:8px;margin-bottom:14px;overflow:hidden} '+
+               '.card-head{background:#F8FAFC;padding:10px 16px;border-bottom:1px solid #E2E8F0;font-weight:700;font-size:11pt;color:#1A3E74} '+
+               '.card-body{padding:14px 16px} .tbl{width:100%;border-collapse:collapse;font-size:9pt}.tbl th{background:#1A3E74;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}.tbl td{padding:5px 8px;border-bottom:1px solid #F1F5F9} '+
+               '.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.form-group{margin-bottom:8px}.form-group label{font-size:8pt;font-weight:700;color:#475569;display:block;margin-bottom:2px} '+
+               '.footer-print{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}';
+      })();
+      var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+title+'</title><style>'+globalStyles+'</style></head><body>'+
         '<div class="hdr"><div><h1>SAEP — Sistematização da Assistência de Enfermagem Perioperatória</h1><p>Centro Cirúrgico — Calculadoras de Enfermagem</p></div><div style="text-align:right;font-size:8.5pt"><strong>Data:</strong> '+new Date().toLocaleDateString('pt-BR')+'</div></div>'+
         bodyHtml + '<div class="footer-print">Ferramenta educacional — Dados fictícios armazenados localmente (LGPD) — calculadorasdeenfermagem.com.br</div>'+
         '<script>window.onload=function(){window.print();}<'+'/script></body></html>';
@@ -1405,30 +1407,32 @@ window.imprimirEtapaAtual=function(){
       tn.nodeValue = maskNamesInText(neutralizeOrgNames(tn.nodeValue));
     }
   }catch(e){}
-  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+stepName+' - Centro Cirúrgico</title><style>'+
-    '*{margin:0;padding:0;box-sizing:border-box}'+
-    'body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px}'+
-    '.hdr{background:#1A3E74;color:#fff;padding:14px 20px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}'+
-    '.hdr h1{font-size:13pt;font-weight:900}.hdr p{font-size:8pt;opacity:.8;margin-top:3px}'+
-    '.card{border:1px solid #E2E8F0;border-radius:8px;margin-bottom:14px;overflow:hidden}'+
-    '.card-head{background:#F8FAFC;padding:10px 16px;border-bottom:1px solid #E2E8F0;font-weight:700;font-size:11pt;color:#1A3E74}'+
-    '.card-body{padding:14px 16px}'+
-    '.tbl{width:100%;border-collapse:collapse;font-size:9pt}.tbl th{background:#1A3E74;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}.tbl td{padding:5px 8px;border-bottom:1px solid #F1F5F9}'+
-    '.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.form-group{margin-bottom:8px}.form-group label{font-size:8pt;font-weight:700;color:#475569;display:block;margin-bottom:2px}'+
-    '.explainer{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;margin-bottom:14px}.explainer h3{font-size:11pt;color:#1A3E74;margin-bottom:6px}.explainer p{font-size:9pt;color:#475569;line-height:1.5}'+
-    '.alert{padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:9pt}.alert-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}.alert-amber{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E}'+
-    '.sec-div{margin:14px 0 10px}.sec-div h3{font-size:10pt;font-weight:800;color:#1A3E74}'+
-    '.checklist-item{display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:9pt}'+
-    '.oms3-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.oms3-col{border:2px solid;border-radius:8px;overflow:hidden}.oms3-col-head{padding:8px 12px;color:#fff;font-weight:700;font-size:10pt}.col-green .oms3-col-head{background:#2E7D32}.col-green{border-color:#66BB6A}.col-grey .oms3-col-head{background:#455A64}.col-grey{border-color:#90A4AE}.col-blue .oms3-col-head{background:#1565C0}.col-blue{border-color:#42A5F5}.oms3-body{padding:10px 12px}.oms3-item{padding:4px 6px;font-size:8.5pt}.oms3-item.done{text-decoration:line-through;color:#999}'+
-    '.cme-flow{display:flex;gap:6px;margin-bottom:14px}.cme-fs{flex:1;text-align:center;padding:8px;border:1px solid #E2E8F0;border-radius:6px}'+
-    '.ind-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}.ind-kpi{border:1px solid #E2E8F0;border-radius:6px;padding:10px;text-align:center}.ind-kpi-val{font-size:18pt;font-weight:900}'+
-    '.saep-check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.saep-check-item{padding:5px 8px;font-size:8.5pt;border:1px solid #E2E8F0;border-radius:4px}'+
-    '.footer-print{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}'+
-    '</style></head><body>'+
+  var globalStyles = (function(){
+    try{ var el = document.getElementById('global-print-styles'); if(el) return el.innerHTML; }catch(e){}
+    return '*{margin:0;padding:0;box-sizing:border-box} '+
+           'body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px} '+
+           '.hdr{background:#1A3E74;color:#fff;padding:14px 20px;border-radius:8px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center} '+
+           '.hdr h1{font-size:13pt;font-weight:900}.hdr p{font-size:8pt;opacity:.8;margin-top:3px} '+
+           '.card{border:1px solid #E2E8F0;border-radius:8px;margin-bottom:14px;overflow:hidden} '+
+           '.card-head{background:#F8FAFC;padding:10px 16px;border-bottom:1px solid #E2E8F0;font-weight:700;font-size:11pt;color:#1A3E74} '+
+           '.card-body{padding:14px 16px} '+
+           '.tbl{width:100%;border-collapse:collapse;font-size:9pt}.tbl th{background:#1A3E74;color:#fff;padding:6px 8px;text-align:left;font-size:8pt}.tbl td{padding:5px 8px;border-bottom:1px solid #F1F5F9} '+
+           '.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px}.form-group{margin-bottom:8px}.form-group label{font-size:8pt;font-weight:700;color:#475569;display:block;margin-bottom:2px} '+
+           '.explainer{background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:12px 16px;margin-bottom:14px}.explainer h3{font-size:11pt;color:#1A3E74;margin-bottom:6px}.explainer p{font-size:9pt;color:#475569;line-height:1.5} '+
+           '.alert{padding:10px 14px;border-radius:8px;margin-bottom:12px;font-size:9pt}.alert-blue{background:#EFF6FF;border:1px solid #BFDBFE;color:#1E40AF}.alert-amber{background:#FFFBEB;border:1px solid #FDE68A;color:#92400E} '+
+           '.sec-div{margin:14px 0 10px}.sec-div h3{font-size:10pt;font-weight:800;color:#1A3E74} '+
+           '.checklist-item{display:flex;align-items:center;gap:8px;padding:5px 8px;font-size:9pt} '+
+           '.oms3-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}.oms3-col{border:2px solid;border-radius:8px;overflow:hidden}.oms3-col-head{padding:8px 12px;color:#fff;font-weight:700;font-size:10pt}.col-green .oms3-col-head{background:#2E7D32}.col-green{border-color:#66BB6A}.col-grey .oms3-col-head{background:#455A64}.col-grey{border-color:#90A4AE}.col-blue .oms3-col-head{background:#1565C0}.col-blue{border-color:#42A5F5}.oms3-body{padding:10px 12px}.oms3-item{padding:4px 6px;font-size:8.5pt}.oms3-item.done{text-decoration:line-through;color:#999} '+
+           '.cme-flow{display:flex;gap:6px;margin-bottom:14px}.cme-fs{flex:1;text-align:center;padding:8px;border:1px solid #E2E8F0;border-radius:6px} '+
+           '.ind-kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-bottom:12px}.ind-kpi{border:1px solid #E2E8F0;border-radius:6px;padding:10px;text-align:center}.ind-kpi-val{font-size:18pt;font-weight:900} '+
+           '.saep-check-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}.saep-check-item{padding:5px 8px;font-size:8.5pt;border:1px solid #E2E8F0;border-radius:4px} '+
+           '.footer-print{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}';
+  })();
+  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+stepName+' - Centro Cirúrgico</title><style>'+globalStyles+'</style></head><body>'+
     '<div class="hdr"><div><h1>Simulador de Centro Cirúrgico</h1><p>'+stepName+' — Calculadoras de Enfermagem</p></div><div style="text-align:right;font-size:8.5pt"><strong>Data:</strong> '+new Date().toLocaleDateString('pt-BR')+'</div></div>'+
     content.innerHTML+
     '<div class="footer-print">Ferramenta educacional — Dados fictícios armazenados localmente (LGPD)<br>Baseado nas diretrizes SOBECC, OMS e ANVISA RDC 36/2013 | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>'+
-    '<script>window.onload=function(){window.print();}<\/script></body></html>';
+    '<script>window.onload=function(){window.print();}<'+'/script></body></html>';
   try{ logEventLocal('print_step',{step: stepName}); }catch(e){}
   var janela=window.open('','_blank');janela.document.write(html);janela.document.close();
 };
