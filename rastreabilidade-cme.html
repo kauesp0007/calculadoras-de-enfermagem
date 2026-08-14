@@ -5,7 +5,7 @@
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>Rastreabilidade de Instrumental Cirúrgico — CME | Calculadoras de Enfermagem</title>
 <meta content="#1A3E74" name="theme-color"/>
-<meta content="Sistema de rastreabilidade de instrumental cirúrgico para Centro de Material e Esterilização (CME). Registre lotes, acompanhe o fluxo expurgo-preparo-esterilização-distribuição e aplique o POP de identificação por etiqueta marcadora. Ferramenta educacional baseada em evidências SOBECC." name="description"/>
+<meta content="Sistema completo de rastreabilidade educativa e didática simulatória para Centro de Material e Esterilização (CME). Registre lotes, acompanhe o fluxo expurgo-preparo-esterilização-distribuição e aplique o POP de identificação por etiqueta marcadora. Ferramenta educacional baseada nas diretrizes normativas da ANVISA/COFEN/MS/OMS/SOBECC." name="description"/>
 <meta content="rastreabilidade, CME, central de material, esterilização, instrumental cirúrgico, código de barras, etiqueta marcadora, lote, SOBECC, enfermagem cirúrgica" name="keywords"/>
 <meta content="Calculadoras de Enfermagem" name="author"/>
 <meta content="index, follow, max-snippet:320, max-image-preview:large" name="robots"/>
@@ -25,7 +25,7 @@
 "@context":"https://schema.org",
 "@graph":[
 {"@type":"Organization","@id":"https://www.calculadorasdeenfermagem.com.br/#organization","name":"Calculadoras de Enfermagem","url":"https://www.calculadorasdeenfermagem.com.br"},
-{"@type":"WebPage","@id":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html/#webpage","url":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html","name":"Rastreabilidade de Instrumental Cirúrgico — CME","description":"Sistema educacional de rastreabilidade de instrumental cirúrgico para Centro de Material e Esterilização, baseado em evidências SOBECC e ANVISA RDC 15/2012.","inLanguage":"pt-BR","datePublished":"2026-08-10T00:00:00-03:00","dateModified":"2026-08-10T00:00:00-03:00","breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://www.calculadorasdeenfermagem.com.br/"},{"@type":"ListItem","position":2,"name":"Simulador de Centro Cirúrgico","item":"https://www.calculadorasdeenfermagem.com.br/centro-cirurgico.html"},{"@type":"ListItem","position":3,"name":"Rastreabilidade CME","item":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html"}]}}
+{"@type":"WebPage","@id":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html/#webpage","url":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html","name":"Rastreabilidade de Instrumental Cirúrgico — CME","description":"Sistema educacional de rastreabilidade de instrumental cirúrgico para Centro de Material e Esterilização, baseado nas diretrizes normativas da ANVISA/COFEN/MS/OMS/SOBECC e ANVISA RDC 15/2012.","inLanguage":"pt-BR","datePublished":"2026-08-10T00:00:00-03:00","dateModified":"2026-08-10T00:00:00-03:00","breadcrumb":{"@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Início","item":"https://www.calculadorasdeenfermagem.com.br/"},{"@type":"ListItem","position":2,"name":"Simulador de Centro Cirúrgico","item":"https://www.calculadorasdeenfermagem.com.br/centro-cirurgico.html"},{"@type":"ListItem","position":3,"name":"Rastreabilidade CME","item":"https://www.calculadorasdeenfermagem.com.br/rastreabilidade-cme.html"}]}}
 ]
 }
 </script>
@@ -488,7 +488,7 @@ n    <!-- FLUXO VISUAL -->
           </div>
           <div class="form-group">
             <label>Equipamento / Autoclave</label>
-            <input type="text" id="lt-autoclave" placeholder="Ex: Autoclave 01 / Sterrad 100S"/>
+            <input type="text" id="lt-autoclave" placeholder="Ex: Autoclave 01"/>
           </div>
           <div class="form-group">
             <label>Data e Hora do Ciclo <span style="color:var(--red)">*</span></label>
@@ -643,7 +643,7 @@ n        <div class="btn-row">
       </div>
 
 n      <div style="padding:16px 20px;background:var(--slate-50);border-top:1px solid var(--slate-200);display:flex;justify-content:flex-end;gap:10px">
-        <button class="btn btn-ghost btn-sm" onclick="window.print()">
+        <button class="btn btn-ghost btn-sm" onclick="window.print()" title="POP e exemplos são didáticos e não substituem protocolos institucionais; personalize conforme sua unidade." aria-label="Imprimir POP — aviso educativo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M6 9V2h12v7M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2M6 14h12v8H6v-8z" stroke-linecap="round" stroke-linejoin="round"/></svg>
           Imprimir POP
         </button>
@@ -771,6 +771,74 @@ function showToast(msg){
   setTimeout(()=>t.classList.remove('show'),2800);
 }
 
+// =========================
+// SANITIZAÇÃO / ANONIMIZAÇÃO
+// =========================
+function toInitials(raw){
+  if(!raw && raw !== '') return '';
+  var s=String(raw).trim();
+  if(!s) return '';
+  // Already initials-like? keep normalized
+  if(/^[A-ZÀ-Ý\.\s]{1,16}$/.test(s.replace(/\s+/g,''))){
+    return s.toUpperCase();
+  }
+  var parts=s.split(/\s+/).filter(Boolean);
+  var stopwords=/^(da|de|do|dos|das|e|y|la|el)$/i;
+  var filtered=parts.filter(function(p){return !stopwords.test(p);});
+  if(!filtered.length) filtered=parts;
+  var initials=filtered.map(function(p){return p.charAt(0).toUpperCase();}).join('.');
+  return initials? initials + '.' : '';
+}
+
+function neutralizeOrgNames(text){
+  if(text===null||text===undefined) return '';
+  var out=String(text);
+  var map={
+    'Plano de Saúde saude':'Plano de Saúde',
+    'Plano de Saúde saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'Plano de Saúde':'Plano de Saúde',
+    'hospital particular':'Hospital Particular',
+    'hospital sus':'Hospital SUS',
+    'hospital convênio':'Hospital Convênio',
+    'hospital convenio':'Hospital Convênio',
+    'ster rad':'Autoclave',
+    'sterrad':'Autoclave'
+  };
+  Object.keys(map).forEach(function(k){
+    var re=new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'ig');
+    out=out.replace(re,map[k]);
+  });
+  return out;
+}
+
+function maskNamesInText(text){
+  if(text===null||text===undefined) return '';
+  var out=String(text);
+  // Replace sequences of 2+ capitalized words (likely full names) with initials
+  out = out.replace(/\b([A-ZÀ-Ý][a-zà-ÿ-]+(?:\s+[A-ZÀ-Ý][a-zà-ÿ-]+)+)\b/g, function(m){
+    return toInitials(m);
+  });
+  return out;
+}
+
+function sanitizeFieldForExport(text){
+  if(text===null||text===undefined) return '';
+  var s=String(text);
+  s = neutralizeOrgNames(s);
+  s = maskNamesInText(s);
+  return s.trim();
+}
+
+function sanitizeResponsavelField(raw){
+  if(!raw && raw !== '') return '';
+  return toInitials(raw);
+}
+
 // CHECKLIST TOGGLE (global, todos os checklists da página)
 function toggleCL(el){
   el.classList.toggle('done');
@@ -828,9 +896,9 @@ window.salvarMovimentacao=function(){
     id:Date.now(),
     etapa:etapa,
     caixa:caixa.toUpperCase(),
-    especialidade:document.getElementById('fl-especialidade').value,
-    responsavel:document.getElementById('fl-responsavel').value.toUpperCase(),
-    obs:document.getElementById('fl-obs').value,
+    especialidade:sanitizeFieldForExport(document.getElementById('fl-especialidade').value),
+    responsavel:sanitizeResponsavelField(document.getElementById('fl-responsavel').value),
+    obs:sanitizeFieldForExport(document.getElementById('fl-obs').value),
     datahora:document.getElementById('fl-datahora').value||new Date().toLocaleString('pt-BR')
   };
   try{
@@ -860,16 +928,16 @@ window.addLoteItem=function(){
 };
 
 window.salvarLote=function(){
-  var numero=document.getElementById('lt-numero').value.trim().toUpperCase();
-  var metodo=document.getElementById('lt-metodo').value;
+  var numero=sanitizeFieldForExport(document.getElementById('lt-numero').value).trim().toUpperCase();
+  var metodo=sanitizeFieldForExport(document.getElementById('lt-metodo').value);
   if(!numero||!metodo){showToast('Preencha o número do lote e o método.');return;}
   var lote={
     numero:numero,
     metodo:metodo,
-    autoclave:document.getElementById('lt-autoclave').value,
-    data:document.getElementById('lt-data').value,
-    validade:document.getElementById('lt-validade').value,
-    resp:document.getElementById('lt-resp').value.toUpperCase(),
+    autoclave:sanitizeFieldForExport(document.getElementById('lt-autoclave').value),
+    data:sanitizeFieldForExport(document.getElementById('lt-data').value),
+    validade:sanitizeFieldForExport(document.getElementById('lt-validade').value),
+    resp:sanitizeResponsavelField(document.getElementById('lt-resp').value),
     indQuimico:document.getElementById('lt-ind-quimico').checked,
     indBiologico:document.getElementById('lt-ind-biologico').checked,
     bowieDick:document.getElementById('lt-bowie-dick').checked,
@@ -900,7 +968,13 @@ function renderLotes(){
       if(l.indBiologico) inds.push('<span class="badge badge-blue">Bio.</span>');
       if(l.bowieDick) inds.push('<span class="badge badge-teal">B-D</span>');
       if(l.implante) inds.push('<span class="badge badge-amber">Implante</span>');
-      return '<tr><td style="font-weight:800;color:var(--navy)>'+l.numero+'</td><td>'+l.metodo+'</td><td>'+(l.autoclave||'—')+'</td><td>'+(l.data||'—')+'</td><td>'+(l.validade?'<span class="badge badge-green">'+l.validade+'</span>':'—')+'</td><td>'+(l.resp||'—')+'</td><td>'+( inds.length?inds.join(' '):'—')+'</td><td><span class="badge badge-green">'+l.status+'</span></td></tr>';
+      var numero = sanitizeFieldForExport(l.numero||'');
+      var metodo = sanitizeFieldForExport(l.metodo||'');
+      var autoclave = sanitizeFieldForExport(l.autoclave||'');
+      var data = sanitizeFieldForExport(l.data||'');
+      var validade = sanitizeFieldForExport(l.validade||'');
+      var resp = sanitizeResponsavelField(l.resp||'');
+      return '<tr><td style="font-weight:800;color:var(--navy)">' + numero + '</td><td>' + metodo + '</td><td>' + (autoclave||'—') + '</td><td>' + (data||'—') + '</td><td>' + (validade?('<span class="badge badge-green">'+validade+'</span>'):'—') + '</td><td>' + (resp||'—') + '</td><td>' + ( inds.length?inds.join(' '):'—') + '</td><td><span class="badge badge-green">' + (l.status||'') + '</span></td></tr>';
     }).join('');
   }catch(x){}
 }
@@ -913,7 +987,12 @@ function renderHistorico(){
     var cores={'expurgo':'badge-red','lavagem':'badge-blue','inspecao':'badge-gray','preparo':'badge-amber','esterilizacao':'badge-teal','armazenamento':'badge-green'};
     var labels={'expurgo':'Expurgo','lavagem':'Lavagem','inspecao':'Inspeção','preparo':'Preparo','esterilizacao':'Esterilização','armazenamento':'Armazenamento'};
     tb.innerHTML=arr.map(function(h){
-      return '<tr><td style="white-space:nowrap;font-size:12px">'+h.datahora+'</td><td><span class="badge '+(cores[h.etapa]||'badge-gray')+'">'+(labels[h.etapa]||h.etapa)+'</span></td><td style="font-weight:700">'+h.caixa+'</td><td>'+(h.especialidade||'—')+'</td><td>'+(h.responsavel||'—')+'</td><td style="font-size:12px;color:var(--slate-600)">'+(h.obs||'—')+'</td><td><span class="badge badge-green">OK</span></td></tr>';
+      var datahora = sanitizeFieldForExport(h.datahora||'');
+      var caixa = sanitizeFieldForExport(h.caixa||'');
+      var especialidade = sanitizeFieldForExport(h.especialidade||'');
+      var responsavel = sanitizeResponsavelField(h.responsavel||'');
+      var obs = sanitizeFieldForExport(h.obs||'');
+      return '<tr><td style="white-space:nowrap;font-size:12px">'+datahora+'</td><td><span class="badge '+(cores[h.etapa]||'badge-gray')+'">'+(labels[h.etapa]||sanitizeFieldForExport(h.etapa||''))+'</span></td><td style="font-weight:700">'+caixa+'</td><td>'+(especialidade||'—')+'</td><td>'+(responsavel||'—')+'</td><td style="font-size:12px;color:var(--slate-600)">'+(obs||'—')+'</td><td><span class="badge badge-green">OK</span></td></tr>';
     }).join('');
   }catch(x){}
 }
@@ -927,8 +1006,15 @@ window.exportarHistorico=function(){
     var arr=JSON.parse(localStorage.getItem('cme_historico')||'[]');
     if(!arr.length){showToast('Nenhum dado para exportar.');return;}
     var csv='Data/Hora,Etapa,Caixa/Kit,Especialidade,Responsável,Observação\n';
+    var labels={'expurgo':'Expurgo','lavagem':'Lavagem','inspecao':'Inspeção','preparo':'Preparo','esterilizacao':'Esterilização','armazenamento':'Armazenamento'};
     arr.forEach(function(h){
-      csv+='"'+h.datahora+'","'+h.etapa+'","'+h.caixa+'","'+(h.especialidade||'')+'","'+(h.responsavel||'')+'","'+(h.obs||'')+'"\n';
+      var datahora = sanitizeFieldForExport(h.datahora||'');
+      var etapaLabel = labels[h.etapa]||sanitizeFieldForExport(h.etapa||'');
+      var caixa = sanitizeFieldForExport(h.caixa||'');
+      var especialidade = sanitizeFieldForExport(h.especialidade||'');
+      var responsavel = sanitizeResponsavelField(h.responsavel||'');
+      var obs = sanitizeFieldForExport(h.obs||'');
+      csv += '"'+datahora+'","'+etapaLabel+'","'+caixa+'","'+especialidade+'","'+responsavel+'","'+obs+'"\n';
     });
     var a=document.createElement('a');
     a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('\uFEFF'+csv);
@@ -939,11 +1025,11 @@ window.exportarHistorico=function(){
 };
 
 window.imprimirEtiqueta=function(){
-  var numero=document.getElementById('lt-numero').value.trim().toUpperCase()||'CME-XXXX-XXXX';
-  var metodo=document.getElementById('lt-metodo').value||'—';
-  var data=document.getElementById('lt-data').value||new Date().toLocaleDateString('pt-BR');
-  var validade=document.getElementById('lt-validade').value||'—';
-  var resp=document.getElementById('lt-resp').value.toUpperCase()||'—';
+  var numero=(sanitizeFieldForExport(document.getElementById('lt-numero').value).trim().toUpperCase())||'CME-XXXX-XXXX';
+  var metodo=sanitizeFieldForExport(document.getElementById('lt-metodo').value)||'—';
+  var data=sanitizeFieldForExport(document.getElementById('lt-data').value)||new Date().toLocaleDateString('pt-BR');
+  var validade=sanitizeFieldForExport(document.getElementById('lt-validade').value)||'—';
+  var resp=sanitizeResponsavelField(document.getElementById('lt-resp').value)||'—';
   var content=document.getElementById('etiqueta-content');
   content.innerHTML='<div style="border:2px dashed #CBD5E1;border-radius:12px;padding:16px;font-family:monospace;font-size:12px">'
     +'<div style="text-align:center;font-weight:800;font-size:13px;color:#0F2447;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">Central de Material e Esterilização</div>'

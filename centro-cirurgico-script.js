@@ -38,9 +38,73 @@ function toInitials(raw){
       // insert dots where missing and uppercase
       var letters = compact.replace(/\./g,'').split('');
       return letters.map(function(c){ return c.toUpperCase(); }).join('.') + '.';
+    };
+
+    // ==================== SANITIZAÇÃO / ANONIMIZAÇÃO
+    function toInitials(raw){
+      if(raw===null||raw===undefined) return '';
+      var s=String(raw).trim();
+      if(!s) return '';
+      if(/^[A-ZÀ-Ý\.\s]{1,20}$/.test(s.replace(/\s+/g,''))){
+        return s.toUpperCase();
+      }
+      var parts=s.split(/\s+/).filter(Boolean);
+      var stopwords=/^(da|de|do|dos|das|e|y|la|el)$/i;
+      var filtered=parts.filter(function(p){return !stopwords.test(p);});
+      if(!filtered.length) filtered=parts;
+      var initials=filtered.map(function(p){return p.charAt(0).toUpperCase();}).join('.');
+      return initials? initials + '.' : '';
     }
-    // extract letter groups (words)
-    var parts = left.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+/g) || [];
+
+    function neutralizeOrgNames(text){
+      if(text===null||text===undefined) return '';
+      var out=String(text);
+      var map={
+        'bradesco saude':'Plano de Saúde',
+        'bradesco saúde':'Plano de Saúde',
+        'sulamerica':'Plano de Saúde',
+        'sulamérica':'Plano de Saúde',
+        'unimed':'Plano de Saúde',
+        'amil':'Plano de Saúde',
+        'allianz':'Plano de Saúde',
+        'porto seguro':'Plano de Saúde',
+        'hospital particular':'Hospital Particular',
+        'hospital sus':'Hospital SUS',
+        'hospital convênio':'Hospital Convênio',
+        'hospital convenio':'Hospital Convênio',
+        'sterrad':'Autoclave',
+        'ster rad':'Autoclave'
+      };
+      Object.keys(map).forEach(function(k){
+        var re=new RegExp(k.replace(/[-\/\\^$*+?.()|[\]{}]/g,'\\$&'),'ig');
+        out=out.replace(re,map[k]);
+      });
+      return out;
+    }
+
+    function maskNamesInText(text){
+      if(text===null||text===undefined) return '';
+      var out=String(text);
+      out = out.replace(/\b([A-ZÀ-Ý][a-zà-ÿ-]+(?:\s+[A-ZÀ-Ý][a-zà-ÿ-]+)+)\b/g, function(m){
+        return toInitials(m);
+      });
+      return out;
+    }
+
+    function sanitizeFieldForExport(text){
+      if(text===null||text===undefined) return '';
+      var s=String(text);
+      s = neutralizeOrgNames(s);
+      s = maskNamesInText(s);
+      return s.trim();
+    }
+
+    function sanitizeResponsavelField(raw){
+      if(raw===null||raw===undefined) return '';
+      return toInitials(raw);
+    }
+
+    // ==================== GLOBAL: IMPRIMIR / EXCEL / ZERAR
     if(parts.length===0){ // fallback: take first letter
       var ch = left.replace(/[^A-Za-zÀ-ÖØ-öø-ÿ]/g,'').charAt(0) || '';
       return ch ? ch.toUpperCase()+'.' : '';
@@ -637,14 +701,23 @@ window.abrirModal = function(id){
   var cor = STATUS_CORES[a.statusSala]||'#94A3B8';
   var label = STATUS_LABELS[a.statusSala]||'—';
   if(modalBodyEl){
+    var procedimento = sanitizeFieldForExport(a.procedimento||'—');
+    var convenio = neutralizeOrgNames(sanitizeFieldForExport(a.convenio||'—'))||'—';
+    var cirurgiao = sanitizeResponsavelField(a.cirurgiao||'—')||'—';
+    var anestesia = sanitizeFieldForExport(a.anestesia||'—')||'—';
+    var posicao = sanitizeFieldForExport(a.posicao||'—')||'—';
+    var lateralidade = sanitizeFieldForExport(a.lateralidade||'—')||'—';
+    var hmBadge = (a.hm && a.hm!=='nao')? '<span class="badge badge-red">🔥 '+sanitizeFieldForExport(a.hm)+'</span>':'';
+    var vadBadge = (a.vad && a.vad!=='nao')? '<span class="badge badge-amber">🩺 '+sanitizeFieldForExport(a.vad)+'</span>':'';
+    var sangueBadge = (a.sangue && a.sangue!=='nao')? '<span class="badge badge-red">🩸 '+sanitizeFieldForExport(a.sangue)+'</span>':'';
     modalBodyEl.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Procedimento</p><p style="font-weight:600">'+(a.procedimento||'—')+'</p></div>' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Convênio</p><p>'+(a.convenio||'—')+'</p></div>' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Cirurgião</p><p>'+(a.cirurgiao||'—')+'</p></div>' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Anestesia</p><p>'+(a.anestesia||'—')+'</p></div>' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Posição</p><p>'+(a.posicao||'—')+'</p></div>' +
-        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Lateralidade</p><p>'+(a.lateralidade||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Procedimento</p><p style="font-weight:600">'+procedimento+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Convênio</p><p>'+(convenio||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Cirurgião</p><p>'+(cirurgiao||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Anestesia</p><p>'+(anestesia||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Posição</p><p>'+(posicao||'—')+'</p></div>' +
+        '<div><p style="font-size:10px;font-weight:700;text-transform:uppercase;color:var(--slate-400)">Lateralidade</p><p>'+(lateralidade||'—')+'</p></div>' +
       '</div>' +
       '<div style="background:'+cor+'15;border:1px solid '+cor+'50;border-radius:10px;padding:12px;text-align:center;margin-bottom:16px">' +
         '<p style="font-size:11px;color:var(--slate-500);margin-bottom:4px">Status atual</p>' +
@@ -652,11 +725,11 @@ window.abrirModal = function(id){
       '</div>' +
       '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px">' +
         (a.latex==='sim'?'<span class="badge badge-red">⚠️ Látex-free</span>':'')+
-        (a.hm && a.hm!=='nao'?'<span class="badge badge-red">🔥 Hipertermia Maligna</span>':'')+
-        (a.vad && a.vad!=='nao'?'<span class="badge badge-amber">🩺 Via Aérea Difícil</span>':'')+
-        (a.sangue && a.sangue!=='nao'?'<span class="badge badge-red">🩸 '+a.sangue+'</span>':'')+
+        (hmBadge)+
+        (vadBadge)+
+        (sangueBadge)+
         (a.uti==='Sim'?'<span class="badge badge-amber">🏥 UTI reservada</span>':'')+
-        (a.precaucao && a.precaucao!=='nenhuma'?'<span class="badge badge-purple">🛡️ '+a.precaucao+'</span>':'')+
+        (a.precaucao && a.precaucao!=='nenhuma'?'<span class="badge badge-purple">🛡️ '+sanitizeFieldForExport(a.precaucao)+'</span>':'')+
       '</div>' +
       '<button class="btn btn-ghost" style="width:100%" onclick="fecharModal()">Fechar</button>';
   }
@@ -681,7 +754,27 @@ window.exportarExcel = function(){
   var nl = '\n';
   var headers = ['Sala','Horário','Paciente','Prontuário','Procedimento','Lateralidade','Cirurgião','Anestesista','Convênio','Leito','Sangue','UTI','Circulante','Anestesia','Posição','Látex','HM','VAD','Munro','Status'];
   var rows = avisos.map(function(a){
-    return [a.sala,a.hora,sanitizePacienteNome(a.nome),a.prontuario,a.procedimento,a.lateralidade,a.cirurgiao,a.anestesista,a.convenio,a.leito,a.sangue,a.uti,a.enfermeiro,a.anestesia,a.posicao,a.latex,a.hm,a.vad,a.munro,STATUS_LABELS[a.statusMapa]||a.statusMapa].join(sep);
+    var sala = sanitizeFieldForExport(a.sala);
+    var hora = sanitizeFieldForExport(a.hora);
+    var paciente = sanitizePacienteNome(a.nome);
+    var prontuario = sanitizeFieldForExport(a.prontuario);
+    var procedimento = sanitizeFieldForExport(a.procedimento);
+    var lateralidade = sanitizeFieldForExport(a.lateralidade);
+    var cirurgiao = sanitizeResponsavelField(a.cirurgiao);
+    var anestesista = sanitizeResponsavelField(a.anestesista);
+    var convenio = neutralizeOrgNames(sanitizeFieldForExport(a.convenio));
+    var leito = sanitizeFieldForExport(a.leito);
+    var sangue = sanitizeFieldForExport(a.sangue);
+    var uti = sanitizeFieldForExport(a.uti);
+    var enfermeiro = sanitizeResponsavelField(a.enfermeiro);
+    var anestesia = sanitizeFieldForExport(a.anestesia);
+    var posicao = sanitizeFieldForExport(a.posicao);
+    var latex = sanitizeFieldForExport(a.latex);
+    var hm = sanitizeFieldForExport(a.hm);
+    var vad = sanitizeFieldForExport(a.vad);
+    var munro = sanitizeFieldForExport(a.munro);
+    var status = sanitizeFieldForExport(STATUS_LABELS[a.statusMapa]||a.statusMapa);
+    return [sala,hora,paciente,prontuario,procedimento,lateralidade,cirurgiao,anestesista,convenio,leito,sangue,uti,enfermeiro,anestesia,posicao,latex,hm,vad,munro,status].join(sep);
   });
   var csv = headers.join(sep)+nl+rows.join(nl);
   var blob = new Blob(['\ufeff'+csv],{type:'text/tab-separated-values;charset=utf-8'});
@@ -868,7 +961,15 @@ window.cmeSalvarMov=function(){
   var etapa=document.getElementById('cme-etapa').value;
   var caixa=document.getElementById('cme-caixa').value.trim();
   if(!etapa||!caixa){showToast('Selecione a etapa e informe a caixa.');return;}
-  var reg={id:Date.now(),etapa:etapa,caixa:caixa.toUpperCase(),esp:document.getElementById('cme-esp').value,resp:document.getElementById('cme-resp').value.toUpperCase(),obs:document.getElementById('cme-obs').value,dh:document.getElementById('cme-dh').value||new Date().toLocaleString('pt-BR')};
+  var reg={
+    id:Date.now(),
+    etapa:etapa,
+    caixa:sanitizeFieldForExport(caixa).toUpperCase(),
+    esp:sanitizeFieldForExport(document.getElementById('cme-esp').value),
+    resp:sanitizeResponsavelField(document.getElementById('cme-resp').value),
+    obs:sanitizeFieldForExport(document.getElementById('cme-obs').value),
+    dh:sanitizeFieldForExport(document.getElementById('cme-dh').value||new Date().toLocaleDateString('pt-BR'))
+  };
   try{
     var arr = readCmeHist();
     arr.unshift(reg);
@@ -884,7 +985,18 @@ window.cmeSalvarLote=function(){
   var num=document.getElementById('cme-lote-num').value.trim().toUpperCase();
   var met=document.getElementById('cme-lote-met').value;
   if(!num||!met){showToast('Preencha nº do lote e método.');return;}
-  var lote={numero:num,metodo:met,eq:document.getElementById('cme-lote-eq').value,dh:document.getElementById('cme-lote-dh').value,val:document.getElementById('cme-lote-val').value,resp:document.getElementById('cme-lote-resp').value.toUpperCase(),indQ:document.getElementById('cme-ind-q').checked,indB:document.getElementById('cme-ind-b').checked,indBD:document.getElementById('cme-ind-bd').checked,indImp:document.getElementById('cme-ind-imp').checked};
+  var lote={
+    numero:sanitizeFieldForExport(num),
+    metodo:sanitizeFieldForExport(met),
+    eq:sanitizeFieldForExport(document.getElementById('cme-lote-eq').value),
+    dh:sanitizeFieldForExport(document.getElementById('cme-lote-dh').value),
+    val:sanitizeFieldForExport(document.getElementById('cme-lote-val').value),
+    resp:sanitizeResponsavelField(document.getElementById('cme-lote-resp').value),
+    indQ:document.getElementById('cme-ind-q').checked,
+    indB:document.getElementById('cme-ind-b').checked,
+    indBD:document.getElementById('cme-ind-bd').checked,
+    indImp:document.getElementById('cme-ind-imp').checked
+  };
   try{
     var arr = readCmeLotes();
     arr.unshift(lote);
@@ -900,7 +1012,15 @@ window.cmeExportar=function(){
     var arr = readCmeHist();
     if(!arr.length){showToast('Nenhum dado.');return;}
     var csv='Data/Hora,Etapa,Caixa,Especialidade,Resp,Obs\n';
-    arr.forEach(function(h){csv+='"'+h.dh+'","'+h.etapa+'","'+h.caixa+'","'+(h.esp||'')+'","'+(h.resp||'')+'","'+(h.obs||'')+'"\n';});
+    arr.forEach(function(h){
+      var dh = sanitizeFieldForExport(h.dh||'');
+      var etapa = sanitizeFieldForExport(h.etapa||'');
+      var caixa = sanitizeFieldForExport(h.caixa||'');
+      var esp = sanitizeFieldForExport(h.esp||'');
+      var resp = sanitizeResponsavelField(h.resp||'');
+      var obs = sanitizeFieldForExport(h.obs||'');
+      csv += '"'+dh+'","'+etapa+'","'+caixa+'","'+esp+'","'+resp+'","'+obs+'"\n';
+    });
     var a=document.createElement('a');
     a.href='data:text/csv;charset=utf-8,'+encodeURIComponent('\uFEFF'+csv);
     a.download='rastreabilidade-cme.csv';a.click();
@@ -925,7 +1045,13 @@ window.cmeRenderLotes=function(){
       if(l.indB)inds.push('<span class="badge badge-blue">B</span>');
       if(l.indBD)inds.push('<span class="badge badge-teal">BD</span>');
       if(l.indImp)inds.push('<span class="badge badge-amber">Imp</span>');
-      return '<tr><td style="font-weight:800;color:var(--navy)">'+l.numero+'</td><td>'+l.metodo+'</td><td>'+(l.eq||'—')+'</td><td>'+(l.dh||'—')+'</td><td>'+(l.val||'—')+'</td><td>'+(l.resp||'—')+'</td><td>'+(inds.length?inds.join(' '):'—')+'</td></tr>';
+      var numero = sanitizeFieldForExport(l.numero||'');
+      var metodo = sanitizeFieldForExport(l.metodo||'');
+      var eq = sanitizeFieldForExport(l.eq||'');
+      var dh = sanitizeFieldForExport(l.dh||'');
+      var val = sanitizeFieldForExport(l.val||'');
+      var resp = sanitizeResponsavelField(l.resp||'');
+      return '<tr><td style="font-weight:800;color:var(--navy)'> + numero + '</td><td>' + metodo + '</td><td>' + (eq||'—') + '</td><td>' + (dh||'—') + '</td><td>' + (val||'—') + '</td><td>' + (resp||'—') + '</td><td>' + (inds.length?inds.join(' '):'—') + '</td></tr>';
     }).join('');
   }catch(e){}
 };
@@ -937,7 +1063,13 @@ window.cmeRenderHist=function(){
     var cores={'expurgo':'badge-red','lavagem':'badge-blue','inspecao':'badge-gray','preparo':'badge-amber','esterilizacao':'badge-teal','armazenamento':'badge-green'};
     var labels={'expurgo':'Expurgo','lavagem':'Lavagem','inspecao':'Inspeção','preparo':'Preparo','esterilizacao':'Esterilização','armazenamento':'Distribuição'};
     tb.innerHTML=arr.map(function(h){
-      return '<tr><td style="font-size:11px;white-space:nowrap">'+h.dh+'</td><td><span class="badge '+(cores[h.etapa]||'badge-gray')+'">'+(labels[h.etapa]||h.etapa)+'</span></td><td style="font-weight:700">'+h.caixa+'</td><td>'+(h.esp||'—')+'</td><td>'+(h.resp||'—')+'</td><td style="font-size:11px;color:var(--slate-600)">'+(h.obs||'—')+'</td></tr>';
+      var dh = sanitizeFieldForExport(h.dh||'');
+      var etapaLabel = sanitizeFieldForExport(labels[h.etapa]||h.etapa||'');
+      var caixa = sanitizeFieldForExport(h.caixa||'');
+      var esp = sanitizeFieldForExport(h.esp||'');
+      var resp = sanitizeResponsavelField(h.resp||'');
+      var obs = sanitizeFieldForExport(h.obs||'');
+      return '<tr><td style="font-size:11px;white-space:nowrap">'+dh+'</td><td><span class="badge '+(cores[h.etapa]||'badge-gray')+'">'+etapaLabel+'</span></td><td style="font-weight:700">'+caixa+'</td><td>'+(esp||'—')+'</td><td>'+(resp||'—')+'</td><td style="font-size:11px;color:var(--slate-600)">'+(obs||'—')+'</td></tr>';
     }).join('');
   }catch(e){}
 };
@@ -1021,10 +1153,34 @@ window.imprimirEtapaAtual=function(){
   var content=active.cloneNode(true);
   content.querySelectorAll('.btn-row,.btn,.no-print,.tip,.step-actions,.modal-overlay').forEach(function(el){el.remove();});
   content.querySelectorAll('input,select,textarea').forEach(function(el){
-    if(el.tagName==='SELECT'){var txt=el.options[el.selectedIndex]?el.options[el.selectedIndex].textContent:'—';var span=document.createElement('span');span.textContent=txt;span.style.cssText='font-weight:600';el.parentNode.replaceChild(span,el);}
-    else if(el.type==='checkbox'){if(el.checked)el.setAttribute('checked','checked');}
-    else{var v=el.value;if(v){var span=document.createElement('span');span.textContent=v;span.style.cssText='font-weight:600';el.parentNode.replaceChild(span,el);}}
+    if(el.tagName==='SELECT'){
+      var txt=el.options[el.selectedIndex]?el.options[el.selectedIndex].textContent:'—';
+      var span=document.createElement('span');
+      span.textContent=sanitizeFieldForExport(txt)||'—';
+      span.style.cssText='font-weight:600';el.parentNode.replaceChild(span,el);
+    }
+    else if(el.type==='checkbox'){
+      if(el.checked) el.setAttribute('checked','checked');
+    }
+    else{
+      var v=el.value;
+      if(v){
+        var span=document.createElement('span');
+        span.textContent=sanitizeFieldForExport(v)||'—';
+        span.style.cssText='font-weight:600';el.parentNode.replaceChild(span,el);
+      }
+    }
   });
+  // Sanitizar nós de texto restantes (neutraliza nomes de organizações e converte nomes próprios em iniciais)
+  try{
+    var walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+    var tn; while(tn = walker.nextNode()){
+      if(!tn.nodeValue || !tn.nodeValue.trim()) continue;
+      var parent = tn.parentNode && tn.parentNode.nodeName;
+      if(parent==='SCRIPT' || parent==='STYLE') continue;
+      tn.nodeValue = maskNamesInText(neutralizeOrgNames(tn.nodeValue));
+    }
+  }catch(e){}
   var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+stepName+' - Centro Cirúrgico</title><style>'+
     '*{margin:0;padding:0;box-sizing:border-box}'+
     'body{font-family:Arial,sans-serif;font-size:10pt;color:#1E293B;padding:20px 28px}'+
@@ -1066,9 +1222,13 @@ window.exportarExcelEtapaAtual=function(){
     if(caption&&caption.querySelector('.card-head h3'))csv+='\n'+caption.querySelector('.card-head h3').textContent.trim()+'\n';
     var rows=tbl.querySelectorAll('tr');
     rows.forEach(function(row){
-      var cells=row.querySelectorAll('th,td');
-      var rowData=[];
-      cells.forEach(function(cell){var txt=cell.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""');rowData.push('"'+txt+'"');});
+        var cells=row.querySelectorAll('th,td');
+        var rowData=[];
+        cells.forEach(function(cell){
+          var txt=cell.textContent.trim().replace(/\n/g,' ').replace(/"/g,'""');
+          txt = sanitizeFieldForExport(txt);
+          rowData.push('"'+txt+'"');
+        });
       csv+=rowData.join(';')+'\n';
     });
     csv+='\n';
