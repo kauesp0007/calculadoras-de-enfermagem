@@ -1,27 +1,52 @@
 (function(){
 "use strict";
+/*! ==================== TRAVA DE DOMÍNIO (anti-cópia) ====================
+ * O simulador só funciona no domínio oficial, em previews autorizados
+ * (base44.app) e em uso local (file://, localhost). Cópias em outros
+ * domínios exibem um aviso e ficam desativadas.
+ */
+var _cc_host='';
+try{ _cc_host = String(window.location && window.location.hostname || '').toLowerCase(); }catch(e){}
+var _cc_liberado =
+  _cc_host === '' ||                                  // file:// (uso offline/local)
+  _cc_host === 'localhost' || _cc_host === '127.0.0.1' || _cc_host === '0.0.0.0' ||
+  /(^|\.)calculadorasdeenfermagem\.com\.br$/.test(_cc_host) ||
+  /(^|\.)base44\.app$/.test(_cc_host);
+if(!_cc_liberado){
+  try{ console.warn('[centro-cirurgico] Cópia não autorizada detectada. Versão oficial: calculadorasdeenfermagem.com.br'); }catch(e){}
+  try{
+    document.addEventListener('DOMContentLoaded', function(){
+      try{
+        var _d=document.createElement('div');
+        _d.style.cssText='position:fixed;inset:0;background:rgba(15,23,42,.93);color:#fff;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:Arial,sans-serif';
+        _d.innerHTML='<div style="max-width:520px"><p style="font-size:44px;margin:0">🔒</p><h2 style="margin:14px 0 10px;font-size:20px;font-weight:900">Cópia não autorizada</h2><p style="font-size:14px;opacity:.85;line-height:1.7;margin:0">Este simulador foi copiado sem autorização e está desativado. Acesse a versão original e gratuita em <strong>calculadorasdeenfermagem.com.br</strong>.</p></div>';
+        document.body.appendChild(_d);
+      }catch(e){}
+    });
+  }catch(e){}
+  return; // trava ativa: não registra nenhuma função do simulador
+}
 var SK_AVISOS = "cc_avisos_v1";
 var SK_STATUS = "cc_status_v1";
 var currentStep = 0;
 
 // ==================== NAVIGATION ====================
-var PANEL_ORDER = ['panel-agendamento','panel-0','panel-preparo','panel-1','panel-2','panel-3','panel-cirurgia-segura','panel-4','panel-pos-cirurgico','panel-5','panel-checklist-oms','panel-rastreabilidade','panel-indicadores','panel-saep'];
+var PANEL_ORDER = ['panel-agendamento','panel-0','panel-preparo','panel-1','panel-2','panel-checklist-oms','panel-3','panel-cirurgia-segura','panel-4','panel-pos-cirurgico','panel-5','panel-rastreabilidade','panel-indicadores','panel-saep'];
 window.goStep = function(n){
   var panelId = PANEL_ORDER[n] || '';
   document.querySelectorAll('.step-panel').forEach(function(p){ p.classList.toggle('active', panelId ? p.id===panelId : false); });
   document.querySelectorAll('.step-btn').forEach(function(b){ b.classList.toggle('active', parseInt(b.dataset.step)===n); });
   currentStep = n;
   if(n===4) renderMapa();
-  if(n===5) renderPainel();
-  if(n===7) renderStatusSalas();
+  if(n===6) renderPainel();
+  if(n===7){ renderStatusSalas(); carregarSelectsOms(); }
   if(n===9) renderRelatorios();
   if(n===0) renderAgendamentos();
   if(n===1) carregarSelectAvPacientes();
   if(n===2){ carregarSelectsPreparo(); renderPreBateMapa(); }
   if(n===3){ carregarSelectBatePacientes(); renderChecklistBate(); }
-  if(n===6) carregarSelectsOms();
+  if(n===5) initOmsChecklist();
   if(n===8) carregarSelectsPos();
-  if(n===10) initOmsChecklist();
   if(n===11) cmeInit();
   if(n===12) initIndicadores();
   if(n===13) saepInit();
@@ -323,6 +348,7 @@ window.toggleStepNavExpand = function(){
   var expanded = nav.classList.contains('expanded');
   if(btn) btn.textContent = expanded ? 'Ocultar etapas' : 'Exibir todas as etapas';
   if(btn) btn.setAttribute('aria-pressed', expanded ? 'true' : 'false');
+  if(btn) btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   if(expanded){ try{ nav.scrollIntoView({behavior:'smooth',block:'start'}); }catch(e){} }
 };
 
@@ -418,7 +444,7 @@ window.renderAgendamentos = function(){
   } catch(e){}
 };
 
-// ==================== ETAPA 4: PREPARO DE MATERIAIS ====================
+// ==================== ETAPA 3: PREPARO DE MATERIAIS ====================
 window.toggleOpme = function(){ document.getElementById('prep-opme-tipo-group').style.display = document.getElementById('prep-opme').value === 'sim' ? 'block' : 'none'; };
 window.toggleConsignacao = function(){ document.getElementById('prep-nfe-group').style.display = document.getElementById('prep-consignado').value === 'sim' ? 'block' : 'none'; };
 window.toggleChecklist = function(el){ el.classList.toggle('done'); };
@@ -520,7 +546,7 @@ window.salvarPreparo = function(){
   try{ renderPreBateMapa(); }catch(e){}
 };
 
-// ==================== ETAPA 7: CIRURGIA SEGURA OMS ====================
+// ==================== ETAPA 8: CIRURGIA SEGURA OMS ====================
 window.carregarSelectsOms = function(){
   var sel = document.getElementById('oms-cirurgia'); if(!sel) return;
   try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]'); var autorizadas = arr.filter(function(a){ return a.status === 'autorizada'; });
@@ -540,7 +566,7 @@ window.salvarCirurgiaSegura = function(){
   } catch(e){ showToast('Erro ao salvar checklist.'); }
 };
 
-// ==================== ETAPA 9: PÓS-CIRÚRGICO ====================
+// ==================== ETAPA 10: PÓS-CIRÚRGICO ====================
 window.carregarSelectsPos = function(){
   var sel = document.getElementById('pos-cirurgia'); if(!sel) return;
   try { var arr = JSON.parse(localStorage.getItem('cc_agendamentos') || '[]'); var autorizadas = arr.filter(function(a){ return a.status === 'autorizada'; });
@@ -828,6 +854,11 @@ window.salvarListaAvisos = function(){
   carregarAvisos();
   try{ logEventLocal('avisos_list_saved',{count: avisos.length}); }catch(e){}
   showToast('Lista de avisos salva localmente ('+avisos.length+' registro(s)).','success');
+};
+
+window.avancarPreparo = function(){
+  carregarAvisos();
+  goStep(2);
 };
 
 window.avancarBateMapa = function(){
@@ -1438,6 +1469,43 @@ renderIndicadoresVazios();
   }catch(e){}
 })();
 
+// ==================== ACESSIBILIDADE ====================
+// 1) Associa visualmente cada label sem "for" ao primeiro controle do grupo
+// 2) Marca SVGs decorativos como aria-hidden (ícones não informativos)
+(function(){
+  try{
+    document.querySelectorAll('.form-group').forEach(function(fg){
+      var lb = fg.querySelector('label:not([for])');
+      var ctrl = fg.querySelector('input,select,textarea');
+      if(lb && ctrl){
+        if(!ctrl.id){ ctrl.id = 'cc-auto-' + Math.random().toString(36).slice(2, 8); }
+        lb.setAttribute('for', ctrl.id);
+      }
+    });
+  }catch(e){}
+  try{
+    document.querySelectorAll('svg:not([aria-hidden])').forEach(function(s){ s.setAttribute('aria-hidden', 'true'); });
+  }catch(e){}
+  // svgs adicionados dinamicamente (botões injetados, painéis renderizados)
+  try{
+    if(window.MutationObserver){
+      var _obs = new MutationObserver(function(muts){
+        try{
+          muts.forEach(function(m){
+            (m.addedNodes||[]).forEach(function(n){
+              if(n && n.nodeType === 1){
+                if(n.tagName && String(n.tagName).toLowerCase() === 'svg' && !n.getAttribute('aria-hidden')) n.setAttribute('aria-hidden', 'true');
+                if(n.querySelectorAll) n.querySelectorAll('svg:not([aria-hidden])').forEach(function(s){ s.setAttribute('aria-hidden', 'true'); });
+              }
+            });
+          });
+        }catch(e){}
+      });
+      _obs.observe(document.body, {childList:true, subtree:true});
+    }
+  }catch(e){}
+})();
+
 // Campo Nome do Usuário: aceita nome completo sem conversão automática para iniciais
 
 function renderIndicadoresVazios(){
@@ -1445,7 +1513,7 @@ function renderIndicadoresVazios(){
   if(grid) grid.innerHTML='<div class="card"><div class="card-body" style="text-align:center;padding:20px;color:var(--slate-400)">Carregue cirurgias nas etapas anteriores para ver indicadores.</div></div>';
 }
 
-// ==================== ETAPA 11: CHECKLIST OMS 3 COLUNAS ====================
+// ==================== ETAPA 6: CHECKLIST OMS 3 COLUNAS ====================
 var omsEstado={si:{},to:{},so:{}};
 var omsTotais={si:11,to:9,so:8};
 

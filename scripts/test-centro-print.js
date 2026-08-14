@@ -22,6 +22,7 @@ const path = require('path');
         win.showToast = () => {};
         win.alert = () => true;
         win.confirm = () => true;
+        win.scrollTo = () => {};
         win.Chart = function(){ return function(){}; };
         // stub window.open: captura o HTML escrito na "janela de impressão"
         win.open = () => {
@@ -200,6 +201,69 @@ const path = require('path');
         }
       } else { fail('painel de salas não encontrado'); }
     }catch(e){ fail('Painel de Salas print exception: '+e.message); }
+
+    // ---- SEQUÊNCIA DAS ETAPAS (Checklist OMS na posição 6) ----
+    try{
+      const botoes = [...d.querySelectorAll('#stepNavInner .step-btn')];
+      const labels = botoes.map(b => b.textContent.trim().replace(/^\d+/, '').trim());
+      const esperado = ['Agendamento','Aviso de Cirurgia','Preparo de Materiais','Bate-Mapa','Mapa Cirúrgico','Checklist OMS','Painel de Salas','Cirurgia Segura','Status da Cirurgia','Pós-Cirúrgico','Relatórios e Alta','Rastreabilidade CME','Indicadores','SAEP'];
+      const ordemOk = JSON.stringify(labels) === JSON.stringify(esperado);
+      if(ordemOk) ok('barra de etapas na nova ordem (Checklist OMS em 6º, Painel de Salas em 7º)');
+      else fail('ordem dos botões errada: ' + labels.join(', '));
+      const stepsOk = botoes.every((b, i) => parseInt(b.dataset.step, 10) === i);
+      if(stepsOk) ok('data-step reindexado 0..13 corretamente');
+      else fail('data-step incorreto');
+      // goStep(5) deve ativar o checklist OMS
+      if(typeof w.goStep === 'function'){
+        w.goStep(5);
+        const omsAtivo = d.getElementById('panel-checklist-oms').classList.contains('active');
+        w.goStep(6);
+        const painelAtivo = d.getElementById('panel-3').classList.contains('active');
+        if(omsAtivo) ok('goStep(5) ativa o Checklist OMS'); else fail('goStep(5) não ativa o Checklist OMS');
+        if(painelAtivo) ok('goStep(6) ativa o Painel de Salas'); else fail('goStep(6) não ativa o Painel de Salas');
+        w.goStep(0);
+      }
+      // botão do aviso deve avançar para preparo
+      const btnAvancar = [...d.querySelectorAll('#panel-0 button')].find(b => b.textContent.includes('Preparo de Materiais'));
+      if(btnAvancar) ok('botão do Aviso avançando para "Preparo de Materiais"'); else fail('botão de avanço do Aviso não encontrado/apontando errado');
+      const btnAvancarBate = [...d.querySelectorAll('#panel-0 button')].some(b => b.textContent.includes('Bate-Mapa'));
+      if(!btnAvancarBate) ok('Aviso não avança mais direto para o Bate-Mapa'); else fail('Aviso ainda avança direto para o Bate-Mapa');
+    }catch(e){ fail('sequência exception: '+e.message); }
+
+    // ---- ACESSIBILIDADE & CORE WEB VITALS ----
+    try{
+      // meta description + theme-color
+      const desc = d.querySelector('meta[name="description"]');
+      if(desc && desc.content.length > 60) ok('meta description presente'); else fail('meta description ausente/curta');
+      // chart.js com defer (não bloqueia render) — verificado no arquivo original
+      const rawOriginal = fs.readFileSync(htmlPath, 'utf8');
+      if(/chart\.umd\.min\.js" defer/.test(rawOriginal)) ok('chart.js com defer (não bloqueia o render)'); else fail('chart.js ainda é render-blocking');
+      // toast com role status e aria-live
+      const toast = d.getElementById('toast');
+      if(toast && toast.getAttribute('role') === 'status' && toast.getAttribute('aria-live') === 'polite') ok('toast com role=status + aria-live'); else fail('toast sem role/aria-live');
+      // modal dialog acessível
+      const modal = d.getElementById('modal-sala');
+      if(modal && modal.getAttribute('role') === 'dialog' && modal.getAttribute('aria-modal') === 'true' && modal.getAttribute('aria-labelledby') === 'modal-title') ok('modal com role=dialog/aria-modal/aria-labelledby'); else fail('modal sem atributos de acessibilidade');
+      // nav de etapas com aria-label
+      const navEtapas = d.getElementById('stepNav');
+      if(navEtapas && navEtapas.getAttribute('aria-label')) ok('barra de etapas com aria-label'); else fail('barra de etapas sem aria-label');
+      // foco visível definido no CSS
+      if(/:focus-visible\{outline:3px solid #2563EB/.test(rawHtml)) ok('focus visível (:focus-visible) configurado'); else fail('sem :focus-visible');
+      // prefers-reduced-motion
+      if(/prefers-reduced-motion:reduce/.test(rawHtml)) ok('suporte a prefers-reduced-motion'); else fail('sem prefers-reduced-motion');
+      // inputs 16px no mobile (evita zoom automático iOS)
+      if(/input,select,textarea\{font-size:16px!important\}/.test(rawHtml)) ok('inputs 16px no mobile'); else fail('inputs mobile menores que 16px');
+      // botões com alvo de toque mínimo
+      if(/\.btn\{min-height:44px\}/.test(rawHtml)) ok('alvo de toque mínimo de 44px'); else fail('sem alvo de toque mínimo');
+      // labels associadas aos controles (JS de acessibilidade)
+      const semForAntes = rawHtml.match(/<label>/g) ? rawHtml.match(/<label>/g).length : 0;
+      const comFor = [...d.querySelectorAll('.form-group label')].filter(l => l.getAttribute('for')).length;
+      const totalLabels = d.querySelectorAll('.form-group label').length;
+      if(totalLabels > 0 && comFor >= totalLabels) ok('todos os labels de formulário associados (for=' + comFor + ')'); else fail('labels sem associação: ' + (totalLabels - comFor));
+      // svgs decorativos marcados aria-hidden
+      const svgsSem = [...d.querySelectorAll('svg:not([aria-hidden])')].length;
+      if(svgsSem === 0) ok('svgs decorativos com aria-hidden'); else fail('svgs sem aria-hidden: ' + svgsSem);
+    }catch(e){ fail('acessibilidade check exception: '+e.message); }
 
     const fails = results.filter(r=>!r.ok).length;
     console.log('\nTEST SUMMARY:');
