@@ -45,7 +45,7 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "integracoes_calculadora_de_gasometria.html"
+    "menu-global.html", "guia_rapido_dispositivos.html", "integracoes_calculadora_de_gasometria.html", "integracoes_classificacao_wifi.html"
 ]
 
 IDIOMAS_DESTINO = [

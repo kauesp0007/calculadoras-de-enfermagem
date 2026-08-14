@@ -525,9 +525,9 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["guia_rapido_seringa_insulina.html"] 
+    arquivos_originais = ["guia_rapido_dispositivos.html", "integracoes_calculadora_de_gasometria.html", "integracoes_classificacao_wifi.html" ] 
      
-    idiomas_alvo = ["es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
+    idiomas_alvo = ["en","es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 

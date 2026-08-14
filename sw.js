@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260814-182906";
+const CACHE_VERSION = "20260814-194605";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -335,6 +335,7 @@ const urlsToCache = [
   'scripts/test-centro-min.js',
   'scripts/test-centro-print.js',
   'scripts/test-centro-save.js',
+  'scripts/test-checagem-reformulacao.js',
   'simpleRename.js',
   'src/input.css',
   'sv/favicon.ico',
