@@ -1,6 +1,6 @@
 # REVERTER — Fix de CLS (header/placeholder)
 
-**Data da alteração:** 2026-08-14
+**Data da alteração:** 2026-08-14 (v2 — aplicado somente no mobile)
 **Arquivo alterado:** `global-styles.css` (append no final)
 **Arquivo de backup:** `global-styles.css.bak-20260814-clsfix` (cópia exata do arquivo antes da alteração)
 
@@ -9,19 +9,17 @@
 Foi adicionado AO FINAL do `global-styles.css` o seguinte bloco (e nada mais):
 
 ```css
-/* ===== FIX CLS (2026-08-14): reserva de altura real para header e seletor de idioma =====
-   Motivo: menu-global.html real tem ~48px, mas o placeholder reservava 96px (desktop) / 60px (mobile),
-   causando deslocamento do conteúdo quando o menu era injetado. Backup: global-styles.css.bak-20260814-clsfix.
-   Reversão: ver REVERTER-FIX-CLS.md */
-#global-header-container{min-height:56px!important}
+/* ===== FIX CLS v2 (2026-08-14): reserva de altura real do header SOMENTE NO MOBILE =====
+   v1 reduziu o desktop para 56px e o seletor de idioma passou a sumir atrás do menu em larguras
+   intermediárias (menu quebra em 2 linhas e ultrapassa o min-height). DESKTOP VOLTOU A 96px (original,
+   sem CLS reportado). Mobile: 48px = altura real do menu (py-2 + logo 32px). Backup:
+   global-styles.css.bak-20260814-clsfix. Reversão: ver REVERTER-FIX-CLS.md */
 @media(max-width:768px){#global-header-container{min-height:48px!important}}
-#language-selector-placeholder{min-height:46px!important}
 ```
 
 Resumo:
-- Desktop: placeholder do header 96px → **56px**
-- Mobile (≤768px): placeholder do header 60px → **48px**
-- Seletor de idioma: permanece **46px** (uniformizado com `!important`)
+- **Desktop: NÃO muda nada** (mantém os 96px originais — o desktop não tinha problema de CLS)
+- **Mobile (≤768px):** placeholder do header 60px → **48px** (altura real do menu)
 
 ## Como reverter (2 caminhos)
 
@@ -35,13 +33,13 @@ node gerar-sw.js
 ### Caminho B — remover apenas o bloco adicionado
 
 1. Abrir `global-styles.css`;
-2. Apagar todo o bloco que começa com `/* ===== FIX CLS (2026-08-14)` até a linha `#language-selector-placeholder{min-height:46px!important}` (fica no final do arquivo);
+2. Apagar todo o bloco que começa com `/* ===== FIX CLS v2 (2026-08-14)` até a linha `@media(max-width:768px){#global-header-container{min-height:48px!important}}` (fica no final do arquivo);
 3. Rodar `node gerar-sw.js` (obrigatório: o CSS é servido do cache do service worker).
 
 ## Como verificar se o fix está ativo
 
 ```powershell
-Select-String -Path "global-styles.css" -Pattern "FIX CLS \(2026-08-14\)"
+Select-String -Path "global-styles.css" -Pattern "FIX CLS v2"
 ```
 
 Se retornar 1 ocorrência → fix ativo. Nenhuma → revertido.
@@ -50,8 +48,14 @@ Se retornar 1 ocorrência → fix ativo. Nenhuma → revertido.
 
 | Dispositivo | Antes | Depois |
 |---|---|---|
-| Desktop | placeholder 96px vs header real ~48px → shift de ~48px | placeholder 56px → shift ≤ 8px |
+| Desktop | 96px (original, mantido — sem CLS reportado) | 96px (inalterado) |
 | Mobile | placeholder 60px vs header real ~48px → shift de ~12px | placeholder 48px → shift ≈ 0 |
+
+## Histórico da v1 (corrigida)
+
+A v1 reduziu o desktop para 56px, o que fez o seletor de idioma sumir atrás do menu global em
+larguras intermediárias (o menu quebra em 2 linhas e ultrapassava a reserva). A v2 removeu a
+regra de desktop e manteve apenas o ajuste mobile.
 
 ## Observações para o agente (solicitar reversão)
 
