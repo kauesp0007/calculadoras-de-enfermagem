@@ -2,7 +2,6 @@ import os
 import subprocess
 from datetime import datetime
 from dotenv import load_dotenv
-import deepl
 import re
 import requests
 import json
@@ -11,10 +10,10 @@ import time
 # Carrega a chave do arquivo .env silenciosamente
 load_dotenv()
 
-CHAVE_API = os.getenv("DEEPL_API_KEY")
+CHAVE_OPENAI = os.getenv("OPENAI_API_KEY")
 CHAVE_DEEPSEEK = os.getenv("DEEPSEEK_API_KEY")
-if not CHAVE_API:
-    raise ValueError("Chave da API não encontrada. Verifique se o arquivo .env existe e contém a DEEPL_API_KEY.")
+if not CHAVE_OPENAI:
+    raise ValueError("Chave da API OpenAI não encontrada. Adicione OPENAI_API_KEY no arquivo .env.")
 if not CHAVE_DEEPSEEK:
     raise ValueError("Chave do DeepSeek não encontrada. Adicione DEEPSEEK_API_KEY no arquivo .env para traduzir os scripts dinâmicos.")
 
@@ -451,21 +450,70 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         print(f"\n⚠️ Erro ao traduzir scripts em LOTE com DeepSeek (Mantendo originais intactos por segurança): {e}")
         return dicionario_scripts
 
-def traduzir_html_com_deepl(html_preparado, idioma_alvo):
+def traduzir_html_com_openai_api(html_protegido, idioma_alvo):
+    """Envia o HTML protegido para a API da OpenAI e retorna o HTML traduzido."""
+    nomes_idiomas = {
+        "en": "Inglês", "es": "Espanhol", "fr": "Francês", "it": "Italiano",
+        "de": "Alemão", "hi": "Hindi", "zh": "Chinês (simplificado)", "ar": "Árabe",
+        "ja": "Japonês", "ru": "Russo", "ko": "Coreano", "tr": "Turco",
+        "nl": "Holandês", "pl": "Polonês", "sv": "Sueco", "id": "Indonésio",
+        "vi": "Vietnamita", "uk": "Ucraniano"
+    }
+    nome_idioma = nomes_idiomas.get(idioma_alvo, idioma_alvo)
+
+    instrucoes = f"""
+Você é um especialista em localização de sites de saúde/enfermagem.
+Traduza o conteúdo HTML do Português (pt-BR) para {nome_idioma} ({idioma_alvo}).
+
+REGRAS INEGOCIÁVEIS:
+1. Traduza APENAS os textos visíveis e os atributos textuais (title, alt, placeholder, aria-label).
+2. NÃO altere tags HTML, classes, IDs, atributos técnicos, URLs, caminhos de arquivos ou comentários.
+3. PRESERVE exatamente os placeholders <div translate="no" id="OPENAI_BLOCK_..."></div> sem modificá-los.
+4. Mantenha a estrutura, indentação e quebras de linha do HTML original.
+5. RETORNE EXCLUSIVAMENTE o HTML traduzido. Sem explicações, sem marcações markdown.
+"""
+
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_OPENAI}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": instrucoes},
+            {"role": "user", "content": html_protegido}
+        ],
+        "temperature": 0.0,
+        "max_tokens": 16384
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=180)
+    response.raise_for_status()
+    resultado = response.json()["choices"][0]["message"]["content"].strip()
+
+    if resultado.startswith("```"):
+        resultado = re.sub(r'^```(html)?\n', '', resultado, flags=re.IGNORECASE)
+        resultado = re.sub(r'\n```$', '', resultado)
+
+    return resultado
+
+
+def traduzir_html_com_openai(html_preparado, idioma_alvo):
     try:
         # === 1. PROTEÇÃO CIRÚRGICA DE SCRIPTS E STYLES ===
         blocos_codigo = {}
         scripts_para_traduzir = {}
         contador = [0]
         
-        # Protege scripts, styles E SVGs inline contra corrupção pelo DeepL
+        # Protege scripts, styles E SVGs inline contra corrupção pelo modelo de IA
         padrao = re.compile(r'(<(script|style|svg)\b[^>]*>.*?</\2>)', re.IGNORECASE | re.DOTALL)
         
         def proteger_bloco(match):
             codigo_original = match.group(1)
             tag_name = match.group(2).lower()
             
-            id_bloco = f"DEEPL_BLOCK_{contador[0]}"
+            id_bloco = f"OPENAI_BLOCK_{contador[0]}"
             contador[0] += 1
             placeholder = f'<div translate="no" id="{id_bloco}"></div>'
             
@@ -488,22 +536,8 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             # Reintegra os scripts traduzidos no repositório geral de blocos
             blocos_codigo.update(scripts_traduzidos)
         
-        # === 3. COMUNICAÇÃO COM DEEPL ===
-        translator = deepl.Translator(CHAVE_API)
-        
-        idioma_deepl = idioma_alvo.upper()
-        if idioma_deepl == "EN":
-            idioma_deepl = "EN-US"
-        elif idioma_deepl == "PT":
-            idioma_deepl = "PT-BR"
-
-        resultado = translator.translate_text(
-            html_protegido, 
-            target_lang=idioma_deepl, 
-            tag_handling="html"
-        )
-        
-        html_traduzido = resultado.text.strip()
+        # === 3. TRADUÇÃO DO HTML VIA OPENAI ===
+        html_traduzido = traduzir_html_com_openai_api(html_protegido, idioma_alvo)
         
         # === 4. RESTAURAÇÃO DE SCRIPTS E STYLES ===
         for placeholder, codigo_restaurado in blocos_codigo.items():
@@ -511,7 +545,7 @@ def traduzir_html_com_deepl(html_preparado, idioma_alvo):
             
         return html_traduzido
     except Exception as e:
-        print(f"\n❌ Erro na comunicação com a API do DeepL: {e}")
+        print(f"\n❌ Erro na comunicação com a API da OpenAI: {e}")
         return None
 
 if __name__ == "__main__":
@@ -544,7 +578,7 @@ if __name__ == "__main__":
                 html_preparado = preparar_html_para_traducao_texto(arquivo_original, idioma_alvo)
                 
                 print(f"{C_AZUL}[2/4]{RESET} Processando APIs e traduzindo HTML...")
-                html_traduzido = traduzir_html_com_deepl(html_preparado, idioma_alvo)
+                html_traduzido = traduzir_html_com_openai(html_preparado, idioma_alvo)
                 
                 if html_traduzido:
                     print(f"{C_AZUL}[3/4]{RESET} Salvando arquivo na pasta do idioma...")

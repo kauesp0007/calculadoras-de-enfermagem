@@ -706,13 +706,13 @@ function ativarModoDislexia() {
    GA4 — Evento: clique no botão Calcular
    ========================= */
 (function () {
-  // 1) Verifica se pode enviar analytics (respeita consentimento, se você usar)
+  // 1) Verifica se pode enviar analytics (respeita consentimento)
   function podeEnviarAnalytics() {
     try {
       const a = localStorage.getItem("analytics_storage");
-      return a !== "denied"; // se estiver denied, não envia
+      return a !== "denied";
     } catch (_) {
-      return true; // se não conseguir ler, permite
+      return true;
     }
   }
 
@@ -725,24 +725,28 @@ function ativarModoDislexia() {
 
   // 3) “Escuta” qualquer clique no site inteiro
   document.addEventListener("click", function (event) {
-    // pega o elemento clicado e procura o botão mais próximo
-    const botao = event.target.closest("button");
-    if (!botao) return;
+    // Pega o elemento clicado (pode ser um botão ou um link)
+    const elementoClicado = event.target.closest("button, a");
+    if (!elementoClicado) return;
 
-    // regra: só dispara se for o botão Calcular padrão
-    if (botao.id !== "btnCalcular") return;
+    // REGRA NOVA: Captura o valor do atributo 'data-evento'
+    const nomeDoEvento = elementoClicado.getAttribute("data-evento");
+    
+    // Se o elemento não tiver o atributo data-evento, ignora o clique
+    if (!nomeDoEvento) return;
 
-    // respeita consentimento (se existir)
+    // Respeita consentimento (se existir)
     if (!podeEnviarAnalytics()) return;
 
-    // parâmetros úteis para identificar a página
+    // Parâmetros úteis para identificar a página e o texto do botão
     const parametros = {
       page_path: window.location.pathname,
-      page_title: document.title
+      page_title: document.title,
+      button_text: elementoClicado.innerText.trim()
     };
 
-    // envia o evento
-    enviarEventoGA("calcular_click", parametros);
+    // Envia o evento usando o nome dinâmico
+    enviarEventoGA(nomeDoEvento, parametros);
   });
 })();
 
