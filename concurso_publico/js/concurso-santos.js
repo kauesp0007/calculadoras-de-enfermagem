@@ -203,10 +203,24 @@
     else pill.innerHTML=`${icon('calendar')}Inscrições encerradas`;
   }
 
+  function renderGuide(g){
+    if(!g) return '';
+    const flowCol = (col, side) => `<div class="flow-col ${side}"><div class="flow-label">${esc(col.label)}</div>${col.items.map((it,i)=>`<div class="flow-node"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>${i<col.items.length-1?'<div class="flow-arrow" aria-hidden="true">↓</div>':''}`).join('')}</div>`;
+    const miniCards = g.articles.map(a=>`<div class="mini-card"><span class="mini-n">${esc(a.n)}</span><div><b>${esc(a.t)}</b><p>${esc(a.d)}</p></div></div>`).join('');
+    const keywords = g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('');
+    return `<div class="guide">
+      <div class="guide-intro">${g.intro.map(p=>`<p>${esc(p)}</p>`).join('')}</div>
+      <div class="flow-wrap"><div class="flow-title">${esc(g.flowTitle)}</div><div class="flow">${flowCol(g.flowBefore,'before')}<div class="flow-sep" aria-hidden="true">→</div>${flowCol(g.flowAfter,'after')}</div></div>
+      <figure class="guide-figure"><img src="${esc(g.figure.src)}" alt="${esc(g.figure.alt)}" loading="lazy" decoding="async"><figcaption>${esc(g.figure.caption)}</figcaption></figure>
+      <div class="guide-articles"><h3>${esc(g.articlesTitle)}</h3><div class="mini-grid">${miniCards}</div></div>
+      <div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${keywords}</div>
+    </div>`;
+  }
+
   function openTopic(id){
     const t=data.topics.find(x=>x.id===id); if(!t)return;
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
-    $('#modalBody').innerHTML=`<div class="notice" style="margin-bottom:14px">${icon('info','icon lg')}<div><strong>Escopo:</strong> ${esc(t.summary)}</div></div><div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
+    $('#modalBody').innerHTML=`<div class="notice" style="margin-bottom:14px">${icon('info','icon lg')}<div><strong>Escopo:</strong> ${esc(t.summary)}</div></div>${t.guide?renderGuide(t.guide):''}<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
     $('#topicModal').classList.add('open'); document.body.classList.add('no-scroll'); $('#closeModal').focus();
   }
   function closeTopic(){ $('#topicModal').classList.remove('open'); document.body.classList.remove('no-scroll'); }
