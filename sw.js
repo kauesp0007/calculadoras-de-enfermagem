@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260815-090143";
+const CACHE_VERSION = "20260815-202029";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -471,38 +471,28 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // ESTRATÉGIA 2: CSS e JS (O "Cache Buster Invisível")
+  // ESTRATÉGIA 2: CSS e JS (Network First -> Cache Fallback)
+  // Garante que edições de CSS/JS apareçam imediatamente após o deploy, usando o cache apenas quando offline.
   if (url.pathname.endsWith(".css") || url.pathname.endsWith(".js")) {
+    const fetchUrl = new URL(req.url);
+    fetchUrl.searchParams.set("v", CACHE_VERSION);
+
     event.respondWith(
-      caches.match(req).then((cachedResponse) => {
-        // Se estiver no cache ATUAL, entrega imediatamente!
-        if (cachedResponse) return cachedResponse;
-
-        // Se NÃO estiver no cache, vai buscar à rede e INJETA O CACHE BUSTER
-        const fetchUrl = new URL(req.url);
-        fetchUrl.searchParams.set("v", CACHE_VERSION);
-
-        return fetch(fetchUrl)
-          .then((networkResponse) => {
-            if (networkResponse && networkResponse.status === 200) {
-              const responseToCache = networkResponse.clone();
-              caches
-                .open(CACHE_NAME)
-                .then((cache) => cache.put(req, responseToCache));
-            }
-            return networkResponse;
-          })
-          .catch(() => {
-            // Em caso de falha de rede e não ter cache (Fallback absoluto)
-            return caches
-              .match(req)
-              .then(
-                (res) =>
-                  res ||
-                  new Response("", { status: 404, statusText: "Not Found" }),
-              );
-          });
-      }),
+      fetch(fetchUrl)
+        .then((networkResponse) => {
+          if (networkResponse && networkResponse.status === 200) {
+            const responseToCache = networkResponse.clone();
+            caches
+              .open(CACHE_NAME)
+              .then((cache) => cache.put(req, responseToCache));
+          }
+          return networkResponse;
+        })
+        .catch(async () => {
+          const cachedResponse = await caches.match(req);
+          if (cachedResponse) return cachedResponse;
+          return new Response("", { status: 404, statusText: "Not Found" });
+        }),
     );
     return;
   }
