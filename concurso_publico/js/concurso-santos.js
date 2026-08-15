@@ -203,6 +203,29 @@
     else pill.innerHTML=`${icon('calendar')}Inscrições encerradas`;
   }
 
+  function renderGuideLei(g){
+    const tln = g.timeline.map(s=>`<div class="tl-step"><span class="tl-year">${esc(s.t)}</span><p>${esc(s.d)}</p></div>`).join('');
+    const groups = g.principles.groups.map(gr=>`<div class="prin-group"><div class="prin-head"><span>${esc(gr.label)}</span><b class="mnemonic">${esc(gr.mnemonic)}</b></div>${gr.items.map(it=>`<div class="prin-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div>`).join('');
+    const pyramid = g.pyramid.levels.map(l=>`<div class="pyr-level"><b>${esc(l.t)}</b><span>${esc(l.d)}</span></div>`).join('');
+    const commCards = g.commissions.cards.map(c=>`<div class="comm-card"><b>${esc(c.t)}</b><span>${esc(c.d)}</span></div>`).join('');
+    const fieldCards = g.fields.cards.map(c=>`<div class="comm-card field"><b>${esc(c.t)}</b><span>${esc(c.d)}</span></div>`).join('');
+    const keywords = g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('');
+    return `<div class="guide-lei">
+      <div class="gl-hero"><div class="gl-hero-txt"><span class="gl-kicker">${esc(g.hero.kicker)}</span><h3>${esc(g.hero.title)}</h3><p>${esc(g.hero.text)}</p></div><img class="gl-hero-img" src="${esc(g.hero.image)}" alt="${esc(g.hero.imageAlt)}" loading="lazy" decoding="async"></div>
+      <div class="gl-timeline">${tln}</div>
+      <div class="gl-section"><h3>${esc(g.principles.title)}</h3><div class="prin-grid">${groups}</div></div>
+      <div class="gl-section"><h3>${esc(g.pyramid.title)}</h3><div class="pyr">${pyramid}</div></div>
+      <div class="gl-note gl-note-primary"><b>${esc(g.primary.title)}</b><p>${esc(g.primary.text)}</p></div>
+      <div class="gl-section"><h3>${esc(g.commissions.title)}</h3><p class="gl-lead">${esc(g.commissions.text)}</p><div class="comm-grid">${commCards}</div></div>
+      <div class="gl-note"><b>${esc(g.financing.title)}</b><p>${esc(g.financing.text)}</p></div>
+      <div class="gl-section"><h3>${esc(g.fields.title)}</h3><p class="gl-lead">${esc(g.fields.text)}</p><div class="comm-grid">${fieldCards}</div></div>
+      <div class="gl-note"><b>${esc(g.private.title)}</b><p>${esc(g.private.text)}</p></div>
+      <div class="gl-alert"><b>${esc(g.pegadinha.title)}</b><p>${esc(g.pegadinha.text)}</p></div>
+      <a class="gl-ref" href="${esc(g.reference.url)}" target="_blank" rel="noopener noreferrer"><span class="gl-ref-label">${esc(g.reference.label)}</span><b>${esc(g.reference.text)}</b><span class="gl-ref-arrow" aria-hidden="true">↗</span></a>
+      <div class="guide-keywords"><span class="keywords-label">Palavras-chave e mnemônicos</span>${keywords}</div>
+    </div>`;
+  }
+
   function renderGuide(g){
     if(!g) return '';
     const flowCol = (col, side) => `<div class="flow-col ${side}"><div class="flow-label">${esc(col.label)}</div>${col.items.map((it,i)=>`<div class="flow-node"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>${i<col.items.length-1?'<div class="flow-arrow" aria-hidden="true">↓</div>':''}`).join('')}</div>`;
@@ -220,7 +243,7 @@
   function openTopic(id){
     const t=data.topics.find(x=>x.id===id); if(!t)return;
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
-    $('#modalBody').innerHTML=`<div class="notice" style="margin-bottom:14px">${icon('info','icon lg')}<div><strong>Escopo:</strong> ${esc(t.summary)}</div></div>${t.guide?renderGuide(t.guide):''}<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
+    $('#modalBody').innerHTML=`<div class="notice" style="margin-bottom:14px">${icon('info','icon lg')}<div><strong>Escopo:</strong> ${esc(t.summary)}</div></div>${t.guide?(t.guide.layout==='lei'?renderGuideLei(t.guide):renderGuide(t.guide)):''}<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
     $('#topicModal').classList.add('open'); document.body.classList.add('no-scroll'); $('#closeModal').focus();
   }
   function closeTopic(){ $('#topicModal').classList.remove('open'); document.body.classList.remove('no-scroll'); }
