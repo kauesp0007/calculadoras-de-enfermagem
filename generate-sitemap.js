@@ -105,7 +105,7 @@ for (const langKey of LANG_FOLDERS) {
 
 // 3. Processa PASTAS ESPECIAIS (downloads, biblioteca e agora BLOG)
 // ADICIONADO: 'blog' para ser escaneado na raiz
-const SPECIAL_FOLDERS = ['downloads', 'biblioteca', 'blog'];
+const SPECIAL_FOLDERS = ['downloads', 'biblioteca', 'blog', 'concurso_publico'];
 
 for (const folder of SPECIAL_FOLDERS) {
   const dirPath = path.join(ROOT_DIR, folder);
@@ -121,7 +121,10 @@ for (const folder of SPECIAL_FOLDERS) {
 
     // A chave precisa incluir a pasta para não colidir com arquivos da raiz
     const pageKey = `${folder}/${file}`;
-    const url = `${BASE_URL}/${folder}/${file}`;
+    // index.html da pasta concurso_publico vira a URL da própria pasta (canonical com barra final)
+    const url = (file === 'index.html' && folder === 'concurso_publico')
+      ? `${BASE_URL}/${folder}/`
+      : `${BASE_URL}/${folder}/${file}`;
 
     if (!sitemapEntries[pageKey]) {
       sitemapEntries[pageKey] = {};
@@ -154,6 +157,9 @@ function getChangefreq(pageKey) {
 
   // Blog: posts novos ou atualizados com frequência
   if (name.startsWith('blog/')) return 'daily';
+
+  // Concurso: hub com datas de edital — atualizações frequentes
+  if (name.startsWith('concurso_publico/')) return 'weekly';
 
   // Homepage
   if (name === 'index.html') return 'weekly';
@@ -205,6 +211,9 @@ function getPriority(pageKey) {
 
   // Blog — conteúdo fresco, alta prioridade
   if (name.startsWith('blog/')) return '0.9';
+
+  // Concurso — hub de estudos, alta prioridade
+  if (name.startsWith('concurso_publico/')) return '0.8';
 
   // Páginas de alto valor para o usuário
   const alta = [

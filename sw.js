@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260815-034320";
+const CACHE_VERSION = "20260815-090143";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -178,6 +178,10 @@ const urlsToCache = [
   'ce-calculadora-padrao.js',
   'centro-cirurgico-script.js',
   'centro-cirurgico-script.min.js',
+  'concurso_publico/css/concurso-santos.css',
+  'concurso_publico/data/concurso-santos-enfermeiro-74-2026.json',
+  'concurso_publico/js/concurso-santos.js',
+  'concurso_publico/js/data.js',
   'convert-webp.js',
   'corrigir-badges.js',
   'css-duplicates-report.json',

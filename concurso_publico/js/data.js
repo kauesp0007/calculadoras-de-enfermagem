@@ -1,0 +1,246 @@
+window.SANTOS_DATA = {
+  "schemaVersion": "1.0.0",
+  "id": "CONCURSO-SANTOS-74-2026-ENFERMEIRO",
+  "title": "Concurso Santos 2026 — Enfermeiro",
+  "organizer": "IBAM",
+  "issuer": "Prefeitura Municipal de Santos — SEPLA-RH",
+  "notice": "Edital 74/2026 – SEPLA-RH",
+  "rectification": "Edital 82/2026 – SEPLA-RH",
+  "status": "Em andamento",
+  "role": {
+    "code": "1008",
+    "name": "Enfermeiro",
+    "vacancies": 15,
+    "pcdVacancies": 2,
+    "blackReservedVacancies": 3,
+    "baseSalaryBRL": 8292.55,
+    "foodAllowanceBRL": 1100.00,
+    "totalMonthlyBRL": 9392.55,
+    "weeklyHours": 40,
+    "applicationFeeBRL": 92.00,
+    "requirements": "Graduação em Enfermagem e registro profissional."
+  },
+  "dates": {
+    "publication": "2026-07-17",
+    "applicationStart": "2026-07-22",
+    "applicationEnd": "2026-08-20",
+    "paymentDeadline": "2026-08-21",
+    "examCallExpected": "2026-10-09",
+    "objectiveExam": "2026-10-18"
+  },
+  "exam": {
+    "durationMinutes": 210,
+    "alternativesPerQuestion": 4,
+    "totalQuestions": 40,
+    "weightedTotalPoints": 100,
+    "minimumPoints": 50,
+    "generalListQualificationMargin": 150,
+    "titleExam": true,
+    "titleExamMaxPoints": 10,
+    "areas": [
+      {"id":"portugues","label":"Língua Portuguesa","questions":10,"weight":1,"maxPoints":10,"share":10,"priority":"manutencao"},
+      {"id":"legislacao","label":"Legislação Municipal, Ética e Serviço Público","questions":6,"weight":1,"maxPoints":6,"share":6,"priority":"manutencao"},
+      {"id":"sus","label":"Políticas Públicas de Saúde e SUS","questions":12,"weight":3,"maxPoints":36,"share":36,"priority":"alta"},
+      {"id":"especificos","label":"Conhecimentos Específicos","questions":12,"weight":4,"maxPoints":48,"share":48,"priority":"critica"}
+    ]
+  },
+  "topics": [
+    {
+      "id":"P01","area":"portugues","title":"Leitura, compreensão e interpretação","priority":"alta","flags":["interpretação","inferência"],
+      "summary":"Tema, assunto, finalidade, explícitos e implícitos, tese, argumentos, conclusão, inferências, pressupostos e subentendidos.",
+      "subtopics":["tema, assunto e finalidade","informações explícitas e implícitas","tese, argumentos e conclusão","inferência válida","pressupostos e subentendidos","textos da área da saúde"]
+    },
+    {
+      "id":"P02","area":"portugues","title":"Coesão, coerência e relações lógico-discursivas","priority":"media","flags":["texto"],
+      "summary":"Referência, conectores, pronomes e articulação entre períodos e parágrafos.",
+      "subtopics":["coesão referencial","coesão sequencial","conectores","pronomes e referenciação","progressão temática","coerência global"]
+    },
+    {
+      "id":"P03","area":"portugues","title":"Semântica, gêneros e reescrita","priority":"media","flags":["semântica","reescrita"],
+      "summary":"Sentido contextual, denotação/conotação, sinonímia, antonímia, ambiguidade, paráfrase e gêneros técnicos/institucionais.",
+      "subtopics":["denotação e conotação","sinonímia e antonímia","ambiguidade","paráfrase","gêneros técnicos e administrativos","reescrita com preservação do sentido"]
+    },
+    {
+      "id":"P04","area":"portugues","title":"Gramática aplicada ao texto","priority":"media","flags":["gramática"],
+      "summary":"Ortografia, acentuação, pontuação, classes, flexões, concordância, regência, crase e colocação pronominal.",
+      "subtopics":["ortografia e acentuação","pontuação","classes de palavras","concordância verbal e nominal","regência verbal e nominal","crase","colocação pronominal"]
+    },
+    {
+      "id":"P05","area":"portugues","title":"Período e comunicação institucional","priority":"media","flags":["sintaxe","comunicação"],
+      "summary":"Período simples/composto, coordenação/subordinação, clareza, objetividade, impessoalidade e precisão.",
+      "subtopics":["tempos e modos verbais","período simples","período composto","coordenação","subordinação","adequação vocabular","clareza e impessoalidade"]
+    },
+    {
+      "id":"M01","area":"legislacao","title":"Lei Orgânica do Município de Santos","priority":"alta","flags":["letra de lei","municipal"],
+      "summary":"Organização e competências municipais, administração e servidores, serviços/bens, saúde, assistência, proteção social, meio ambiente e controle.",
+      "subtopics":["organização do Município","competências municipais","administração pública municipal","servidores públicos","serviços e bens municipais","saúde pública e assistência social","fiscalização e controle","princípios da Administração Pública"]
+    },
+    {
+      "id":"M02","area":"legislacao","title":"Lei nº 4.623/1984 — Estatuto dos Funcionários","priority":"alta","flags":["letra de lei","estatuto"],
+      "summary":"Provimento, posse, exercício, direitos, deveres, responsabilidades, proibições, disciplina e penalidades — sempre pelo texto consolidado.",
+      "subtopics":["provimento e posse","exercício","direitos e deveres","responsabilidades","proibições","regime disciplinar","penalidades","assiduidade, pontualidade e urbanidade"]
+    },
+    {
+      "id":"M03","area":"legislacao","title":"LC Municipal nº 1.253/2024","priority":"alta","flags":["letra de lei","organização"],
+      "summary":"Organização da Administração Pública direta e indireta de Santos, órgãos, entidades, competências, estrutura e controle.",
+      "subtopics":["administração direta e indireta","órgãos e entidades","competências administrativas","estrutura organizacional","planejamento governamental","controle das atividades"]
+    },
+    {
+      "id":"M04","area":"legislacao","title":"Constituição e princípios do serviço público","priority":"alta","flags":["constitucional","ética"],
+      "summary":"Legalidade, impessoalidade, moralidade, publicidade, eficiência, servidores, responsabilidade do Estado, saúde e direitos fundamentais.",
+      "subtopics":["LIMPE","servidores públicos","responsabilidade civil do Estado","direito à saúde","seguridade social","dignidade e igualdade","vedação à discriminação"]
+    },
+    {
+      "id":"M05","area":"legislacao","title":"Usuário, transparência, dados e governo digital","priority":"alta","flags":["LAI","LGPD"],
+      "summary":"Leis 13.460/2017, 12.527/2011, 13.709/2018 e 14.129/2021, além de ética, sigilo, integridade e humanização.",
+      "subtopics":["direitos do usuário de serviços públicos","ouvidoria e manifestações","LAI: publicidade e sigilo","LGPD: dados pessoais e sensíveis","segurança e prevenção","governo digital","ética e sigilo funcional"]
+    },
+    {
+      "id":"S01","area":"sus","title":"Constituição Federal e fundamentos do SUS","priority":"critica","flags":["SUS","norma"],
+      "summary":"Direito à saúde, relevância pública, diretrizes, competências, financiamento e participação complementar da iniciativa privada.",
+      "subtopics":["saúde como direito e dever do Estado","descentralização","integralidade","participação da comunidade","competências do SUS","financiamento","iniciativa privada complementar"]
+    },
+    {
+      "id":"S02","area":"sus","title":"Lei nº 8.080/1990","priority":"critica","flags":["lei seca","SUS"],
+      "summary":"Objetivos, atribuições, princípios/diretrizes, vigilâncias, assistência terapêutica e organização das ações e serviços.",
+      "subtopics":["promoção, proteção e recuperação","objetivos e atribuições","universalidade e integralidade","regionalização e hierarquização","vigilância epidemiológica e sanitária","saúde do trabalhador","assistência farmacêutica"]
+    },
+    {
+      "id":"S03","area":"sus","title":"Lei nº 8.142/1990 e controle social","priority":"alta","flags":["lei seca","controle social"],
+      "summary":"Conferências, Conselhos de Saúde e transferências intergovernamentais de recursos.",
+      "subtopics":["Conferências de Saúde","Conselhos de Saúde","participação da comunidade","transferências de recursos","controle social"]
+    },
+    {
+      "id":"S04","area":"sus","title":"Decreto nº 7.508/2011, RAS e LC nº 141/2012","priority":"alta","flags":["organização","financiamento"],
+      "summary":"Regiões de Saúde, portas de entrada, mapa da saúde, RENASES, RENAME, planejamento, redes e financiamento/controle.",
+      "subtopics":["Regiões de Saúde","Redes de Atenção","portas de entrada","RENASES e RENAME","planejamento da saúde","LC 141/2012","referência e contrarreferência"]
+    },
+    {
+      "id":"S05","area":"sus","title":"PNAB, ESF e Atenção Primária","priority":"critica","flags":["APS","ESF"],
+      "summary":"Territorialização, adscrição, cadastramento, vínculo, coordenação, longitudinalidade, acolhimento, visitas e ações programáticas.",
+      "subtopics":["PNAB","Estratégia Saúde da Família","territorialização","adscrição e cadastro","coordenação e longitudinalidade","acolhimento e risco","visitas domiciliares","promoção e prevenção"]
+    },
+    {
+      "id":"S06","area":"sus","title":"Humanização, vigilância, imunização e informação","priority":"critica","flags":["PNH","vigilância","PNI"],
+      "summary":"PNH, clínica ampliada, PTS, vigilâncias, notificação, surtos, PNI, cadeia de frio, EAPV, indicadores, sistemas e prontuário eletrônico.",
+      "subtopics":["Política Nacional de Humanização","clínica ampliada e PTS","vigilância em saúde","notificação compulsória","investigação de surtos","PNI e cadeia de frio","eventos pós-vacinação","indicadores e sistemas de informação"]
+    },
+    {
+      "id":"S07","area":"sus","title":"Segurança, bioética, determinantes e redes de urgência/mental","priority":"alta","flags":["segurança","bioética"],
+      "summary":"PNSP, metas de segurança, uso seguro de medicamentos, IRAS, bioética, determinantes, equidade, urgência e saúde mental no SUS.",
+      "subtopics":["PNSP e identificação do paciente","comunicação efetiva e cirurgia segura","higienização, quedas e LPP","bioética e consentimento","determinantes sociais e equidade","urgência e emergência no SUS","SAMU e articulação em rede","saúde mental e redução de danos"]
+    },
+    {
+      "id":"E01","area":"especificos","title":"Exercício profissional e atribuições do Enfermeiro","priority":"critica","flags":["lei 7.498","decreto 94.406"],
+      "summary":"Lei 7.498/1986, Decreto 94.406/1987, Lei 5.905/1973, responsabilidade técnica, ética, sigilo, registros e supervisão.",
+      "subtopics":["Lei 7.498/1986","Decreto 94.406/1987","Lei 5.905/1973","atribuições privativas","responsabilidade técnica","ética e sigilo","registros e prontuário","supervisão da equipe"]
+    },
+    {
+      "id":"E02","area":"especificos","title":"Processo de Enfermagem — Resolução COFEN nº 736/2024","priority":"critica","flags":["COFEN 736","PE"],
+      "summary":"Avaliação, diagnóstico, planejamento, implementação e evolução, documentação, prescrição, protocolos, acolhimento e cuidado centrado.",
+      "subtopics":["avaliação/coleta de dados","diagnóstico de enfermagem","planejamento","implementação","evolução e avaliação","prescrição de enfermagem","documentação","protocolos e classificação de risco"]
+    },
+    {
+      "id":"E03","area":"especificos","title":"Fundamentos e procedimentos de enfermagem","priority":"critica","flags":["fundamentos","procedimentos"],
+      "summary":"Sinais vitais, exame físico, higiene, conforto, mobilização, posicionamento, quedas, LPP, oxigênio, nebulização, sondagens, cateterismo, curativos e coleta.",
+      "subtopics":["sinais vitais e exame físico","higiene e conforto","mobilização e posicionamento","prevenção de quedas e LPP","oxigenoterapia e nebulização","sondagens","cateterismo vesical","curativos e coleta de materiais"]
+    },
+    {
+      "id":"E04","area":"especificos","title":"Medicamentos, cálculo, diluição e infusão","priority":"critica","flags":["cálculo","segurança"],
+      "summary":"Preparo e administração, vias, cálculo de dosagem, diluição, infusão, compatibilidade, reações adversas e segurança na medicação.",
+      "subtopics":["vias de administração","cálculo de dosagem","diluição","infusão","compatibilidade","reações adversas","segurança na medicação","checagens e registro"]
+    },
+    {
+      "id":"E05","area":"especificos","title":"Biossegurança, processamento e IRAS","priority":"critica","flags":["precauções","IRAS"],
+      "summary":"Precauções, higiene das mãos, EPI, limpeza, desinfecção, esterilização, processamento, resíduos e prevenção de IRAS.",
+      "subtopics":["precauções padrão","contato, gotículas e aerossóis","higienização das mãos","EPI","limpeza e desinfecção","esterilização e processamento","resíduos de serviços de saúde","prevenção e controle de IRAS"]
+    },
+    {
+      "id":"E06","area":"especificos","title":"Saúde coletiva, APS, imunização e epidemiologia","priority":"critica","flags":["APS","vacinas"],
+      "summary":"ESF, território, visita domiciliar, grupos, vigilância, calendário vacinal, imunobiológicos, sala de vacina, EAPV e investigação epidemiológica.",
+      "subtopics":["atenção básica e ESF","territorialização e cadastro","visita domiciliar","grupos educativos","calendário vacinal","conservação de imunobiológicos","sala de vacina e EAPV","notificação e investigação epidemiológica"]
+    },
+    {
+      "id":"E07","area":"especificos","title":"Saúde da mulher","priority":"alta","flags":["ciclo de vida"],
+      "summary":"Planejamento reprodutivo, pré-natal, puerpério, aleitamento, rastreamento de cânceres, climatério e violência.",
+      "subtopics":["planejamento reprodutivo","pré-natal","puerpério","aleitamento materno","colo do útero","câncer de mama","climatério","violência contra a mulher"]
+    },
+    {
+      "id":"E08","area":"especificos","title":"Saúde da criança e do adolescente","priority":"alta","flags":["pediatria"],
+      "summary":"Crescimento/desenvolvimento, puericultura, triagem neonatal, alimentação, acidentes, agravos prevalentes e proteção integral.",
+      "subtopics":["crescimento e desenvolvimento","puericultura","triagem neonatal","alimentação infantil","prevenção de acidentes","agravos prevalentes","proteção integral","violência, negligência e maus-tratos"]
+    },
+    {
+      "id":"E09","area":"especificos","title":"Saúde do adulto e da pessoa idosa","priority":"alta","flags":["DCNT","idoso"],
+      "summary":"HAS, diabetes, obesidade, doenças cardiovasculares/respiratórias/renais, fragilidade, quedas, demências, polifarmácia e paliativos.",
+      "subtopics":["hipertensão arterial","diabetes mellitus","obesidade","cardiovasculares","respiratórias e renais","fragilidade e quedas","demências e polifarmácia","cuidados paliativos"]
+    },
+    {
+      "id":"E10","area":"especificos","title":"Urgência e emergência","priority":"critica","flags":["SBV","emergência"],
+      "summary":"SBV, PCR, choque, trauma, hemorragias, queimaduras, intoxicações, convulsões, AVC, IAM, crises, hipoglicemia e anafilaxia.",
+      "subtopics":["suporte básico de vida","parada cardiorrespiratória","choque e trauma","hemorragias e queimaduras","intoxicações e convulsões","AVC e IAM","crise hipertensiva e hipoglicemia","anafilaxia e encaminhamento"]
+    },
+    {
+      "id":"E11","area":"especificos","title":"Saúde mental e RAPS","priority":"alta","flags":["RAPS","crise"],
+      "summary":"Acolhimento, crise psíquica, risco de suicídio, álcool e outras drogas, redução de danos e articulação em rede.",
+      "subtopics":["acolhimento em saúde mental","crise psíquica","risco de suicídio","álcool e outras drogas","redução de danos","Rede de Atenção Psicossocial"]
+    },
+    {
+      "id":"E12","area":"especificos","title":"Gestão, dimensionamento e segurança do paciente","priority":"critica","flags":["gestão","segurança"],
+      "summary":"Dimensionamento, liderança, educação permanente, materiais, indicadores, auditoria, segurança do paciente, comunicação, passagem de plantão e equipe multiprofissional.",
+      "subtopics":["dimensionamento de pessoal","liderança","educação permanente","gerenciamento de materiais","indicadores assistenciais","auditoria em enfermagem","segurança do paciente","comunicação e passagem de plantão"]
+    }
+  ],
+  "studyPlan": [
+    {"week":1,"focus":"Fundação regulatória + SUS","topics":["S01","S02","E01","E02"],"maintenance":["P01","M01"]},
+    {"week":2,"focus":"APS, redes e serviço público","topics":["S03","S04","S05","M02","M03"],"maintenance":["P02"]},
+    {"week":3,"focus":"Segurança e fundamentos","topics":["S06","S07","E03","E05"],"maintenance":["P03","M04"]},
+    {"week":4,"focus":"Medicamentos + saúde coletiva","topics":["E04","E06"],"maintenance":["P04","M05","S02"]},
+    {"week":5,"focus":"Ciclos de vida I","topics":["E07","E08"],"maintenance":["P05","S05","E02"]},
+    {"week":6,"focus":"Ciclos de vida II","topics":["E09"],"maintenance":["S06","E03","E04"]},
+    {"week":7,"focus":"Alta criticidade clínica","topics":["E10","E11","E12"],"maintenance":["S07","E05"]},
+    {"week":8,"focus":"Revisão ponderada","topics":["S01","S02","S05","S06","E01","E02","E04","E10","E12"],"maintenance":["P01","M01","M02"]},
+    {"week":9,"focus":"Simulados completos + caderno de erros","topics":[],"maintenance":["P01","M01","S02","E02"],"simulation":true}
+  ],
+  "articleContract": {
+    "chapters": [
+      "1. Escopo do tópico no edital",
+      "2. Fundamentos e conceitos-base",
+      "3. Estrutura conceitual",
+      "4. Norma, diretriz ou evidência primária",
+      "5. Aplicação prática",
+      "6. Pontos críticos e diferenciações",
+      "7. Erros comuns e pegadinhas conceituais",
+      "8. Questões guiadas e recuperação ativa",
+      "9. Revisão de alto rendimento",
+      "10. Referências e atualização"
+    ]
+  },
+  "sources": [
+    {"type":"official","label":"Página oficial do Concurso 74/2026 — IBAM","url":"https://www.ibamsp-concursos.org.br/informacoes/179/"},
+    {"type":"official","label":"Edital de Abertura 74/2026 — PDF","url":"https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/ef18e842-52a6-48c2-acbd-35aa7cc8526a.pdf"},
+    {"type":"official","label":"Rerratificação — Edital 82/2026","url":"https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/145fd76b-30b0-4a1d-864d-d300f7984a52.pdf"},
+    {"type":"primary","label":"Lei nº 7.498/1986 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/leis/L7498.htm"},
+    {"type":"primary","label":"Decreto nº 94.406/1987 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/decreto/1980-1989/d94406.htm"},
+    {"type":"primary","label":"Lei nº 5.905/1973 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/leis/l5905.htm"},
+    {"type":"primary","label":"Resolução COFEN nº 736/2024","url":"https://www.cofen.gov.br/resolucao-cofen-no-736-de-17-de-janeiro-de-2024/"},
+    {"type":"municipal","label":"Portal Legis Santos","url":"https://egov.santos.sp.gov.br/legis/"},
+    {"type":"municipal","label":"Lei Orgânica do Município de Santos","url":"https://leismunicipais.com.br/lei-organica-santos-sp"},
+    {"type":"municipal","label":"Estatuto — Lei nº 4.623/1984","url":"https://egov.santos.sp.gov.br/legis/documents/55"}
+  ],
+  "receivedLinksAudit": {
+    "note": "Os links inicialmente enviados apontam para o Concurso 73/2026, que não lista o cargo de Enfermeiro. O hub de Enfermeiro foi corrigido para o Concurso 74/2026.",
+    "links": [
+      "https://www.ibamsp-concursos.org.br/informacoes/178/",
+      "https://anexos-r2.selecao.net.br/uploads/810/concursos/178/anexos/9cd4c018-51c9-4d09-8c55-9a3c407c7f38.pdf",
+      "https://anexos-r2.selecao.net.br/uploads/810/concursos/178/anexos/03c362b4-5186-43f9-ba45-dbfe8285b24f.pdf"
+    ]
+  },
+  "provenance": {
+    "generatedAt": "2026-08-15",
+    "designSource": "Hub Editorial Unificado / Design System Calculadoras de Enfermagem",
+    "contentSource": "Edital 74/2026 – SEPLA-RH + Edital 82/2026 – SEPLA-RH",
+    "nonOfficialStudyGuide": true
+  }
+}
+;

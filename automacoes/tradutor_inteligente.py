@@ -450,6 +450,114 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         print(f"\n⚠️ Erro ao traduzir scripts em LOTE com DeepSeek (Mantendo originais intactos por segurança): {e}")
         return dicionario_scripts
 
+def traduzir_lote_js_com_openai(dicionario_scripts, idioma_alvo):
+    """
+    Função que recebe um dicionário de scripts e traduz via API da OpenAI.
+    """
+    instrucoes_sistema = f"""
+    Você é um cirurgião de código sênior e especialista em localização internacional.
+    Sua ÚNICA tarefa é traduzir as 'strings' (textos) legíveis por humanos do Português para o idioma '{idioma_alvo}'.
+    Você receberá um objeto JSON onde as chaves são identificadores e os valores são os blocos de código JavaScript.
+
+    ⚠️ REGRAS CRÍTICAS E INEGOCIÁVEIS:
+    1. TRADUZA APENAS o texto final lido pelo usuário (ex: mensagens, "POSITIVO", "NEGATIVO", "Conduta de Enfermagem").
+    2. NÃO ALTERE variáveis, constantes, nomes de funções, IDs de DOM, classes CSS, chaves de objeto ou lógica matemática.
+    3. PRESERVE rigorosamente a estrutura de interpolação. Tudo que estiver dentro de `${{...}}` NÃO DEVE ser tocado.
+    4. PRESERVE as aspas originais (simples, duplas ou crases).
+    5. Se houver código HTML dentro da string, traduza APENAS a palavra legível. Não traduza classes ou tags.
+    6. NÃO TRADUZA parâmetros de eventos do sistema (ex: 'click', 'DOMContentLoaded', 'smooth').
+    7. DEVOLVA EXCLUSIVAMENTE UM JSON VÁLIDO contendo as mesmas chaves do original e os códigos já traduzidos. SEM marcações markdown.
+    """
+
+    url = "https://api.openai.com/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_OPENAI}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "gpt-4o-mini",
+        "messages": [
+            {"role": "system", "content": instrucoes_sistema},
+            {"role": "user", "content": json.dumps(dicionario_scripts, ensure_ascii=False)}
+        ],
+        "temperature": 0.0,
+        "response_format": {"type": "json_object"}
+    }
+
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response.raise_for_status()
+        dados = response.json()
+        resultado = dados["choices"][0]["message"]["content"].strip()
+
+        # Limpeza caso a OpenAI envie markdown
+        if resultado.startswith("```"):
+            resultado = re.sub(r'^```(json)?\n', '', resultado, flags=re.IGNORECASE)
+            resultado = re.sub(r'\n```$', '', resultado)
+
+        traducoes = json.loads(resultado)
+
+        # Reconstrói garantindo que caso a IA omita alguma chave, o código original é mantido
+        retorno_seguro = {}
+        for chave, codigo_original in dicionario_scripts.items():
+            retorno_seguro[chave] = traducoes.get(chave, codigo_original)
+
+        return retorno_seguro
+    except Exception as e:
+        print(f"\n⚠️ Erro ao traduzir scripts em LOTE com OpenAI (Mantendo originais intactos por segurança): {e}")
+        return dicionario_scripts
+
+def dividir_html_em_duas_partes(html):
+    """Divide o HTML em duas partes aproximadamente iguais, em uma quebra de linha segura."""
+    linhas = html.split('\n')
+    if len(linhas) <= 1:
+        meio = len(html) // 2
+        return html[:meio], html[meio:]
+    meio = len(linhas) // 2
+    return '\n'.join(linhas[:meio]), '\n'.join(linhas[meio:])
+
+
+def traduzir_html_com_deepseek_api(html_protegido, idioma_alvo):
+    """Envia o HTML protegido para a API do DeepSeek e retorna o HTML traduzido."""
+    instrucoes = f"""
+Você é um especialista em localização de sites de saúde/enfermagem.
+Traduza o conteúdo HTML do Português (pt-BR) para o idioma com código ISO '{idioma_alvo}'.
+
+REGRAS INEGOCIÁVEIS:
+1. Traduza APENAS os textos visíveis e os atributos textuais (title, alt, placeholder, aria-label).
+2. NÃO altere tags HTML, classes, IDs, atributos técnicos, URLs, caminhos de arquivos ou comentários.
+3. PRESERVE exatamente os placeholders <div translate="no" id="OPENAI_BLOCK_..."></div> sem modificá-los.
+4. Mantenha a estrutura, indentação e quebras de linha do HTML original.
+5. RETORNE EXCLUSIVAMENTE o HTML traduzido. Sem explicações, sem marcações markdown.
+"""
+
+    url = "https://api.deepseek.com/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {CHAVE_DEEPSEEK}",
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "model": "deepseek-chat",
+        "messages": [
+            {"role": "system", "content": instrucoes},
+            {"role": "user", "content": html_protegido}
+        ],
+        "temperature": 0.0,
+        "max_tokens": 16384
+    }
+
+    response = requests.post(url, headers=headers, json=payload, timeout=180)
+    response.raise_for_status()
+    resultado = response.json()["choices"][0]["message"]["content"].strip()
+
+    if resultado.startswith("```"):
+        resultado = re.sub(r'^```(html)?\n', '', resultado, flags=re.IGNORECASE)
+        resultado = re.sub(r'\n```$', '', resultado)
+
+    return resultado
+
+
 def traduzir_html_com_openai_api(html_protegido, idioma_alvo):
     """Envia o HTML protegido para a API da OpenAI e retorna o HTML traduzido."""
     nomes_idiomas = {
@@ -530,14 +638,30 @@ def traduzir_html_com_openai(html_preparado, idioma_alvo):
         # === 2. PROCESSAMENTO DEEPSEEK EM LOTE (BATCH) ===
         if scripts_para_traduzir:
             # Substitui as chamadas sequenciais por uma única requisição
-            print(f"      \033[96m↳ Enviando lógicas Javascript em LOTE único para o DeepSeek...\033[0m")
-            scripts_traduzidos = traduzir_lote_js_com_deepseek(scripts_para_traduzir, idioma_alvo)
+            # Divide o lote ao meio: metade DeepSeek + metade OpenAI
+            chaves = list(scripts_para_traduzir.keys())
+            metade = len(chaves) // 2
+            primeira_metade = {chave: scripts_para_traduzir[chave] for chave in chaves[:metade]}
+            segunda_metade = {chave: scripts_para_traduzir[chave] for chave in chaves[metade:]}
+
+            scripts_traduzidos = {}
+            if primeira_metade:
+                print(f"      \033[96m↳ Enviando {len(primeira_metade)} scripts para o DeepSeek...\033[0m")
+                scripts_traduzidos.update(traduzir_lote_js_com_deepseek(primeira_metade, idioma_alvo))
+            if segunda_metade:
+                print(f"      \033[96m↳ Enviando {len(segunda_metade)} scripts para a OpenAI...\033[0m")
+                scripts_traduzidos.update(traduzir_lote_js_com_openai(segunda_metade, idioma_alvo))
             
             # Reintegra os scripts traduzidos no repositório geral de blocos
             blocos_codigo.update(scripts_traduzidos)
         
-        # === 3. TRADUÇÃO DO HTML VIA OPENAI ===
-        html_traduzido = traduzir_html_com_openai_api(html_protegido, idioma_alvo)
+        # === 3. TRADUÇÃO DO HTML DIVIDIDO (DEEPSEEK + OPENAI) ===
+        print(f"      \033[96m↳ Enviando metade do HTML para o DeepSeek...\033[0m")
+        print(f"      \033[96m↳ Enviando metade do HTML para a OpenAI...\033[0m")
+        primeira_parte, segunda_parte = dividir_html_em_duas_partes(html_protegido)
+        parte_deepseek = traduzir_html_com_deepseek_api(primeira_parte, idioma_alvo)
+        parte_openai = traduzir_html_com_openai_api(segunda_parte, idioma_alvo)
+        html_traduzido = parte_deepseek + "\n" + parte_openai
         
         # === 4. RESTAURAÇÃO DE SCRIPTS E STYLES ===
         for placeholder, codigo_restaurado in blocos_codigo.items():
