@@ -203,6 +203,23 @@
     else pill.innerHTML=`${icon('calendar')}Inscrições encerradas`;
   }
 
+  function renderGuideVig(g){
+    const pillars = g.hero.pillars.map(p=>`<div class="vig-pillar"><b>${esc(p.t)}</b><span>${esc(p.d)}</span></div>`).join('');
+    const sections = g.sections.map(s=>`<div class="vig-section"><div class="vig-section-head"><span class="vig-num">${esc(s.num)}</span><h3>${esc(s.title)}</h3></div><p class="vig-intro">${esc(s.intro)}</p><div class="vig-body"><div class="vig-items">${s.items.map(it=>`<div class="vig-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div><img class="vig-img" src="${esc(s.image)}" alt="${esc(s.imageAlt)}" loading="lazy" decoding="async"></div></div>`).join('');
+    const steps = g.flow.steps.map((st,i)=>`<div class="vig-step"><span class="vig-step-num">${i+1}</span><div><b>${esc(st.t)}</b><span>${esc(st.d)}</span></div></div>`).join('');
+    const practice = g.practice.items.map(it=>`<div class="vig-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('');
+    const refs = g.references.map(r=>`<a class="vig-ref" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><span class="vig-ref-label">${esc(r.label)}</span><b>${esc(r.text)}</b><span class="vig-ref-arrow" aria-hidden="true">↗</span></a>`).join('');
+    const keywords = g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('');
+    return `<div class="guide-vig">
+      <div class="vig-hero"><span class="vig-kicker">${esc(g.hero.kicker)}</span><h3>${esc(g.hero.title)}</h3><p>${esc(g.hero.text)}</p><div class="vig-pillars">${pillars}</div></div>
+      ${sections}
+      <div class="vig-flow"><h3>${esc(g.flow.title)}</h3><div class="vig-steps">${steps}</div></div>
+      <div class="vig-section"><div class="vig-section-head"><span class="vig-num">+</span><h3>${esc(g.practice.title)}</h3></div><div class="vig-items">${practice}</div></div>
+      <div class="vig-section"><div class="vig-section-head"><span class="vig-num">↗</span><h3>Referências</h3></div><div class="vig-refs">${refs}</div></div>
+      <div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${keywords}</div>
+    </div>`;
+  }
+
   function renderGuideAps(g){
     const badges = g.hero.badges.map(b=>`<span class="aps-badge">${esc(b)}</span>`).join('');
     const principles = g.principles.items.map(p=>`<div class="aps-prin"><b>${esc(p.t)}</b><span>${esc(p.d)}</span></div>`).join('');
@@ -271,7 +288,7 @@
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
     let guideHtml='';
     if(t.guide){
-      try { guideHtml = t.guide.layout==='lei' ? renderGuideLei(t.guide) : (t.guide.layout==='aps' ? renderGuideAps(t.guide) : renderGuide(t.guide)); }
+      try { const R={lei:renderGuideLei,aps:renderGuideAps,vig:renderGuideVig}; guideHtml = t.guide.layout&&R[t.guide.layout] ? R[t.guide.layout](t.guide) : renderGuide(t.guide); }
       catch(e) { guideHtml=''; }
     }
     const gridHtml = t.guide ? '' : `<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;

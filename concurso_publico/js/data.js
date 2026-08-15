@@ -324,7 +324,88 @@ window.SANTOS_DATA = {
     {
       "id":"S06","area":"sus","title":"Humanização, vigilância, imunização e informação","priority":"critica","flags":["PNH","vigilância","PNI"],
       "summary":"PNH, clínica ampliada, PTS, vigilâncias, notificação, surtos, PNI, cadeia de frio, EAPV, indicadores, sistemas e prontuário eletrônico.",
-      "subtopics":["Política Nacional de Humanização","clínica ampliada e PTS","vigilância em saúde","notificação compulsória","investigação de surtos","PNI e cadeia de frio","eventos pós-vacinação","indicadores e sistemas de informação"]
+      "subtopics":["Política Nacional de Humanização","clínica ampliada e PTS","vigilância em saúde","notificação compulsória","investigação de surtos","PNI e cadeia de frio","eventos pós-vacinação","indicadores e sistemas de informação"],
+      "guide":{
+        "layout":"vig",
+        "hero":{
+          "kicker":"PNH · PNI · Vigilância Epidemiológica",
+          "title":"O fio condutor: a defesa da vida no SUS",
+          "text":"Três políticas com o mesmo DNA — Universalidade, Integralidade e Equidade. A Vigilância Epidemiológica mapeia onde estão os riscos; o PNI atua na prevenção; a PNH garante que cada cuidado seja feito com respeito, diálogo e acolhimento. Juntas, formam o escudo protetor da saúde pública brasileira.",
+          "pillars":[
+            {"t":"Vigilância Epidemiológica","d":"Mapeia os riscos e identifica onde estão os problemas."},
+            {"t":"Programa Nacional de Imunizações","d":"Atua na prevenção, protegendo a população contra os riscos mapeados."},
+            {"t":"Política Nacional de Humanização","d":"Garante que o cidadão seja recebido, vacinado e cuidado com acolhimento."}
+          ]
+        },
+        "sections":[
+          {
+            "num":"1",
+            "title":"Política Nacional de Humanização (PNH) — HumanizaSUS",
+            "intro":"Criada em 2003, a PNH é transversal: transforma a relação entre pacientes e profissionais, encerra relações autoritárias e constrói cuidado compartilhado.",
+            "image":"/img/politica_nacional_de_humanizacao_pnh.webp",
+            "imageAlt":"Política Nacional de Humanização (PNH) — HumanizaSUS.",
+            "items":[
+              {"t":"Transversalidade","d":"A humanização está presente em todas as políticas e programas do SUS — não é um setor."},
+              {"t":"Acolhimento com Classificação de Risco","d":"Ouvir as necessidades e priorizar pela gravidade (vulnerabilidade e risco), não pela ordem de chegada."},
+              {"t":"Ambiência","d":"Espaços acolhedores, confortáveis e que respeitam a privacidade do usuário."},
+              {"t":"Gestão Participativa (Cogestão)","d":"Usuários, trabalhadores e gestores decidem juntos; ninguém apenas cumpre ordens."},
+              {"t":"Clínica Ampliada","d":"Olhar o paciente além da doença — determinantes sociais e decisões compartilhadas."}
+            ]
+          },
+          {
+            "num":"2",
+            "title":"Programa Nacional de Imunizações (PNI)",
+            "intro":"Coordenado pelo Ministério da Saúde e referência mundial: planeja, financia e distribui vacinas, garantindo acesso gratuito e igualitário em todo o país.",
+            "image":"/img/fluxograma_do_programa_nacional_de_imunizações_pni.webp",
+            "imageAlt":"Fluxograma do Programa Nacional de Imunizações (PNI).",
+            "items":[
+              {"t":"Amplitude e Erradicação","d":"Erradicou varíola e poliomielite; eliminou sarampo e rubéola; controla tétano e tuberculose."},
+              {"t":"Acesso Universal e Gratuito","d":"Prevenção de doenças transmissíveis em todo o território nacional, sem custo."},
+              {"t":"O Ciclo da Vida","d":"Calendário para todas as fases: crianças, adolescentes, adultos, idosos, gestantes e povos indígenas (49 imunobiológicos)."},
+              {"t":"Rede de Frio","d":"Logística de conservação (temperatura) do laboratório ao braço do paciente, preservando a eficácia da dose."},
+              {"t":"CRIE","d":"Centros de Referência para Imunobiológicos Especiais — vacinas para grupos especiais (imunossuprimidos, doentes crônicos)."}
+            ]
+          },
+          {
+            "num":"3",
+            "title":"Vigilância Epidemiológica (VE)",
+            "intro":"O serviço de inteligência do SUS: monitora o território e detecta doenças antes que se tornem epidemias descontroladas.",
+            "image":"/img/doencas_agravos_e_eventos_de_notificacao_compulsoria_nacional.webp",
+            "imageAlt":"Doenças, agravos e eventos de notificação compulsória nacional.",
+            "items":[
+              {"t":"Informação para a Ação","d":"Não apenas coleta dados: analisa e recomenda medidas urgentes de controle e prevenção."},
+              {"t":"Doenças de Notificação Compulsória","d":"Casos graves, raros ou contagiosos (febre maculosa, dengue, covid-19, raiva) informados imediatamente."},
+              {"t":"Investigação de Casos e Surtos","d":"Equipes vão a campo para descobrir como o paciente se infectou e impedir novos casos."},
+              {"t":"Notificação por Todos","d":"Profissionais têm dever legal; cidadãos (escolas, creches, associações) também podem e devem avisar."}
+            ]
+          }
+        ],
+        "flow":{
+          "title":"Passo a passo da notificação compulsória",
+          "steps":[
+            {"t":"Notificação Imediata — o alerta","d":"A suspeita clínica não espera o laboratório: em até 24h a Secretaria Municipal é avisada (sistema SINAN)."},
+            {"t":"Investigação Epidemiológica — a busca","d":"Onde esteve? Quem são os contatos próximos? Como pode ter se infectado? Equipes vão a campo."},
+            {"t":"Ação de Bloqueio — o contra-ataque","d":"Vacinação de bloqueio (sarampo/meningite), fumacê e criadouros (dengue), controle de animais (raiva/febre maculosa)."},
+            {"t":"Análise e Prevenção Contínua","d":"Entender a falha (ex.: queda de cobertura vacinal) e planejar novas campanhas — retorna ao PNI."}
+          ]
+        },
+        "practice":{
+          "title":"PNH aplicada à vacinação (PNI)",
+          "items":[
+            {"t":"Acolhimento e Informação","d":"Explicar para que serve a vacina, as reações esperadas e como aliviá-las — combate a hesitação vacinal."},
+            {"t":"Ambiência","d":"Sala de vacinação lúdica, confortável e organizada reduz a ansiedade no momento da aplicação."},
+            {"t":"Defesa dos Direitos dos Usuários","d":"Informar vacina e fabricante; respeitar o tempo, o medo e as dúvidas de cada usuário."},
+            {"t":"Cuidado Singular","d":"Encaminhar quem precisa (ex.: gestante em dificuldade) para a equipe multidisciplinar."}
+          ]
+        },
+        "references":[
+          {"label":"PNH","text":"Política Nacional de Humanização — Santa Marcelina","url":"https://santamarcelina.org/politica-nacional-de-humanizacao/"},
+          {"label":"PNI","text":"Programa Nacional de Imunizações — Ministério da Saúde","url":"https://www.gov.br/saude/pt-br/composicao/svsa/pni"},
+          {"label":"VE","text":"Guia de Vigilância em Saúde (Volume 3) — Ministério da Saúde","url":"https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-3-6a-edicao/"},
+          {"label":"Lista","text":"Doenças de notificação compulsória — Calculadoras de Enfermagem","url":"https://www.calculadorasdeenfermagem.com.br/notificacao-compulsoria.html"}
+        ],
+        "keywords":["PNH","HumanizaSUS","PNI","Rede de Frio","CRIE","Vigilância Epidemiológica","notificação compulsória","acolhimento e classificação de risco","clínica ampliada","investigação de surtos"]
+      }
     },
     {
       "id":"S07","area":"sus","title":"Segurança, bioética, determinantes e redes de urgência/mental","priority":"alta","flags":["segurança","bioética"],
