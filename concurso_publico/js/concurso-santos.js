@@ -203,6 +203,28 @@
     else pill.innerHTML=`${icon('calendar')}Inscrições encerradas`;
   }
 
+  function renderGuideAps(g){
+    const badges = g.hero.badges.map(b=>`<span class="aps-badge">${esc(b)}</span>`).join('');
+    const principles = g.principles.items.map(p=>`<div class="aps-prin"><b>${esc(p.t)}</b><span>${esc(p.d)}</span></div>`).join('');
+    const directives = g.directives.items.map(d=>`<div class="aps-dir"><b>${esc(d.t)}</b><span>${esc(d.d)}</span></div>`).join('');
+    const where = g.where.items.map(w=>`<span class="aps-chip">${esc(w)}</span>`).join('');
+    const team = g.team.items.map(t=>`<div class="aps-team"><b>${esc(t)}</b></div>`).join('');
+    const nursing = g.nursing.items.map(n=>`<div class="aps-dir"><b>${esc(n.t)}</b><span>${esc(n.d)}</span></div>`).join('');
+    const determinants = g.determinants.items.map(d=>`<span class="aps-chip">${esc(d)}</span>`).join('');
+    const keywords = g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('');
+    return `<div class="guide-aps">
+      <div class="aps-hero"><span class="aps-kicker">${esc(g.hero.kicker)}</span><h3>${esc(g.hero.title)}</h3><p>${esc(g.hero.text)}</p><div class="aps-badges">${badges}</div></div>
+      <div class="aps-section"><h3>${esc(g.principles.title)}</h3><div class="aps-prin-grid">${principles}</div></div>
+      <div class="aps-section"><h3>${esc(g.directives.title)}</h3><div class="aps-dir-wrap"><img class="aps-dir-img" src="${esc(g.directives.image)}" alt="${esc(g.directives.imageAlt)}" loading="lazy" decoding="async"><div class="aps-dir-list">${directives}</div></div></div>
+      <div class="aps-section"><h3>${esc(g.where.title)}</h3><div class="aps-chips">${where}</div></div>
+      <div class="aps-section"><h3>${esc(g.team.title)}</h3><p class="aps-lead">${esc(g.team.text)}</p><div class="aps-team-grid">${team}</div></div>
+      <div class="aps-note"><b>${esc(g.population.title)}</b><p>${esc(g.population.text)}</p></div>
+      <div class="aps-section"><h3>${esc(g.nursing.title)}</h3><div class="aps-dir-list">${nursing}</div></div>
+      <div class="aps-section"><h3>${esc(g.determinants.title)}</h3><p class="aps-lead">${esc(g.determinants.text)}</p><div class="aps-chips">${determinants}</div></div>
+      <div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${keywords}</div>
+    </div>`;
+  }
+
   function renderGuideLei(g){
     const tln = g.timeline.map(s=>`<div class="tl-step"><span class="tl-year">${esc(s.t)}</span><p>${esc(s.d)}</p></div>`).join('');
     const groups = g.principles.groups.map(gr=>`<div class="prin-group"><div class="prin-head"><span>${esc(gr.label)}</span><b class="mnemonic">${esc(gr.mnemonic)}</b></div>${gr.items.map(it=>`<div class="prin-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div>`).join('');
@@ -249,7 +271,7 @@
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
     let guideHtml='';
     if(t.guide){
-      try { guideHtml = t.guide.layout==='lei' ? renderGuideLei(t.guide) : renderGuide(t.guide); }
+      try { guideHtml = t.guide.layout==='lei' ? renderGuideLei(t.guide) : (t.guide.layout==='aps' ? renderGuideAps(t.guide) : renderGuide(t.guide)); }
       catch(e) { guideHtml=''; }
     }
     const gridHtml = t.guide ? '' : `<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
