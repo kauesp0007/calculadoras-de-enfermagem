@@ -205,7 +205,7 @@
 
   function renderGuideVig(g){
     const pillars = g.hero.pillars.map(p=>`<div class="vig-pillar"><b>${esc(p.t)}</b><span>${esc(p.d)}</span></div>`).join('');
-    const sections = g.sections.map(s=>`<div class="vig-section"><div class="vig-section-head"><span class="vig-num">${esc(s.num)}</span><h3>${esc(s.title)}</h3></div><p class="vig-intro">${esc(s.intro)}</p><div class="vig-body"><div class="vig-items">${s.items.map(it=>`<div class="vig-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div><img class="vig-img" src="${esc(s.image)}" alt="${esc(s.imageAlt)}" loading="lazy" decoding="async"></div></div>`).join('');
+    const sections = g.sections.map(s=>`<div class="vig-section"><div class="vig-section-head"><span class="vig-num">${esc(s.num)}</span><h3>${esc(s.title)}</h3></div><p class="vig-intro">${esc(s.intro)}</p><div class="vig-body"><figure class="vig-figure"><img class="vig-img" src="${esc(s.image)}" alt="${esc(s.imageAlt)}" loading="lazy" decoding="async"><figcaption>🔍 Clique na imagem para ampliar</figcaption></figure><div class="vig-items">${s.items.map(it=>`<div class="vig-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div></div></div>`).join('');
     const steps = g.flow.steps.map((st,i)=>`<div class="vig-step"><span class="vig-step-num">${i+1}</span><div><b>${esc(st.t)}</b><span>${esc(st.d)}</span></div></div>`).join('');
     const practice = g.practice.items.map(it=>`<div class="vig-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('');
     const refs = g.references.map(r=>`<a class="vig-ref" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><span class="vig-ref-label">${esc(r.label)}</span><b>${esc(r.text)}</b><span class="vig-ref-arrow" aria-hidden="true">↗</span></a>`).join('');
@@ -293,13 +293,33 @@
     }
     const gridHtml = t.guide ? '' : `<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;
     $('#modalBody').innerHTML=`<div class="notice" style="margin-bottom:14px">${icon('info','icon lg')}<div><strong>Escopo:</strong> ${esc(t.summary)}</div></div>${guideHtml}${gridHtml}`;
+    bindImageLightbox();
     $('#topicModal').classList.add('open'); document.body.classList.add('no-scroll'); $('#closeModal').focus();
   }
   function closeTopic(){ $('#topicModal').classList.remove('open'); document.body.classList.remove('no-scroll'); }
 
+  function bindImageLightbox(){
+    $$('#modalBody .vig-img').forEach(img => {
+      img.style.cursor = 'zoom-in';
+      img.addEventListener('click', () => openLightbox(img.getAttribute('src'), img.getAttribute('alt') || ''));
+    });
+  }
+  function openLightbox(src, alt){
+    const lb = $('#imgLightbox'); if(!lb) return;
+    const im = lb.querySelector('img');
+    im.src = src; im.alt = alt;
+    lb.classList.add('open'); document.body.classList.add('no-scroll');
+    const bc = $('#imgLightboxClose'); if(bc) bc.focus();
+  }
+  function closeLightbox(){
+    const lb = $('#imgLightbox'); if(!lb) return;
+    lb.classList.remove('open');
+    if(!$('#topicModal').classList.contains('open')) document.body.classList.remove('no-scroll');
+  }
+
   function switchTab(id, updateHash=true){
     const panel=$(`[data-panel="${id}"]`); if(!panel)return;
-    $$('.panel').forEach(p=>p.classList.toggle('active',p===panel)); $$('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));
+    $$('.panel').forEach(p=>p.classList.toggle('active',p===panel)); $$('.tab-btn').forEach(b=>{const on=b.dataset.tab===id;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false')});
     if(updateHash) history.replaceState(null,'','#'+id);
     if(id==='mapa') setTimeout(()=>$('#topicSearch')?.focus({preventScroll:true}),50);
     window.scrollTo({top:Math.max(0,$('.study-tabs').offsetTop-66),behavior:'smooth'});
@@ -357,7 +377,12 @@
     });
     $('#resetProgress').addEventListener('click',()=>{if(confirm('Apagar todo o progresso e favoritos deste concurso neste navegador?')){saved={topics:{}};persist();renderAllStateful();toast('Progresso reiniciado');}});
     $('#closeModal').addEventListener('click',closeTopic); $('#topicModal').addEventListener('click',e=>{if(e.target.id==='topicModal')closeTopic()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeTopic();$('#sidebar').classList.remove('open');$('#overlay').classList.remove('open');document.body.classList.remove('no-scroll')}});
+    const lb=$('#imgLightbox');
+    if(lb){
+      $('#imgLightboxClose').addEventListener('click',closeLightbox);
+      lb.addEventListener('click',e=>{ if(e.target===lb) closeLightbox(); });
+    }
+    document.addEventListener('keydown',e=>{if(e.key==='Escape'){const l=$('#imgLightbox'); if(l&&l.classList.contains('open')){closeLightbox();return;} closeTopic();$('#sidebar').classList.remove('open');$('#overlay').classList.remove('open');document.body.classList.remove('no-scroll')}});
   }
 
   function init(){
