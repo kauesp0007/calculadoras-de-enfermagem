@@ -327,6 +327,9 @@
     markOpened(id);
     startStudyClock();
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
+    const stOpened = topicState(id);
+    const mst = $('#modalStudyTime');
+    if(mst) mst.textContent = stOpened.openedAt ? `Início do estudo: ${fmtDateTime(stOpened.openedAt)}` : '';
     let guideHtml='';
     if(t.guide){
       try { const R={lei:renderGuideLei,aps:renderGuideAps,vig:renderGuideVig,blocos:renderGuideBlocos}; guideHtml = t.guide.layout&&R[t.guide.layout] ? R[t.guide.layout](t.guide) : renderGuide(t.guide); }
