@@ -220,6 +220,20 @@
     </div>`;
   }
 
+  function renderGuideBlocos(g){
+    const hero = `<div class="blk-hero"><span class="blk-kicker">${esc(g.hero.kicker)}</span><h3>${esc(g.hero.title)}</h3><p>${esc(g.hero.text)}</p></div>`;
+    const blocks = (g.blocks||[]).map(b => {
+      if(b.type==='section') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-items">${b.items.map(it=>`<div class="blk-item"><b>${esc(it.t)}</b><span>${esc(it.d)}</span></div>`).join('')}</div></div>`;
+      if(b.type==='note') return `<div class="blk-note"><b>${esc(b.title)}</b><p>${esc(b.text)}</p></div>`;
+      if(b.type==='chips') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-chips">${b.items.map(i=>`<span class="blk-chip">${esc(i)}</span>`).join('')}</div></div>`;
+      if(b.type==='flow') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-steps">${b.steps.map((s,i)=>`<div class="blk-step"><span class="blk-step-num">${i+1}</span><div><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></div>`).join('')}</div></div>`;
+      if(b.type==='refs') return `<div class="blk-section"><h3>${esc(b.title||'Referências')}</h3><div class="blk-refs">${b.items.map(r=>`<a class="blk-ref" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><span class="blk-ref-label">${esc(r.label)}</span><b>${esc(r.text)}</b><span class="blk-ref-arrow" aria-hidden="true">↗</span></a>`).join('')}</div></div>`;
+      return '';
+    }).join('');
+    const keywords = `<div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('')}</div>`;
+    return `<div class="guide-blk">${hero}${blocks}${keywords}</div>`;
+  }
+
   function renderGuideAps(g){
     const badges = g.hero.badges.map(b=>`<span class="aps-badge">${esc(b)}</span>`).join('');
     const principles = g.principles.items.map(p=>`<div class="aps-prin"><b>${esc(p.t)}</b><span>${esc(p.d)}</span></div>`).join('');
@@ -288,7 +302,7 @@
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
     let guideHtml='';
     if(t.guide){
-      try { const R={lei:renderGuideLei,aps:renderGuideAps,vig:renderGuideVig}; guideHtml = t.guide.layout&&R[t.guide.layout] ? R[t.guide.layout](t.guide) : renderGuide(t.guide); }
+      try { const R={lei:renderGuideLei,aps:renderGuideAps,vig:renderGuideVig,blocos:renderGuideBlocos}; guideHtml = t.guide.layout&&R[t.guide.layout] ? R[t.guide.layout](t.guide) : renderGuide(t.guide); }
       catch(e) { guideHtml=''; }
     }
     const gridHtml = t.guide ? '' : `<div class="modal-grid"><div class="modal-box"><h3>O que revisar neste núcleo</h3><ul class="bullet-list">${t.subtopics.map(s=>`<li>${esc(s)}</li>`).join('')}</ul></div><div class="modal-box"><h3>Contrato editorial — 10 capítulos</h3><div class="chapter-list">${data.articleContract.chapters.map((c,i)=>`<div class="chapter"><b>${i+1}</b><span>${esc(c.replace(/^\d+\.\s*/,''))}</span></div>`).join('')}</div></div></div>`;

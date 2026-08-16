@@ -14,10 +14,10 @@ window.SANTOS_DATA = {
     "pcdVacancies": 2,
     "blackReservedVacancies": 3,
     "baseSalaryBRL": 8292.55,
-    "foodAllowanceBRL": 1100.00,
+    "foodAllowanceBRL": 1100,
     "totalMonthlyBRL": 9392.55,
     "weeklyHours": 40,
-    "applicationFeeBRL": 92.00,
+    "applicationFeeBRL": 92,
     "requirements": "Graduação em Enfermagem e registro profissional."
   },
   "dates": {
@@ -38,451 +38,2083 @@ window.SANTOS_DATA = {
     "titleExam": true,
     "titleExamMaxPoints": 10,
     "areas": [
-      {"id":"portugues","label":"Língua Portuguesa","questions":10,"weight":1,"maxPoints":10,"share":10,"priority":"manutencao"},
-      {"id":"legislacao","label":"Legislação Municipal, Ética e Serviço Público","questions":6,"weight":1,"maxPoints":6,"share":6,"priority":"manutencao"},
-      {"id":"sus","label":"Políticas Públicas de Saúde e SUS","questions":12,"weight":3,"maxPoints":36,"share":36,"priority":"alta"},
-      {"id":"especificos","label":"Conhecimentos Específicos","questions":12,"weight":4,"maxPoints":48,"share":48,"priority":"critica"}
+      {
+        "id": "portugues",
+        "label": "Língua Portuguesa",
+        "questions": 10,
+        "weight": 1,
+        "maxPoints": 10,
+        "share": 10,
+        "priority": "manutencao"
+      },
+      {
+        "id": "legislacao",
+        "label": "Legislação Municipal, Ética e Serviço Público",
+        "questions": 6,
+        "weight": 1,
+        "maxPoints": 6,
+        "share": 6,
+        "priority": "manutencao"
+      },
+      {
+        "id": "sus",
+        "label": "Políticas Públicas de Saúde e SUS",
+        "questions": 12,
+        "weight": 3,
+        "maxPoints": 36,
+        "share": 36,
+        "priority": "alta"
+      },
+      {
+        "id": "especificos",
+        "label": "Conhecimentos Específicos",
+        "questions": 12,
+        "weight": 4,
+        "maxPoints": 48,
+        "share": 48,
+        "priority": "critica"
+      }
     ]
   },
   "topics": [
     {
-      "id":"P01","area":"portugues","title":"Leitura, compreensão e interpretação","priority":"alta","flags":["interpretação","inferência"],
-      "summary":"Tema, assunto, finalidade, explícitos e implícitos, tese, argumentos, conclusão, inferências, pressupostos e subentendidos.",
-      "subtopics":["tema, assunto e finalidade","informações explícitas e implícitas","tese, argumentos e conclusão","inferência válida","pressupostos e subentendidos","textos da área da saúde"]
+      "id": "P01",
+      "area": "portugues",
+      "title": "Leitura, compreensão e interpretação",
+      "priority": "alta",
+      "flags": [
+        "interpretação",
+        "inferência"
+      ],
+      "summary": "Tema, assunto, finalidade, explícitos e implícitos, tese, argumentos, conclusão, inferências, pressupostos e subentendidos.",
+      "subtopics": [
+        "tema, assunto e finalidade",
+        "informações explícitas e implícitas",
+        "tese, argumentos e conclusão",
+        "inferência válida",
+        "pressupostos e subentendidos",
+        "textos da área da saúde"
+      ]
     },
     {
-      "id":"P02","area":"portugues","title":"Coesão, coerência e relações lógico-discursivas","priority":"media","flags":["texto"],
-      "summary":"Referência, conectores, pronomes e articulação entre períodos e parágrafos.",
-      "subtopics":["coesão referencial","coesão sequencial","conectores","pronomes e referenciação","progressão temática","coerência global"]
+      "id": "P02",
+      "area": "portugues",
+      "title": "Coesão, coerência e relações lógico-discursivas",
+      "priority": "media",
+      "flags": [
+        "texto"
+      ],
+      "summary": "Referência, conectores, pronomes e articulação entre períodos e parágrafos.",
+      "subtopics": [
+        "coesão referencial",
+        "coesão sequencial",
+        "conectores",
+        "pronomes e referenciação",
+        "progressão temática",
+        "coerência global"
+      ]
     },
     {
-      "id":"P03","area":"portugues","title":"Semântica, gêneros e reescrita","priority":"media","flags":["semântica","reescrita"],
-      "summary":"Sentido contextual, denotação/conotação, sinonímia, antonímia, ambiguidade, paráfrase e gêneros técnicos/institucionais.",
-      "subtopics":["denotação e conotação","sinonímia e antonímia","ambiguidade","paráfrase","gêneros técnicos e administrativos","reescrita com preservação do sentido"]
+      "id": "P03",
+      "area": "portugues",
+      "title": "Semântica, gêneros e reescrita",
+      "priority": "media",
+      "flags": [
+        "semântica",
+        "reescrita"
+      ],
+      "summary": "Sentido contextual, denotação/conotação, sinonímia, antonímia, ambiguidade, paráfrase e gêneros técnicos/institucionais.",
+      "subtopics": [
+        "denotação e conotação",
+        "sinonímia e antonímia",
+        "ambiguidade",
+        "paráfrase",
+        "gêneros técnicos e administrativos",
+        "reescrita com preservação do sentido"
+      ]
     },
     {
-      "id":"P04","area":"portugues","title":"Gramática aplicada ao texto","priority":"media","flags":["gramática"],
-      "summary":"Ortografia, acentuação, pontuação, classes, flexões, concordância, regência, crase e colocação pronominal.",
-      "subtopics":["ortografia e acentuação","pontuação","classes de palavras","concordância verbal e nominal","regência verbal e nominal","crase","colocação pronominal"]
+      "id": "P04",
+      "area": "portugues",
+      "title": "Gramática aplicada ao texto",
+      "priority": "media",
+      "flags": [
+        "gramática"
+      ],
+      "summary": "Ortografia, acentuação, pontuação, classes, flexões, concordância, regência, crase e colocação pronominal.",
+      "subtopics": [
+        "ortografia e acentuação",
+        "pontuação",
+        "classes de palavras",
+        "concordância verbal e nominal",
+        "regência verbal e nominal",
+        "crase",
+        "colocação pronominal"
+      ]
     },
     {
-      "id":"P05","area":"portugues","title":"Período e comunicação institucional","priority":"media","flags":["sintaxe","comunicação"],
-      "summary":"Período simples/composto, coordenação/subordinação, clareza, objetividade, impessoalidade e precisão.",
-      "subtopics":["tempos e modos verbais","período simples","período composto","coordenação","subordinação","adequação vocabular","clareza e impessoalidade"]
+      "id": "P05",
+      "area": "portugues",
+      "title": "Período e comunicação institucional",
+      "priority": "media",
+      "flags": [
+        "sintaxe",
+        "comunicação"
+      ],
+      "summary": "Período simples/composto, coordenação/subordinação, clareza, objetividade, impessoalidade e precisão.",
+      "subtopics": [
+        "tempos e modos verbais",
+        "período simples",
+        "período composto",
+        "coordenação",
+        "subordinação",
+        "adequação vocabular",
+        "clareza e impessoalidade"
+      ]
     },
     {
-      "id":"M01","area":"legislacao","title":"Lei Orgânica do Município de Santos","priority":"alta","flags":["letra de lei","municipal"],
-      "summary":"Organização e competências municipais, administração e servidores, serviços/bens, saúde, assistência, proteção social, meio ambiente e controle.",
-      "subtopics":["organização do Município","competências municipais","administração pública municipal","servidores públicos","serviços e bens municipais","saúde pública e assistência social","fiscalização e controle","princípios da Administração Pública"]
+      "id": "M01",
+      "area": "legislacao",
+      "title": "Lei Orgânica do Município de Santos",
+      "priority": "alta",
+      "flags": [
+        "letra de lei",
+        "municipal"
+      ],
+      "summary": "Organização e competências municipais, administração e servidores, serviços/bens, saúde, assistência, proteção social, meio ambiente e controle.",
+      "subtopics": [
+        "organização do Município",
+        "competências municipais",
+        "administração pública municipal",
+        "servidores públicos",
+        "serviços e bens municipais",
+        "saúde pública e assistência social",
+        "fiscalização e controle",
+        "princípios da Administração Pública"
+      ]
     },
     {
-      "id":"M02","area":"legislacao","title":"Lei nº 4.623/1984 — Estatuto dos Funcionários","priority":"alta","flags":["letra de lei","estatuto"],
-      "summary":"Provimento, posse, exercício, direitos, deveres, responsabilidades, proibições, disciplina e penalidades — sempre pelo texto consolidado.",
-      "subtopics":["provimento e posse","exercício","direitos e deveres","responsabilidades","proibições","regime disciplinar","penalidades","assiduidade, pontualidade e urbanidade"]
+      "id": "M02",
+      "area": "legislacao",
+      "title": "Lei nº 4.623/1984 — Estatuto dos Funcionários",
+      "priority": "alta",
+      "flags": [
+        "letra de lei",
+        "estatuto"
+      ],
+      "summary": "Provimento, posse, exercício, direitos, deveres, responsabilidades, proibições, disciplina e penalidades — sempre pelo texto consolidado.",
+      "subtopics": [
+        "provimento e posse",
+        "exercício",
+        "direitos e deveres",
+        "responsabilidades",
+        "proibições",
+        "regime disciplinar",
+        "penalidades",
+        "assiduidade, pontualidade e urbanidade"
+      ]
     },
     {
-      "id":"M03","area":"legislacao","title":"LC Municipal nº 1.253/2024","priority":"alta","flags":["letra de lei","organização"],
-      "summary":"Organização da Administração Pública direta e indireta de Santos, órgãos, entidades, competências, estrutura e controle.",
-      "subtopics":["administração direta e indireta","órgãos e entidades","competências administrativas","estrutura organizacional","planejamento governamental","controle das atividades"]
+      "id": "M03",
+      "area": "legislacao",
+      "title": "LC Municipal nº 1.253/2024",
+      "priority": "alta",
+      "flags": [
+        "letra de lei",
+        "organização"
+      ],
+      "summary": "Organização da Administração Pública direta e indireta de Santos, órgãos, entidades, competências, estrutura e controle.",
+      "subtopics": [
+        "administração direta e indireta",
+        "órgãos e entidades",
+        "competências administrativas",
+        "estrutura organizacional",
+        "planejamento governamental",
+        "controle das atividades"
+      ]
     },
     {
-      "id":"M04","area":"legislacao","title":"Constituição e princípios do serviço público","priority":"alta","flags":["constitucional","ética"],
-      "summary":"Legalidade, impessoalidade, moralidade, publicidade, eficiência, servidores, responsabilidade do Estado, saúde e direitos fundamentais.",
-      "subtopics":["LIMPE","servidores públicos","responsabilidade civil do Estado","direito à saúde","seguridade social","dignidade e igualdade","vedação à discriminação"]
+      "id": "M04",
+      "area": "legislacao",
+      "title": "Constituição e princípios do serviço público",
+      "priority": "alta",
+      "flags": [
+        "constitucional",
+        "ética"
+      ],
+      "summary": "Legalidade, impessoalidade, moralidade, publicidade, eficiência, servidores, responsabilidade do Estado, saúde e direitos fundamentais.",
+      "subtopics": [
+        "LIMPE",
+        "servidores públicos",
+        "responsabilidade civil do Estado",
+        "direito à saúde",
+        "seguridade social",
+        "dignidade e igualdade",
+        "vedação à discriminação"
+      ]
     },
     {
-      "id":"M05","area":"legislacao","title":"Usuário, transparência, dados e governo digital","priority":"alta","flags":["LAI","LGPD"],
-      "summary":"Leis 13.460/2017, 12.527/2011, 13.709/2018 e 14.129/2021, além de ética, sigilo, integridade e humanização.",
-      "subtopics":["direitos do usuário de serviços públicos","ouvidoria e manifestações","LAI: publicidade e sigilo","LGPD: dados pessoais e sensíveis","segurança e prevenção","governo digital","ética e sigilo funcional"]
+      "id": "M05",
+      "area": "legislacao",
+      "title": "Usuário, transparência, dados e governo digital",
+      "priority": "alta",
+      "flags": [
+        "LAI",
+        "LGPD"
+      ],
+      "summary": "Leis 13.460/2017, 12.527/2011, 13.709/2018 e 14.129/2021, além de ética, sigilo, integridade e humanização.",
+      "subtopics": [
+        "direitos do usuário de serviços públicos",
+        "ouvidoria e manifestações",
+        "LAI: publicidade e sigilo",
+        "LGPD: dados pessoais e sensíveis",
+        "segurança e prevenção",
+        "governo digital",
+        "ética e sigilo funcional"
+      ]
     },
     {
-      "id":"S01","area":"sus","title":"Constituição Federal e fundamentos do SUS","priority":"critica","flags":["SUS","norma"],
-      "summary":"Direito à saúde, relevância pública, diretrizes, competências, financiamento e participação complementar da iniciativa privada.",
-      "subtopics":["saúde como direito e dever do Estado","descentralização","integralidade","participação da comunidade","competências do SUS","financiamento","iniciativa privada complementar"],
-      "guide":{
-        "intro":[
+      "id": "S01",
+      "area": "sus",
+      "title": "Constituição Federal e fundamentos do SUS",
+      "priority": "critica",
+      "flags": [
+        "SUS",
+        "norma"
+      ],
+      "summary": "Direito à saúde, relevância pública, diretrizes, competências, financiamento e participação complementar da iniciativa privada.",
+      "subtopics": [
+        "saúde como direito e dever do Estado",
+        "descentralização",
+        "integralidade",
+        "participação da comunidade",
+        "competências do SUS",
+        "financiamento",
+        "iniciativa privada complementar"
+      ],
+      "guide": {
+        "intro": [
           "Antes da Constituição de 1988, a assistência à saúde era previdenciária: só recebia cobertura quem contribuía — os trabalhadores formais, atendidos pelo antigo INAMPS (Instituto Nacional de Assistência Médica da Previdência Social) ou por convênios de sindicatos. A população vulnerável (desempregados, trabalhadores rurais e informais) ficava de fora e dependia da caridade das Santas Casas de Misericórdia.",
           "A Constituição de 1988 rompeu com esse modelo. No art. 6º, a saúde passou a ser direito social; no art. 196, “direito de todos e dever do Estado”; e nos arts. 197 a 200 a Carta detalhou relevância pública, diretrizes, participação privada e competências do SUS. Foi a maior virada sanitária da história do país: a saúde deixou de ser benefício de quem contribui para ser direito de todos, garantido pelo Estado.",
           "Como norma máxima, a Constituição é a fonte de onde derivam todas as leis do SUS (8.080/1990, 8.142/1990, LC 141/2012). Em prova, lembre-se: o fundamento do SUS é constitucional — antes de qualquer lei, existe o direito fundamental à saúde."
         ],
-        "flowTitle":"A virada da Constituição de 1988",
-        "flowBefore":{
-          "label":"Antes de 1988",
-          "items":[
-            {"t":"Saúde = benefício previdenciário","d":"Cobertura restrita a quem contribuía com a Previdência."},
-            {"t":"INAMPS e sindicatos","d":"Trabalhadores formais atendidos pelo INAMPS ou por convênios de categoria."},
-            {"t":"População vulnerável excluída","d":"Dependia da caridade das Santas Casas de Misericórdia."}
+        "flowTitle": "A virada da Constituição de 1988",
+        "flowBefore": {
+          "label": "Antes de 1988",
+          "items": [
+            {
+              "t": "Saúde = benefício previdenciário",
+              "d": "Cobertura restrita a quem contribuía com a Previdência."
+            },
+            {
+              "t": "INAMPS e sindicatos",
+              "d": "Trabalhadores formais atendidos pelo INAMPS ou por convênios de categoria."
+            },
+            {
+              "t": "População vulnerável excluída",
+              "d": "Dependia da caridade das Santas Casas de Misericórdia."
+            }
           ]
         },
-        "flowAfter":{
-          "label":"Depois de 1988",
-          "items":[
-            {"t":"Saúde = direito de todos","d":"Art. 196: direito de todos e dever do Estado."},
-            {"t":"Acesso universal e igualitário","d":"Sem exigência de contribuição prévia."},
-            {"t":"SUS (art. 198)","d":"Rede única, regionalizada e hierarquizada: descentralização, integralidade e participação da comunidade."}
+        "flowAfter": {
+          "label": "Depois de 1988",
+          "items": [
+            {
+              "t": "Saúde = direito de todos",
+              "d": "Art. 196: direito de todos e dever do Estado."
+            },
+            {
+              "t": "Acesso universal e igualitário",
+              "d": "Sem exigência de contribuição prévia."
+            },
+            {
+              "t": "SUS (art. 198)",
+              "d": "Rede única, regionalizada e hierarquizada: descentralização, integralidade e participação da comunidade."
+            }
           ]
         },
-        "figure":{
-          "src":"/img/constituicao_da_republica_1988_ulisses_guimaraes.png",
-          "alt":"Ulisses Guimarães, Presidente da Assembleia Nacional Constituinte, segurando a nova Constituição do Brasil.",
-          "caption":"Ulisses Guimarães, Presidente da Assembleia Nacional Constituinte, segurando a nova Constituição do Brasil (1988)."
+        "figure": {
+          "src": "/img/constituicao_da_republica_1988_ulisses_guimaraes.png",
+          "alt": "Ulisses Guimarães, Presidente da Assembleia Nacional Constituinte, segurando a nova Constituição do Brasil.",
+          "caption": "Ulisses Guimarães, Presidente da Assembleia Nacional Constituinte, segurando a nova Constituição do Brasil (1988)."
         },
-        "guarantees":{
-          "title":"O dever do Estado e o direito da população",
-          "items":[
-            {"t":"Dever do Estado","d":"Garantir a saúde mediante políticas sociais e econômicas que reduzam o risco de doença e de outros agravos (art. 196)."},
-            {"t":"Direito de todos","d":"Acesso universal e igualitário às ações e serviços de promoção, proteção e recuperação da saúde, sem exigir contribuição (art. 196)."},
-            {"t":"Relevância pública","d":"As ações e serviços de saúde são de relevância pública: o Poder Público regulamenta, fiscaliza e controla, executando direta ou indiretamente (art. 197)."},
-            {"t":"Diretrizes do SUS","d":"Rede única, regionalizada e hierarquizada, com descentralização (direção única por esfera), integralidade e participação da comunidade (art. 198)."},
-            {"t":"Setor privado complementar","d":"A assistência à saúde é livre à iniciativa privada, que participa do SUS de forma complementar (art. 199)."},
-            {"t":"Competências do SUS","d":"Vigilância sanitária e epidemiológica, saúde do trabalhador, formação de recursos humanos, saneamento, fiscalização e inovação (art. 200)."}
+        "guarantees": {
+          "title": "O dever do Estado e o direito da população",
+          "items": [
+            {
+              "t": "Dever do Estado",
+              "d": "Garantir a saúde mediante políticas sociais e econômicas que reduzam o risco de doença e de outros agravos (art. 196)."
+            },
+            {
+              "t": "Direito de todos",
+              "d": "Acesso universal e igualitário às ações e serviços de promoção, proteção e recuperação da saúde, sem exigir contribuição (art. 196)."
+            },
+            {
+              "t": "Relevância pública",
+              "d": "As ações e serviços de saúde são de relevância pública: o Poder Público regulamenta, fiscaliza e controla, executando direta ou indiretamente (art. 197)."
+            },
+            {
+              "t": "Diretrizes do SUS",
+              "d": "Rede única, regionalizada e hierarquizada, com descentralização (direção única por esfera), integralidade e participação da comunidade (art. 198)."
+            },
+            {
+              "t": "Setor privado complementar",
+              "d": "A assistência à saúde é livre à iniciativa privada, que participa do SUS de forma complementar (art. 199)."
+            },
+            {
+              "t": "Competências do SUS",
+              "d": "Vigilância sanitária e epidemiológica, saúde do trabalhador, formação de recursos humanos, saneamento, fiscalização e inovação (art. 200)."
+            }
           ]
         },
-        "articlesTitle":"Os artigos em resumo",
-        "articles":[
-          {"n":"6º","t":"Direito social","d":"A saúde é direito social, ao lado de educação, alimentação, trabalho, moradia e previdência — com proteção à maternidade, à infância e aos desamparados."},
-          {"n":"196","t":"Direito de todos, dever do Estado","d":"Acesso universal e igualitário às ações e serviços de promoção, proteção e recuperação, mediante políticas que reduzam risco de doença e agravos."},
-          {"n":"197","t":"Relevância pública","d":"Cabe ao Poder Público regulamentar, fiscalizar e controlar; a execução pode ser direta ou por terceiros (pessoa física ou jurídica de direito privado)."},
-          {"n":"198","t":"Diretrizes do SUS","d":"Rede única, regionalizada e hierarquizada; descentralização com direção única, integralidade (prioridade ao preventivo) e participação da comunidade."},
-          {"n":"199","t":"Iniciativa privada complementar","d":"Livre à iniciativa privada, mas a participação no SUS é complementar, com preferência às entidades filantrópicas e sem fins lucrativos."},
-          {"n":"200","t":"Competências do SUS","d":"Vigilância sanitária e epidemiológica, saúde do trabalhador, formação de RH, saneamento, ciência e inovação, fiscalização de alimentos e proteção do meio ambiente."}
+        "articlesTitle": "Os artigos em resumo",
+        "articles": [
+          {
+            "n": "6º",
+            "t": "Direito social",
+            "d": "A saúde é direito social, ao lado de educação, alimentação, trabalho, moradia e previdência — com proteção à maternidade, à infância e aos desamparados."
+          },
+          {
+            "n": "196",
+            "t": "Direito de todos, dever do Estado",
+            "d": "Acesso universal e igualitário às ações e serviços de promoção, proteção e recuperação, mediante políticas que reduzam risco de doença e agravos."
+          },
+          {
+            "n": "197",
+            "t": "Relevância pública",
+            "d": "Cabe ao Poder Público regulamentar, fiscalizar e controlar; a execução pode ser direta ou por terceiros (pessoa física ou jurídica de direito privado)."
+          },
+          {
+            "n": "198",
+            "t": "Diretrizes do SUS",
+            "d": "Rede única, regionalizada e hierarquizada; descentralização com direção única, integralidade (prioridade ao preventivo) e participação da comunidade."
+          },
+          {
+            "n": "199",
+            "t": "Iniciativa privada complementar",
+            "d": "Livre à iniciativa privada, mas a participação no SUS é complementar, com preferência às entidades filantrópicas e sem fins lucrativos."
+          },
+          {
+            "n": "200",
+            "t": "Competências do SUS",
+            "d": "Vigilância sanitária e epidemiológica, saúde do trabalhador, formação de RH, saneamento, ciência e inovação, fiscalização de alimentos e proteção do meio ambiente."
+          }
         ],
-        "reference":{
-          "label":"Referência (ABNT NBR 6023)",
-          "text":"BRASIL. [Constituição (1988)]. Constituição da República Federativa do Brasil de 1988. Brasília, DF: Presidência da República, [2026].",
-          "url":"https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
-          "access":"Acesso em: 15 ago. 2026."
+        "reference": {
+          "label": "Referência (ABNT NBR 6023)",
+          "text": "BRASIL. [Constituição (1988)]. Constituição da República Federativa do Brasil de 1988. Brasília, DF: Presidência da República, [2026].",
+          "url": "https://www.planalto.gov.br/ccivil_03/constituicao/constituicao.htm",
+          "access": "Acesso em: 15 ago. 2026."
         },
-        "keywords":["artigo 196","constituição de 1988","Universalização do acesso à saúde","direito do povo e dever do estado"]
+        "keywords": [
+          "artigo 196",
+          "constituição de 1988",
+          "Universalização do acesso à saúde",
+          "direito do povo e dever do estado"
+        ]
       }
     },
     {
-      "id":"S02","area":"sus","title":"Lei nº 8.080/1990","priority":"critica","flags":["lei seca","SUS"],
-      "summary":"Objetivos, atribuições, princípios/diretrizes, vigilâncias, assistência terapêutica e organização das ações e serviços.",
-      "subtopics":["promoção, proteção e recuperação","objetivos e atribuições","universalidade e integralidade","regionalização e hierarquização","vigilância epidemiológica e sanitária","saúde do trabalhador","assistência farmacêutica"],
-      "guide":{
-        "layout":"lei",
-        "hero":{
-          "kicker":"Lei Orgânica da Saúde",
-          "title":"Da ordem constitucional à Lei 8.080/1990",
-          "text":"A Constituição de 1988 deu a ordem: “a saúde é direito de todos e dever do Estado” (arts. 196–200). Mas foi a Lei nº 8.080, de 19 de setembro de 1990 — a Lei Orgânica da Saúde — que regulamentou essa ordem: dispõe sobre a promoção, a proteção e a recuperação da saúde e organiza o SUS em todo o território nacional.",
-          "image":"/img/logo_sistema_unico_de_saude_brasil.webp",
-          "imageAlt":"Logotipo do Sistema Único de Saúde (SUS) do Brasil."
+      "id": "S02",
+      "area": "sus",
+      "title": "Lei nº 8.080/1990",
+      "priority": "critica",
+      "flags": [
+        "lei seca",
+        "SUS"
+      ],
+      "summary": "Objetivos, atribuições, princípios/diretrizes, vigilâncias, assistência terapêutica e organização das ações e serviços.",
+      "subtopics": [
+        "promoção, proteção e recuperação",
+        "objetivos e atribuições",
+        "universalidade e integralidade",
+        "regionalização e hierarquização",
+        "vigilância epidemiológica e sanitária",
+        "saúde do trabalhador",
+        "assistência farmacêutica"
+      ],
+      "guide": {
+        "layout": "lei",
+        "hero": {
+          "kicker": "Lei Orgânica da Saúde",
+          "title": "Da ordem constitucional à Lei 8.080/1990",
+          "text": "A Constituição de 1988 deu a ordem: “a saúde é direito de todos e dever do Estado” (arts. 196–200). Mas foi a Lei nº 8.080, de 19 de setembro de 1990 — a Lei Orgânica da Saúde — que regulamentou essa ordem: dispõe sobre a promoção, a proteção e a recuperação da saúde e organiza o SUS em todo o território nacional.",
+          "image": "/img/logo_sistema_unico_de_saude_brasil.webp",
+          "imageAlt": "Logotipo do Sistema Único de Saúde (SUS) do Brasil."
         },
-        "timeline":[
-          {"t":"1988","d":"Constituição Federal (arts. 196–200): saúde = direito de todos e dever do Estado."},
-          {"t":"1990","d":"Lei 8.080/1990: regulamenta a CF, institui o SUS e define organização, direção e gestão."},
-          {"t":"1990","d":"Lei 8.142/1990: controle social (Conselhos e Conferências) e repasse fundo a fundo."}
+        "timeline": [
+          {
+            "t": "1988",
+            "d": "Constituição Federal (arts. 196–200): saúde = direito de todos e dever do Estado."
+          },
+          {
+            "t": "1990",
+            "d": "Lei 8.080/1990: regulamenta a CF, institui o SUS e define organização, direção e gestão."
+          },
+          {
+            "t": "1990",
+            "d": "Lei 8.142/1990: controle social (Conselhos e Conferências) e repasse fundo a fundo."
+          }
         ],
-        "principles":{
-          "title":"Princípios do SUS — Art. 7º",
-          "groups":[
+        "principles": {
+          "title": "Princípios do SUS — Art. 7º",
+          "groups": [
             {
-              "label":"Doutrinários · os ideais",
-              "mnemonic":"U.I.I.",
-              "items":[
-                {"t":"Universalidade","d":"Saúde para todos, sem discriminação."},
-                {"t":"Integralidade","d":"Do preventivo ao tratamento e à reabilitação."},
-                {"t":"Igualdade (equidade)","d":"Tratar desigualmente os desiguais; mais para quem mais precisa."}
+              "label": "Doutrinários · os ideais",
+              "mnemonic": "U.I.I.",
+              "items": [
+                {
+                  "t": "Universalidade",
+                  "d": "Saúde para todos, sem discriminação."
+                },
+                {
+                  "t": "Integralidade",
+                  "d": "Do preventivo ao tratamento e à reabilitação."
+                },
+                {
+                  "t": "Igualdade (equidade)",
+                  "d": "Tratar desigualmente os desiguais; mais para quem mais precisa."
+                }
               ]
             },
             {
-              "label":"Organizacionais · a engrenagem",
-              "mnemonic":"D.R.H.P.",
-              "items":[
-                {"t":"Descentralização","d":"Direção única em cada esfera; ênfase na municipalização."},
-                {"t":"Regionalização","d":"Serviços organizados por regiões, perto da população."},
-                {"t":"Hierarquização","d":"Níveis de complexidade: básico → média → alta."},
-                {"t":"Participação da comunidade","d":"Conselhos e Conferências; detalhada pela 8.142/90."}
+              "label": "Organizacionais · a engrenagem",
+              "mnemonic": "D.R.H.P.",
+              "items": [
+                {
+                  "t": "Descentralização",
+                  "d": "Direção única em cada esfera; ênfase na municipalização."
+                },
+                {
+                  "t": "Regionalização",
+                  "d": "Serviços organizados por regiões, perto da população."
+                },
+                {
+                  "t": "Hierarquização",
+                  "d": "Níveis de complexidade: básico → média → alta."
+                },
+                {
+                  "t": "Participação da comunidade",
+                  "d": "Conselhos e Conferências; detalhada pela 8.142/90."
+                }
               ]
             }
           ]
         },
-        "pyramid":{
-          "title":"Hierarquização: a pirâmide da atenção",
-          "levels":[
-            {"t":"Atenção Primária","d":"Porta de entrada preferencial · promoção e prevenção"},
-            {"t":"Média complexidade","d":"Especialidades e exames · referência"},
-            {"t":"Alta complexidade","d":"Hospitais e procedimentos avançados"}
+        "pyramid": {
+          "title": "Hierarquização: a pirâmide da atenção",
+          "levels": [
+            {
+              "t": "Atenção Primária",
+              "d": "Porta de entrada preferencial · promoção e prevenção"
+            },
+            {
+              "t": "Média complexidade",
+              "d": "Especialidades e exames · referência"
+            },
+            {
+              "t": "Alta complexidade",
+              "d": "Hospitais e procedimentos avançados"
+            }
           ]
         },
-        "primary":{
-          "title":"Foco: Atenção Primária",
-          "text":"A 8.080 organiza o sistema em níveis de complexidade crescente (art. 8º). A Atenção Primária é o alicerce e a porta de entrada preferencial: concentra a promoção da saúde e a prevenção de doenças, faz a triagem e encaminha à média/alta complexidade — preservando a hierarquização e evitando hospitais lotados com casos simples."
+        "primary": {
+          "title": "Foco: Atenção Primária",
+          "text": "A 8.080 organiza o sistema em níveis de complexidade crescente (art. 8º). A Atenção Primária é o alicerce e a porta de entrada preferencial: concentra a promoção da saúde e a prevenção de doenças, faz a triagem e encaminha à média/alta complexidade — preservando a hierarquização e evitando hospitais lotados com casos simples."
         },
-        "commissions":{
-          "title":"Governo tripartite: Comissões Intergestores",
-          "text":"O SUS não tem “chefe absoluto”: é governado por pactuação entre União, Estados e Municípios. As comissões são fóruns de negociação entre gestores — e não espaços de controle social (papel dos Conselhos de Saúde).",
-          "cards":[
-            {"t":"CIT","d":"Tripartite — União + Estados + Municípios. Regras nacionais."},
-            {"t":"CIB","d":"Bipartite — Estado + Municípios. Regras estaduais."},
-            {"t":"CIR","d":"Regional — Municípios vizinhos + Estado. Regras da região (Decreto 7.508/2011)."}
+        "commissions": {
+          "title": "Governo tripartite: Comissões Intergestores",
+          "text": "O SUS não tem “chefe absoluto”: é governado por pactuação entre União, Estados e Municípios. As comissões são fóruns de negociação entre gestores — e não espaços de controle social (papel dos Conselhos de Saúde).",
+          "cards": [
+            {
+              "t": "CIT",
+              "d": "Tripartite — União + Estados + Municípios. Regras nacionais."
+            },
+            {
+              "t": "CIB",
+              "d": "Bipartite — Estado + Municípios. Regras estaduais."
+            },
+            {
+              "t": "CIR",
+              "d": "Regional — Municípios vizinhos + Estado. Regras da região (Decreto 7.508/2011)."
+            }
           ]
         },
-        "financing":{
-          "title":"Financiamento",
-          "text":"Os recursos do SUS são depositados em Fundos de Saúde (Nacional, Estadual e Municipal) e movimentados sob fiscalização dos Conselhos (art. 33). O repasse fundo a fundo — do Ministério da Saúde direto ao cofre do município/estado, de forma regular e automática — foi detalhado pela Lei 8.142/90 e pela LC 141/2012, que também exigem Conselho e Plano de Saúde para receber."
+        "financing": {
+          "title": "Financiamento",
+          "text": "Os recursos do SUS são depositados em Fundos de Saúde (Nacional, Estadual e Municipal) e movimentados sob fiscalização dos Conselhos (art. 33). O repasse fundo a fundo — do Ministério da Saúde direto ao cofre do município/estado, de forma regular e automática — foi detalhado pela Lei 8.142/90 e pela LC 141/2012, que também exigem Conselho e Plano de Saúde para receber."
         },
-        "fields":{
-          "title":"Campos de atuação — Art. 6º",
-          "text":"A 8.080 incluiu no campo de atuação do SUS, entre outros, as vigilâncias e a saúde do trabalhador, definindo o que cada uma faz:",
-          "cards":[
-            {"t":"Vigilância Sanitária","d":"Elimina, diminui ou previne riscos à saúde (bens, serviços e ambiente)."},
-            {"t":"Vigilância Epidemiológica","d":"Conhece, detecta e previne mudanças nos determinantes de saúde; controla doenças e agravos."},
-            {"t":"Saúde do Trabalhador","d":"Promove, protege e recupera a saúde de quem trabalha, diante dos riscos do trabalho."}
+        "fields": {
+          "title": "Campos de atuação — Art. 6º",
+          "text": "A 8.080 incluiu no campo de atuação do SUS, entre outros, as vigilâncias e a saúde do trabalhador, definindo o que cada uma faz:",
+          "cards": [
+            {
+              "t": "Vigilância Sanitária",
+              "d": "Elimina, diminui ou previne riscos à saúde (bens, serviços e ambiente)."
+            },
+            {
+              "t": "Vigilância Epidemiológica",
+              "d": "Conhece, detecta e previne mudanças nos determinantes de saúde; controla doenças e agravos."
+            },
+            {
+              "t": "Saúde do Trabalhador",
+              "d": "Promove, protege e recupera a saúde de quem trabalha, diante dos riscos do trabalho."
+            }
           ]
         },
-        "private":{
-          "title":"Participação do setor privado",
-          "text":"A assistência à saúde é livre à iniciativa privada (art. 21), mas a participação no SUS é complementar (arts. 4º, §2º e 24): só quando o SUS não tiver disponibilidade suficiente, via contrato ou convênio, com preferência às entidades filantrópicas e sem fins lucrativos (art. 25)."
+        "private": {
+          "title": "Participação do setor privado",
+          "text": "A assistência à saúde é livre à iniciativa privada (art. 21), mas a participação no SUS é complementar (arts. 4º, §2º e 24): só quando o SUS não tiver disponibilidade suficiente, via contrato ou convênio, com preferência às entidades filantrópicas e sem fins lucrativos (art. 25)."
         },
-        "pegadinha":{
-          "title":"⚠ Pegadinha de prova",
-          "text":"A Lei 8.080/1990 NÃO criou a ANVISA nem a ANS. Ela criou comissões intersetoriais (art. 12) e definiu os campos de vigilância. As agências reguladoras surgiram depois, no fim dos anos 1990, por leis específicas: ANVISA (Lei 9.782/1999) e ANS (Lei 9.961/2000)."
+        "pegadinha": {
+          "title": "⚠ Pegadinha de prova",
+          "text": "A Lei 8.080/1990 NÃO criou a ANVISA nem a ANS. Ela criou comissões intersetoriais (art. 12) e definiu os campos de vigilância. As agências reguladoras surgiram depois, no fim dos anos 1990, por leis específicas: ANVISA (Lei 9.782/1999) e ANS (Lei 9.961/2000)."
         },
-        "reference":{
-          "label":"Fonte primária",
-          "text":"Lei nº 8.080, de 19 de setembro de 1990 — Lei Orgânica da Saúde (Planalto).",
-          "url":"https://www.planalto.gov.br/ccivil_03/leis/l8080.htm"
+        "reference": {
+          "label": "Fonte primária",
+          "text": "Lei nº 8.080, de 19 de setembro de 1990 — Lei Orgânica da Saúde (Planalto).",
+          "url": "https://www.planalto.gov.br/ccivil_03/leis/l8080.htm"
         },
-        "keywords":["Lei 8.080/1990","Lei Orgânica do SUS","U.I.I. — universalidade, integralidade, igualdade","D.R.H.P. — descentralização, regionalização, hierarquização, participação","vigilância sanitária e epidemiológica","saúde do trabalhador","participação complementar do setor privado"]
+        "keywords": [
+          "Lei 8.080/1990",
+          "Lei Orgânica do SUS",
+          "U.I.I. — universalidade, integralidade, igualdade",
+          "D.R.H.P. — descentralização, regionalização, hierarquização, participação",
+          "vigilância sanitária e epidemiológica",
+          "saúde do trabalhador",
+          "participação complementar do setor privado"
+        ]
       }
     },
     {
-      "id":"S03","area":"sus","title":"Lei nº 8.142/1990 e controle social","priority":"alta","flags":["lei seca","controle social"],
-      "summary":"Conferências, Conselhos de Saúde e transferências intergovernamentais de recursos.",
-      "subtopics":["Conferências de Saúde","Conselhos de Saúde","participação da comunidade","transferências de recursos","controle social"]
+      "id": "S03",
+      "area": "sus",
+      "title": "Lei nº 8.142/1990 e controle social",
+      "priority": "alta",
+      "flags": [
+        "lei seca",
+        "controle social"
+      ],
+      "summary": "Conferências, Conselhos de Saúde e transferências intergovernamentais de recursos.",
+      "subtopics": [
+        "Conferências de Saúde",
+        "Conselhos de Saúde",
+        "participação da comunidade",
+        "transferências de recursos",
+        "controle social"
+      ]
     },
     {
-      "id":"S04","area":"sus","title":"Decreto nº 7.508/2011, RAS e LC nº 141/2012","priority":"alta","flags":["organização","financiamento"],
-      "summary":"Regiões de Saúde, portas de entrada, mapa da saúde, RENASES, RENAME, planejamento, redes e financiamento/controle.",
-      "subtopics":["Regiões de Saúde","Redes de Atenção","portas de entrada","RENASES e RENAME","planejamento da saúde","LC 141/2012","referência e contrarreferência"]
+      "id": "S04",
+      "area": "sus",
+      "title": "Decreto nº 7.508/2011, RAS e LC nº 141/2012",
+      "priority": "alta",
+      "flags": [
+        "organização",
+        "financiamento"
+      ],
+      "summary": "Regiões de Saúde, portas de entrada, mapa da saúde, RENASES, RENAME, planejamento, redes e financiamento/controle.",
+      "subtopics": [
+        "Regiões de Saúde",
+        "Redes de Atenção",
+        "portas de entrada",
+        "RENASES e RENAME",
+        "planejamento da saúde",
+        "LC 141/2012",
+        "referência e contrarreferência"
+      ]
     },
     {
-      "id":"S05","area":"sus","title":"PNAB, ESF e Atenção Primária","priority":"critica","flags":["APS","ESF"],
-      "summary":"Territorialização, adscrição, cadastramento, vínculo, coordenação, longitudinalidade, acolhimento, visitas e ações programáticas.",
-      "subtopics":["PNAB","Estratégia Saúde da Família","territorialização","adscrição e cadastro","coordenação e longitudinalidade","acolhimento e risco","visitas domiciliares","promoção e prevenção"],
-      "guide":{
-        "layout":"aps",
-        "hero":{
-          "kicker":"PNAB · Portaria nº 2.436/2017",
-          "title":"Atenção Básica = Atenção Primária à Saúde",
-          "text":"Na política nacional, não há diferença prática: AB e APS são termos equivalentes — o primeiro nível de contato do cidadão com o SUS e o centro de comunicação da rede. O objetivo é resolver a imensa maioria dos problemas de saúde na própria comunidade, com promoção, proteção, diagnóstico, tratamento, reabilitação e cuidados paliativos.",
-          "badges":["Porta de entrada preferencial","Centro de comunicação da rede","Cuidado contínuo e preventivo"]
-        },
-        "principles":{
-          "title":"Os 3 princípios — a filosofia",
-          "items":[
-            {"t":"Universalidade","d":"Acesso à saúde é direito de todos, sem restrições."},
-            {"t":"Equidade","d":"Tratar desigualmente os desiguais: mais recursos e prioridade para quem tem maior vulnerabilidade ou risco."},
-            {"t":"Integralidade","d":"Cuidar da pessoa como um todo (físico, mental e social) e garantir acesso a toda a rede."}
+      "id": "S05",
+      "area": "sus",
+      "title": "PNAB, ESF e Atenção Primária",
+      "priority": "critica",
+      "flags": [
+        "APS",
+        "ESF"
+      ],
+      "summary": "Territorialização, adscrição, cadastramento, vínculo, coordenação, longitudinalidade, acolhimento, visitas e ações programáticas.",
+      "subtopics": [
+        "PNAB",
+        "Estratégia Saúde da Família",
+        "territorialização",
+        "adscrição e cadastro",
+        "coordenação e longitudinalidade",
+        "acolhimento e risco",
+        "visitas domiciliares",
+        "promoção e prevenção"
+      ],
+      "guide": {
+        "layout": "aps",
+        "hero": {
+          "kicker": "PNAB · Portaria nº 2.436/2017",
+          "title": "Atenção Básica = Atenção Primária à Saúde",
+          "text": "Na política nacional, não há diferença prática: AB e APS são termos equivalentes — o primeiro nível de contato do cidadão com o SUS e o centro de comunicação da rede. O objetivo é resolver a imensa maioria dos problemas de saúde na própria comunidade, com promoção, proteção, diagnóstico, tratamento, reabilitação e cuidados paliativos.",
+          "badges": [
+            "Porta de entrada preferencial",
+            "Centro de comunicação da rede",
+            "Cuidado contínuo e preventivo"
           ]
         },
-        "directives":{
-          "title":"As diretrizes — a prática operacional",
-          "image":"/img/atributos_da_aps_sus.webp",
-          "imageAlt":"Atributos da Atenção Primária à Saúde no SUS.",
-          "items":[
-            {"t":"Regionalização e Hierarquização","d":"Rede organizada por regiões, do nível mais simples ao mais complexo."},
-            {"t":"Territorialização e População Adscrita","d":"Território delimitado e cadastro das famílias sob responsabilidade da equipe."},
-            {"t":"Cuidado Centrado na Pessoa","d":"Planejar a partir das necessidades de cada indivíduo, não apenas da doença."},
-            {"t":"Resolutividade e Longitudinalidade","d":"Resolver localmente e acompanhar a saúde ao longo de toda a vida."},
-            {"t":"Coordenação do Cuidado e Ordenação da Rede","d":"A equipe guia o paciente e o encaminha apenas quando essencial."},
-            {"t":"Participação da Comunidade","d":"Controle social e envolvimento ativo da população nas decisões."}
+        "principles": {
+          "title": "Os 3 princípios — a filosofia",
+          "items": [
+            {
+              "t": "Universalidade",
+              "d": "Acesso à saúde é direito de todos, sem restrições."
+            },
+            {
+              "t": "Equidade",
+              "d": "Tratar desigualmente os desiguais: mais recursos e prioridade para quem tem maior vulnerabilidade ou risco."
+            },
+            {
+              "t": "Integralidade",
+              "d": "Cuidar da pessoa como um todo (físico, mental e social) e garantir acesso a toda a rede."
+            }
           ]
         },
-        "where":{
-          "title":"Onde acontece",
-          "items":["Unidades Básicas de Saúde (UBS)","Unidades de Saúde da Família (USF)","Unidades Fluviais","Unidades Odontológicas Móveis","Academias de Saúde"]
-        },
-        "team":{
-          "title":"Quem participa — a equipe multiprofissional",
-          "text":"Atua de forma integrada e assume a responsabilidade sanitária do território. Composição mínima:",
-          "items":["Médicos (generalistas ou de Saúde da Família)","Enfermeiros","Técnicos e auxiliares de enfermagem","Cirurgiões-dentistas","Agentes Comunitários de Saúde (ACS)"]
-        },
-        "population":{
-          "title":"Os indivíduos — população adscrita",
-          "text":"Todos os cidadãos que vivem no território delimitado recebem cuidado integral e gratuito. É proibida qualquer exclusão ou discriminação por idade, gênero, raça, crença, renda ou condição de saúde."
-        },
-        "nursing":{
-          "title":"Papel da Enfermagem na PNAB",
-          "items":[
-            {"t":"Cuidado integral e longitudinal","d":"Acompanha famílias e grupos ao longo do tempo, na UBS e em domicílio."},
-            {"t":"Consulta de enfermagem e planejamento","d":"Avaliação, plano de cuidados e prescrição conforme protocolos."},
-            {"t":"Visita domiciliar e acolhimento","d":"Classificação de risco, escuta qualificada e busca ativa."},
-            {"t":"Vigilância, imunização e educação em saúde","d":"Sala de vacina, prevenção, promoção e educação permanente."}
+        "directives": {
+          "title": "As diretrizes — a prática operacional",
+          "image": "/img/atributos_da_aps_sus.webp",
+          "imageAlt": "Atributos da Atenção Primária à Saúde no SUS.",
+          "items": [
+            {
+              "t": "Regionalização e Hierarquização",
+              "d": "Rede organizada por regiões, do nível mais simples ao mais complexo."
+            },
+            {
+              "t": "Territorialização e População Adscrita",
+              "d": "Território delimitado e cadastro das famílias sob responsabilidade da equipe."
+            },
+            {
+              "t": "Cuidado Centrado na Pessoa",
+              "d": "Planejar a partir das necessidades de cada indivíduo, não apenas da doença."
+            },
+            {
+              "t": "Resolutividade e Longitudinalidade",
+              "d": "Resolver localmente e acompanhar a saúde ao longo de toda a vida."
+            },
+            {
+              "t": "Coordenação do Cuidado e Ordenação da Rede",
+              "d": "A equipe guia o paciente e o encaminha apenas quando essencial."
+            },
+            {
+              "t": "Participação da Comunidade",
+              "d": "Controle social e envolvimento ativo da população nas decisões."
+            }
           ]
         },
-        "determinants":{
-          "title":"Determinantes e condicionantes da saúde",
-          "text":"A saúde é condicionada por fatores que vão além do setor sanitário. A APS atua sobre esses determinantes para reduzir desigualdades:",
-          "items":["Moradia e saneamento","Alimentação e renda","Educação e trabalho","Meio ambiente e lazer","Acesso a bens e serviços essenciais"]
+        "where": {
+          "title": "Onde acontece",
+          "items": [
+            "Unidades Básicas de Saúde (UBS)",
+            "Unidades de Saúde da Família (USF)",
+            "Unidades Fluviais",
+            "Unidades Odontológicas Móveis",
+            "Academias de Saúde"
+          ]
         },
-        "keywords":["PNAB","Portaria 2.436/2017","Atenção Básica e APS","porta de entrada do SUS","territorialização e população adscrita","coordenação do cuidado","universalidade, equidade e integralidade","Estratégia Saúde da Família"]
+        "team": {
+          "title": "Quem participa — a equipe multiprofissional",
+          "text": "Atua de forma integrada e assume a responsabilidade sanitária do território. Composição mínima:",
+          "items": [
+            "Médicos (generalistas ou de Saúde da Família)",
+            "Enfermeiros",
+            "Técnicos e auxiliares de enfermagem",
+            "Cirurgiões-dentistas",
+            "Agentes Comunitários de Saúde (ACS)"
+          ]
+        },
+        "population": {
+          "title": "Os indivíduos — população adscrita",
+          "text": "Todos os cidadãos que vivem no território delimitado recebem cuidado integral e gratuito. É proibida qualquer exclusão ou discriminação por idade, gênero, raça, crença, renda ou condição de saúde."
+        },
+        "nursing": {
+          "title": "Papel da Enfermagem na PNAB",
+          "items": [
+            {
+              "t": "Cuidado integral e longitudinal",
+              "d": "Acompanha famílias e grupos ao longo do tempo, na UBS e em domicílio."
+            },
+            {
+              "t": "Consulta de enfermagem e planejamento",
+              "d": "Avaliação, plano de cuidados e prescrição conforme protocolos."
+            },
+            {
+              "t": "Visita domiciliar e acolhimento",
+              "d": "Classificação de risco, escuta qualificada e busca ativa."
+            },
+            {
+              "t": "Vigilância, imunização e educação em saúde",
+              "d": "Sala de vacina, prevenção, promoção e educação permanente."
+            }
+          ]
+        },
+        "determinants": {
+          "title": "Determinantes e condicionantes da saúde",
+          "text": "A saúde é condicionada por fatores que vão além do setor sanitário. A APS atua sobre esses determinantes para reduzir desigualdades:",
+          "items": [
+            "Moradia e saneamento",
+            "Alimentação e renda",
+            "Educação e trabalho",
+            "Meio ambiente e lazer",
+            "Acesso a bens e serviços essenciais"
+          ]
+        },
+        "keywords": [
+          "PNAB",
+          "Portaria 2.436/2017",
+          "Atenção Básica e APS",
+          "porta de entrada do SUS",
+          "territorialização e população adscrita",
+          "coordenação do cuidado",
+          "universalidade, equidade e integralidade",
+          "Estratégia Saúde da Família"
+        ]
       }
     },
     {
-      "id":"S06","area":"sus","title":"Humanização, vigilância, imunização e informação","priority":"critica","flags":["PNH","vigilância","PNI"],
-      "summary":"PNH, clínica ampliada, PTS, vigilâncias, notificação, surtos, PNI, cadeia de frio, EAPV, indicadores, sistemas e prontuário eletrônico.",
-      "subtopics":["Política Nacional de Humanização","clínica ampliada e PTS","vigilância em saúde","notificação compulsória","investigação de surtos","PNI e cadeia de frio","eventos pós-vacinação","indicadores e sistemas de informação"],
-      "guide":{
-        "layout":"vig",
-        "hero":{
-          "kicker":"PNH · PNI · Vigilância Epidemiológica",
-          "title":"O fio condutor: a defesa da vida no SUS",
-          "text":"Três políticas com o mesmo DNA — Universalidade, Integralidade e Equidade. A Vigilância Epidemiológica mapeia onde estão os riscos; o PNI atua na prevenção; a PNH garante que cada cuidado seja feito com respeito, diálogo e acolhimento. Juntas, formam o escudo protetor da saúde pública brasileira.",
-          "pillars":[
-            {"t":"Vigilância Epidemiológica","d":"Mapeia os riscos e identifica onde estão os problemas."},
-            {"t":"Programa Nacional de Imunizações","d":"Atua na prevenção, protegendo a população contra os riscos mapeados."},
-            {"t":"Política Nacional de Humanização","d":"Garante que o cidadão seja recebido, vacinado e cuidado com acolhimento."}
+      "id": "S06",
+      "area": "sus",
+      "title": "Humanização, vigilância, imunização e informação",
+      "priority": "critica",
+      "flags": [
+        "PNH",
+        "vigilância",
+        "PNI"
+      ],
+      "summary": "PNH, clínica ampliada, PTS, vigilâncias, notificação, surtos, PNI, cadeia de frio, EAPV, indicadores, sistemas e prontuário eletrônico.",
+      "subtopics": [
+        "Política Nacional de Humanização",
+        "clínica ampliada e PTS",
+        "vigilância em saúde",
+        "notificação compulsória",
+        "investigação de surtos",
+        "PNI e cadeia de frio",
+        "eventos pós-vacinação",
+        "indicadores e sistemas de informação"
+      ],
+      "guide": {
+        "layout": "vig",
+        "hero": {
+          "kicker": "PNH · PNI · Vigilância Epidemiológica",
+          "title": "O fio condutor: a defesa da vida no SUS",
+          "text": "Três políticas com o mesmo DNA — Universalidade, Integralidade e Equidade. A Vigilância Epidemiológica mapeia onde estão os riscos; o PNI atua na prevenção; a PNH garante que cada cuidado seja feito com respeito, diálogo e acolhimento. Juntas, formam o escudo protetor da saúde pública brasileira.",
+          "pillars": [
+            {
+              "t": "Vigilância Epidemiológica",
+              "d": "Mapeia os riscos e identifica onde estão os problemas."
+            },
+            {
+              "t": "Programa Nacional de Imunizações",
+              "d": "Atua na prevenção, protegendo a população contra os riscos mapeados."
+            },
+            {
+              "t": "Política Nacional de Humanização",
+              "d": "Garante que o cidadão seja recebido, vacinado e cuidado com acolhimento."
+            }
           ]
         },
-        "sections":[
+        "sections": [
           {
-            "num":"1",
-            "title":"Política Nacional de Humanização (PNH) — HumanizaSUS",
-            "intro":"Criada em 2003, a PNH é transversal: transforma a relação entre pacientes e profissionais, encerra relações autoritárias e constrói cuidado compartilhado.",
-            "image":"/img/politica_nacional_de_humanizacao_pnh.webp",
-            "imageAlt":"Política Nacional de Humanização (PNH) — HumanizaSUS.",
-            "items":[
-              {"t":"Transversalidade","d":"A humanização está presente em todas as políticas e programas do SUS — não é um setor."},
-              {"t":"Acolhimento com Classificação de Risco","d":"Ouvir as necessidades e priorizar pela gravidade (vulnerabilidade e risco), não pela ordem de chegada."},
-              {"t":"Ambiência","d":"Espaços acolhedores, confortáveis e que respeitam a privacidade do usuário."},
-              {"t":"Gestão Participativa (Cogestão)","d":"Usuários, trabalhadores e gestores decidem juntos; ninguém apenas cumpre ordens."},
-              {"t":"Clínica Ampliada","d":"Olhar o paciente além da doença — determinantes sociais e decisões compartilhadas."}
+            "num": "1",
+            "title": "Política Nacional de Humanização (PNH) — HumanizaSUS",
+            "intro": "Criada em 2003, a PNH é transversal: transforma a relação entre pacientes e profissionais, encerra relações autoritárias e constrói cuidado compartilhado.",
+            "image": "/img/politica_nacional_de_humanizacao_pnh.webp",
+            "imageAlt": "Política Nacional de Humanização (PNH) — HumanizaSUS.",
+            "items": [
+              {
+                "t": "Transversalidade",
+                "d": "A humanização está presente em todas as políticas e programas do SUS — não é um setor."
+              },
+              {
+                "t": "Acolhimento com Classificação de Risco",
+                "d": "Ouvir as necessidades e priorizar pela gravidade (vulnerabilidade e risco), não pela ordem de chegada."
+              },
+              {
+                "t": "Ambiência",
+                "d": "Espaços acolhedores, confortáveis e que respeitam a privacidade do usuário."
+              },
+              {
+                "t": "Gestão Participativa (Cogestão)",
+                "d": "Usuários, trabalhadores e gestores decidem juntos; ninguém apenas cumpre ordens."
+              },
+              {
+                "t": "Clínica Ampliada",
+                "d": "Olhar o paciente além da doença — determinantes sociais e decisões compartilhadas."
+              }
             ]
           },
           {
-            "num":"2",
-            "title":"Programa Nacional de Imunizações (PNI)",
-            "intro":"Coordenado pelo Ministério da Saúde e referência mundial: planeja, financia e distribui vacinas, garantindo acesso gratuito e igualitário em todo o país.",
-            "image":"/img/fluxograma_do_programa_nacional_de_imunizações_pni.webp",
-            "imageAlt":"Fluxograma do Programa Nacional de Imunizações (PNI).",
-            "items":[
-              {"t":"Amplitude e Erradicação","d":"Erradicou varíola e poliomielite; eliminou sarampo e rubéola; controla tétano e tuberculose."},
-              {"t":"Acesso Universal e Gratuito","d":"Prevenção de doenças transmissíveis em todo o território nacional, sem custo."},
-              {"t":"O Ciclo da Vida","d":"Calendário para todas as fases: crianças, adolescentes, adultos, idosos, gestantes e povos indígenas (49 imunobiológicos)."},
-              {"t":"Rede de Frio","d":"Logística de conservação (temperatura) do laboratório ao braço do paciente, preservando a eficácia da dose."},
-              {"t":"CRIE","d":"Centros de Referência para Imunobiológicos Especiais — vacinas para grupos especiais (imunossuprimidos, doentes crônicos)."}
+            "num": "2",
+            "title": "Programa Nacional de Imunizações (PNI)",
+            "intro": "Coordenado pelo Ministério da Saúde e referência mundial: planeja, financia e distribui vacinas, garantindo acesso gratuito e igualitário em todo o país.",
+            "image": "/img/fluxograma_do_programa_nacional_de_imunizações_pni.webp",
+            "imageAlt": "Fluxograma do Programa Nacional de Imunizações (PNI).",
+            "items": [
+              {
+                "t": "Amplitude e Erradicação",
+                "d": "Erradicou varíola e poliomielite; eliminou sarampo e rubéola; controla tétano e tuberculose."
+              },
+              {
+                "t": "Acesso Universal e Gratuito",
+                "d": "Prevenção de doenças transmissíveis em todo o território nacional, sem custo."
+              },
+              {
+                "t": "O Ciclo da Vida",
+                "d": "Calendário para todas as fases: crianças, adolescentes, adultos, idosos, gestantes e povos indígenas (49 imunobiológicos)."
+              },
+              {
+                "t": "Rede de Frio",
+                "d": "Logística de conservação (temperatura) do laboratório ao braço do paciente, preservando a eficácia da dose."
+              },
+              {
+                "t": "CRIE",
+                "d": "Centros de Referência para Imunobiológicos Especiais — vacinas para grupos especiais (imunossuprimidos, doentes crônicos)."
+              }
             ]
           },
           {
-            "num":"3",
-            "title":"Vigilância Epidemiológica (VE)",
-            "intro":"O serviço de inteligência do SUS: monitora o território e detecta doenças antes que se tornem epidemias descontroladas.",
-            "image":"/img/doencas_agravos_e_eventos_de_notificacao_compulsoria_nacional.webp",
-            "imageAlt":"Doenças, agravos e eventos de notificação compulsória nacional.",
-            "items":[
-              {"t":"Informação para a Ação","d":"Não apenas coleta dados: analisa e recomenda medidas urgentes de controle e prevenção."},
-              {"t":"Doenças de Notificação Compulsória","d":"Casos graves, raros ou contagiosos (febre maculosa, dengue, covid-19, raiva) informados imediatamente."},
-              {"t":"Investigação de Casos e Surtos","d":"Equipes vão a campo para descobrir como o paciente se infectou e impedir novos casos."},
-              {"t":"Notificação por Todos","d":"Profissionais têm dever legal; cidadãos (escolas, creches, associações) também podem e devem avisar."}
+            "num": "3",
+            "title": "Vigilância Epidemiológica (VE)",
+            "intro": "O serviço de inteligência do SUS: monitora o território e detecta doenças antes que se tornem epidemias descontroladas.",
+            "image": "/img/doencas_agravos_e_eventos_de_notificacao_compulsoria_nacional.webp",
+            "imageAlt": "Doenças, agravos e eventos de notificação compulsória nacional.",
+            "items": [
+              {
+                "t": "Informação para a Ação",
+                "d": "Não apenas coleta dados: analisa e recomenda medidas urgentes de controle e prevenção."
+              },
+              {
+                "t": "Doenças de Notificação Compulsória",
+                "d": "Casos graves, raros ou contagiosos (febre maculosa, dengue, covid-19, raiva) informados imediatamente."
+              },
+              {
+                "t": "Investigação de Casos e Surtos",
+                "d": "Equipes vão a campo para descobrir como o paciente se infectou e impedir novos casos."
+              },
+              {
+                "t": "Notificação por Todos",
+                "d": "Profissionais têm dever legal; cidadãos (escolas, creches, associações) também podem e devem avisar."
+              }
             ]
           }
         ],
-        "flow":{
-          "title":"Passo a passo da notificação compulsória",
-          "steps":[
-            {"t":"Notificação Imediata — o alerta","d":"A suspeita clínica não espera o laboratório: em até 24h a Secretaria Municipal é avisada (sistema SINAN)."},
-            {"t":"Investigação Epidemiológica — a busca","d":"Onde esteve? Quem são os contatos próximos? Como pode ter se infectado? Equipes vão a campo."},
-            {"t":"Ação de Bloqueio — o contra-ataque","d":"Vacinação de bloqueio (sarampo/meningite), fumacê e criadouros (dengue), controle de animais (raiva/febre maculosa)."},
-            {"t":"Análise e Prevenção Contínua","d":"Entender a falha (ex.: queda de cobertura vacinal) e planejar novas campanhas — retorna ao PNI."}
+        "flow": {
+          "title": "Passo a passo da notificação compulsória",
+          "steps": [
+            {
+              "t": "Notificação Imediata — o alerta",
+              "d": "A suspeita clínica não espera o laboratório: em até 24h a Secretaria Municipal é avisada (sistema SINAN)."
+            },
+            {
+              "t": "Investigação Epidemiológica — a busca",
+              "d": "Onde esteve? Quem são os contatos próximos? Como pode ter se infectado? Equipes vão a campo."
+            },
+            {
+              "t": "Ação de Bloqueio — o contra-ataque",
+              "d": "Vacinação de bloqueio (sarampo/meningite), fumacê e criadouros (dengue), controle de animais (raiva/febre maculosa)."
+            },
+            {
+              "t": "Análise e Prevenção Contínua",
+              "d": "Entender a falha (ex.: queda de cobertura vacinal) e planejar novas campanhas — retorna ao PNI."
+            }
           ]
         },
-        "practice":{
-          "title":"PNH aplicada à vacinação (PNI)",
-          "items":[
-            {"t":"Acolhimento e Informação","d":"Explicar para que serve a vacina, as reações esperadas e como aliviá-las — combate a hesitação vacinal."},
-            {"t":"Ambiência","d":"Sala de vacinação lúdica, confortável e organizada reduz a ansiedade no momento da aplicação."},
-            {"t":"Defesa dos Direitos dos Usuários","d":"Informar vacina e fabricante; respeitar o tempo, o medo e as dúvidas de cada usuário."},
-            {"t":"Cuidado Singular","d":"Encaminhar quem precisa (ex.: gestante em dificuldade) para a equipe multidisciplinar."}
+        "practice": {
+          "title": "PNH aplicada à vacinação (PNI)",
+          "items": [
+            {
+              "t": "Acolhimento e Informação",
+              "d": "Explicar para que serve a vacina, as reações esperadas e como aliviá-las — combate a hesitação vacinal."
+            },
+            {
+              "t": "Ambiência",
+              "d": "Sala de vacinação lúdica, confortável e organizada reduz a ansiedade no momento da aplicação."
+            },
+            {
+              "t": "Defesa dos Direitos dos Usuários",
+              "d": "Informar vacina e fabricante; respeitar o tempo, o medo e as dúvidas de cada usuário."
+            },
+            {
+              "t": "Cuidado Singular",
+              "d": "Encaminhar quem precisa (ex.: gestante em dificuldade) para a equipe multidisciplinar."
+            }
           ]
         },
-        "references":[
-          {"label":"PNH","text":"Política Nacional de Humanização — Santa Marcelina","url":"https://santamarcelina.org/politica-nacional-de-humanizacao/"},
-          {"label":"PNI","text":"Programa Nacional de Imunizações — Ministério da Saúde","url":"https://www.gov.br/saude/pt-br/composicao/svsa/pni"},
-          {"label":"VE","text":"Guia de Vigilância em Saúde (Volume 3) — Ministério da Saúde","url":"https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-3-6a-edicao/"},
-          {"label":"Lista","text":"Doenças de notificação compulsória — Calculadoras de Enfermagem","url":"https://www.calculadorasdeenfermagem.com.br/notificacao-compulsoria.html"}
+        "references": [
+          {
+            "label": "PNH",
+            "text": "Política Nacional de Humanização — Santa Marcelina",
+            "url": "https://santamarcelina.org/politica-nacional-de-humanizacao/"
+          },
+          {
+            "label": "PNI",
+            "text": "Programa Nacional de Imunizações — Ministério da Saúde",
+            "url": "https://www.gov.br/saude/pt-br/composicao/svsa/pni"
+          },
+          {
+            "label": "VE",
+            "text": "Guia de Vigilância em Saúde (Volume 3) — Ministério da Saúde",
+            "url": "https://www.gov.br/saude/pt-br/centrais-de-conteudo/publicacoes/svsa/vigilancia/guia-de-vigilancia-em-saude-volume-3-6a-edicao/"
+          },
+          {
+            "label": "Lista",
+            "text": "Doenças de notificação compulsória — Calculadoras de Enfermagem",
+            "url": "https://www.calculadorasdeenfermagem.com.br/notificacao-compulsoria.html"
+          }
         ],
-        "keywords":["PNH","HumanizaSUS","PNI","Rede de Frio","CRIE","Vigilância Epidemiológica","notificação compulsória","acolhimento e classificação de risco","clínica ampliada","investigação de surtos"]
+        "keywords": [
+          "PNH",
+          "HumanizaSUS",
+          "PNI",
+          "Rede de Frio",
+          "CRIE",
+          "Vigilância Epidemiológica",
+          "notificação compulsória",
+          "acolhimento e classificação de risco",
+          "clínica ampliada",
+          "investigação de surtos"
+        ]
       }
     },
     {
-      "id":"S07","area":"sus","title":"Segurança, bioética, determinantes e redes de urgência/mental","priority":"alta","flags":["segurança","bioética"],
-      "summary":"PNSP, metas de segurança, uso seguro de medicamentos, IRAS, bioética, determinantes, equidade, urgência e saúde mental no SUS.",
-      "subtopics":["PNSP e identificação do paciente","comunicação efetiva e cirurgia segura","higienização, quedas e LPP","bioética e consentimento","determinantes sociais e equidade","urgência e emergência no SUS","SAMU e articulação em rede","saúde mental e redução de danos"]
+      "id": "S07",
+      "area": "sus",
+      "title": "Segurança, bioética, determinantes e redes de urgência/mental",
+      "priority": "alta",
+      "flags": [
+        "segurança",
+        "bioética"
+      ],
+      "summary": "PNSP, metas de segurança, uso seguro de medicamentos, IRAS, bioética, determinantes, equidade, urgência e saúde mental no SUS.",
+      "subtopics": [
+        "PNSP e identificação do paciente",
+        "comunicação efetiva e cirurgia segura",
+        "higienização, quedas e LPP",
+        "bioética e consentimento",
+        "determinantes sociais e equidade",
+        "urgência e emergência no SUS",
+        "SAMU e articulação em rede",
+        "saúde mental e redução de danos"
+      ]
     },
     {
-      "id":"E01","area":"especificos","title":"Exercício profissional e atribuições do Enfermeiro","priority":"critica","flags":["lei 7.498","decreto 94.406"],
-      "summary":"Lei 7.498/1986, Decreto 94.406/1987, Lei 5.905/1973, responsabilidade técnica, ética, sigilo, registros e supervisão.",
-      "subtopics":["Lei 7.498/1986","Decreto 94.406/1987","Lei 5.905/1973","atribuições privativas","responsabilidade técnica","ética e sigilo","registros e prontuário","supervisão da equipe"]
+      "id": "E01",
+      "area": "especificos",
+      "title": "Exercício profissional e atribuições do Enfermeiro",
+      "priority": "critica",
+      "flags": [
+        "lei 7.498",
+        "decreto 94.406"
+      ],
+      "summary": "Lei 7.498/1986, Decreto 94.406/1987, Lei 5.905/1973, responsabilidade técnica, ética, sigilo, registros e supervisão.",
+      "subtopics": [
+        "Lei 7.498/1986",
+        "Decreto 94.406/1987",
+        "Lei 5.905/1973",
+        "atribuições privativas",
+        "responsabilidade técnica",
+        "ética e sigilo",
+        "registros e prontuário",
+        "supervisão da equipe"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Lei 7.498/1986 · Decreto 94.406/1987 · Lei 5.905/1973",
+          "title": "Exercício profissional e atribuições do Enfermeiro",
+          "text": "A enfermagem é exercida por Enfermeiro, Técnico e Auxiliar de Enfermagem, cada um com atribuições definidas em lei. A fiscalização do exercício é feita pelo COFEN e pelos CORENs (Lei 5.905/1973). Conhecer o que é privativo do enfermeiro é essencial para a prova."
+        },
+        "blocks": [
+          {
+            "type": "section",
+            "title": "Atividades privativas do Enfermeiro (Lei 7.498/1986, art. 11)",
+            "items": [
+              {
+                "t": "Direção e chefia",
+                "d": "Direção do órgão de enfermagem e chefia de serviço e de unidade de enfermagem."
+              },
+              {
+                "t": "Organização e planejamento",
+                "d": "Planejamento, organização, coordenação, execução e avaliação dos serviços de assistência de enfermagem."
+              },
+              {
+                "t": "Consultoria e auditoria",
+                "d": "Consultoria, auditoria e emissão de parecer sobre matéria de enfermagem."
+              },
+              {
+                "t": "Consulta de enfermagem",
+                "d": "Atividade privativa que fundamenta o Processo de Enfermagem."
+              },
+              {
+                "t": "Prescrição da assistência",
+                "d": "Prescrição da assistência de enfermagem."
+              },
+              {
+                "t": "Cuidados complexos",
+                "d": "Cuidados diretos a pacientes graves com risco de vida e de maior complexidade técnica."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Enfermeiro como integrante da equipe de saúde",
+            "items": [
+              {
+                "t": "Programas de saúde",
+                "d": "Participação no planejamento, execução e avaliação da programação de saúde."
+              },
+              {
+                "t": "Prescrição em programas",
+                "d": "Prescrição de medicamentos estabelecidos em programas de saúde pública e rotina aprovada."
+              },
+              {
+                "t": "Controle de infecção",
+                "d": "Prevenção e controle sistemático da infecção hospitalar e de danos à saúde."
+              },
+              {
+                "t": "Educação em saúde",
+                "d": "Participação em atividades de educação visando à melhoria da saúde da população."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Técnico e Auxiliar de Enfermagem",
+            "items": [
+              {
+                "t": "Técnico de Enfermagem",
+                "d": "Participa da execução da assistência e orienta/supervisiona o trabalho em grau auxiliar, sob supervisão do enfermeiro."
+              },
+              {
+                "t": "Auxiliar de Enfermagem",
+                "d": "Executa atividades de nível médio, de natureza repetitiva, sempre sob supervisão do enfermeiro."
+              },
+              {
+                "t": "Supervisão",
+                "d": "O Decreto 94.406/1987 reforça a supervisão e a responsabilidade do enfermeiro sobre a equipe."
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "title": "COFEN/COREN e ética",
+            "text": "A Lei 5.905/1973 criou o COFEN e os CORENs, responsáveis pela fiscalização do exercício profissional e pela inscrição obrigatória. O Código de Ética (Resolução COFEN 564/2017) trata de direitos, deveres, proibições e do sigilo profissional."
+          },
+          {
+            "type": "refs",
+            "title": "Fontes oficiais",
+            "items": [
+              {
+                "label": "Lei 7.498/86",
+                "text": "Regulamentação do exercício da enfermagem — Planalto",
+                "url": "https://www.planalto.gov.br/ccivil_03/leis/l7498.htm"
+              },
+              {
+                "label": "Dec. 94.406/87",
+                "text": "Regulamenta a Lei 7.498/1986 — Planalto",
+                "url": "https://www.planalto.gov.br/ccivil_03/decreto/1980-1989/d94406.htm"
+              },
+              {
+                "label": "Lei 5.905/73",
+                "text": "Criação do COFEN e dos CORENs — Planalto",
+                "url": "https://www.planalto.gov.br/ccivil_03/leis/l5905.htm"
+              },
+              {
+                "label": "COFEN 564/17",
+                "text": "Código de Ética dos Profissionais de Enfermagem",
+                "url": "https://www.cofen.gov.br/resolucao-cofen-no-5642017/"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "Lei 7.498/1986",
+          "Decreto 94.406/1987",
+          "Lei 5.905/1973",
+          "atribuições privativas",
+          "consulta de enfermagem",
+          "COFEN e COREN",
+          "código de ética"
+        ]
+      }
     },
     {
-      "id":"E02","area":"especificos","title":"Processo de Enfermagem — Resolução COFEN nº 736/2024","priority":"critica","flags":["COFEN 736","PE"],
-      "summary":"Avaliação, diagnóstico, planejamento, implementação e evolução, documentação, prescrição, protocolos, acolhimento e cuidado centrado.",
-      "subtopics":["avaliação/coleta de dados","diagnóstico de enfermagem","planejamento","implementação","evolução e avaliação","prescrição de enfermagem","documentação","protocolos e classificação de risco"]
+      "id": "E02",
+      "area": "especificos",
+      "title": "Processo de Enfermagem — Resolução COFEN nº 736/2024",
+      "priority": "critica",
+      "flags": [
+        "COFEN 736",
+        "PE"
+      ],
+      "summary": "Avaliação, diagnóstico, planejamento, implementação e evolução, documentação, prescrição, protocolos, acolhimento e cuidado centrado.",
+      "subtopics": [
+        "avaliação/coleta de dados",
+        "diagnóstico de enfermagem",
+        "planejamento",
+        "implementação",
+        "evolução e avaliação",
+        "prescrição de enfermagem",
+        "documentação",
+        "protocolos e classificação de risco"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Resolução COFEN nº 736/2024",
+          "title": "Processo de Enfermagem — as 5 etapas",
+          "text": "O Processo de Enfermagem (PE) deve ser realizado em todo ambiente onde ocorre o cuidado de enfermagem e registrado formalmente no prontuário. Ele é conduzido pelo enfermeiro, que lidera a execução e a avaliação."
+        },
+        "blocks": [
+          {
+            "type": "flow",
+            "title": "As 5 etapas do Processo de Enfermagem",
+            "steps": [
+              {
+                "t": "Avaliação de Enfermagem",
+                "d": "Coleta de dados (entrevista + exame físico) para conhecer as necessidades do paciente."
+              },
+              {
+                "t": "Diagnóstico de Enfermagem",
+                "d": "Julgamento clínico sobre as respostas do indivíduo aos problemas de saúde (reais ou potenciais)."
+              },
+              {
+                "t": "Planejamento de Enfermagem",
+                "d": "Definição de resultados esperados e das intervenções a serem realizadas."
+              },
+              {
+                "t": "Implementação",
+                "d": "Execução das intervenções planejadas (prescrição de enfermagem)."
+              },
+              {
+                "t": "Evolução de Enfermagem",
+                "d": "Avaliação contínua dos resultados e ajuste do plano de cuidados."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "O que a Resolução 736/2024 estabelece",
+            "items": [
+              {
+                "t": "Obrigatoriedade",
+                "d": "PE obrigatório em todos os ambientes públicos e privados onde ocorre o cuidado de enfermagem."
+              },
+              {
+                "t": "Registro no prontuário",
+                "d": "O PE deve ser documentado formalmente, de forma clara e objetiva."
+              },
+              {
+                "t": "Liderança do enfermeiro",
+                "d": "Cabe ao enfermeiro a liderança na execução e avaliação do PE."
+              },
+              {
+                "t": "Modelos teóricos",
+                "d": "Deve ser sustentado por um referencial teórico (ex.: Necessidades Humanas Básicas de Wanda Horta)."
+              },
+              {
+                "t": "Taxonomias",
+                "d": "Podem ser usadas NANDA-I, NIC, NOC e CIPE para padronizar a linguagem."
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "title": "PE ≠ SAE",
+            "text": "A Sistematização da Assistência de Enfermagem (SAE) é a forma de organizar o trabalho; o Processo de Enfermagem é o instrumento metodológico que a operacionaliza — a SAE organiza, o PE executa."
+          },
+          {
+            "type": "refs",
+            "title": "Fonte oficial",
+            "items": [
+              {
+                "label": "COFEN 736/24",
+                "text": "Dispõe sobre a implementação do Processo de Enfermagem",
+                "url": "https://www.cofen.gov.br/resolucao-cofen-no-736-de-17-de-janeiro-de-2024/"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "Processo de Enfermagem",
+          "COFEN 736/2024",
+          "SAE",
+          "avaliação e diagnóstico",
+          "planejamento e implementação",
+          "evolução de enfermagem",
+          "NANDA-I, NIC e NOC"
+        ]
+      }
     },
     {
-      "id":"E03","area":"especificos","title":"Fundamentos e procedimentos de enfermagem","priority":"critica","flags":["fundamentos","procedimentos"],
-      "summary":"Sinais vitais, exame físico, higiene, conforto, mobilização, posicionamento, quedas, LPP, oxigênio, nebulização, sondagens, cateterismo, curativos e coleta.",
-      "subtopics":["sinais vitais e exame físico","higiene e conforto","mobilização e posicionamento","prevenção de quedas e LPP","oxigenoterapia e nebulização","sondagens","cateterismo vesical","curativos e coleta de materiais"]
+      "id": "E03",
+      "area": "especificos",
+      "title": "Fundamentos e procedimentos de enfermagem",
+      "priority": "critica",
+      "flags": [
+        "fundamentos",
+        "procedimentos"
+      ],
+      "summary": "Sinais vitais, exame físico, higiene, conforto, mobilização, posicionamento, quedas, LPP, oxigênio, nebulização, sondagens, cateterismo, curativos e coleta.",
+      "subtopics": [
+        "sinais vitais e exame físico",
+        "higiene e conforto",
+        "mobilização e posicionamento",
+        "prevenção de quedas e LPP",
+        "oxigenoterapia e nebulização",
+        "sondagens",
+        "cateterismo vesical",
+        "curativos e coleta de materiais"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Fundamentos de Enfermagem",
+          "title": "Sinais vitais, exame físico e procedimentos básicos",
+          "text": "Base de toda a assistência: a avaliação precisa dos sinais vitais e a execução correta dos procedimentos garantem segurança e qualidade do cuidado."
+        },
+        "blocks": [
+          {
+            "type": "section",
+            "title": "Sinais vitais — valores de referência no adulto",
+            "items": [
+              {
+                "t": "Temperatura",
+                "d": "36,1 a 37,2 °C (axilar); febre ≥ 37,8 °C."
+              },
+              {
+                "t": "Pulso / FC",
+                "d": "60 a 100 bpm."
+              },
+              {
+                "t": "Frequência respiratória",
+                "d": "12 a 20 irpm (eupneia)."
+              },
+              {
+                "t": "Pressão arterial",
+                "d": "Ótima < 120 × 80 mmHg; hipertensão ≥ 140 × 90 mmHg."
+              },
+              {
+                "t": "Dor",
+                "d": "5º sinal vital — avaliar com escala (numérica, faces)."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Exame físico, higiene e conforto",
+            "items": [
+              {
+                "t": "Técnicas propedêuticas",
+                "d": "Inspeção, palpação, percussão e ausculta, em sequência cefalocaudal."
+              },
+              {
+                "t": "Higiene",
+                "d": "Banho no leito, higiene oral e cuidados com pele e mucosas previnem infecções."
+              },
+              {
+                "t": "Conforto",
+                "d": "Posicionamento adequado, alívio da dor e ambiente tranquilo."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Mobilização, quedas e lesão por pressão",
+            "items": [
+              {
+                "t": "Mobilização",
+                "d": "Mudança de decúbito a cada 2 horas; exercícios ativos/passivos."
+              },
+              {
+                "t": "Prevenção de quedas",
+                "d": "Avaliar com a Escala de Morse; grades elevadas e campainha ao alcance."
+              },
+              {
+                "t": "Lesão por pressão",
+                "d": "Avaliar com a Escala de Braden; alívio de pressão e hidratação da pele."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Oxigenoterapia, sondagens e curativos",
+            "items": [
+              {
+                "t": "Oxigenoterapia",
+                "d": "Cateter nasal (1–6 L/min), máscara simples, máscara de Venturi e nebulização."
+              },
+              {
+                "t": "Sondagens",
+                "d": "Nasogástrica/nasoenteral — confirmar posicionamento antes de administrar dieta."
+              },
+              {
+                "t": "Cateterismo vesical",
+                "d": "Técnica estéril; sistema fechado para prevenir ITU."
+              },
+              {
+                "t": "Curativos",
+                "d": "Limpo ou estéril conforme a ferida; avaliar leito, exsudato e sinais de infecção."
+              },
+              {
+                "t": "Coleta de materiais",
+                "d": "Observar técnica, frasco e transporte adequados para cada exame."
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "sinais vitais",
+          "exame físico",
+          "prevenção de quedas",
+          "escala de Braden",
+          "oxigenoterapia",
+          "cateterismo vesical",
+          "curativos"
+        ]
+      }
     },
     {
-      "id":"E04","area":"especificos","title":"Medicamentos, cálculo, diluição e infusão","priority":"critica","flags":["cálculo","segurança"],
-      "summary":"Preparo e administração, vias, cálculo de dosagem, diluição, infusão, compatibilidade, reações adversas e segurança na medicação.",
-      "subtopics":["vias de administração","cálculo de dosagem","diluição","infusão","compatibilidade","reações adversas","segurança na medicação","checagens e registro"]
+      "id": "E04",
+      "area": "especificos",
+      "title": "Medicamentos, cálculo, diluição e infusão",
+      "priority": "critica",
+      "flags": [
+        "cálculo",
+        "segurança"
+      ],
+      "summary": "Preparo e administração, vias, cálculo de dosagem, diluição, infusão, compatibilidade, reações adversas e segurança na medicação.",
+      "subtopics": [
+        "vias de administração",
+        "cálculo de dosagem",
+        "diluição",
+        "infusão",
+        "compatibilidade",
+        "reações adversas",
+        "segurança na medicação",
+        "checagens e registro"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Administração de medicamentos",
+          "title": "Cálculo, diluição e segurança na medicação",
+          "text": "Erros de medicação estão entre os eventos adversos mais comuns. Dominar cálculo de dose, diluição e gotejamento é indispensável para a segurança do paciente."
+        },
+        "blocks": [
+          {
+            "type": "chips",
+            "title": "Os 9 certos da administração segura",
+            "items": [
+              "Paciente certo",
+              "Medicamento certo",
+              "Dose certa",
+              "Via certa",
+              "Hora certa",
+              "Registro certo",
+              "Validade certa",
+              "Ação/reação certa",
+              "Orientação certa"
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Vias de administração",
+            "items": [
+              {
+                "t": "Oral / sublingual",
+                "d": "Absorção pelo trato digestivo ou mucosa sublingual (efeito mais rápido)."
+              },
+              {
+                "t": "Intradérmica (ID)",
+                "d": "Ângulo de 5–15°; usada em testes e vacinas (BCG)."
+              },
+              {
+                "t": "Subcutânea (SC)",
+                "d": "Ângulo de 45–90°; insulina e heparina."
+              },
+              {
+                "t": "Intramuscular (IM)",
+                "d": "Ângulo de 90°; ventroglútea, dorsoglútea, vasto lateral e deltoide."
+              },
+              {
+                "t": "Endovenosa (EV)",
+                "d": "Ação imediata; atenção a compatibilidade e velocidade de infusão."
+              }
+            ]
+          },
+          {
+            "type": "flow",
+            "title": "Cálculo de gotejamento (fórmulas essenciais)",
+            "steps": [
+              {
+                "t": "Macrogotas",
+                "d": "gotas/min = Volume (ml) ÷ (Tempo em horas × 3)."
+              },
+              {
+                "t": "Microgotas",
+                "d": "microgotas/min = Volume (ml) ÷ Tempo em horas."
+              },
+              {
+                "t": "ml/h (bomba)",
+                "d": "ml/h = Volume (ml) ÷ Tempo em horas."
+              },
+              {
+                "t": "Dose por regra de três",
+                "d": "Ex.: se 500 mg = 5 ml, então X mg = ? ml (prescrição × volume ÷ concentração)."
+              }
+            ]
+          },
+          {
+            "type": "note",
+            "title": "Diluição e compatibilidade",
+            "text": "Confira sempre a compatibilidade entre fármacos e diluentes (soro fisiológico, glicose, água destilada) e a estabilidade após a diluição. Medicamentos incompatíveis não devem ser misturados na mesma via ou bolsa."
+          }
+        ],
+        "keywords": [
+          "9 certos",
+          "vias de administração",
+          "gotejamento",
+          "diluição",
+          "compatibilidade",
+          "segurança na medicação"
+        ]
+      }
     },
     {
-      "id":"E05","area":"especificos","title":"Biossegurança, processamento e IRAS","priority":"critica","flags":["precauções","IRAS"],
-      "summary":"Precauções, higiene das mãos, EPI, limpeza, desinfecção, esterilização, processamento, resíduos e prevenção de IRAS.",
-      "subtopics":["precauções padrão","contato, gotículas e aerossóis","higienização das mãos","EPI","limpeza e desinfecção","esterilização e processamento","resíduos de serviços de saúde","prevenção e controle de IRAS"]
+      "id": "E05",
+      "area": "especificos",
+      "title": "Biossegurança, processamento e IRAS",
+      "priority": "critica",
+      "flags": [
+        "precauções",
+        "IRAS"
+      ],
+      "summary": "Precauções, higiene das mãos, EPI, limpeza, desinfecção, esterilização, processamento, resíduos e prevenção de IRAS.",
+      "subtopics": [
+        "precauções padrão",
+        "contato, gotículas e aerossóis",
+        "higienização das mãos",
+        "EPI",
+        "limpeza e desinfecção",
+        "esterilização e processamento",
+        "resíduos de serviços de saúde",
+        "prevenção e controle de IRAS"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Biossegurança e controle de infecção",
+          "title": "Precauções, processamento e prevenção de IRAS",
+          "text": "A biossegurança protege o profissional e o paciente. A higiene das mãos é a medida isolada mais importante na prevenção das Infecções Relacionadas à Assistência à Saúde (IRAS)."
+        },
+        "blocks": [
+          {
+            "type": "section",
+            "title": "Precauções — padrão e específicas",
+            "items": [
+              {
+                "t": "Precauções padrão",
+                "d": "Para todos os pacientes: higiene das mãos, luvas quando houver risco, máscara, óculos e avental conforme a exposição."
+              },
+              {
+                "t": "Contato",
+                "d": "Luvas + avental; quarto privativo (ex.: bactérias multirresistentes)."
+              },
+              {
+                "t": "Gotículas",
+                "d": "Máscara cirúrgica a < 1 metro (ex.: coqueluche, meningite)."
+              },
+              {
+                "t": "Aerossóis",
+                "d": "Máscara N95/PFF2 e quarto com pressão negativa (ex.: tuberculose, sarampo)."
+              }
+            ]
+          },
+          {
+            "type": "flow",
+            "title": "Os 5 momentos da higiene das mãos (OMS)",
+            "steps": [
+              {
+                "t": "Antes de tocar o paciente",
+                "d": ""
+              },
+              {
+                "t": "Antes de procedimento limpo/asséptico",
+                "d": ""
+              },
+              {
+                "t": "Após risco de exposição a fluidos",
+                "d": ""
+              },
+              {
+                "t": "Após tocar o paciente",
+                "d": ""
+              },
+              {
+                "t": "Após tocar superfícies próximas",
+                "d": ""
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Processamento de artigos (Classificação de Spaulding)",
+            "items": [
+              {
+                "t": "Artigos críticos",
+                "d": "Penetram tecidos estéreis → exigem ESTERILIZAÇÃO (autoclave)."
+              },
+              {
+                "t": "Artigos semicríticos",
+                "d": "Tocam mucosas → desinfecção de alto nível."
+              },
+              {
+                "t": "Artigos não críticos",
+                "d": "Tocam pele íntegra → limpeza ou desinfecção de baixo/médio nível."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "EPI e resíduos",
+            "items": [
+              {
+                "t": "EPI (NR-32)",
+                "d": "Fornecimento e uso obrigatórios: luvas, máscara, óculos, avental, gorro e calçados."
+              },
+              {
+                "t": "Resíduos (RDC 222/2018)",
+                "d": "Segregação na origem: infectante, químico, perfurocortante e comum."
+              },
+              {
+                "t": "Perfurocortantes",
+                "d": "Descarte imediato em recipiente rígido, sem reencapar agulhas."
+              }
+            ]
+          },
+          {
+            "type": "refs",
+            "title": "Fontes oficiais",
+            "items": [
+              {
+                "label": "RDC 15/2012",
+                "text": "Boas práticas para processamento de produtos para saúde — ANVISA",
+                "url": "https://bvsms.saude.gov.br/bvs/saudelegis/anvisa/2012/rdc0015_15_03_2012.html"
+              },
+              {
+                "label": "RDC 222/2018",
+                "text": "Gerenciamento de resíduos de serviços de saúde — ANVISA",
+                "url": "https://bvsms.saude.gov.br/bvs/saudelegis/anvisa/2018/rdc0222_28_03_2018.pdf"
+              },
+              {
+                "label": "NR-32",
+                "text": "Segurança e saúde no trabalho em serviços de saúde",
+                "url": "https://www.gov.br/trabalho-e-emprego/pt-br/acesso-a-informacao/participacao-social/conselhos-e-orgaos-colegiados/comissao-tripartite-partitaria-permanente/normas-regulamentadora/normas-regulamentadoras-vigentes/norma-regulamentadora-no-32-nr-32"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "precauções padrão",
+          "higiene das mãos",
+          "EPI",
+          "Spaulding",
+          "esterilização",
+          "RDC 15/2012",
+          "RDC 222/2018",
+          "IRAS"
+        ]
+      }
     },
     {
-      "id":"E06","area":"especificos","title":"Saúde coletiva, APS, imunização e epidemiologia","priority":"critica","flags":["APS","vacinas"],
-      "summary":"ESF, território, visita domiciliar, grupos, vigilância, calendário vacinal, imunobiológicos, sala de vacina, EAPV e investigação epidemiológica.",
-      "subtopics":["atenção básica e ESF","territorialização e cadastro","visita domiciliar","grupos educativos","calendário vacinal","conservação de imunobiológicos","sala de vacina e EAPV","notificação e investigação epidemiológica"]
+      "id": "E06",
+      "area": "especificos",
+      "title": "Saúde coletiva, APS, imunização e epidemiologia",
+      "priority": "critica",
+      "flags": [
+        "APS",
+        "vacinas"
+      ],
+      "summary": "ESF, território, visita domiciliar, grupos, vigilância, calendário vacinal, imunobiológicos, sala de vacina, EAPV e investigação epidemiológica.",
+      "subtopics": [
+        "atenção básica e ESF",
+        "territorialização e cadastro",
+        "visita domiciliar",
+        "grupos educativos",
+        "calendário vacinal",
+        "conservação de imunobiológicos",
+        "sala de vacina e EAPV",
+        "notificação e investigação epidemiológica"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Saúde coletiva e imunização",
+          "title": "APS, ESF, sala de vacina e epidemiologia",
+          "text": "Na Atenção Primária, a Estratégia Saúde da Família atua no território com visita domiciliar e grupos educativos. A sala de vacina exige domínio do calendário, da cadeia de frio e da vigilância de eventos adversos pós-vacinação (EAPV)."
+        },
+        "blocks": [
+          {
+            "type": "section",
+            "title": "ESF e território",
+            "items": [
+              {
+                "t": "Equipe mínima",
+                "d": "Médico, enfermeiro, técnico/auxiliar e Agentes Comunitários de Saúde (ACS)."
+              },
+              {
+                "t": "Territorialização",
+                "d": "Adscrição da clientela e cadastro das famílias de uma área delimitada."
+              },
+              {
+                "t": "Visita domiciliar",
+                "d": "Instrumento de busca ativa, acompanhamento e educação em saúde."
+              },
+              {
+                "t": "Grupos educativos",
+                "d": "Promoção da saúde e prevenção de agravos (gestantes, hipertensos, diabéticos...)."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Calendário vacinal e cadeia de frio",
+            "items": [
+              {
+                "t": "Imunobiológicos",
+                "d": "Vacinas (imunização ativa) e soros/imunoglobulinas (passiva)."
+              },
+              {
+                "t": "Cadeia de frio",
+                "d": "Conservação em temperatura adequada (geralmente +2 a +8 °C) do laboratório ao usuário."
+              },
+              {
+                "t": "Sala de vacina",
+                "d": "Equipe treinada, registro correto e monitoramento diário da temperatura."
+              },
+              {
+                "t": "EAPV",
+                "d": "Notificar eventos adversos pós-vacinação e orientar a conduta."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Vigilância e investigação epidemiológica",
+            "items": [
+              {
+                "t": "Notificação compulsória",
+                "d": "Doenças e agravos de notificação obrigatória via SINAN."
+              },
+              {
+                "t": "Investigação de surtos",
+                "d": "Identificar fonte, modo de transmissão e casos; adotar medidas de controle."
+              },
+              {
+                "t": "Indicadores",
+                "d": "Cobertura vacinal, incidência, mortalidade e dados de morbidade orientam as ações."
+              }
+            ]
+          },
+          {
+            "type": "refs",
+            "title": "Fonte oficial",
+            "items": [
+              {
+                "label": "PNI",
+                "text": "Programa Nacional de Imunizações — Ministério da Saúde",
+                "url": "https://www.gov.br/saude/pt-br/composicao/svsa/pni"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "Estratégia Saúde da Família",
+          "territorialização",
+          "visita domiciliar",
+          "calendário vacinal",
+          "cadeia de frio",
+          "EAPV",
+          "notificação compulsória"
+        ]
+      }
     },
     {
-      "id":"E07","area":"especificos","title":"Saúde da mulher","priority":"alta","flags":["ciclo de vida"],
-      "summary":"Planejamento reprodutivo, pré-natal, puerpério, aleitamento, rastreamento de cânceres, climatério e violência.",
-      "subtopics":["planejamento reprodutivo","pré-natal","puerpério","aleitamento materno","colo do útero","câncer de mama","climatério","violência contra a mulher"]
+      "id": "E07",
+      "area": "especificos",
+      "title": "Saúde da mulher",
+      "priority": "alta",
+      "flags": [
+        "ciclo de vida"
+      ],
+      "summary": "Planejamento reprodutivo, pré-natal, puerpério, aleitamento, rastreamento de cânceres, climatério e violência.",
+      "subtopics": [
+        "planejamento reprodutivo",
+        "pré-natal",
+        "puerpério",
+        "aleitamento materno",
+        "colo do útero",
+        "câncer de mama",
+        "climatério",
+        "violência contra a mulher"
+      ]
     },
     {
-      "id":"E08","area":"especificos","title":"Saúde da criança e do adolescente","priority":"alta","flags":["pediatria"],
-      "summary":"Crescimento/desenvolvimento, puericultura, triagem neonatal, alimentação, acidentes, agravos prevalentes e proteção integral.",
-      "subtopics":["crescimento e desenvolvimento","puericultura","triagem neonatal","alimentação infantil","prevenção de acidentes","agravos prevalentes","proteção integral","violência, negligência e maus-tratos"]
+      "id": "E08",
+      "area": "especificos",
+      "title": "Saúde da criança e do adolescente",
+      "priority": "alta",
+      "flags": [
+        "pediatria"
+      ],
+      "summary": "Crescimento/desenvolvimento, puericultura, triagem neonatal, alimentação, acidentes, agravos prevalentes e proteção integral.",
+      "subtopics": [
+        "crescimento e desenvolvimento",
+        "puericultura",
+        "triagem neonatal",
+        "alimentação infantil",
+        "prevenção de acidentes",
+        "agravos prevalentes",
+        "proteção integral",
+        "violência, negligência e maus-tratos"
+      ]
     },
     {
-      "id":"E09","area":"especificos","title":"Saúde do adulto e da pessoa idosa","priority":"alta","flags":["DCNT","idoso"],
-      "summary":"HAS, diabetes, obesidade, doenças cardiovasculares/respiratórias/renais, fragilidade, quedas, demências, polifarmácia e paliativos.",
-      "subtopics":["hipertensão arterial","diabetes mellitus","obesidade","cardiovasculares","respiratórias e renais","fragilidade e quedas","demências e polifarmácia","cuidados paliativos"]
+      "id": "E09",
+      "area": "especificos",
+      "title": "Saúde do adulto e da pessoa idosa",
+      "priority": "alta",
+      "flags": [
+        "DCNT",
+        "idoso"
+      ],
+      "summary": "HAS, diabetes, obesidade, doenças cardiovasculares/respiratórias/renais, fragilidade, quedas, demências, polifarmácia e paliativos.",
+      "subtopics": [
+        "hipertensão arterial",
+        "diabetes mellitus",
+        "obesidade",
+        "cardiovasculares",
+        "respiratórias e renais",
+        "fragilidade e quedas",
+        "demências e polifarmácia",
+        "cuidados paliativos"
+      ]
     },
     {
-      "id":"E10","area":"especificos","title":"Urgência e emergência","priority":"critica","flags":["SBV","emergência"],
-      "summary":"SBV, PCR, choque, trauma, hemorragias, queimaduras, intoxicações, convulsões, AVC, IAM, crises, hipoglicemia e anafilaxia.",
-      "subtopics":["suporte básico de vida","parada cardiorrespiratória","choque e trauma","hemorragias e queimaduras","intoxicações e convulsões","AVC e IAM","crise hipertensiva e hipoglicemia","anafilaxia e encaminhamento"]
+      "id": "E10",
+      "area": "especificos",
+      "title": "Urgência e emergência",
+      "priority": "critica",
+      "flags": [
+        "SBV",
+        "emergência"
+      ],
+      "summary": "SBV, PCR, choque, trauma, hemorragias, queimaduras, intoxicações, convulsões, AVC, IAM, crises, hipoglicemia e anafilaxia.",
+      "subtopics": [
+        "suporte básico de vida",
+        "parada cardiorrespiratória",
+        "choque e trauma",
+        "hemorragias e queimaduras",
+        "intoxicações e convulsões",
+        "AVC e IAM",
+        "crise hipertensiva e hipoglicemia",
+        "anafilaxia e encaminhamento"
+      ]
     },
     {
-      "id":"E11","area":"especificos","title":"Saúde mental e RAPS","priority":"alta","flags":["RAPS","crise"],
-      "summary":"Acolhimento, crise psíquica, risco de suicídio, álcool e outras drogas, redução de danos e articulação em rede.",
-      "subtopics":["acolhimento em saúde mental","crise psíquica","risco de suicídio","álcool e outras drogas","redução de danos","Rede de Atenção Psicossocial"]
+      "id": "E11",
+      "area": "especificos",
+      "title": "Saúde mental e RAPS",
+      "priority": "alta",
+      "flags": [
+        "RAPS",
+        "crise"
+      ],
+      "summary": "Acolhimento, crise psíquica, risco de suicídio, álcool e outras drogas, redução de danos e articulação em rede.",
+      "subtopics": [
+        "acolhimento em saúde mental",
+        "crise psíquica",
+        "risco de suicídio",
+        "álcool e outras drogas",
+        "redução de danos",
+        "Rede de Atenção Psicossocial"
+      ]
     },
     {
-      "id":"E12","area":"especificos","title":"Gestão, dimensionamento e segurança do paciente","priority":"critica","flags":["gestão","segurança"],
-      "summary":"Dimensionamento, liderança, educação permanente, materiais, indicadores, auditoria, segurança do paciente, comunicação, passagem de plantão e equipe multiprofissional.",
-      "subtopics":["dimensionamento de pessoal","liderança","educação permanente","gerenciamento de materiais","indicadores assistenciais","auditoria em enfermagem","segurança do paciente","comunicação e passagem de plantão"]
+      "id": "E12",
+      "area": "especificos",
+      "title": "Gestão, dimensionamento e segurança do paciente",
+      "priority": "critica",
+      "flags": [
+        "gestão",
+        "segurança"
+      ],
+      "summary": "Dimensionamento, liderança, educação permanente, materiais, indicadores, auditoria, segurança do paciente, comunicação, passagem de plantão e equipe multiprofissional.",
+      "subtopics": [
+        "dimensionamento de pessoal",
+        "liderança",
+        "educação permanente",
+        "gerenciamento de materiais",
+        "indicadores assistenciais",
+        "auditoria em enfermagem",
+        "segurança do paciente",
+        "comunicação e passagem de plantão"
+      ],
+      "guide": {
+        "layout": "blocos",
+        "hero": {
+          "kicker": "Gestão em enfermagem",
+          "title": "Dimensionamento, indicadores e segurança do paciente",
+          "text": "O enfermeiro gerencia a equipe, os materiais e os indicadores assistenciais, garantindo assistência segura. O dimensionamento segue a Resolução COFEN 543/2017, e a segurança do paciente segue as metas internacionais."
+        },
+        "blocks": [
+          {
+            "type": "section",
+            "title": "Dimensionamento de pessoal (COFEN 543/2017)",
+            "items": [
+              {
+                "t": "Base do cálculo",
+                "d": "Horas de assistência por paciente conforme o tipo de cuidado (mínimo, intermediário, alta dependência, semi-intensivo e intensivo)."
+              },
+              {
+                "t": "Carga horária",
+                "d": "36 h/semana para o cálculo de pessoal; considerar índice de segurança técnica (IST)."
+              },
+              {
+                "t": "Distribuição",
+                "d": "Percentual de enfermeiros na equipe conforme a complexidade da assistência."
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Liderança, materiais e indicadores",
+            "items": [
+              {
+                "t": "Liderança",
+                "d": "Coordenação da equipe, educação permanente e tomada de decisão."
+              },
+              {
+                "t": "Gerenciamento de materiais",
+                "d": "Previsão, provisão, organização e controle de insumos."
+              },
+              {
+                "t": "Indicadores assistenciais",
+                "d": "Taxa de infecção, incidência de lesão por pressão, queda e flebite."
+              },
+              {
+                "t": "Auditoria",
+                "d": "Avaliação da qualidade dos registros e da assistência prestada."
+              }
+            ]
+          },
+          {
+            "type": "flow",
+            "title": "As 6 metas internacionais de segurança do paciente",
+            "steps": [
+              {
+                "t": "Identificar o paciente corretamente",
+                "d": ""
+              },
+              {
+                "t": "Melhorar a comunicação efetiva",
+                "d": ""
+              },
+              {
+                "t": "Segurança de medicamentos de alta vigilância",
+                "d": ""
+              },
+              {
+                "t": "Cirurgia segura",
+                "d": "Local, procedimento e paciente corretos."
+              },
+              {
+                "t": "Reduzir risco de infecções",
+                "d": "Higiene das mãos."
+              },
+              {
+                "t": "Reduzir risco de quedas e lesão por pressão",
+                "d": ""
+              }
+            ]
+          },
+          {
+            "type": "section",
+            "title": "Comunicação e passagem de plantão",
+            "items": [
+              {
+                "t": "SBAR",
+                "d": "Situação, Background (antecedentes), Avaliação e Recomendação — método para comunicação segura."
+              },
+              {
+                "t": "Passagem de plantão",
+                "d": "Registro claro, à beira do leito e sem interrupções."
+              },
+              {
+                "t": "Equipe multiprofissional",
+                "d": "Trabalho colaborativo centrado no paciente e na família."
+              }
+            ]
+          },
+          {
+            "type": "refs",
+            "title": "Fontes oficiais",
+            "items": [
+              {
+                "label": "COFEN 543/17",
+                "text": "Dimensionamento do quadro de profissionais de enfermagem",
+                "url": "https://www.cofen.gov.br/resolucao-cofen-5432017/"
+              },
+              {
+                "label": "PNSP",
+                "text": "Programa Nacional de Segurança do Paciente — Ministério da Saúde",
+                "url": "https://www.gov.br/saude/pt-br/composicao/saes/dicas-em-saude/seguranca-do-paciente"
+              }
+            ]
+          }
+        ],
+        "keywords": [
+          "dimensionamento",
+          "COFEN 543/2017",
+          "indicadores",
+          "auditoria",
+          "segurança do paciente",
+          "metas internacionais",
+          "SBAR",
+          "passagem de plantão"
+        ]
+      }
     }
   ],
   "studyPlan": [
-    {"week":1,"focus":"Fundação regulatória + SUS","topics":["S01","S02","E01","E02"],"maintenance":["P01","M01"]},
-    {"week":2,"focus":"APS, redes e serviço público","topics":["S03","S04","S05","M02","M03"],"maintenance":["P02"]},
-    {"week":3,"focus":"Segurança e fundamentos","topics":["S06","S07","E03","E05"],"maintenance":["P03","M04"]},
-    {"week":4,"focus":"Medicamentos + saúde coletiva","topics":["E04","E06"],"maintenance":["P04","M05","S02"]},
-    {"week":5,"focus":"Ciclos de vida I","topics":["E07","E08"],"maintenance":["P05","S05","E02"]},
-    {"week":6,"focus":"Ciclos de vida II","topics":["E09"],"maintenance":["S06","E03","E04"]},
-    {"week":7,"focus":"Alta criticidade clínica","topics":["E10","E11","E12"],"maintenance":["S07","E05"]},
-    {"week":8,"focus":"Revisão ponderada","topics":["S01","S02","S05","S06","E01","E02","E04","E10","E12"],"maintenance":["P01","M01","M02"]},
-    {"week":9,"focus":"Simulados completos + caderno de erros","topics":[],"maintenance":["P01","M01","S02","E02"],"simulation":true}
+    {
+      "week": 1,
+      "focus": "Fundação regulatória + SUS",
+      "topics": [
+        "S01",
+        "S02",
+        "E01",
+        "E02"
+      ],
+      "maintenance": [
+        "P01",
+        "M01"
+      ]
+    },
+    {
+      "week": 2,
+      "focus": "APS, redes e serviço público",
+      "topics": [
+        "S03",
+        "S04",
+        "S05",
+        "M02",
+        "M03"
+      ],
+      "maintenance": [
+        "P02"
+      ]
+    },
+    {
+      "week": 3,
+      "focus": "Segurança e fundamentos",
+      "topics": [
+        "S06",
+        "S07",
+        "E03",
+        "E05"
+      ],
+      "maintenance": [
+        "P03",
+        "M04"
+      ]
+    },
+    {
+      "week": 4,
+      "focus": "Medicamentos + saúde coletiva",
+      "topics": [
+        "E04",
+        "E06"
+      ],
+      "maintenance": [
+        "P04",
+        "M05",
+        "S02"
+      ]
+    },
+    {
+      "week": 5,
+      "focus": "Ciclos de vida I",
+      "topics": [
+        "E07",
+        "E08"
+      ],
+      "maintenance": [
+        "P05",
+        "S05",
+        "E02"
+      ]
+    },
+    {
+      "week": 6,
+      "focus": "Ciclos de vida II",
+      "topics": [
+        "E09"
+      ],
+      "maintenance": [
+        "S06",
+        "E03",
+        "E04"
+      ]
+    },
+    {
+      "week": 7,
+      "focus": "Alta criticidade clínica",
+      "topics": [
+        "E10",
+        "E11",
+        "E12"
+      ],
+      "maintenance": [
+        "S07",
+        "E05"
+      ]
+    },
+    {
+      "week": 8,
+      "focus": "Revisão ponderada",
+      "topics": [
+        "S01",
+        "S02",
+        "S05",
+        "S06",
+        "E01",
+        "E02",
+        "E04",
+        "E10",
+        "E12"
+      ],
+      "maintenance": [
+        "P01",
+        "M01",
+        "M02"
+      ]
+    },
+    {
+      "week": 9,
+      "focus": "Simulados completos + caderno de erros",
+      "topics": [],
+      "maintenance": [
+        "P01",
+        "M01",
+        "S02",
+        "E02"
+      ],
+      "simulation": true
+    }
   ],
   "articleContract": {
     "chapters": [
@@ -499,16 +2131,56 @@ window.SANTOS_DATA = {
     ]
   },
   "sources": [
-    {"type":"official","label":"Página oficial do Concurso 74/2026 — IBAM","url":"https://www.ibamsp-concursos.org.br/informacoes/179/"},
-    {"type":"official","label":"Edital de Abertura 74/2026 — PDF","url":"https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/ef18e842-52a6-48c2-acbd-35aa7cc8526a.pdf"},
-    {"type":"official","label":"Rerratificação — Edital 82/2026","url":"https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/145fd76b-30b0-4a1d-864d-d300f7984a52.pdf"},
-    {"type":"primary","label":"Lei nº 7.498/1986 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/leis/L7498.htm"},
-    {"type":"primary","label":"Decreto nº 94.406/1987 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/decreto/1980-1989/d94406.htm"},
-    {"type":"primary","label":"Lei nº 5.905/1973 — Planalto","url":"https://www.planalto.gov.br/ccivil_03/leis/l5905.htm"},
-    {"type":"primary","label":"Resolução COFEN nº 736/2024","url":"https://www.cofen.gov.br/resolucao-cofen-no-736-de-17-de-janeiro-de-2024/"},
-    {"type":"municipal","label":"Portal Legis Santos","url":"https://egov.santos.sp.gov.br/legis/"},
-    {"type":"municipal","label":"Lei Orgânica do Município de Santos","url":"https://leismunicipais.com.br/lei-organica-santos-sp"},
-    {"type":"municipal","label":"Estatuto — Lei nº 4.623/1984","url":"https://egov.santos.sp.gov.br/legis/documents/55"}
+    {
+      "type": "official",
+      "label": "Página oficial do Concurso 74/2026 — IBAM",
+      "url": "https://www.ibamsp-concursos.org.br/informacoes/179/"
+    },
+    {
+      "type": "official",
+      "label": "Edital de Abertura 74/2026 — PDF",
+      "url": "https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/ef18e842-52a6-48c2-acbd-35aa7cc8526a.pdf"
+    },
+    {
+      "type": "official",
+      "label": "Rerratificação — Edital 82/2026",
+      "url": "https://anexos-r2.selecao.net.br/uploads/810/concursos/179/anexos/145fd76b-30b0-4a1d-864d-d300f7984a52.pdf"
+    },
+    {
+      "type": "primary",
+      "label": "Lei nº 7.498/1986 — Planalto",
+      "url": "https://www.planalto.gov.br/ccivil_03/leis/L7498.htm"
+    },
+    {
+      "type": "primary",
+      "label": "Decreto nº 94.406/1987 — Planalto",
+      "url": "https://www.planalto.gov.br/ccivil_03/decreto/1980-1989/d94406.htm"
+    },
+    {
+      "type": "primary",
+      "label": "Lei nº 5.905/1973 — Planalto",
+      "url": "https://www.planalto.gov.br/ccivil_03/leis/l5905.htm"
+    },
+    {
+      "type": "primary",
+      "label": "Resolução COFEN nº 736/2024",
+      "url": "https://www.cofen.gov.br/resolucao-cofen-no-736-de-17-de-janeiro-de-2024/"
+    },
+    {
+      "type": "municipal",
+      "label": "Portal Legis Santos",
+      "url": "https://egov.santos.sp.gov.br/legis/"
+    },
+    {
+      "type": "municipal",
+      "label": "Lei Orgânica do Município de Santos",
+      "url": "https://leismunicipais.com.br/lei-organica-santos-sp"
+    },
+    {
+      "type": "municipal",
+      "label": "Estatuto — Lei nº 4.623/1984",
+      "url": "https://egov.santos.sp.gov.br/legis/documents/55"
+    }
   ],
   "receivedLinksAudit": {
     "note": "Os links inicialmente enviados apontam para o Concurso 73/2026, que não lista o cargo de Enfermeiro. O hub de Enfermeiro foi corrigido para o Concurso 74/2026.",
@@ -524,5 +2196,4 @@ window.SANTOS_DATA = {
     "contentSource": "Edital 74/2026 – SEPLA-RH + Edital 82/2026 – SEPLA-RH",
     "nonOfficialStudyGuide": true
   }
-}
-;
+};
