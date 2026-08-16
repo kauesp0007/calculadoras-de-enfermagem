@@ -228,6 +228,7 @@
       if(b.type==='chips') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-chips">${b.items.map(i=>`<span class="blk-chip">${esc(i)}</span>`).join('')}</div></div>`;
       if(b.type==='flow') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-steps">${b.steps.map((s,i)=>`<div class="blk-step"><span class="blk-step-num">${i+1}</span><div><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></div>`).join('')}</div></div>`;
       if(b.type==='refs') return `<div class="blk-section"><h3>${esc(b.title||'Referências')}</h3><div class="blk-refs">${b.items.map(r=>`<a class="blk-ref" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><span class="blk-ref-label">${esc(r.label)}</span><b>${esc(r.text)}</b><span class="blk-ref-arrow" aria-hidden="true">↗</span></a>`).join('')}</div></div>`;
+      if(b.type==='links') return `<div class="blk-section"><h3>${esc(b.title||'Aprofunde no site')}</h3><div class="blk-links">${b.items.map(l=>`<a class="blk-link" href="${esc(l.url)}"><b>${esc(l.t)}</b><span>${esc(l.d||'')}</span><span class="blk-link-arrow" aria-hidden="true">→</span></a>`).join('')}</div></div>`;
       return '';
     }).join('');
     const keywords = `<div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${g.keywords.map(k=>`<span class="keyword">${esc(k)}</span>`).join('')}</div>`;
