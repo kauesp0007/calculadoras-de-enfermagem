@@ -28,7 +28,24 @@
   }
   function persist(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(saved)); }
   function topicState(id){
-    return saved.topics[id] || {status:'novo', favorite:false, updatedAt:null};
+    return saved.topics[id] || {status:'novo', favorite:false, updatedAt:null, openedAt:null, favoritedAt:null};
+  }
+  function fmtDateTime(iso){
+    if(!iso) return '';
+    const d = new Date(iso);
+    if(isNaN(d.getTime())) return '';
+    return d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+  }
+  function markOpened(id){
+    const st = topicState(id);
+    const patch = {};
+    if(!st.openedAt) patch.openedAt = new Date().toISOString();
+    if(st.status === 'novo') patch.status = 'estudando';
+    if(!Object.keys(patch).length) return;
+    saved.topics[id] = {...st, ...patch};
+    persist();
+    renderAllStateful();
+    if(patch.status) toast(`${id}: ${STATUS_LABEL[patch.status]}`);
   }
   function setTopicState(id, patch){
     saved.topics[id] = {...topicState(id), ...patch, updatedAt:new Date().toISOString()};
@@ -92,10 +109,11 @@
       const st = topicState(t.id);
       const next = STATUS[(STATUS.indexOf(st.status)+1)%STATUS.length];
       return `<article class="topic-card" data-topic="${t.id}">
-        <div class="topic-top"><span class="topic-code">${t.id} · ${esc(AREA_SHORT[t.area])}</span><span class="topic-priority ${t.priority}">${t.priority}</span></div>
+        <div class="topic-top"><span class="topic-code">${esc(AREA_LABEL[t.area])}</span><span class="topic-priority ${t.priority}">${t.priority}</span></div>
         <h3>${esc(t.title)}</h3>
         <p>${esc(t.summary)}</p>
         <div class="tag-row">${t.flags.slice(0,4).map(tag => `<span class="tag">${esc(tag)}</span>`).join('')}</div>
+        ${st.openedAt ? `<div class="topic-opened" title="Início do estudo (abertura do card)">${icon('clock')}<span>Início do estudo: ${fmtDateTime(st.openedAt)}</span></div>` : ''}
         <div class="topic-footer">
           <button class="status-btn ${st.status}" type="button" data-status-id="${t.id}" title="Clique para avançar para ${STATUS_LABEL[next]}">${icon(st.status==='novo'?'clock':'check')} ${STATUS_LABEL[st.status]}</button>
           <button class="icon-btn ${st.favorite?'active':''}" type="button" data-fav-id="${t.id}" aria-label="${st.favorite?'Remover dos favoritos':'Favoritar'}">${icon('star')}</button>
@@ -105,7 +123,10 @@
     }).join('');
     $$('[data-status-id]',grid).forEach(btn => btn.addEventListener('click', () => cycleStatus(btn.dataset.statusId)));
     $$('[data-fav-id]',grid).forEach(btn => btn.addEventListener('click', () => {
-      const id=btn.dataset.favId, st=topicState(id); setTopicState(id,{favorite:!st.favorite}); toast(!st.favorite?'Adicionado aos favoritos':'Removido dos favoritos');
+      const id=btn.dataset.favId, st=topicState(id);
+      const novo = !st.favorite;
+      setTopicState(id, {favorite:novo, favoritedAt: novo ? new Date().toISOString() : null});
+      toast(novo?'Adicionado aos favoritos':'Removido dos favoritos');
     }));
     $$('[data-open-id]',grid).forEach(btn => btn.addEventListener('click', () => openTopic(btn.dataset.openId)));
   }
@@ -133,8 +154,11 @@
   function renderStatusFilterActive(){
     $$('[data-status-filter]').forEach(b=>b.classList.toggle('active',b.dataset.statusFilter===filters.status));
   }
+  function syncAreaBtns(){
+    $$('[data-area-btn]').forEach(b=>b.classList.toggle('active', b.dataset.areaBtn===filters.area));
+  }
   function renderFilters(){
-    renderSidebarAreas(); renderStatusFilterActive(); renderTopics();
+    renderSidebarAreas(); renderStatusFilterActive(); syncAreaBtns(); renderTopics();
   }
   function renderAllStateful(){ renderProgress(); renderFilters(); }
 
@@ -300,6 +324,8 @@
 
   function openTopic(id){
     const t=data.topics.find(x=>x.id===id); if(!t)return;
+    markOpened(id);
+    startStudyClock();
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
     let guideHtml='';
     if(t.guide){
@@ -358,6 +384,7 @@
     $('#criticalBtn').addEventListener('click',()=>{filters.priority='critica';filters.highYield=false;$('#prioritySelect').value='critica';switchTab('mapa');renderFilters();});
     $('#clearFilters').addEventListener('click',clearFilters);
     $('#showUnfinished').addEventListener('click',()=>{filters.unfinished=!filters.unfinished;$('#showUnfinished').classList.toggle('primary',filters.unfinished);renderTopics();});
+    $$('[data-area-btn]').forEach(b=>b.addEventListener('click',()=>{filters.area=b.dataset.areaBtn; filters.highYield=false; $('#areaSelect').value=filters.area; renderFilters();}));
   }
   function clearFilters(){
     filters={area:'all',priority:'all',status:'all',search:'',unfinished:false,highYield:false}; $('#areaSelect').value='all'; $('#prioritySelect').value='all'; $('#topicSearch').value=''; $('#showUnfinished').classList.remove('primary'); renderFilters(); toast('Filtros limpos');
@@ -384,8 +411,149 @@
     $('#timerReset').addEventListener('click',()=>{clearInterval(timerId);timerId=null;timerSeconds=25*60;timerRender()}); timerRender();
   }
 
+  let studyStarted=false, studyStartTs=0, studyClockTimer=null;
+  function pad2(n){ return String(n).padStart(2,'0'); }
+  function renderStudyClock(){
+    const el=$('#studyClockTime'); if(!el) return;
+    const s=Math.floor((Date.now()-studyStartTs)/1000);
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+    el.textContent=`${pad2(h)}:${pad2(m)}:${pad2(sec)}`;
+  }
+  function startStudyClock(){
+    if(studyStarted) return;
+    studyStarted=true; studyStartTs=Date.now();
+    renderStudyClock();
+    studyClockTimer=setInterval(renderStudyClock,1000);
+  }
+
+  function imprimirGuia(){
+    const areas = (data.exam && data.exam.areas) || [];
+    const fmtDate = iso => { if(!iso) return '—'; const p = iso.slice(0,10).split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
+    const areaColor = {portugues:'#5d7fa9', legislacao:'#8059b0', sus:'#db8a24', especificos:'#d14e61'};
+    const areaOrder = ['portugues','legislacao','sus','especificos'];
+
+    function blockHtml(b){
+      if(!b) return '';
+      if(b.type==='section') return `<h4>${esc(b.title)}</h4><ul>${(b.items||[]).map(it=>`<li><b>${esc(it.t)}</b> — ${esc(it.d)}</li>`).join('')}</ul>`;
+      if(b.type==='note') return `<div class="note"><b>${esc(b.title)}</b><p>${esc(b.text)}</p></div>`;
+      if(b.type==='chips') return `<p class="chips">${(b.items||[]).map(i=>`<span class="chip">${esc(i)}</span>`).join(' ')}</p>`;
+      if(b.type==='flow') return `<ol class="steps">${(b.steps||[]).map(s=>`<li><b>${esc(s.t)}</b>${s.d?` — ${esc(s.d)}`:''}</li>`).join('')}</ol>`;
+      if(b.type==='refs'||b.type==='links') return `<ul class="refs">${(b.items||[]).map(r=>`<li><b>${esc(r.label||r.t)}</b> ${esc(r.text||r.d||'')}${r.url?` <span class="url">${esc(r.url)}</span>`:''}</li>`).join('')}</ul>`;
+      return '';
+    }
+
+    function guideHtml(g){
+      if(!g) return '';
+      const parts = [];
+      if(g.hero){ parts.push(`<p class="lead">${esc(g.hero.text||'')}</p>`); }
+      else if(Array.isArray(g.intro)){ parts.push(g.intro.map(p=>`<p>${esc(p)}</p>`).join('')); }
+      if(Array.isArray(g.blocks)){ parts.push(g.blocks.map(blockHtml).join('')); }
+      else if(Array.isArray(g.articles)){ parts.push(`<p><b>${esc(g.articlesTitle||'')}</b>: ${g.articles.map(a=>esc(a.t)).join(' · ')}</p>`); }
+      if(Array.isArray(g.keywords)){ parts.push(`<p class="chips"><b>Palavras-chave:</b> ${g.keywords.map(k=>`<span class="chip">${esc(k)}</span>`).join(' ')}</p>`); }
+      return parts.join('');
+    }
+
+    const kpis = [
+      ['40','questões objetivas','4 alternativas cada'],
+      ['100','pontos ponderados','mínimo objetivo: 50'],
+      ['48 pts','Conhecimentos Específicos','12 questões · peso 4'],
+      ['36 pts','Políticas de Saúde e SUS','12 questões · peso 3'],
+      ['10 pts','Língua Portuguesa','10 questões · peso 1'],
+      ['6 pts','Legislação Municipal','6 questões · peso 1'],
+      ['15','vagas de Enfermeiro','2 PCD · 3 reservadas a negros'],
+      ['R$ 9.392,55','remuneração + alimentação','40 horas semanais']
+    ];
+    const kpiHtml = kpis.map(k=>`<div class="kpi"><b>${esc(k[0])}</b><span>${esc(k[1])}</span><small>${esc(k[2])}</small></div>`).join('');
+
+    const areasRows = areas.map(a=>`<tr><td style="color:${areaColor[a.id]||'#333'}">${esc(a.label)}</td><td>${a.questions}</td><td>peso ${a.weight}</td><td>${a.maxPoints} pts</td><td>${a.share}%</td></tr>`).join('');
+
+    const topicHtml = areaOrder.map(aid=>{
+      const list = data.topics.filter(t=>t.area===aid);
+      if(!list.length) return '';
+      const items = list.map(t=>{
+        const pr = t.priority==='critica' ? 'crítica' : (t.priority||'');
+        const prio = pr ? `<span class="prio prio-${esc(t.priority)}">${pr}</span>` : '';
+        return `<div class="topic"><h4>${esc(t.id)} · ${esc(t.title)} ${prio}</h4><p>${esc(t.summary)}</p><p class="sub">${(t.subtopics||[]).map(esc).join(' · ')}</p>${guideHtml(t.guide)}</div>`;
+      }).join('');
+      return `<h3 style="color:${areaColor[aid]||'#333'}">${esc(AREA_SHORT[aid])} — ${list.length} tópicos</h3>${items}`;
+    }).join('');
+
+    const planRows = (data.studyPlan||[]).map(w=>{
+      const foco = (w.topics||[]).map(id=>{const t=data.topics.find(x=>x.id===id); return t?`${id} ${t.title}`:id;}).join(', ');
+      const manut = (w.maintenance||[]).map(id=>{const t=data.topics.find(x=>x.id===id); return t?`${id} ${t.title}`:id;}).join(', ');
+      return `<tr><td>Semana ${w.week}</td><td><b>${esc(w.focus)}</b><br>${esc(foco)}</td><td>${esc(manut)}</td></tr>`;
+    }).join('');
+
+    const d = data.dates || {};
+    const datesRows = [
+      ['Publicação do edital', fmtDate(d.publication)],
+      ['Início das inscrições', fmtDate(d.applicationStart)],
+      ['Fim das inscrições', fmtDate(d.applicationEnd)],
+      ['Pagamento da taxa', fmtDate(d.paymentDeadline)],
+      ['Convocação prevista', fmtDate(d.examCallExpected)],
+      ['Prova objetiva', fmtDate(d.objectiveExam)]
+    ].map(r=>`<tr><td>${esc(r[0])}</td><td>${esc(r[1])}</td></tr>`).join('');
+
+    const sourcesHtml = (data.sources||[]).map(s=>`<li><b>${esc(s.label)}</b> <span class="url">${esc(s.url||'')}</span></li>`).join('');
+
+    const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Guia do Concurso Santos 74/2026 — Enfermeiro</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:Arial,Helvetica,sans-serif;font-size:10pt;color:#1e293b;padding:20px 28px;line-height:1.5}
+.hdr{background:#1a3e74;color:#fff;padding:14px 18px;border-radius:8px;margin-bottom:14px}
+.hdr h1{font-size:15pt;font-weight:900}
+.hdr p{font-size:8.5pt;opacity:.85;margin-top:3px}
+h2{font-size:13pt;font-weight:900;color:#1a3e74;margin:18px 0 6px;border-bottom:2px solid #bfdbfe;padding-bottom:3px;page-break-after:avoid}
+h3{font-size:11pt;font-weight:800;color:#1e4d8c;margin:12px 0 4px;page-break-after:avoid}
+h4{font-size:10pt;font-weight:800;color:#1e293b;margin:8px 0 3px}
+p{margin-bottom:6px}
+ul,ol{margin:4px 0 8px 18px}
+li{margin-bottom:2px}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:9pt}
+th{background:#1a3e74;color:#fff;padding:6px 8px;text-align:left;font-size:8.5pt}
+td{padding:5px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+tr:nth-child(even) td{background:#f8fafc}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0}
+.kpi{border:1px solid #e2e8f0;border-radius:8px;padding:8px}
+.kpi b{display:block;font-size:12pt;color:#1a3e74}
+.kpi span{display:block;font-size:8pt;font-weight:600;color:#334155}
+.kpi small{display:block;font-size:7pt;color:#64748b}
+.note{border-left:4px solid #d97706;background:#fff8f2;padding:6px 10px;margin:8px 0;font-size:9pt}
+.note b{color:#8a5a00}
+.chips{margin:4px 0}
+.chip{display:inline-block;background:#eef2f7;border:1px solid #d7e0ea;border-radius:999px;padding:1px 8px;font-size:8pt;margin:1px}
+.steps{margin-left:18px}
+.refs li{font-size:8.5pt}
+.url{color:#64748b;font-size:7.5pt;word-break:break-all}
+.prio{display:inline-block;font-size:7pt;font-weight:800;border-radius:999px;padding:1px 7px;vertical-align:middle}
+.prio-critica{background:#fee2e2;color:#b91c1c}
+.prio-alta{background:#ffedd5;color:#c2410c}
+.prio-media{background:#e0e7ff;color:#4338ca}
+.topic{border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;margin:6px 0;page-break-inside:avoid}
+.sub{color:#64748b;font-size:8pt}
+.footer{text-align:center;font-size:8pt;color:#94a3b8;margin-top:18px;border-top:1px solid #e2e8f0;padding-top:6px}
+</style></head><body>
+<div class="hdr"><h1>Concurso Santos 74/2026 — Enfermeiro</h1><p>Guia de Estudos Completo · Edital 74/2026 – SEPLA-RH · Guia não oficial · Gerado em ${new Date().toLocaleDateString('pt-BR')}</p></div>
+<h2>Resumo do concurso</h2><div class="kpis">${kpiHtml}</div>
+<h2>Estrutura da prova</h2><table><thead><tr><th>Área</th><th>Questões</th><th>Peso</th><th>Pontos</th><th>Peso relativo</th></tr></thead><tbody>${areasRows}</tbody></table>
+<p><b>Critério de habilitação:</b> mínimo de 50% do total de pontos (50/100) e margem de até 150 candidatos na lista geral. A Prova de Títulos soma até 10 pontos.</p>
+<h2>Mapa do edital — ${data.topics.length} tópicos</h2>${topicHtml}
+<h2>Plano de 9 semanas</h2><table><thead><tr><th>Semana</th><th>Foco e tópicos</th><th>Manutenção</th></tr></thead><tbody>${planRows}</tbody></table>
+<h2>Datas importantes</h2><table><thead><tr><th>Etapa</th><th>Data</th></tr></thead><tbody>${datesRows}</tbody></table>
+<h2>Fontes oficiais</h2><ul class="refs">${sourcesHtml}</ul>
+<div class="footer">Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
+<script>window.onload=function(){window.print()}<\/script></body></html>`;
+
+    const janela = window.open('', '_blank');
+    if(!janela){ toast('Permita pop-ups para imprimir o guia.'); return; }
+    janela.document.open();
+    janela.document.write(html);
+    janela.document.close();
+    try { janela.focus(); } catch(e){}
+  }
+
   function bindActions(){
-    $('#printBtn').addEventListener('click',()=>window.print());
+    $('#printBtn').addEventListener('click',imprimirGuia);
     $('#exportBtn').addEventListener('click',()=>{
       const payload={schemaVersion:'1.0.0',examId:data.id,exportedAt:new Date().toISOString(),progress:saved,notes:localStorage.getItem(NOTES_KEY)||''};
       const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='progresso-concurso-santos-enfermeiro-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500); toast('Progresso exportado');
