@@ -12,7 +12,6 @@ Arquivos obrigatórios:
 
 - HTML_RULES.md
 - HTML_PAGE_TEMPLATE_RULES.md
-- PROMPT_MASTER.md
 
 Caso existam outros arquivos de regras (*.md), eles também devem ser lidos quando relacionados à tarefa.
 
@@ -81,8 +80,7 @@ A prioridade deve ser sempre:
 1. AI_RULES.md
 2. HTML_RULES.md
 3. HTML_PAGE_TEMPLATE_RULES.md
-4. PROMPT_MASTER.md
-5. Demais arquivos de regras
+4. Demais arquivos de regras
 
 Nenhuma regra inferior pode sobrescrever uma regra superior.
 
