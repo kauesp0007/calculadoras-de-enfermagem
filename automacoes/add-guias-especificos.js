@@ -553,6 +553,295 @@ const guides = {
     },
     ],
     keywords: ["dimensionamento", "COFEN 543/2017", "indicadores", "auditoria", "segurança do paciente", "metas internacionais", "SBAR", "passagem de plantão"]
+  },
+
+  E07: {
+    layout: "blocos",
+    hero: {
+      kicker: "Saúde da mulher · ciclo de vida",
+      title: "Planejamento reprodutivo, pré-natal e climatério",
+      text: "A assistência à mulher acompanha todo o ciclo reprodutivo: planejamento, pré-natal, parto, puerpério, aleitamento, rastreamento de cânceres e climatério. Domine prazos, marcos e o cálculo da idade gestacional."
+    },
+    blocks: [
+      {
+        type: "section",
+        title: "Planejamento reprodutivo e pré-natal",
+        items: [
+          { t: "Planejamento reprodutivo", d: "Direito de decidir sobre ter ou não filhos; ofertar métodos (pílula, DIU, injetáveis, preservativos) e orientar laqueadura/vasectomia conforme a lei." },
+          { t: "Pré-natal", d: "Mínimo de 6 consultas; 1ª preferencialmente até a 12ª semana; testes rápidos (sífilis, HIV, hepatites) e vacinas (dTpa, hepatite B, influenza)." },
+          { t: "Regra de Naegele (DPP)", d: "Somar 7 dias ao 1º dia da DUM; Jan–Mar soma 9 meses, Abr–Dez subtrai 3 meses; base 40 semanas." },
+          { t: "Bishop", d: "Maturidade cervical em 5 fatores, escore 0–13; < 6 = colo desfavorável/imaduro." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Rastreamento, puerpério e aleitamento",
+        items: [
+          { t: "Colo do útero", d: "Citopatológico entre 25 e 64 anos: 2 exames anuais e, se negativos, a cada 3 anos." },
+          { t: "Mama", d: "Mamografia de rastreamento dos 50 aos 69 anos, a cada 2 anos." },
+          { t: "Puerpério", d: "Consulta até 42 dias; atenção a hemorragia, infecção e depressão pós-parto." },
+          { t: "Aleitamento materno", d: "Exclusivo até os 6 meses e complementado até os 2 anos ou mais." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Climatério e violência",
+        items: [
+          { t: "Climatério", d: "Transição da fase reprodutiva; orientar hábitos, sintomas vasomotores e individualizar condutas." },
+          { t: "Violência contra a mulher", d: "Acolhimento sem julgamento, notificação compulsória e articulação com a rede de proteção." }
+        ]
+      },
+      {
+        type: "links",
+        title: "Aprofunde no site",
+        items: [
+          { t: "Idade gestacional e DPP", d: "Cálculo da IG e data provável do parto.", url: "/gestacional.html" },
+          { t: "Escala de Bishop", d: "Maturidade cervical e indução do parto.", url: "/bishop.html" },
+          { t: "Capurro", d: "IG do recém-nascido (somatoneurológico).", url: "/capurro.html" },
+          { t: "Ballard (New Ballard)", d: "IG de 20 a 44 semanas.", url: "/ballard.html" },
+          { t: "Genograma e ecomapa", d: "Avaliação da família no cuidado.", url: "/genogramaeecomapa.html" }
+        ]
+      }
+    ],
+    keywords: ["planejamento reprodutivo", "pré-natal", "regra de Naegele", "Bishop", "puerpério", "aleitamento materno", "rastreamento de câncer", "climatério"]
+  },
+
+  E08: {
+    layout: "blocos",
+    hero: {
+      kicker: "Pediatria · puericultura e neonatologia",
+      title: "Saúde da criança e do adolescente",
+      text: "Do nascimento à adolescência, o cuidado exige acompanhamento do crescimento, triagens, imunização e proteção integral. Conheça os escores que avaliam vitalidade, dor e desconforto respiratório do recém-nascido."
+    },
+    blocks: [
+      {
+        type: "section",
+        title: "Puericultura, triagem e alimentação",
+        items: [
+          { t: "Acompanhamento", d: "Consultas periódicas com avaliação de peso, estatura, IMC e marcos do desenvolvimento." },
+          { t: "Triagem neonatal", d: "Testes do pezinho, coraçãozinho, orelhinha e olhinho." },
+          { t: "Aleitamento materno", d: "Exclusivo até 6 meses; complementado até 2 anos ou mais." },
+          { t: "Alimentação complementar", d: "Introdução a partir dos 6 meses, com alimentos variados e adequados." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Avaliação do recém-nascido",
+        items: [
+          { t: "Apgar", d: "1º e 5º minutos (10º se preciso), 0–10: ≥ 8 normal; 4–7 asfixia moderada; 0–3 grave." },
+          { t: "Capurro", d: "6 critérios somatoneurológicos, máximo 112; IG = (200 + escore) ÷ 7." },
+          { t: "Ballard", d: "6 itens neuromusculares + 6 físicos, −10 a 50; IG de 20 a 44 semanas." },
+          { t: "Silverman-Anderson", d: "Desconforto respiratório, 0–10: ≥ 8 = grave/iminência de insuficiência." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Dor, prevenção e proteção",
+        items: [
+          { t: "CRIES (dor neonatal)", d: "0–10: 0 ausência; 1–3 leve; 4–6 moderada; ≥ 7 intensa." },
+          { t: "NIPS (dor neonatal)", d: "0–7; escore ≥ 4 indica dor e necessidade de analgesia." },
+          { t: "Prevenção de acidentes", d: "Orientar segurança conforme a faixa etária (quedas, queimaduras, afogamento, intoxicações)." },
+          { t: "Proteção integral (ECA)", d: "Notificar violência, negligência e maus-tratos; acionar a rede de proteção." }
+        ]
+      },
+      {
+        type: "links",
+        title: "Aprofunde no site",
+        items: [
+          { t: "Apgar", d: "Vitalidade do RN no 1º e 5º minutos.", url: "/apgar.html" },
+          { t: "Silverman-Anderson", d: "Desconforto respiratório neonatal.", url: "/silverman.html" },
+          { t: "Ballard", d: "Idade gestacional do RN.", url: "/ballard.html" },
+          { t: "Capurro", d: "IG somatoneurológica.", url: "/capurro.html" },
+          { t: "CRIES", d: "Dor neonatal.", url: "/cries.html" },
+          { t: "NIPS", d: "Dor em UTIN/alojamento conjunto.", url: "/nips.html" },
+          { t: "Calendário de vacinação", d: "Calendário infantil 2026.", url: "/calculadoravacina.html" },
+          { t: "Genograma e ecomapa", d: "Família no cuidado pediátrico.", url: "/genogramaeecomapa.html" }
+        ]
+      }
+    ],
+    keywords: ["puericultura", "triagem neonatal", "Apgar", "Capurro", "Ballard", "Silverman-Anderson", "CRIES", "NIPS", "proteção integral"]
+  },
+
+  E09: {
+    layout: "blocos",
+    hero: {
+      kicker: "DCNT · geriatria e cuidados paliativos",
+      title: "Saúde do adulto e da pessoa idosa",
+      text: "As Doenças Crônicas Não Transmissíveis (HAS, diabetes, obesidade) concentram grande parte da demanda. No idoso, avalie funcionalidade, cognição e risco de queda com escalas, e atente à polifarmácia e aos cuidados paliativos."
+    },
+    blocks: [
+      {
+        type: "section",
+        title: "DCNT e valores de referência",
+        items: [
+          { t: "HAS", d: "PA ≥ 140 × 90 mmHg (ótica < 120 × 80 mmHg)." },
+          { t: "Diabetes", d: "Glicemia de jejum 70–99 mg/dL; acompanhar hemoglobina glicada." },
+          { t: "Hemograma", d: "Hb H 13,5–17,5 / M 12–15,5 g/dL; leucócitos 4.000–11.000; plaquetas 150.000–450.000/mm³." },
+          { t: "Eletrólitos e função renal", d: "Na 135–145; K 3,5–5,1 mEq/L; creatinina H 0,7–1,3 / M 0,6–1,1 mg/dL." },
+          { t: "Gasometria", d: "pH 7,35–7,45; PaCO₂ 35–45; HCO₃⁻ 22–26; PaO₂ 80–100 mmHg." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Avaliação geriátrica — escalas",
+        items: [
+          { t: "Katz / Lawton", d: "ABVD (0–6) e AIVD (0–8): independência nas atividades básicas e instrumentais." },
+          { t: "Barthel", d: "0–100: 100 independência; ≤ 20 dependência completa." },
+          { t: "MEEM / MoCA", d: "MEEM cortes por escolaridade (20/24/28); MoCA ≥ 26 normal, < 18 sugestivo de demência." },
+          { t: "GDS-15", d: "≤ 5 normal; 6–10 depressão leve; 11–15 grave." },
+          { t: "Tinetti / Hendrich II", d: "Tinetti 0–28 (equilíbrio e marcha); Hendrich II ≥ 5 = alto risco de queda." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Fragilidade, polifarmácia e paliativos",
+        items: [
+          { t: "Zarit", d: "Sobrecarga do cuidador (0–88): ≤ 21 ausência de sobrecarga." },
+          { t: "Polifarmácia", d: "Revisão periódica de medicamentos e conciliação para evitar iatrogenias." },
+          { t: "Cuidados paliativos", d: "Foco em conforto, controle de sintomas e qualidade de vida, independentemente do prognóstico." }
+        ]
+      },
+      {
+        type: "links",
+        title: "Aprofunde no site — escalas geriátricas",
+        items: [
+          { t: "Barthel", d: "Independência funcional (ABVD).", url: "/barthel.html" },
+          { t: "Katz", d: "Atividades básicas de vida diária.", url: "/katz.html" },
+          { t: "Lawton", d: "Atividades instrumentais.", url: "/lawton.html" },
+          { t: "Zarit", d: "Sobrecarga do cuidador.", url: "/zarit.html" },
+          { t: "GDS", d: "Depressão geriátrica.", url: "/gds.html" },
+          { t: "MEEM", d: "Rastreio cognitivo.", url: "/meem.html" },
+          { t: "MoCA", d: "Cognição e demência.", url: "/moca.html" },
+          { t: "Tinetti", d: "Equilíbrio e marcha.", url: "/tinetti.html" },
+          { t: "Hendrich II", d: "Risco de queda.", url: "/hendrich.html" },
+          { t: "Exames laboratoriais", d: "Valores de referência.", url: "/exames_laboratoriais.html" },
+          { t: "Gasometria", d: "Interpretação ácido-base.", url: "/gasometria.html" }
+        ]
+      }
+    ],
+    keywords: ["HAS", "diabetes", "valores de referência", "Katz e Lawton", "Barthel", "MEEM e MoCA", "GDS", "Tinetti", "polifarmácia", "cuidados paliativos"]
+  },
+
+  E10: {
+    layout: "blocos",
+    hero: {
+      kicker: "Urgência e emergência · ACLS/AHA",
+      title: "SBV, PCR e síndromes tempo-dependentes",
+      text: "A PCR raramente é súbita — a deterioração clínica costuma precedê-la. Domine a RCP de alta qualidade, as causas reversíveis (5 Hs e 5 Ts) e o reconhecimento precoce de AVC, sepse e IAM."
+    },
+    blocks: [
+      {
+        type: "flow",
+        title: "RCP de alta qualidade (ACLS/AHA)",
+        steps: [
+          { t: "Segurança e responsividade", d: "Garanta a cena e confirme a ausência de resposta e respiração." },
+          { t: "Acionar emergência + DEA", d: "Chame ajuda e solicite o desfibrilador imediatamente." },
+          { t: "Compressões", d: "100–120/min, profundidade 5–6 cm, retorno total do tórax." },
+          { t: "Relação 30:2", d: "1 socorrista: 30 compressões para 2 ventilações; suporte avançado: contínuo." },
+          { t: "Desfibrilação precoce", d: "Choque imediato em ritmo chocável (FV/TV sem pulso)." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Causas reversíveis — 5 Hs e 5 Ts",
+        items: [
+          { t: "5 Hs", d: "Hipóxia, Hipovolemia, Hipotermia (< 35 °C), Hipóxia/Hipercalemia (K < 2,7 ou > 6,0) e acidose (pH < 7,35)." },
+          { t: "5 Ts", d: "Tamponamento cardíaco, TEP, Trombose coronária, Tensão no tórax (pneumotórax hipertensivo) e Toxinas." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Síndromes tempo-dependentes",
+        items: [
+          { t: "AVC", d: "Cincinnati (queda facial, fraqueza de braço, fala anormal) e FAST; NIHSS quantifica (0–42)." },
+          { t: "Sepse", d: "qSOFA ≥ 2 (FR ≥ 22 ipm, PAS ≤ 100 mmHg, GCS < 15) = alto risco." },
+          { t: "IAM", d: "Dor torácica: ECG precoce e protocolo de reperfusão." },
+          { t: "NEWS", d: "Escore 0–20; ≥ 7 = risco alto → acionar Time de Resposta Rápida." }
+        ]
+      },
+      {
+        type: "section",
+        title: "TRR e escalas de gravidade",
+        items: [
+          { t: "TRR", d: "Braço aferente (vigilância com NEWS/PEWS) + eferente (médico, enfermeiro de UTI, fisioterapeuta)." },
+          { t: "Gatilhos", d: "FR < 8 ou > 28 ipm; SpO₂ < 90%; FC < 40 ou > 130 bpm; PAS < 90 mmHg." },
+          { t: "Códigos", d: "Amarelo = deterioração clínica; Azul = PCR confirmada." },
+          { t: "Sedação/consciência", d: "FOUR 0–16; RASS +4 a −5; Ramsay 1–6 (meta 2–4)." }
+        ]
+      },
+      {
+        type: "links",
+        title: "Aprofunde no site",
+        items: [
+          { t: "5 Hs da PCR", d: "Causas reversíveis.", url: "/5-hs-da-paradacardiorespiratoria.html" },
+          { t: "5 Ts da PCR", d: "Causas reversíveis.", url: "/5-ts-da-paradacardiorespiratoria.html" },
+          { t: "Time de Resposta Rápida", d: "Prevenção da deterioração.", url: "/time-de-resposta-rapida.html" },
+          { t: "Suporte Avançado de Vida (ACLS)", d: "Diretrizes da AHA.", url: "/suporte-avancado-de-vida.html" },
+          { t: "Cincinnati", d: "AVE pré-hospitalar.", url: "/cincinnati.html" },
+          { t: "FAST", d: "Triagem de AVE.", url: "/fast.html" },
+          { t: "NIHSS", d: "Gravidade do AVE.", url: "/nihss.html" },
+          { t: "NEWS", d: "Escore de alerta precoce.", url: "/news.html" },
+          { t: "qSOFA", d: "Triagem de sepse.", url: "/qsofa.html" },
+          { t: "FOUR", d: "Coma (alternativa à Glasgow).", url: "/four.html" },
+          { t: "Richmond (RASS)", d: "Sedação/agitação.", url: "/richmond.html" },
+          { t: "Glasgow", d: "Nível de consciência.", url: "/glasgow.html" },
+          { t: "Gasometria", d: "Interpretação ácido-base na urgência.", url: "/integracoes_calculadora_de_gasometria.html" }
+        ]
+      }
+    ],
+    keywords: ["RCP", "5 Hs e 5 Ts", "AVC", "Cincinnati e FAST", "NIHSS", "sepse e qSOFA", "NEWS", "TRR", "ACLS"]
+  },
+
+  E11: {
+    layout: "blocos",
+    hero: {
+      kicker: "Saúde mental · RAPS",
+      title: "Acolhimento, crise e redução de danos",
+      text: "A assistência em saúde mental é territorial, centrada na pessoa e articulada em rede. O acolhimento qualificado, o manejo da crise, a avaliação do risco de suicídio e a redução de danos são eixos essenciais da prática."
+    },
+    blocks: [
+      {
+        type: "section",
+        title: "RAPS e acolhimento",
+        items: [
+          { t: "CAPS", d: "Porta de entrada da atenção psicossocial; atende crises e casos graves/complexos no território." },
+          { t: "Acolhimento", d: "Escuta qualificada, sem julgamento, com vínculo e corresponsabilização do cuidado." },
+          { t: "Matriciamento", d: "Apoio do CAPS às equipes da Atenção Primária para qualificar o cuidado em saúde mental." },
+          { t: "Reabilitação psicossocial", d: "Desinstitucionalização, reinserção social e projetos de vida, não apenas remissão de sintomas." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Crise psíquica e risco de suicídio",
+        items: [
+          { t: "Manejo da crise", d: "Acolher, reduzir estímulos e priorizar contenção verbal; evitar contenção física desnecessária." },
+          { t: "Risco de suicídio", d: "Perguntar diretamente sobre ideação, plano e meios; não deixar a pessoa sozinha." },
+          { t: "Álcool e outras drogas", d: "Abordagem pela redução de danos: acolher o uso e reduzir riscos, sem exigir abstinência imediata." },
+          { t: "Articulação em rede", d: "Encaminhar e acompanhar entre CAPS, UBS, urgência/emergência e serviços sociais." }
+        ]
+      },
+      {
+        type: "section",
+        title: "Saúde mental do trabalhador (NR-1 e COPSOQ)",
+        items: [
+          { t: "NR-1", d: "Passou a incluir riscos psicossociais (estresse, burnout, assédio) no Gerenciamento de Riscos Ocupacionais." },
+          { t: "COPSOQ", d: "Questionário de riscos psicossociais; regra do semáforo com cortes 2,33 e 3,66." },
+          { t: "Instrumentos", d: "MBI (burnout), PHQ-9 (depressão), JCQ e COPSOQ." }
+        ]
+      },
+      {
+        type: "links",
+        title: "Aprofunde no site",
+        items: [
+          { t: "Espaço Elisabeth Marques", d: "Plataforma de saúde emocional.", url: "/elisabeth-marques-plataforma-completa.html" },
+          { t: "COPSOQ II (longa)", d: "Questionário psicossocial de Copenhagen.", url: "/copsoq.html" },
+          { t: "Entenda o COPSOQ", d: "Interpretação e semáforo.", url: "/entenda_copsoq.html" },
+          { t: "NR-1 atualizada", d: "Riscos psicossociais no GRO.", url: "/nr1.html" },
+          { t: "Adequação à NR-1", d: "Roteiro de implementação.", url: "/adequar-nr1.html" }
+        ]
+      }
+    ],
+    keywords: ["RAPS", "CAPS", "acolhimento", "crise psíquica", "risco de suicídio", "redução de danos", "matriciamento", "COPSOQ", "NR-1"]
   }
 };
 
