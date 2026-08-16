@@ -16,90 +16,6 @@
   const esc = s => String(s ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   const icon = (id, cls='icon') => `<svg class="${cls}" aria-hidden="true"><use href="#i-${id}"></use></svg>`;
 
-  // ===== REGISTRO DE EVENTOS DO CANDIDATO (analytics local) =====
-  const ANALYTICS_KEY = 'cko.santos.74.2026.analytics.v1';
-  const MATERIAIS = [
-    { id:'edital74', label:'Edital de Abertura 74/2026 — PDF oficial', desc:'Documento oficial do concurso (SEPLA-RH)', path:'sources/', file:'edital-74-2026-sepla-rh.pdf' },
-    { id:'rerrat82', label:'Rerratificação 82/2026 — PDF oficial', desc:'Alteração do Anexo VII', path:'sources/', file:'rerratificacao-82-2026-sepla-rh.pdf' },
-    { id:'l7498', label:'Lei 7.498/1986 — Regulamentação do exercício da enfermagem', desc:'Base legal do exercício profissional', path:'downloads_das_fontes/', file:'L7498_Dispõe sobre a regulamentação do exercício da enfermagem, e dá outras providências..pdf' },
-    { id:'d94406', label:'Decreto 94.406/1987 — Regulamenta a Lei 7.498/86', desc:'Atribuições da equipe de enfermagem', path:'downloads_das_fontes/', file:'DECRETO_N94.406_87-Cofen_regulamenta_o_exercicio_da_enfermagem.pdf' },
-    { id:'l5905', label:'Lei 5.905/1973 — COFEN e CORENs', desc:'Criação dos conselhos de enfermagem', path:'downloads_das_fontes/', file:'L5905_Dispõe sobre a criação dos Conselhos Federal e Regionais de Enfermagem e dá outras providências..pdf' },
-    { id:'cofen736', label:'Resolução COFEN 736/2024 — Processo de Enfermagem', desc:'Implementação do Processo de Enfermagem', path:'downloads_das_fontes/', file:'RESOLUÇÃO COFEN Nº 736 DE 17 DE JANEIRO DE 2024 - Cofen_Dispõe sobre a implementação do Processo de Enfermagem.pdf' },
-    { id:'pnab', label:'Política Nacional de Atenção Básica (PNAB)', desc:'Portaria 2.436/2017 e Estratégia Saúde da Família', path:'downloads_das_fontes/', file:'Política Nacional de Atenção Básica (PNAB).pdf' },
-    { id:'leiorg', label:'Lei Orgânica do Município de Santos', desc:'Legislação municipal — Santos/SP', path:'downloads_das_fontes/', file:'Lei Orgânica do Município de santos 10NOV2022.pdf' },
-    { id:'anamnese', label:'Anamnese e Exame Físico — 3ª Edição', desc:'Fundamentos de enfermagem', path:'downloads_das_fontes/', file:'Anamnese e Exame Físico - 3ª Ed.-1.pdf' },
-    { id:'santosbr', label:'Santos na Formação do Brasil', desc:'História do Município de Santos', path:'downloads_das_fontes/', file:'santos_na_formacao_do_brasil_pdf.pdf' }
-  ];
-  const TOOLS = [
-    ['tab:overview','Visão geral'],['tab:mapa','Mapa do edital'],['tab:plano','Plano de estudos'],['tab:revisao','Revisão'],['tab:simulador','Simulador'],['tab:datas','Datas'],['tab:fontes','Fontes oficiais'],['tab:status','Status'],['tab:materiais','Materiais'],['tab:simulado-expresso','Simulado Expresso'],
-    ['card:abrir','Abrir cards de estudo'],['status','Marcar status'],['favorite','Favoritar'],['filter','Usar filtros e busca'],['print','Imprimir guia'],['export','Exportar progresso'],['pomodoro','Usar pomodoro'],['notes','Usar caderno de erros'],['candidato:identificar','Identificar-se']
-  ];
-
-  function loadAnalytics(){
-    try {
-      const raw = JSON.parse(localStorage.getItem(ANALYTICS_KEY) || '{}');
-      return {
-        candidate: raw.candidate || { name:'' },
-        time: raw.time || { totalMs:0, accesses:0 },
-        opened: raw.opened || {},
-        features: raw.features || {},
-        materials: raw.materials || {},
-        external: Array.isArray(raw.external) ? raw.external : [],
-        simulados: raw.simulados || {}
-      };
-    } catch { return { candidate:{name:''}, time:{totalMs:0,accesses:0}, opened:{}, features:{}, materials:{}, external:[], simulados:{} }; }
-  }
-  function persistAnalytics(){ try { localStorage.setItem(ANALYTICS_KEY, JSON.stringify(analytics)); } catch(e){} }
-  function trackFeature(key){ analytics.features[key] = (analytics.features[key]||0) + 1; persistAnalytics(); }
-  function trackOpened(id){
-    const e = analytics.opened[id] || { count:0, firstAt:null, lastAt:null };
-    e.count++; e.lastAt = new Date().toISOString(); if(!e.firstAt) e.firstAt = e.lastAt;
-    analytics.opened[id] = e;
-    trackFeature('card:abrir');
-  }
-  function trackMaterial(id, kind){
-    const m = analytics.materials[id] || {};
-    if(kind === 'baixado') m.downloadedAt = new Date().toISOString();
-    if(!m.accessedAt) m.accessedAt = new Date().toISOString();
-    analytics.materials[id] = m;
-    trackFeature('material:' + kind);
-    renderMaterials();
-  }
-  function addExternalReading(text){
-    const t = String(text || '').trim(); if(!t) return false;
-    analytics.external.push({ text:t, at:new Date().toISOString() });
-    persistAnalytics();
-    renderMaterials();
-    return true;
-  }
-  function saveCandidateName(name){
-    analytics.candidate.name = String(name || '').trim();
-    trackFeature('candidato:identificar');
-    renderCandidate();
-  }
-  function fmtDuration(ms){
-    const s = Math.max(0, Math.floor(ms/1000));
-    const d = Math.floor(s/86400), h = Math.floor((s%86400)/3600), m = Math.floor((s%3600)/60);
-    if(d>0) return `${d}d ${h}h ${m}min`;
-    if(h>0) return `${h}h ${m}min`;
-    return `${m}min ${s%60}s`;
-  }
-  function fmtDataBr(iso){
-    if(!iso) return '';
-    const d = new Date(iso);
-    return d.toLocaleDateString('pt-BR');
-  }
-  function flushSessionTime(){
-    const now = Date.now();
-    analytics.time.totalMs += Math.max(0, now - sessionStart);
-    sessionStart = now;
-    persistAnalytics();
-  }
-  let analytics = loadAnalytics();
-  let sessionStart = Date.now();
-  analytics.time.accesses = (analytics.time.accesses||0) + 1;
-  persistAnalytics();
-
   let saved = loadState();
   let filters = {area:'all', priority:'all', status:'all', search:'', unfinished:false, highYield:false};
   let toastTimer;
@@ -210,7 +126,6 @@
       const id=btn.dataset.favId, st=topicState(id);
       const novo = !st.favorite;
       setTopicState(id, {favorite:novo, favoritedAt: novo ? new Date().toISOString() : null});
-      trackFeature('favorite');
       toast(novo?'Adicionado aos favoritos':'Removido dos favoritos');
     }));
     $$('[data-open-id]',grid).forEach(btn => btn.addEventListener('click', () => openTopic(btn.dataset.openId)));
@@ -218,7 +133,7 @@
 
   function cycleStatus(id){
     const st=topicState(id); const next=STATUS[(STATUS.indexOf(st.status)+1)%STATUS.length];
-    setTopicState(id,{status:next}); trackFeature('status'); toast(`${id}: ${STATUS_LABEL[next]}`);
+    setTopicState(id,{status:next}); toast(`${id}: ${STATUS_LABEL[next]}`);
   }
 
   function counts(){
@@ -410,7 +325,7 @@
   function openTopic(id){
     const t=data.topics.find(x=>x.id===id); if(!t)return;
     markOpened(id);
-    trackOpened(id);
+    startStudyClock();
     $('#modalKicker').textContent=`${t.id} · ${AREA_LABEL[t.area]} · prioridade ${t.priority}`; $('#modalTitle').textContent=t.title;
     const stOpened = topicState(id);
     const mst = $('#modalStudyTime');
@@ -450,8 +365,6 @@
     const panel=$(`[data-panel="${id}"]`); if(!panel)return;
     $$('.panel').forEach(p=>p.classList.toggle('active',p===panel)); $$('.tab-btn').forEach(b=>{const on=b.dataset.tab===id;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false')});
     if(updateHash) history.replaceState(null,'','#'+id);
-    trackFeature('tab:'+id);
-    if(id==='status') renderStats();
     if(id==='mapa') setTimeout(()=>$('#topicSearch')?.focus({preventScroll:true}),50);
     window.scrollTo({top:Math.max(0,$('.study-tabs').offsetTop-66),behavior:'smooth'});
   }
@@ -467,7 +380,7 @@
 
   function bindFilters(){
     $('#topicSearch').addEventListener('input',e=>{filters.search=e.target.value.trim(); filters.highYield=false; if(filters.search) switchTab('mapa'); renderTopics();});
-    $('#areaSelect').addEventListener('change',e=>{filters.area=e.target.value; filters.highYield=false; trackFeature('filter'); renderFilters();});
+    $('#areaSelect').addEventListener('change',e=>{filters.area=e.target.value; filters.highYield=false; renderFilters();});
     $('#prioritySelect').addEventListener('change',e=>{filters.priority=e.target.value; filters.highYield=false; renderFilters();});
     $$('[data-status-filter]').forEach(b=>b.addEventListener('click',()=>{filters.status=b.dataset.statusFilter; renderFilters();}));
     $('#highYieldBtn').addEventListener('click',()=>{filters.area='all';filters.priority='all';filters.status='all';filters.search='';filters.unfinished=false;filters.highYield=true;$('#areaSelect').value='all';$('#prioritySelect').value='all';$('#topicSearch').value='';switchTab('mapa');renderFilters();});
@@ -490,131 +403,33 @@
   function bindNotes(){
     const ta=$('#studyNotes'); ta.value=localStorage.getItem(NOTES_KEY)||'';
     let t; ta.addEventListener('input',()=>{clearTimeout(t);$('#notesStatus').textContent='Salvando…';t=setTimeout(()=>{localStorage.setItem(NOTES_KEY,ta.value);$('#notesStatus').textContent='Salvo localmente.';},350)});
-    $('#copyNotes').addEventListener('click',async()=>{trackFeature('notes');try{await navigator.clipboard.writeText(ta.value);toast('Notas copiadas');}catch{ta.select();document.execCommand('copy');toast('Notas copiadas');}});
+    $('#copyNotes').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(ta.value);toast('Notas copiadas');}catch{ta.select();document.execCommand('copy');toast('Notas copiadas');}});
   }
 
   let timerSeconds=25*60, timerId=null;
   function timerRender(){const m=Math.floor(timerSeconds/60),s=timerSeconds%60;$('#timerValue').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;document.title=timerId?`${$('#timerValue').textContent} · Santos Enfermeiro`:'Concurso Santos 2026 — Enfermeiro: Guia do Edital 74/2026';}
   function bindTimer(){
-    $('#timerStart').addEventListener('click',()=>{if(timerId)return;trackFeature('pomodoro');timerId=setInterval(()=>{timerSeconds--;timerRender();if(timerSeconds<=0){clearInterval(timerId);timerId=null;timerSeconds=25*60;timerRender();toast('Sessão concluída — registre o que aprendeu e seus erros.');}},1000)});
+    $('#timerStart').addEventListener('click',()=>{if(timerId)return;timerId=setInterval(()=>{timerSeconds--;timerRender();if(timerSeconds<=0){clearInterval(timerId);timerId=null;timerSeconds=25*60;timerRender();toast('Sessão concluída — registre o que aprendeu e seus erros.');}},1000)});
     $('#timerPause').addEventListener('click',()=>{clearInterval(timerId);timerId=null;timerRender()});
     $('#timerReset').addEventListener('click',()=>{clearInterval(timerId);timerId=null;timerSeconds=25*60;timerRender()}); timerRender();
   }
 
-  // ===== RELÓGIO + TEMPO DE DEDICAÇÃO =====
-  let sessionClockTimer = null;
+  let studyStarted=false, studyStartTs=0, studyClockTimer=null;
   function pad2(n){ return String(n).padStart(2,'0'); }
-  function renderClock(){
-    const el = $('#studyClockTime');
-    if(el){
-      const s = Math.floor((Date.now()-sessionStart)/1000);
-      el.textContent = `${pad2(Math.floor(s/3600))}:${pad2(Math.floor((s%3600)/60))}:${pad2(s%60)}`;
-    }
-    const ded = $('#dedicationTotal');
-    if(ded) ded.textContent = fmtDuration(analytics.time.totalMs + (Date.now()-sessionStart));
+  function renderStudyClock(){
+    const el=$('#studyClockTime'); if(!el) return;
+    const s=Math.floor((Date.now()-studyStartTs)/1000);
+    const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+    el.textContent=`${pad2(h)}:${pad2(m)}:${pad2(sec)}`;
   }
-  function initClock(){
-    renderClock();
-    sessionClockTimer = setInterval(renderClock, 1000);
-    window.addEventListener('pagehide', flushSessionTime);
-    document.addEventListener('visibilitychange', ()=>{ if(document.hidden) flushSessionTime(); });
-  }
-
-  // ===== RENDER: CANDIDATO / ESTATÍSTICAS / MATERIAIS =====
-  function renderCandidate(){
-    const hello = $('#candidateHello');
-    const input = $('#candidateName');
-    if(hello) hello.textContent = analytics.candidate.name ? `Olá, ${analytics.candidate.name}! Seus dados estão salvos neste navegador.` : '';
-    if(input && analytics.candidate.name) input.value = analytics.candidate.name;
-  }
-
-  function renderStats(){
-    const grid = $('#statsGrid'); if(!grid) return;
-    const totalTopics = data.topics.length;
-    const openedCount = Object.keys(analytics.opened).length;
-    const openedPct = totalTopics ? Math.round(openedCount/totalTopics*100) : 0;
-    const toolsUsed = TOOLS.filter(t => (analytics.features[t[0]]||0) > 0).length;
-    const toolsPct = TOOLS.length ? Math.round(toolsUsed/TOOLS.length*100) : 0;
-    const matTotal = MATERIAIS.length;
-    const matAccessed = MATERIAIS.filter(m => analytics.materials[m.id]).length;
-    const matPct = matTotal ? Math.round(matAccessed/matTotal*100) : 0;
-    const totalMs = analytics.time.totalMs + (Date.now()-sessionStart);
-    const accesses = analytics.time.accesses || 1;
-    const totalHours = (totalMs/3600000).toFixed(1);
-    const avgPerAccess = fmtDuration(Math.max(0, totalMs/accesses));
-    const sims = Object.values(analytics.simulados || {});
-    const simDone = sims.length;
-    const simCorrect = sims.reduce((a,s)=>a+(s.correct||0),0);
-    const simWrong = sims.reduce((a,s)=>a+(s.wrong||0),0);
-    const extCount = analytics.external.length;
-    const bar = (pct, color) => `<div class="stat-bar"><span style="width:${Math.min(100,Math.max(0,pct))}%;background:${color||'var(--navy)'}"></span></div>`;
-
-    grid.innerHTML = `
-      <article class="stat-card">
-        <div class="stat-head">${icon('target','icon')}<h4>Aproveitamento no site</h4></div>
-        <div class="stat-donut-wrap"><div class="donut" style="--p:${toolsPct}"><div class="donut-center"><b>${toolsPct}%</b><small>aproveitamento</small></div></div></div>
-        <p class="stat-sub">${toolsUsed} de ${TOOLS.length} ferramentas utilizadas pelo candidato.</p>
-      </article>
-      <article class="stat-card">
-        <div class="stat-head">${icon('book','icon')}<h4>Cards abertos e lidos</h4></div>
-        <b class="stat-num">${openedCount}<span> de ${totalTopics}</span></b>
-        ${bar(openedPct)}
-        <p class="stat-sub">${openedPct}% dos cards de estudo foram abertos pelo candidato.</p>
-      </article>
-      <article class="stat-card">
-        <div class="stat-head">${icon('list','icon')}<h4>Mini-simulados</h4></div>
-        <b class="stat-num">${simDone}<span> questionários</span></b>
-        <div class="stat-duo"><span class="ok">${simCorrect} acertos</span><span class="bad">${simWrong} erros</span></div>
-        <p class="stat-sub">${simDone===0 ? 'Em breve: os simulados expressos serão contabilizados aqui.' : `${simDone} questionários realizados.`}</p>
-      </article>
-      <article class="stat-card">
-        <div class="stat-head">${icon('clock','icon')}<h4>Tempo de dedicação</h4></div>
-        <b class="stat-num">${totalHours}<span> horas no total</span></b>
-        <div class="stat-duo"><span>${accesses} acesso(s)</span><span>média ${avgPerAccess}</span></div>
-        <p class="stat-sub">Tempo acumulado do candidato dentro da página, somado a cada acesso.</p>
-      </article>
-      <article class="stat-card">
-        <div class="stat-head">${icon('download','icon')}<h4>Materiais consultados</h4></div>
-        <b class="stat-num">${matAccessed}<span> de ${matTotal}</span></b>
-        ${bar(matPct, '#16a34a')}
-        <p class="stat-sub">${matPct}% dos materiais didáticos foram acessados/baixados.</p>
-      </article>
-      <article class="stat-card">
-        <div class="stat-head">${icon('note','icon')}<h4>Leituras fora do site</h4></div>
-        <b class="stat-num">${extCount}<span> item(ns)</span></b>
-        <p class="stat-sub">Conteúdos lidos pelo candidato fora do site, registrados manualmente.</p>
-      </article>`;
-  }
-
-  function renderMaterials(){
-    const list = $('#materialsList');
-    if(list){
-      const dl = MATERIAIS.map(m => {
-        const rec = analytics.materials[m.id];
-        const url = m.path + encodeURIComponent(m.file);
-        const check = rec ? `<span class="mat-check" title="Acessado">✓<small>${fmtDataBr(rec.accessedAt)}</small></span>` : `<span class="mat-check empty">·</span>`;
-        return `<div class="mat-item"><div class="mat-info"><b>${esc(m.label)}</b><span>${esc(m.desc)}</span></div><div class="mat-actions">${check}<a class="btn mat-download" href="${url}" download="${esc(m.file)}" data-mat-id="${m.id}" target="_blank" rel="noopener">Baixar</a></div></div>`;
-      }).join('');
-      const src = (data.sources||[]).map((s,i) => {
-        const rec = analytics.materials['src'+i];
-        const check = rec ? `<span class="mat-check" title="Acessado">✓<small>${fmtDataBr(rec.accessedAt)}</small></span>` : `<span class="mat-check empty">·</span>`;
-        return `<div class="mat-item"><div class="mat-info"><b>${esc(s.label)}</b><span>${esc(s.type||'oficial')}</span></div><div class="mat-actions">${check}<a class="btn mat-open" href="${esc(s.url)}" target="_blank" rel="noopener noreferrer" data-mat-id="src${i}">Consultar</a></div></div>`;
-      }).join('');
-      list.innerHTML = `<h3 class="mat-h">Downloads (PDF)</h3><div class="mat-grid">${dl}</div><h3 class="mat-h">Links oficiais para consulta</h3><div class="mat-grid">${src}</div>`;
-      $$('[data-mat-id]', list).forEach(a => a.addEventListener('click', () => trackMaterial(a.dataset.matId, a.classList.contains('mat-download') ? 'baixado' : 'acessado')));
-    }
-    const ext = $('#materialsExternal');
-    if(ext){
-      const items = analytics.external.map((e,i)=>`<li><span class="mat-check">✓<small>${fmtDataBr(e.at)}</small></span><span>${esc(e.text)}</span><button class="icon-btn" data-ext-del="${i}" aria-label="Remover item">${icon('x')}</button></li>`).join('');
-      ext.innerHTML = `<h3 class="mat-h">O que o candidato leu fora do site</h3><div class="ext-form"><input type="text" id="externalInput" placeholder="Ex.: Lei 8.080/90 comentada, livro de fundamentos..."><button class="btn primary" id="externalSave" type="button">Salvar</button></div><ul class="ext-list">${items || '<li class="ext-empty">Nenhum item registrado ainda.</li>'}</ul>`;
-      $('#externalSave').addEventListener('click', ()=>{ if(addExternalReading($('#externalInput').value)){ $('#externalInput').value=''; toast('Registro salvo'); } });
-      $('#externalInput').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#externalSave').click(); });
-      $$('[data-ext-del]', ext).forEach(b => b.addEventListener('click', ()=>{ analytics.external.splice(Number(b.dataset.extDel),1); persistAnalytics(); renderMaterials(); }));
-    }
+  function startStudyClock(){
+    if(studyStarted) return;
+    studyStarted=true; studyStartTs=Date.now();
+    renderStudyClock();
+    studyClockTimer=setInterval(renderStudyClock,1000);
   }
 
   function imprimirGuia(){
-    trackFeature('print');
     const areas = (data.exam && data.exam.areas) || [];
     const fmtDate = iso => { if(!iso) return '—'; const p = iso.slice(0,10).split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
     const areaColor = {portugues:'#5d7fa9', legislacao:'#8059b0', sus:'#db8a24', especificos:'#d14e61'};
@@ -742,10 +557,7 @@ tr:nth-child(even) td{background:#f8fafc}
 
   function bindActions(){
     $('#printBtn').addEventListener('click',imprimirGuia);
-    $('#candidateSave').addEventListener('click', ()=>{ saveCandidateName($('#candidateName').value); toast('Nome do candidato salvo'); });
-    $('#candidateName').addEventListener('keydown', e=>{ if(e.key==='Enter') $('#candidateSave').click(); });
     $('#exportBtn').addEventListener('click',()=>{
-      trackFeature('export');
       const payload={schemaVersion:'1.0.0',examId:data.id,exportedAt:new Date().toISOString(),progress:saved,notes:localStorage.getItem(NOTES_KEY)||''};
       const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='progresso-concurso-santos-enfermeiro-2026.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500); toast('Progresso exportado');
     });
@@ -760,7 +572,6 @@ tr:nth-child(even) td{background:#f8fafc}
   }
 
   function init(){
-    initClock(); renderCandidate(); renderMaterials(); renderStats();
     renderWeightGrid(); renderPlan(); renderScore(); renderTimeline(); renderSources(); renderCountdown(); renderAllStateful(); bindTabs(); bindFilters(); bindSidebarMobile(); bindNotes(); bindTimer(); bindActions();
   }
   init();
