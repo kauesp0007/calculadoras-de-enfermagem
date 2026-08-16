@@ -35,9 +35,16 @@ scripts globais → anti-CLS acessibilidade.
 - Arquivos: `footer.html`, `menu-global.html`, `global-body-elements.html`, `downloads.html`,
   `_language_selector.html`, `googlefc0a17cdd552164b.html`.
 
+## Impressão e PDF (diferenciado por tipo de página)
+- Escalas e calculadoras: modelo de `meem.html` — botão `btnGerarPDF` (jsPDF via
+  `jspdf.umd.min.js` + `jspdf-autotable`, usando `window.jspdf.jsPDF`) e botão `btnImprimir`
+  (`imprimirLaudo()` com HTML standalone em nova janela + `window.print()`).
+- Páginas de textos e artigos: modelo de `integracoes_classificacao_wifi.html` — somente
+  `btnImprimir` com `imprimirLaudo()` que captura `.article-content` e gera HTML standalone
+  + `window.print()`. NÃO usar jsPDF/`btnGerarPDF` nesse tipo de página.
+
 ## Sempre preservar
 - SEO, acessibilidade (skip-link, aria, focus-visible), responsividade, modularização, desempenho (CLS/CWV).
 - Seção de Referências Bibliográficas ao final (padrão `HTML_PAGE_TEMPLATE_RULES.md`).
-- Botões Gerar PDF / Imprimir conforme `fugulin.html`.
 - Modelos de referência: `fugulin.html`, `mapa-do-site.html`, `perroca.html`, `dimensionamento.html`,
   `centro-cirurgico.html`, `guia_rapido_dispositivos.html`, `meem.html`, `integracoes_classificacao_wifi.html`.
