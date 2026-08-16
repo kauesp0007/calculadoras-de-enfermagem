@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260815-233130";
+const CACHE_VERSION = "20260816-131041";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -26,6 +26,7 @@ const urlsToCache = [
   'automacoes/banco_nanda_2024_new_only_clean_updated.json',
   'automacoes/biblioteca_doencas_notificacao_compulsoria.json',
   'automacoes/catalogador/catalogador_cache.json',
+  'automacoes/contar-itens.js',
   'automacoes/correspondencias_cve_sp_notificacao.json',
   'automacoes/correspondencias_fontes_complementares.json',
   'automacoes/correspondencias_sinan_notificacao.json',
