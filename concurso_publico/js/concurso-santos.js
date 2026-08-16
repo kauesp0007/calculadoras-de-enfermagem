@@ -436,7 +436,13 @@
   function openLightbox(src, alt){
     const lb = $('#imgLightbox'); if(!lb) return;
     const im = lb.querySelector('img');
-    im.src = src; im.alt = alt;
+    if(!im) return;
+    // Definir data-alt antes de atribuir src para garantir que o alt seja aplicado
+    if (typeof alt !== 'undefined' && alt !== null) im.setAttribute('data-alt', String(alt));
+    // Definir alt imediatamente para leitores de tela
+    im.alt = alt || '';
+    // Atribuir src por último
+    im.src = src || '';
     lb.classList.add('open'); document.body.classList.add('no-scroll');
     const bc = $('#imgLightboxClose'); if(bc) bc.focus();
   }
