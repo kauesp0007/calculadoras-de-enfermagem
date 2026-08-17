@@ -18,11 +18,17 @@ Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA
 - Hierarquia: Eyebrow → H1 → H2 (nunca inverter).
 - NUNCA aplicar `max-w-*`/`mx-auto` no hero.
 
-## Ordem do `<head>`
-Seguir a sequência de `fugulin.html` / `HTML_PAGE_TEMPLATE_RULES.md`:
-charset/viewport → DNS/preconnect → title/metas → critical fonts → CSS → preload de fontes →
-canonical/hreflang → favicon → Schema.org → styles → IconTopBar preload → anti-CLS placeholders →
-scripts globais → anti-CLS acessibilidade.
+## Ordem do `<head>` (verificar SEMPRE ao atualizar/criar)
+Seguir a sequência hierárquica de `fugulin.html` / `HTML_PAGE_TEMPLATE_RULES.md`, sem pular:
+charset/viewport → DNS/preconnect → title/metas → critical fonts (MINIFICADA, antes do CSS) →
+CSS → preload das fontes locais → canonical/hreflang → favicon → Schema.org (URLs apontando
+para a própria página) → styles → preload IconTopBar → anti-CLS placeholders → scripts
+(`global-scripts.js`, `lang-selector.js`) com `defer` antes do `</head>` → anti-CLS acessibilidade.
+- Conferir se não falta nenhum elemento; se faltar, adicionar no local correto.
+- SEO/metadados dentro do limite de caracteres (title ≈ 60, description ≈ 155-160).
+- Garantir Open Graph (og:title/description/url/image/site_name), Twitter Card, favicon, theme-color.
+- Caminhos absolutos (`/...`) para todos os modulares e assets, EXCETO o footer dos 18 idiomas
+  (`fetch("footer.html")` relativo, com bloco de footer próprio da pasta).
 
 ## Footer (diferenciado por contexto)
 - Páginas da raiz (pt-BR): `fetch("/footer.html")` + `carregarTraducoes("pt", "footer.json")` e `cookies.json`.
@@ -48,6 +54,22 @@ scripts globais → anti-CLS acessibilidade.
   (`fugulin.html` para escalas/calculadoras; `integracoes_classificacao_wifi.html` para
   textos/artigos).
 - Ao criar página nova: escrever o código de impressão/PDF já seguindo o modelo referenciado.
+
+## Sidebar à direita
+Ao atualizar uma página (versão nova) que tenha sidebar à direita, EXCLUIR a sidebar e
+transferir as Referências Bibliográficas dela para o final da página.
+
+## Minificação
+Autorizado minificar o HTML quando possível, evitando arquivos com centenas/milhares de linhas.
+
+## Verificação final (sempre após atualizar/criar)
+Conferir se o conteúdo está correto e segue Core Web Vitals (CLS, LCP), responsividade mobile
+máxima e acessibilidade (skip-link, alt, aria, focus-visible, contraste).
+
+## Página nova (mapa do site e menu)
+Ao criar página nova, incluí-la no `mapa-do-site.html` (regenerar `relatorio_paginas.txt`) e
+PERGUNTAR ao desenvolvedor em qual caminho do `menu-global.html` a página deve entrar; depois
+incluir no menu global (desktop) e no menu off-canvas (mobile).
 
 ## Sempre preservar
 - SEO, acessibilidade (skip-link, aria, focus-visible), responsividade, modularização, desempenho (CLS/CWV).

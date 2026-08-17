@@ -52,6 +52,27 @@ prioritárias estão em `AI_RULES.md` (prioridade máxima), `HTML_RULES.md` e
   (funções, botões e styles) e reescrever do zero seguindo o modelo correto.
 - **Ao criar página nova**: escrever o código de impressão/PDF já seguindo o modelo referenciado.
 
+## Atualização e criação de páginas HTML (seguir sempre)
+
+- **Sidebar à direita**: ao atualizar uma página (versão nova) que tenha sidebar, EXCLUIR a
+  sidebar e transferir as Referências Bibliográficas dela para o final da página.
+- **Head (ordem padrão)**: verificar a sequência hierárquica — charset/viewport → DNS/preconnect →
+  title/metas → critical fonts (minificada, antes do CSS) → CSS → preload das fontes locais →
+  canonical/hreflang → favicon → Schema.org (URLs referenciando a própria página) → styles →
+  preload IconTopBar → anti-CLS placeholders → scripts (global-scripts.js, lang-selector.js) com
+  `defer` antes do fechamento do `</head>`. Faltou algum? Adicionar no local correto.
+- **SEO/metadados**: respeitar limites de caracteres (title ~60, description ~155-160); garantir
+  Open Graph (og:title/description/url/image/site_name), Twitter Card, favicon, theme-color.
+- **Caminhos**: todos os modulares e assets em caminho absoluto (`/...`), EXCETO o footer das
+  páginas dos 18 idiomas, que usam `fetch("footer.html")` relativo (bloco de footer próprio da pasta).
+- **Minificação**: autorizado minificar o HTML quando possível, para não gerar arquivos com
+  centenas/milhares de linhas.
+- **Verificação final**: após atualizar/criar, conferir se o conteúdo está correto e seguindo
+  Core Web Vitals, responsividade mobile máxima e acessibilidade (skip-link, alt, aria, focus).
+- **Página nova**: incluí-la no `mapa-do-site.html` (regenerar `relatorio_paginas.txt`) e
+  PERGUNTAR ao desenvolvedor em qual caminho do `menu-global.html` incluir a nova página;
+  depois incluir no menu global e no menu off-canvas (mobile).
+
 ## Build obrigatório (ao alterar HTML/CSS/JS do site)
 
 Ao final de cada alteração que afeta o site, rodar:
