@@ -39,6 +39,19 @@ prioritárias estão em `AI_RULES.md` (prioridade máxima), `HTML_RULES.md` e
 - Preservar SEO, acessibilidade, responsividade, modularização e desempenho.
 - Reutilizar código existente; evitar duplicação; manter o padrão do projeto.
 
+## Impressão e PDF (regra absoluta — seguir sempre, sem precisar de aviso)
+
+- **Escalas e calculadoras**: usar o modelo de `fugulin.html` — botão `btnGerarPDF`
+  (jsPDF via `jspdf.umd.min.js` + `jspdf-autotable`, usando `window.jspdf.jsPDF`) e
+  botão `btnImprimir` (`imprimirLaudo()` com HTML standalone em nova janela + `window.print()`).
+- **Páginas educativas de textos e artigos**: usar o modelo de
+  `integracoes_classificacao_wifi.html` — somente `btnImprimir` com `imprimirLaudo()`
+  que captura `.article-content` (ou container equivalente, ex.: `.guide`) e gera HTML
+  standalone + `window.print()`. NÃO usar jsPDF/`btnGerarPDF` nesse tipo de página.
+- **Ao modernizar uma página**: apagar as configurações antigas de impressão/PDF
+  (funções, botões e styles) e reescrever do zero seguindo o modelo correto.
+- **Ao criar página nova**: escrever o código de impressão/PDF já seguindo o modelo referenciado.
+
 ## Build obrigatório (ao alterar HTML/CSS/JS do site)
 
 Ao final de cada alteração que afeta o site, rodar:

@@ -35,13 +35,19 @@ scripts globais → anti-CLS acessibilidade.
 - Arquivos: `footer.html`, `menu-global.html`, `global-body-elements.html`, `downloads.html`,
   `_language_selector.html`, `googlefc0a17cdd552164b.html`.
 
-## Impressão e PDF (diferenciado por tipo de página)
-- Escalas e calculadoras: modelo de `meem.html` — botão `btnGerarPDF` (jsPDF via
+## Impressão e PDF — REGRA ABSOLUTA (seguir sempre, sem precisar de aviso)
+- Escalas e calculadoras: modelo de `fugulin.html` — botão `btnGerarPDF` (jsPDF via
   `jspdf.umd.min.js` + `jspdf-autotable`, usando `window.jspdf.jsPDF`) e botão `btnImprimir`
   (`imprimirLaudo()` com HTML standalone em nova janela + `window.print()`).
-- Páginas de textos e artigos: modelo de `integracoes_classificacao_wifi.html` — somente
-  `btnImprimir` com `imprimirLaudo()` que captura `.article-content` e gera HTML standalone
-  + `window.print()`. NÃO usar jsPDF/`btnGerarPDF` nesse tipo de página.
+- Páginas educativas de textos e artigos: modelo de `integracoes_classificacao_wifi.html` —
+  somente `btnImprimir` com `imprimirLaudo()` que captura `.article-content` (ou o container
+  de conteúdo equivalente, ex.: `.guide`) e gera HTML standalone + `window.print()`.
+  NÃO usar jsPDF/`btnGerarPDF` nesse tipo de página.
+- Ao modernizar uma página (trocar de versão): SEMPRE apagar as configurações antigas de
+  impressão/PDF (funções, botões e styles) e reescrever do zero seguindo o modelo correto
+  (`fugulin.html` para escalas/calculadoras; `integracoes_classificacao_wifi.html` para
+  textos/artigos).
+- Ao criar página nova: escrever o código de impressão/PDF já seguindo o modelo referenciado.
 
 ## Sempre preservar
 - SEO, acessibilidade (skip-link, aria, focus-visible), responsividade, modularização, desempenho (CLS/CWV).
