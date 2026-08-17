@@ -175,21 +175,243 @@
 
 <style>
 /*! Estilos específicos para esta página */
+:root {
+  --teoria-primary: #1a3e74;
+  --teoria-primary-soft: rgba(26, 62, 116, 0.08);
+  --teoria-border: #e2e8f0;
+  --teoria-bg-soft: #f8fafc;
+  --teoria-text: #334155;
+  --teoria-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+}
+
 .img-teoria-zoom {
-transition: transform 0.3s ease;
-cursor: zoom-in;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  cursor: zoom-in;
+  display: block;
+  width: 100%;
+  height: clamp(220px, 34vw, 430px);
+  object-fit: cover;
+  border-radius: 16px;
+  background: #edf2f7;
 }
 
 .img-teoria-zoom:hover {
-transform: scale(1.03);
+  transform: translateY(-1px) scale(1.01);
+  box-shadow: 0 10px 22px rgba(26, 62, 116, 0.12);
 }
 
 .caption-teoria {
-font-size: 0.7rem;
-/*! Texto minúsculo */
-color: #6b7280;
-text-align: center;
-margin-top: 4px;
+  font-size: 0.7rem;
+  color: #64748b;
+  text-align: center;
+  margin-top: 6px;
+  letter-spacing: 0.02em;
+}
+
+#main-content {
+  padding-top: 1rem;
+}
+
+#main-content .bg-white {
+  padding: 1.25rem !important;
+}
+
+article {
+  display: block;
+  max-width: 100%;
+  line-height: 1.7;
+}
+
+article > .space-y-12 {
+  gap: 1.2rem !important;
+}
+
+article section {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.45fr);
+  gap: 1rem 1.1rem;
+  align-items: start;
+  margin: 0 0 1.1rem;
+  padding: 1rem;
+  border: 1px solid var(--teoria-border);
+  border-radius: 18px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: var(--teoria-shadow);
+}
+
+article section > h3 {
+  grid-column: 1 / -1;
+  margin: 0 0 0.15rem;
+  padding-left: 0.875rem;
+  border-left: 4px solid #2563eb;
+  font-size: clamp(1.05rem, 1.6vw, 1.45rem);
+  line-height: 1.3;
+}
+
+article section > .grid {
+  grid-column: 1;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+  align-content: start;
+}
+
+article section > .grid figure {
+  margin: 0;
+  padding: 0.5rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #f8fafc 0%, #edf3fb 100%);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+article section > .mb-4 {
+  grid-column: 2;
+  margin: 0;
+  padding: 0.15rem 0.2rem 0;
+  background: transparent;
+  border: 0;
+  display: block;
+}
+
+article section > .mb-4 > p:first-child {
+  margin-top: 0;
+}
+
+article section > .mb-4 .grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+
+article section > .mb-4 .grid > div {
+  min-height: 100%;
+  padding: 0.7rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--teoria-border);
+  background: #f8fafc;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+article section > .mb-4 .teoria-destaque {
+  margin: 0.25rem 0 0.35rem;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid rgba(37, 99, 235, 0.7);
+  background: rgba(37, 99, 235, 0.04);
+  border-radius: 10px;
+  color: var(--teoria-text);
+}
+
+article section > .mb-4 ul {
+  margin: 0.35rem 0 0;
+  padding-left: 1.15rem;
+  line-height: 1.55;
+}
+
+article section > .mb-4 li + li {
+  margin-top: 0.18rem;
+}
+
+article section > .mb-4 .font-bold {
+  margin-bottom: 0.45rem;
+}
+
+article section > .text-sm.italic {
+  margin-top: 0.6rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid #e2e8f0;
+}
+
+article section + section {
+  margin-top: 0.6rem;
+}
+
+@media (max-width: 768px) {
+  article section {
+    grid-template-columns: 1fr;
+    padding: 0.9rem;
+  }
+
+  article section > .grid,
+  article section > .mb-4 {
+    grid-column: 1;
+  }
+
+  article section > .mb-4 .grid {
+    grid-template-columns: 1fr;
+  }
+
+  .img-teoria-zoom {
+    height: clamp(210px, 52vw, 320px);
+  }
+}
+
+.teoria-lightbox {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.8);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10000;
+}
+
+.teoria-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.teoria-lightbox__content {
+  position: relative;
+  max-width: min(95vw, 1100px);
+  max-height: 92vh;
+  padding: 0.75rem;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 80px rgba(15, 23, 42, 0.4);
+}
+
+.teoria-lightbox__image {
+  display: block;
+  max-width: 100%;
+  max-height: 80vh;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  object-fit: contain;
+  background: #f8fafc;
+}
+
+.teoria-lightbox__close {
+  position: absolute;
+  top: -12px;
+  right: -12px;
+  border: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.9);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.28);
+}
+
+.teoria-lightbox__caption {
+  margin-top: 0.65rem;
+  text-align: center;
+  color: #475569;
+  font-size: 0.8rem;
+  font-weight: 600;
 }
 </style>
 <style id="otimizador-master-responsive">
@@ -324,6 +546,14 @@ Glossário
 <button class="ce-share-close" id="shareClose">Fechar</button>
 </div>
 
+<div class="teoria-lightbox" id="teoriaLightbox" aria-hidden="true">
+  <div class="teoria-lightbox__content" role="dialog" aria-modal="true" aria-label="Imagem ampliada da teoria de enfermagem">
+    <button class="teoria-lightbox__close" type="button" aria-label="Fechar imagem ampliada">&times;</button>
+    <img class="teoria-lightbox__image" id="teoriaLightboxImage" src="" alt="">
+    <div class="teoria-lightbox__caption" id="teoriaLightboxCaption"></div>
+  </div>
+</div>
+
 <!-- CORPO DO ARTIGO -->
 <div class="bg-white p-6 md:p-8 rounded-xl shadow-md border border-gray-100">
 <article class="text-gray-700 font-sans text-base leading-relaxed space-y-8">
@@ -373,6 +603,8 @@ sujos e mal ventilados contribuem para a doença e morte. A teoria estabelece
 cinco elementos essenciais: ar puro, água pura, drenagem eficiente, limpeza e
 luz.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve atuar como promotora de condições seguras e terapêuticas, porque o ambiente influencia diretamente a recuperação, a segurança do paciente e a prevenção de infecções.</p>
+<p class="teoria-destaque"><strong>Método empregado pelo enfermeiro:</strong> observação do ambiente, controle de risco ambiental, vigilância da higiene, ventilação, iluminação, ruído, mobilidade e organização do espaço assistencial.</p>
 
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -429,6 +661,10 @@ psicossociais (segurança, comunicação, amor, educação) e psicoespirituais
 (religião, credos, valores). A teoria enfatiza que todas as necessidades são
 interdependentes e devem ser atendidas para manter a saúde integral da pessoa.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> o cuidado de enfermagem precisa ser organizado de forma priorizada, porque a satisfação das necessidades básicas é condição para a estabilidade clínica e para o bem-estar biopsicossocial.</p>
+<p class="teoria-destaque"><strong>Método empregado pelo enfermeiro:</strong> avaliação sistemática das necessidades, priorização do cuidado, diagnóstico clínico, interação com a pessoa e execução de intervenções orientadas pela necessidade prioritária.</p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -484,6 +720,10 @@ Teoria do Déficit de Autocuidado (quando a capacidade de autocuidado é
 insuficiente) e Teoria dos Sistemas de Enfermagem (sistemas de cuidado
 compensatório, parcialmente compensatório e de apoio-educação).
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve fortalecer a autonomia do paciente, reduzir dependência e potencializar a educação em saúde, especialmente em condições crônicas, pós-alta e reabilitação.</p>
+<p class="teoria-destaque"><strong>Método empregado pelo enfermeiro:</strong> avaliação da capacidade de autocuidado, identificação do déficit, planejamento de intervenções educativas e de apoio, e monitoramento da progressão da autonomia.</p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -538,6 +778,10 @@ pessoa se percebe), domínio (como a pessoa lida com o ambiente) e
 interdependência (relações importantes). A adaptação é o processo e resultado de
 pensamentos e comportamentos que promovem a integridade humana.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve identificar como o paciente responde ao estresse, às mudanças e às limitações, assumindo cuidado individualizado para favorecer a adaptação funcional e emocional.</p>
+<p class="teoria-destaque"><strong>Método empregado pelo enfermeiro:</strong> avaliação dos modos de adaptação, análise dos estímulos focais e contextuais, definição de prioridades e intervenção para reduzir o estresse e promover a resposta adaptativa.</p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -593,6 +837,8 @@ conjunto para resolver o problema), exploração (busca de novas alternativas) e
 resolução (desenvolvimento de novos padrões). A teoria enfatiza o crescimento
 pessoal mútuo do enfermeiro e do paciente através da relação.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -652,6 +898,8 @@ físico, sociocultural e espiritual de suporte/protetor, assistência com
 satisfação das necessidades humanas e permissão para que forças fenomenológicas
 existam.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -707,6 +955,8 @@ economia, educação e sistema social. O objetivo é proporcionar cuidados
 culturalmente congruentes que sejam benéficos, satisfatórios e significativos
 para as pessoas.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -762,6 +1012,8 @@ prever com segurança os resultados. A teoria explica como os pacientes
 cognitivamente estruturam um esquema para interpretação subjetiva de eventos
 relacionados à doença e como isso afeta sua capacidade de adaptação.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -817,6 +1069,8 @@ pessoas) e sistema social (grupos organizados). O processo transacional envolve
 percepção, comunicação, interação, transação e papel do enfermeiro. As metas são
 estabelecidas mutuamente pelo enfermeiro e paciente.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -872,6 +1126,8 @@ espiral) e integridade (integração dos campos). Os três princípios
 homeodinâmicos são: ressonância (mudanção descendente e ascendente),
 helicalidade (mudança em espiral) e integridade (padrões pandimensionais).
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -901,10 +1157,120 @@ An introduction to the theoretical basis of nursing. Philadelphia: F.A. Davis,
 </div>
 </section>
 
-<!-- 11. Teoria do Modelo de Conservação (Myra Estrin Levine) -->
+<!-- 10. Teoria do Sistema Aberto e das Barreiras de Defesa (Betty Neuman) -->
 <section>
 <h3 class="text-xl font-bold text-[#1A3E74] border-l-4 border-blue-600 pl-4 mb-4">
-11. TEORIA DO MODELO DE CONSERVAÇÃO (Myra Levine)
+10. TEORIA DO SISTEMA ABERTO (Betty Neuman)
+</h3>
+<div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+<figure>
+<img height="500" width="750" src="img/teoria-das-relacoes-interpessoais-calculadoras-de-enfermagem.webp" alt="Betty Neuman" class="img-teoria-zoom w-full h-auto object-contain rounded-lg shadow border border-gray-200" loading="lazy" decoding="async">
+<figcaption class="caption-teoria">Betty Neuman</figcaption>
+</figure>
+<figure>
+<img height="500" width="750" src="img/teoria-do-cuidado-humano-calculadoras-de-enfermagem.webp" alt="Modelo de Neuman" class="img-teoria-zoom w-full h-auto object-contain rounded-lg shadow border border-gray-200" loading="lazy" decoding="async">
+<figcaption class="caption-teoria">Modelo de sistema aberto</figcaption>
+</figure>
+</div>
+
+<div class="mb-4 text-justify space-y-3">
+<p><strong>Ano:</strong> 1970 | <strong>País:</strong> Estados Unidos</p>
+<p>
+Betty Neuman propôs um modelo centrado no ser humano como sistema aberto, em constante interação com o ambiente e sujeito a estressores internos e externos. A teoria enfatiza as linhas de defesa do paciente, a manutenção da estabilidade e a prevenção primária, secundária e terciária para preservar o equilíbrio e reduzir os impactos da doença.
+</p>
+<p>
+<strong>Justificativa da teoria:</strong> ela oferece uma visão ampla da pessoa e da família, mostrando que a enfermagem deve atuar no cuidado preventivo, na proteção da integridade e na reorganização frente às adversidades.
+</p>
+<p>
+<strong>Método empregado pelo enfermeiro:</strong> avaliação de estressores, identificação de linhas de defesa e risco, planejamento de intervenções preventivas e de reabilitação para restaurar o equilíbrio.
+</p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
+<div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+<div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+<p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da Enfermagem:</p>
+<ul class="list-disc list-inside text-sm space-y-1">
+<li>Prevenção de estresse em pacientes críticos</li>
+<li>Avaliação do impacto do ambiente na recuperação</li>
+<li>Planejamento de cuidados para família e comunidade</li>
+<li>Intervenções de educação em saúde e autocuidado</li>
+<li>Reabilitação e apoio emocional após agravos</li>
+</ul>
+</div>
+<div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+<p class="font-bold text-sm mb-2 text-dark-blue">Onde São Empregadas:</p>
+<ul class="list-disc list-inside text-sm space-y-1">
+<li>Unidades de terapia intensiva</li>
+<li>Psicologia e saúde mental</li>
+<li>Enfermagem comunitária</li>
+<li>Cuidados de alta complexidade</li>
+<li>Programas de prevenção e promoção da saúde</li>
+</ul>
+</div>
+</div>
+<p class="text-sm italic mt-2"><strong>Livro de Referência:</strong> NEUMAN, B. M. The Neuman systems model. Upper Saddle River: Pearson, 1995.</p>
+</div>
+</section>
+
+<!-- 11. Teoria do Cuidado e da Experiência Clínica (Patricia Benner e Judith Wrubel) -->
+<section>
+<h3 class="text-xl font-bold text-[#1A3E74] border-l-4 border-blue-600 pl-4 mb-4">
+11. TEORIA DO CUIDADO E DA EXPERIÊNCIA CLÍNICA (Patricia Benner e Judith Wrubel)
+</h3>
+<div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+<figure>
+<img height="500" width="750" src="img/teoria-do-cuidado-humano-calculadoras-de-enfermagem.webp" alt="Benner e Wrubel" class="img-teoria-zoom w-full h-auto object-contain rounded-lg shadow border border-gray-200" loading="lazy" decoding="async">
+<figcaption class="caption-teoria">Benner &amp; Wrubel</figcaption>
+</figure>
+<figure>
+<img height="500" width="750" src="img/teoria-das-relacoes-interpessoais-calculadoras-de-enfermagem.webp" alt="Experiência e cuidado clínico" class="img-teoria-zoom w-full h-auto object-contain rounded-lg shadow border border-gray-200" loading="lazy" decoding="async">
+<figcaption class="caption-teoria">Experiência clínica</figcaption>
+</figure>
+</div>
+
+<div class="mb-4 text-justify space-y-3">
+<p><strong>Ano:</strong> 1984 | <strong>País:</strong> Estados Unidos</p>
+<p>
+A teoria de Benner e Wrubel ressalta que o cuidado de enfermagem é guiado pela experiência clínica, pela percepção situacional e pelo conhecimento prático. A partir da análise do desenvolvimento profissional, os enfermeiros passam por níveis de competência, desde iniciante até especialista, e a prática se torna mais precisa à medida que o profissional integra teoria, intuição e raciocínio clínico.
+</p>
+<p>
+<strong>Justificativa da teoria:</strong> ela reconhece que o enfermeiro não aprende apenas por regras técnicas, mas também pela vivência, pela reflexão e pelo ato de cuidar em contextos reais.
+</p>
+<p>
+<strong>Método empregado pelo enfermeiro:</strong> observação, análise da situação clínica, reflexão crítica, tomada de decisão baseada em experiência e promoção de cuidado individualizado e seguro.
+</p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
+<div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+<div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+<p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da Enfermagem:</p>
+<ul class="list-disc list-inside text-sm space-y-1">
+<li>Desenvolvimento profissional em UTI e emergência</li>
+<li>Identificação precoce de deterioração clínica</li>
+<li>Tomada de decisão em situações ambíguas</li>
+<li>Mentoria de enfermeiros recém-formados</li>
+<li>Reflexão sobre a prática e a experiência</li>
+</ul>
+</div>
+<div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+<p class="font-bold text-sm mb-2 text-dark-blue">Onde São Empregadas:</p>
+<ul class="list-disc list-inside text-sm space-y-1">
+<li>Unidades de emergência</li>
+<li>UTI e unidades críticas</li>
+<li>Educação continuada de enfermagem</li>
+<li>Gestão de cuidado e liderança de equipe</li>
+<li>Programas de prática clínica e residência</li>
+</ul>
+</div>
+</div>
+<p class="text-sm italic mt-2"><strong>Livro de Referência:</strong> BENNER, P.; WRUBEL, J. The primacy of caring. Menlo Park: Addison-Wesley, 1989.</p>
+</div>
+</section>
+
+<!-- 12. Teoria do Modelo de Conservação (Myra Estrin Levine) -->
+<section>
+<h3 class="text-xl font-bold text-[#1A3E74] border-l-4 border-blue-600 pl-4 mb-4">
+12. TEORIA DO MODELO DE CONSERVAÇÃO (Myra Levine)
 </h3>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
 <figure>
@@ -928,6 +1294,8 @@ pessoal e conservação da integridade social. A teoria foca na adaptação do
 paciente e na promoção da saúde através de intervenções conservadoras que
 preservam o que é essencial para a vida.
 </p>
+<p class="teoria-destaque"><strong>Justificativa da teoria:</strong> a enfermagem deve interpretar a teoria como base para a pr?tica cl?nica, avaliando a pessoa, o ambiente e a resposta ao cuidado com foco em seguran?a, autonomia e melhora do estado de sa?de.</p>
+<p class="teoria-destaque"><strong>M?todo empregado pelo enfermeiro:</strong> avalia??o inicial, identifica??o de necessidades e riscos, planejamento individualizado de interven??o, acompanhamento da resposta ao cuidado e revis?o da conduta conforme a evolu??o cl?nica.</p>
 <div class="grid grid-cols-1 md:grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
 <p class="font-bold text-sm mb-2 text-dark-blue">Exemplos no Cotidiano da
@@ -966,68 +1334,21 @@ Introduction to clinical nursing. 2nd ed. Philadelphia: Lippincott, 1973.</p>
 
 <!-- Bibliografia ABNT -->
 <div class="mt-16 pt-6 border-t border-gray-200 text-left">
-<h5 class="text-base font-bold text-gray-700 mb-4 uppercase">Referência Bibliográfica</h5>
-<ul class="text-xs text-gray-700 space-y-3 inline-block text-left">
-<li>
-HILDEGARD PEPLAU: INTERPERSONAL RELATIONS THEORY. <strong>Nurseslabs</strong>, 2024.
-Disponível em: <a href="https://nurseslabs.com/hildegard-peplaus-interpersonal-relations-theory/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/hildegard-peplaus-interpersonal-relations-theory/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-HORTA, Wanda de Aguiar. <strong>Wanda de Aguiar Horta - Life Story | Theory of Basic
-Human Needs</strong>. YouTube, 2024. Disponível em: <a href="https://www.youtube.com/watch?v=XU-7l7qE5Mo" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://www.youtube.com/watch?v=XU-7l7qE5Mo</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-DOROTHEA OREM: SELF-CARE DEFICIT THEORY. <strong>Nurseslabs</strong>, 2024. Disponível
-em: <a href="https://nurseslabs.com/dorothea-orems-self-care-theory/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/dorothea-orems-self-care-theory/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-SISTER CALLISTA ROY: ADAPTATION MODEL OF NURSING. <strong>Nurseslabs</strong>, 2024.
-Disponível em: <a href="https://nurseslabs.com/sister-callista-roys-adaptation-model/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/sister-callista-roys-adaptation-model/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-MISHEL'S UNCERTAINTY IN ILLNESS THEORY. <strong>Nursology</strong>, 2024. Disponível em:
-<a href="https://nursology.net/nurse-theories/mishels-uncertainty-in-illness-theory/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nursology.net/nurse-theories/mishels-uncertainty-in-illness-theory/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-JEAN WATSON'S THEORY OF HUMAN CARING. <strong>Nurseslabs</strong>, 2024. Disponível em:
-<a href="https://nurseslabs.com/jean-watsons-philosophy-theory-transpersonal-caring/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/jean-watsons-philosophy-theory-transpersonal-caring/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-MADELEINE LEININGER: TRANSCULTURAL NURSING THEORY. <strong>Nurseslabs</strong>, 2024.
-Disponível em: <a href="https://nurseslabs.com/madeleine-leininger-transcultural-nursing-theory/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/madeleine-leininger-transcultural-nursing-theory/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-IMOGENE KING: THEORY OF GOAL ATTAINMENT. <strong>Nurseslabs</strong>, 2024. Disponível
-em: <a href="https://nurseslabs.com/imogene-m-kings-theory-goal-attainment/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/imogene-m-kings-theory-goal-attainment/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-MARTHA ROGERS: SCIENCE OF UNITARY HUMAN BEINGS. <strong>Nurseslabs</strong>, 2024.
-Disponível em: <a href="https://nurseslabs.com/martha-e-rogers-theory-unitary-human-beings/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/martha-e-rogers-theory-unitary-human-beings/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-MYRA ESTRIN LEVINE: THE CONSERVATION MODEL OF NURSING. <strong>Nurseslabs</strong>,
-2024. Disponível em: <a href="https://nurseslabs.com/myra-estrin-levine-the-conservation-model-of-nursing/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nurseslabs.com/myra-estrin-levine-the-conservation-model-of-nursing/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-LEVINE'S CONSERVATION MODEL. <strong>Nursology</strong>, 2024. Disponível em: <a href="https://nursology.net/nurse-theories/levines-conservation-model/" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://nursology.net/nurse-theories/levines-conservation-model/</a>.
-Acesso em: 20 dez. 2025.
-</li>
-<li>
-TEORIAS DE ENFERMAGEM. <strong>Enfermagem &amp; Ciência</strong>, 2024. Disponível em:
-<a href="https://xn--enfermagem-cincia-5tb.com.br/paginas/teorias-enfermagem.html" target="_blank" rel="noopener noreferrer" class="hover:text-blue-600 hover:underline">https://xn--enfermagem-cincia-5tb.com.br/paginas/teorias-enfermagem.html</a>.
-Acesso em: 20 dez. 2025.
-</li>
-</ul>
+  <h5 class="text-base font-bold text-gray-700 mb-4 uppercase">Referências Bibliográficas</h5>
+  <ol class="text-sm sm:text-base text-gray-700 space-y-3 pl-5 list-decimal leading-relaxed">
+    <li>HILDEGARD PEPLAU: INTERPERSONAL RELATIONS THEORY. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/hildegard-peplaus-interpersonal-relations-theory/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/hildegard-peplaus-interpersonal-relations-theory/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>HORTA, Wanda de Aguiar. <strong>Wanda de Aguiar Horta - Life Story | Theory of Basic Human Needs</strong>. YouTube, 2024. Disponível em: <a href="https://www.youtube.com/watch?v=XU-7l7qE5Mo" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://www.youtube.com/watch?v=XU-7l7qE5Mo</a>. Acesso em: 20 dez. 2025.</li>
+    <li>DOROTHEA OREM: SELF-CARE DEFICIT THEORY. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/dorothea-orems-self-care-theory/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/dorothea-orems-self-care-theory/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>SISTER CALLISTA ROY: ADAPTATION MODEL OF NURSING. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/sister-callista-roys-adaptation-model/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/sister-callista-roys-adaptation-model/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>MISHEL'S UNCERTAINTY IN ILLNESS THEORY. <strong>Nursology</strong>, 2024. Disponível em: <a href="https://nursology.net/nurse-theories/mishels-uncertainty-in-illness-theory/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nursology.net/nurse-theories/mishels-uncertainty-in-illness-theory/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>JEAN WATSON'S THEORY OF HUMAN CARING. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/jean-watsons-philosophy-theory-transpersonal-caring/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/jean-watsons-philosophy-theory-transpersonal-caring/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>MADELEINE LEININGER: TRANSCULTURAL NURSING THEORY. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/madeleine-leininger-transcultural-nursing-theory/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/madeleine-leininger-transcultural-nursing-theory/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>IMOGENE KING: THEORY OF GOAL ATTAINMENT. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/imogene-m-kings-theory-goal-attainment/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/imogene-m-kings-theory-goal-attainment/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>MARTHA ROGERS: SCIENCE OF UNITARY HUMAN BEINGS. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/martha-e-rogers-theory-unitary-human-beings/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/martha-e-rogers-theory-unitary-human-beings/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>MYRA ESTRIN LEVINE: THE CONSERVATION MODEL OF NURSING. <strong>Nurseslabs</strong>, 2024. Disponível em: <a href="https://nurseslabs.com/myra-estrin-levine-the-conservation-model-of-nursing/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nurseslabs.com/myra-estrin-levine-the-conservation-model-of-nursing/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>LEVINE'S CONSERVATION MODEL. <strong>Nursology</strong>, 2024. Disponível em: <a href="https://nursology.net/nurse-theories/levines-conservation-model/" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://nursology.net/nurse-theories/levines-conservation-model/</a>. Acesso em: 20 dez. 2025.</li>
+    <li>TEORIAS DE ENFERMAGEM. <strong>Enfermagem &amp; Ciência</strong>, 2024. Disponível em: <a href="https://xn--enfermagem-cincia-5tb.com.br/paginas/teorias-enfermagem.html" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:text-blue-800 hover:underline">https://xn--enfermagem-cincia-5tb.com.br/paginas/teorias-enfermagem.html</a>. Acesso em: 20 dez. 2025.</li>
+  </ol>
 </div>
 
 </div>
@@ -1084,6 +1405,43 @@ if(s === 'instagram'){ alert('Copie o link para compartilhar no Instagram.'); e.
 this.href = links[s] || '#';
 });
 });
+})();
+</script>
+
+<script>
+(function(){
+  const overlay = document.getElementById('teoriaLightbox');
+  const img = document.getElementById('teoriaLightboxImage');
+  const caption = document.getElementById('teoriaLightboxCaption');
+  const closeBtn = overlay.querySelector('.teoria-lightbox__close');
+
+  function closeLightbox(){
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    img.removeAttribute('src');
+    img.setAttribute('alt', '');
+    caption.textContent = '';
+  }
+
+  document.querySelectorAll('.img-teoria-zoom').forEach(function(item){
+    item.addEventListener('click', function(){
+      const src = item.getAttribute('src');
+      const alt = item.getAttribute('alt') || 'Imagem ampliada';
+      img.setAttribute('src', src);
+      img.setAttribute('alt', alt);
+      caption.textContent = alt;
+      overlay.classList.add('is-open');
+      overlay.setAttribute('aria-hidden', 'false');
+    });
+  });
+
+  closeBtn.addEventListener('click', closeLightbox);
+  overlay.addEventListener('click', function(event){
+    if (event.target === overlay) closeLightbox();
+  });
+  document.addEventListener('keydown', function(event){
+    if (event.key === 'Escape' && overlay.classList.contains('is-open')) closeLightbox();
+  });
 })();
 </script>
 
