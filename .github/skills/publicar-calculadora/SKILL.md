@@ -18,6 +18,11 @@ argument-hint: 'Nome e descrição da nova calculadora/escala'
 4.a Regra obrigatória (padrão do agente): ao publicar/registrar uma nova página, NUNCA adicionar o link diretamente em `mapa-do-site.html`. Sempre inserir uma linha no arquivo `relatorio_paginas.txt` seguindo o padrão existente (arquivo = título = url). O agente/rotina deve verificar e, se encontrar inserção manual em `mapa-do-site.html`, removê-la ou alertar para remoção antes de publicar. Também criar entradas correspondentes para outras línguas quando aplicável.
 
 5. Verifique largura da página e hero card (viewport total, hero 100%, Eyebrow → H1 → H2).
+
+5.a Inserir barra de ações compactas (obrigatório): imediatamente após o hero card H1 deve existir uma barra de ações compactas (layout idêntico ao usado em `integracoes_escala_de_fugulin.html`) contendo, no mínimo, os botões: "Favoritar", "Compartilhar", "Imprimir", "Reportar correção", "Ver resultado", "Ir para a calculadora", "Diagnósticos NANDA", "Recursos sobre a escala/calculadora", "Evidências". Esta barra deve ser responsiva, acessível (aria-labels, titles, foco visível) e reutilizar os componentes/modulares do projeto quando possível. O agente deve inserir o markup padrão ao criar páginas novas e ajustar IDs/classes conforme o padrão do projeto.
+
+5.b Referências bibliográficas (obrigatório): ao final do conteúdo, incluir seção de referências no formato e estilo idênticos a `integracoes_escala_de_fugulin.html`: normas ABNT, alinhadas à esquerda, fonte pequena (`text-sm`), e cada item com link ao final quando disponível. Garantir que a seção use o mesmo markup e classes do modelo para consistência e impressão.
+
 6. Confirme que impressão/PDF segue o modelo `meem.html` (`btnGerarPDF` jsPDF + `btnImprimir`).
 7. O build (service worker) é executado automaticamente por hook; se não ocorrer, rode:
    `.\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify ; node gerar-sw.js`

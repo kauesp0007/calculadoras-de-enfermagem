@@ -18,6 +18,19 @@ Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA
 - Hierarquia: Eyebrow → H1 → H2 (nunca inverter).
 - NUNCA aplicar `max-w-*`/`mx-auto` no hero.
 
+### Barra de ações compactas (obrigatório ao criar páginas novas)
+- Imediatamente após o hero card H1 deve existir uma barra de ações compactas (layout idêntico ao de `integracoes_escala_de_fugulin.html`) com os botões: "Favoritar", "Compartilhar", "Imprimir", "Reportar correção", "Ver resultado", "Ir para a calculadora", "Diagnósticos NANDA", "Recursos sobre a escala/calculadora", "Evidências".
+- Requisitos da barra: responsiva, acessível (atributos ARIA, labels, titles, foco visível), ícones claros, e reutilizar componentes/modulares existentes quando possível.
+- Implementação: o agente (ou desenvolvedor) deve inserir o markup padrão ao criar páginas novas; IDs e classes devem seguir o padrão do projeto para que scripts (favoritos, compartilhar, imprimir, PDF, relatórios) funcionem sem alterações manuais.
+- No mobile a barra pode colapsar em um menu dropdown ou carrossel horizontal, mantendo todas as ações acessíveis.
+
+### Referências bibliográficas (formato e estilo)
+- A seção de referências bibliográficas deve aparecer ao final do conteúdo e seguir o padrão de `integracoes_escala_de_fugulin.html`:
+  - Formatação: normas ABNT (autor — título — fonte), alinhadas à esquerda, fonte pequena (`text-sm`), espaçamento compacto.
+  - Cada item deve incluir link ao final quando disponível (abreviação "Disponível em: <url>").
+  - Utilizar o mesmo markup e classes do modelo para garantir consistência visual e compatibilidade com impressão/PDF.
+- O agente deve montar a lista de referências a partir das fontes usadas (PDFs anexos, artigos citados, URLs) e inserir a seção já formatada ao gerar a página.
+
 ## Ordem do `<head>` (verificar SEMPRE ao atualizar/criar)
 Seguir a sequência hierárquica de `fugulin.html` / `HTML_PAGE_TEMPLATE_RULES.md`, sem pular:
 charset/viewport → DNS/preconnect → title/metas → critical fonts (MINIFICADA, antes do CSS) →
