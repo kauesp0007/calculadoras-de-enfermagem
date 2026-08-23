@@ -67,9 +67,14 @@ Conferir se o conteúdo está correto e segue Core Web Vitals (CLS, LCP), respon
 máxima e acessibilidade (skip-link, alt, aria, focus-visible, contraste).
 
 ## Página nova (mapa do site e menu)
-Ao criar página nova, incluí-la no `mapa-do-site.html` (regenerar `relatorio_paginas.txt`) e
-PERGUNTAR ao desenvolvedor em qual caminho do `menu-global.html` a página deve entrar; depois
-incluir no menu global (desktop) e no menu off-canvas (mobile).
+Ao criar página nova, seguir o procedimento obrigatório abaixo (regra do projeto):
+
+- Sempre inserir uma entrada em `relatorio_paginas.txt` seguindo o padrão existente (arquivo = título = url). Este arquivo é a fonte canônica usada para gerar dinamicamente `mapa-do-site.html`.
+- É terminantemente proibido adicionar links manualmente em `mapa-do-site.html`. Se for encontrada uma inclusão manual, o agente/operador deve removê-la e garantir que a entrada exista em `relatorio_paginas.txt`.
+- Após atualizar `relatorio_paginas.txt`, executar o build necessário (ex.: Tailwind rebuild e `node gerar-sw.js`) para que o site sirva a versão atualizada.
+- Perguntar ao desenvolvedor em qual caminho do `menu-global.html` a página deve entrar; depois incluir no menu global (desktop) e no menu off-canvas (mobile) conforme orientação.
+
+Observação: sempre criar backup em `backups-temporarios/` antes de editar `relatorio_paginas.txt` ou templates do mapa; não executar `git commit`/`git push` automaticamente — preparar alterações e avisar o responsável para commit/push.
 
 ## Sempre preservar
 - SEO, acessibilidade (skip-link, aria, focus-visible), responsividade, modularização, desempenho (CLS/CWV).
