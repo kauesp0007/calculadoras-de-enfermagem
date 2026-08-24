@@ -758,13 +758,97 @@ if __name__ == "__main__":
 
     # =========================================================================
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
+    # O processamento agora usa o TRADUTOR v2 (automacoes/translation):
+    # envia só os textos para a API, usa memória SQLite, valida a estrutura
+    # e aplica os managers (lang, canonical, hreflang, fontes, footer, rotas).
     # =========================================================================
     
     arquivos_originais = ["capurro.html"] 
      
-    idiomas_alvo = ["de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
-    
+    idiomas_alvo = ["de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
+
+    MODO_DRY_RUN = False      # True = testa tudo SEM chamar a API nem gravar
+    COM_AUDITORIA = True      # relatório pós-tradução (estrutura, pt restante, legado)
+    PAUSA_ENTRE_EXECUCOES_SEGUNDOS = 40  # evita rate-limit entre páginas/idiomas
+
     # =========================================================================
+
+    import sys
+    from pathlib import Path
+
+    RAIZ = Path(__file__).resolve().parent.parent
+    sys.path.insert(0, str(RAIZ))  # garante o import do pacote v2
+
+    from automacoes.translation import audit, orchestrator
+
+    modo = "dry-run" if MODO_DRY_RUN else "real"
+    salvos = 0
+
+    for arquivo_original in arquivos_originais:
+        for idioma_alvo in idiomas_alvo:
+            print(f"\n{C_AMARELO}======================================================={RESET}")
+            print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo_original}{RESET}")
+            print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Destino: ./{idioma_alvo}/){RESET}")
+            print(f"{C_AMARELO}======================================================={RESET}\n")
+
+            caminho_fonte = Path(arquivo_original)
+            if not caminho_fonte.exists():
+                caminho_fonte = RAIZ / arquivo_original
+            if not caminho_fonte.exists():
+                print(f"{C_AMARELO}Atenção: o arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
+                continue
+
+            resultado = orchestrator.traduzir_arquivo(
+                caminho_fonte, idioma_alvo, modo=modo,
+            )
+
+            print(f"{C_AZUL}[v2]{RESET} {resultado['arquivo']} → {resultado['idioma']} ({modo}): "
+                  f"{resultado['unidades_total']} unidades | {resultado['unidades_novas']} novas | "
+                  f"{resultado['unidades_em_cache']} em cache | {resultado['lotes']} lotes | "
+                  f"{resultado['caracteres_enviados']} chars | estrutura_ok={resultado['estrutura_ok']}")
+            if resultado.get("caminho_saida"):
+                print(f"{C_VERDE}✅ SUCESSO! Arquivo salvo em: {resultado['caminho_saida']}{RESET}")
+                salvos += 1
+            if resultado["problemas"]:
+                print(f"{C_AMARELO}⚠️ Validação: {resultado['problemas']}{RESET}")
+
+            if COM_AUDITORIA:
+                rel = audit.relatorio(
+                    resultado["html_final"],
+                    caminho_fonte.read_text(encoding="utf-8"),
+                    RAIZ / idioma_alvo / caminho_fonte.name,
+                )
+                audit.imprimir_relatorio(rel)
+
+            is_last_file = (arquivo_original == arquivos_originais[-1])
+            is_last_lang = (idioma_alvo == idiomas_alvo[-1])
+            if not (is_last_file and is_last_lang):
+                print(f"{C_AMARELO}⏳ Pausa de segurança: {PAUSA_ENTRE_EXECUCOES_SEGUNDOS}s...{RESET}")
+                time.sleep(PAUSA_ENTRE_EXECUCOES_SEGUNDOS)
+
+    # ---- BUILD AUTOMÁTICO (Tailwind + Service Worker) ----
+    if MODO_DRY_RUN:
+        print(f"{C_AMARELO}ℹ️ Modo dry-run: build automático pulado.{RESET}")
+    else:
+        print(f"\n{C_ROXO}▶ INICIANDO BUILD AUTOMÁTICO (Tailwind + Service Worker){RESET}")
+        for comando in [
+            r".\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify",
+            "node gerar-sw.js",
+        ]:
+            print(f"{C_AZUL}⚙️ Executando:{RESET} {comando}")
+            try:
+                subprocess.run(comando, shell=True, check=True, cwd=str(RAIZ))
+            except subprocess.CalledProcessError:
+                print(f"{C_AMARELO}⚠️ Aviso: o comando falhou: {comando}{RESET}")
+
+    print(f"\n{C_VERDE}🎉 FILA DE TRADUÇÃO CONCLUÍDA (modo v2)! {salvos} arquivo(s) gravado(s).{RESET}")
+
+    # -------------------------------------------------------------------------
+    # Abaixo está o MOTOR LEGADO (DeepSeek/OpenAI antigo), mantido apenas como
+    # referência. Ele NÃO é mais executado: o processamento v2 acima encerra
+    # o script antes deste trecho.
+    # -------------------------------------------------------------------------
+    sys.exit(0)
 
     for arquivo_original in arquivos_originais:
         for idioma_alvo in idiomas_alvo:

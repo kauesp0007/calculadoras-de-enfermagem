@@ -9,6 +9,7 @@ Pipeline:
 Modo dry-run: executa TUDO exceto chamadas à API e gravação de arquivos.
 """
 
+import re
 from pathlib import Path
 
 from automacoes.translation import config, logger
@@ -48,6 +49,27 @@ def _extrair_tudo(protecao, idioma_destino):
         unidades_html, unidades_seo, unidades_schema, blocos_schema,
         scripts_extraidos,
     )
+
+
+MAX_TEMPLATES_POR_LOTE = 2
+
+
+def _subdividir_templates(lotes, max_tpl=None):
+    """Garante que unidades js_template sigam em sub-lotes de até max_tpl.
+
+    Lotes grandes misturados com templates fazem o modelo devolver valores
+    nulos; templates em grupos pequenos traduzem com qualidade.
+    """
+    max_tpl = max_tpl or MAX_TEMPLATES_POR_LOTE
+    resultado = []
+    for lote in lotes:
+        comuns = [u for u in lote if u.tipo != "js_template"]
+        templates = [u for u in lote if u.tipo == "js_template"]
+        if comuns:
+            resultado.append(comuns)
+        for i in range(0, len(templates), max_tpl):
+            resultado.append(templates[i:i + max_tpl])
+    return resultado
 
 
 def traduzir_arquivo(caminho_html, idioma_destino, modo="dry-run",
@@ -98,6 +120,9 @@ def traduzir_arquivo(caminho_html, idioma_destino, modo="dry-run",
 
     # ---- 4. Lotes ----
     lotes = montar_lotes(novas)
+    # Templates (${...} + marcação) são difíceis para o modelo em lotes
+    # grandes — subdivide em grupos pequenos para evitar respostas nulas.
+    lotes = _subdividir_templates(lotes)
     chars_enviados = sum(len(u.texto) for u in novas)
 
     # ---- 5. Tradução ----
@@ -125,10 +150,21 @@ def traduzir_arquivo(caminho_html, idioma_destino, modo="dry-run",
                 continue
             for u in lote:
                 if u.id in resposta:
-                    traducoes[u.id] = resposta[u.id]
+                    trad = resposta[u.id]
+                    # Templates: se a IA alterou os ${...}, mantém o original.
+                    if u.tipo == "js_template":
+                        orig_ph = re.findall(r'\$\{[^}]*\}', u.texto)
+                        nova_ph = re.findall(r'\$\{[^}]*\}', trad)
+                        if orig_ph != nova_ph:
+                            logger.aviso(
+                                f"Template {u.id}: placeholders alterados — "
+                                f"mantendo original."
+                            )
+                            continue
+                    traducoes[u.id] = trad
                     registros_memoria.append(
                         (u.hash, u.idioma_origem, u.idioma_destino, u.tipo,
-                         u.contexto, u.texto, resposta[u.id])
+                         u.contexto, u.texto, trad)
                     )
         if memoria is not None and registros_memoria:
             memoria.gravar_muitos(registros_memoria)

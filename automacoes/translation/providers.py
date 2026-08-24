@@ -41,7 +41,11 @@ REGRAS INEGOCIÁVEIS:
 3. Preserve números, unidades de medida, siglas clínicas reconhecidas e
    nomes próprios de escalas/testes quando forem marcas consagradas.
 4. Adapte termos de enfermagem à terminologia usada neste idioma alvo.
-5. Nada de markdown, explicações ou texto fora do JSON.
+5. Se o texto contiver ${...} (interpolação), preserve EXATAMENTE esses
+   marcadores ${...} no texto traduzido, sem alterá-los nem reordená-los.
+6. Se o texto contiver tags HTML (ex.: <strong>, <li>), traduza APENAS as
+   palavras legíveis e preserve rigorosamente tags, atributos e classes.
+7. Nada de markdown, explicações ou texto fora do JSON.
 """
 
     glossario = carregar_glossario()
@@ -121,6 +125,16 @@ def traduzir_payload(payload, idioma_destino, provider=None):
         try:
             conteudo = _post_unico(provider, mensagens)
             dados = json.loads(conteudo)
+            # Alguns modelos devolvem o objeto completo {type, context, text}
+            # no lugar da string traduzida — normaliza aqui.
+            dados = {
+                chave: (
+                    valor.get("text")
+                    if isinstance(valor, dict) and "text" in valor
+                    else valor
+                )
+                for chave, valor in dados.items()
+            }
             ok, problemas = validar_json_resposta(payload, dados)
             if not ok:
                 raise ValueError("; ".join(problemas))

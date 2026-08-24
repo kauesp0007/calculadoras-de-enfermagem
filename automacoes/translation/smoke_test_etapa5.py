@@ -7,7 +7,7 @@ import shutil
 from contextlib import contextmanager
 
 from automacoes.translation import audit, config, logger
-from automacoes.translation import hooks, orchestrator
+from automacoes.translation import hooks, orchestrator, providers
 from automacoes.translation.js_extractor import extrair_unidades_js
 
 HTML_AMOSTRA = """<!DOCTYPE html>
@@ -108,8 +108,9 @@ def main():
     assert diffs["tags_script"] == (2, 2)
     logger.info(f"Comparação com legado OK: {diffs['tamanho_chars']}")
 
-    # ---- 4b. Regressão: fragmentos de template literal com marcação -------
-    # (bug real: `<svg ...></a>` entre ${...} era enviado à API e perdido)
+    # ---- 4b. Regressão: templates com marcação complexa NÃO vão à API ----
+    # (bug real: `<svg ...></a>` entre ${...} era enviado à API e perdido;
+    #  marcação rica também faz o modelo devolver valores nulos)
     fragmento_template = (
         'const tools = r.tools.map(t => `<a class="tool-link" '
         'href="${t.h}">${t.l}<svg viewBox="0 0 24 24"><path '
@@ -117,7 +118,61 @@ def main():
     )
     ujs_frag, _ = extrair_unidades_js(fragmento_template, "ko")
     assert ujs_frag == []
-    logger.info("Fragmento de template com marcação NÃO é extraído (regressão OK)")
+    logger.info("Template com marcação complexa NÃO é extraído (regressão OK)")
+
+    # ---- 4c. Regressão: linhas badge/bar (templates adjacentes) ------------
+    linhas_badge = (
+        'document.getElementById(`badge_${i.id}`).textContent = `--/${i.max}`;\n'
+        'document.getElementById(`bar_${i.id}`).style.width = "0%";'
+    )
+    ujs_badge, _ = extrair_unidades_js(linhas_badge, "ko")
+    textos_badge = [u.texto for u in ujs_badge]
+    assert "badge_${i.id}" in textos_badge
+    assert not any(").style" in t for t in textos_badge)  # sem trecho cruzado
+    logger.info("Templates adjacentes extraídos corretamente (badge/bar OK)")
+
+    # ---- 4d. Regressão: textContent/innerHTML visíveis SÃO traduzidos ------
+    linha_text = 'st.textContent = "Ocultar painel";'
+    ujs_text, _ = extrair_unidades_js(linha_text, "ko")
+    assert any(u.texto == "Ocultar painel" for u in ujs_text)
+    linha_tec = 'img.src = "logo.png";'
+    ujs_tec, _ = extrair_unidades_js(linha_tec, "ko")
+    assert ujs_tec == []
+    logger.info("textContent traduzido / .src técnico ignorado (regressão OK)")
+
+    # ---- 4e. Regressão: template do card de resultado (com <strong>) ------
+    linha_msg = (
+        'msg.innerHTML = `O recém-nascido obteve <strong>${somaScore} '
+        'pontos</strong>.`;'
+    )
+    ujs_msg, _ = extrair_unidades_js(linha_msg, "ko")
+    assert any(
+        u.tipo == "js_template" and "<strong>" in u.texto for u in ujs_msg
+    )
+    logger.info("Template do card de resultado extraído (regressão OK)")
+
+    # ---- 4f. Regressão: modelo devolve objeto completo em vez de texto ----
+    import json as _json
+
+    def _post_objeto(provider, mensagens):
+        return _json.dumps(
+            {"t1": {"type": "js_template", "context": "template",
+                    "text": "번역된 텍스트"}},
+            ensure_ascii=False,
+        )
+
+    post_original = providers._post_unico
+    providers._post_unico = _post_objeto
+    try:
+        resultado_obj = providers.traduzir_payload(
+            {"t1": {"type": "js_template", "context": "template",
+                    "text": "Texto original"}},
+            "ko", provider="deepseek",
+        )
+        assert resultado_obj == {"t1": "번역된 텍스트"}
+    finally:
+        providers._post_unico = post_original
+    logger.info("Normalização de resposta do modelo OK (regressão OK)")
 
     # ---- 5. CLI v2 em dry-run (sem API, sem gravação) ----
     from automacoes import tradutor_inteligente_v2
