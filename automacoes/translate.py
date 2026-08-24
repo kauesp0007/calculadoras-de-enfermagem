@@ -13,7 +13,7 @@ from openai import OpenAI
 
 # Arquivos que você quer traduzir APENAS O JS INLINE (coloque um ou vários)
 ARQUIVOS_PARA_TRADUZIR = [
-    "fast.html"
+    "capurro.html"
 ]
 
 # Idiomas de destino

@@ -45,11 +45,11 @@ except Exception:
 # ╚══════════════════════════════════════════════════════════════════════════════╝
 
 ARQUIVOS_PARA_TRADUZIR = [
-    "menu-global.html", "guia_rapido_dispositivos.html", "integracoes_calculadora_de_gasometria.html", "integracoes_classificacao_wifi.html"
+    "capurro.html"
 ]
 
 IDIOMAS_DESTINO = [
-    "en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"
+    "es"
 ]
 
 # Modo de teste: 1 arquivo, 1 idioma
