@@ -762,7 +762,7 @@ if __name__ == "__main__":
     
     arquivos_originais = ["capurro.html"] 
      
-    idiomas_alvo = ["es"] 
+    idiomas_alvo = ["de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
     # =========================================================================
 
