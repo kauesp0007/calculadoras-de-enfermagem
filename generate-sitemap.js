@@ -135,6 +135,52 @@ for (const folder of SPECIAL_FOLDERS) {
   }
 }
 
+// 3b. Pasta ESPECIAL: escalas-de-enfermagem (subpastas, varredura recursiva)
+const ESCALAS_FOLDER = 'escalas-de-enfermagem';
+
+function getHtmlFilesRecursive(dir, base = dir) {
+  try {
+    if (!fs.existsSync(dir)) return [];
+    return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+      if (entry.name.startsWith('.') || entry.name.startsWith('_')) return [];
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) return getHtmlFilesRecursive(full, base);
+      if (entry.name.endsWith('.html')) {
+        return [path.relative(base, full).split(path.sep).join('/')];
+      }
+      return [];
+    });
+  } catch (err) {
+    console.error(`Erro ao ler diretório ${dir}:`, err);
+    return [];
+  }
+}
+
+{
+  const dirPath = path.join(ROOT_DIR, ESCALAS_FOLDER);
+  console.log(`Processando pasta especial: ${ESCALAS_FOLDER}...`);
+  const relFiles = getHtmlFilesRecursive(dirPath);
+
+  for (const relFile of relFiles) {
+    const pageKey = `${ESCALAS_FOLDER}/${relFile}`;
+    // index.html de subpasta vira a URL da própria pasta (canonical com barra final)
+    let url;
+    if (path.basename(relFile) === 'index.html') {
+      const sub = path.dirname(relFile);
+      url = sub === '.'
+        ? `${BASE_URL}/${ESCALAS_FOLDER}/`
+        : `${BASE_URL}/${ESCALAS_FOLDER}/${sub.split(path.sep).join('/')}/`;
+    } else {
+      url = `${BASE_URL}/${ESCALAS_FOLDER}/${relFile}`;
+    }
+
+    if (!sitemapEntries[pageKey]) {
+      sitemapEntries[pageKey] = {};
+    }
+    sitemapEntries[pageKey]['pt-br'] = url;
+  }
+}
+
 // --- METADADOS DAS PÁGINAS ---
 
 // Retorna a data real de modificação do arquivo no disco
@@ -302,25 +348,25 @@ const VIDEO_DIR = path.join(ROOT_DIR, 'videos');
 const VIDEO_SITEMAP_OUTPUT = path.join(ROOT_DIR, 'video-sitemap.xml');
 
 if (fs.existsSync(VIDEO_DIR)) {
-const videoFiles = fs.readdirSync(VIDEO_DIR).filter(f => f.endsWith('.mp4'));
+  const videoFiles = fs.readdirSync(VIDEO_DIR).filter(f => f.endsWith('.mp4'));
 
-if (videoFiles.length > 0) {
-let videoXml = `<?xml version="1.0" encoding="UTF-8"?>
+  if (videoFiles.length > 0) {
+    let videoXml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
 xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
 `;
 
-videoFiles.forEach(videoFile => {
-const filePath = path.join(VIDEO_DIR, videoFile);
-const stats = fs.statSync(filePath);
-const lastmod = stats.mtime.toISOString().split('T')[0];
-const rawName = videoFile.replace(/\.mp4$/i, '');
-const title = rawName.replace(/[_-]/g, ' ').replace(/\s+/g, ' ').trim();
-const videoUrl = `${BASE_URL}/videos/${encodeURIComponent(videoFile)}`;
-const pageUrl = `${BASE_URL}/biblioteca.html`;
-const thumbUrl = `${BASE_URL}/img/thumb-video-enfermagem.webp`;
+    videoFiles.forEach(videoFile => {
+      const filePath = path.join(VIDEO_DIR, videoFile);
+      const stats = fs.statSync(filePath);
+      const lastmod = stats.mtime.toISOString().split('T')[0];
+      const rawName = videoFile.replace(/\.mp4$/i, '');
+      const title = rawName.replace(/[_-]/g, ' ').replace(/\s+/g, ' ').trim();
+      const videoUrl = `${BASE_URL}/videos/${encodeURIComponent(videoFile)}`;
+      const pageUrl = `${BASE_URL}/biblioteca.html`;
+      const thumbUrl = `${BASE_URL}/img/thumb-video-enfermagem.webp`;
 
-videoXml += `  <url>
+      videoXml += `  <url>
 <loc>${pageUrl}</loc>
 <lastmod>${lastmod}</lastmod>
 <video:video>
@@ -333,15 +379,15 @@ videoXml += `  <url>
 </video:video>
 </url>
 `;
-});
+    });
 
-videoXml += `</urlset>`;
-fs.writeFileSync(VIDEO_SITEMAP_OUTPUT, videoXml, 'utf8');
-console.log(`✅ Video sitemap gerado: ${VIDEO_SITEMAP_OUTPUT} (${videoFiles.length} videos)`);
+    videoXml += `</urlset>`;
+    fs.writeFileSync(VIDEO_SITEMAP_OUTPUT, videoXml, 'utf8');
+    console.log(`✅ Video sitemap gerado: ${VIDEO_SITEMAP_OUTPUT} (${videoFiles.length} videos)`);
 
-// Adiciona referencia ao video sitemap no sitemap.xml principal (sitemap index)
-const SITEMAP_INDEX = path.join(ROOT_DIR, 'sitemap-index.xml');
-let sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
+    // Adiciona referencia ao video sitemap no sitemap.xml principal (sitemap index)
+    const SITEMAP_INDEX = path.join(ROOT_DIR, 'sitemap-index.xml');
+    let sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <sitemap>
 <loc>${BASE_URL}/sitemap.xml</loc>
@@ -352,11 +398,11 @@ let sitemapIndex = `<?xml version="1.0" encoding="UTF-8"?>
 <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
 </sitemap>
 </sitemapindex>`;
-fs.writeFileSync(SITEMAP_INDEX, sitemapIndex, 'utf8');
-console.log(`✅ Sitemap index gerado: ${SITEMAP_INDEX}`);
+    fs.writeFileSync(SITEMAP_INDEX, sitemapIndex, 'utf8');
+    console.log(`✅ Sitemap index gerado: ${SITEMAP_INDEX}`);
+  } else {
+    console.log('Nenhum video .mp4 encontrado na pasta videos/');
+  }
 } else {
-console.log('Nenhum video .mp4 encontrado na pasta videos/');
-}
-} else {
-console.log('Pasta videos/ nao encontrada.');
+  console.log('Pasta videos/ nao encontrada.');
 }

@@ -683,7 +683,7 @@ if __name__ == "__main__":
     # 🟢 ÁREA DE CONFIGURAÇÃO DIÁRIA (ALTERE APENAS AQUI) 🟢
     # =========================================================================
     
-    arquivos_originais = ["guia_rapido_dispositivos.html", "integracoes_calculadora_de_gasometria.html", "integracoes_classificacao_wifi.html" ] 
+    arquivos_originais = ["capurro.html", "integracoes_metodo_de_capurro.html"] 
      
     idiomas_alvo = ["en","es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"] 
     
