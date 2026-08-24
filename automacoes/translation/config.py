@@ -15,8 +15,10 @@ load_dotenv()
 # ---------------------------------------------------------------
 # 1. PROVEDORES DE API
 # ---------------------------------------------------------------
-# Valores aceitos: "deepseek", "openai", "both" (divide lotes entre os dois).
-TRANSLATION_PROVIDER = os.getenv("TRANSLATION_PROVIDER", "deepseek").strip().lower()
+# Valores aceitos: "deepseek", "openai", "both" (padrão).
+# "both" = ALTERNÂNCIA com fallback: cada tentativa usa o próximo provider
+# (deepseek ↔ openai); se um falhar, o outro assume.
+TRANSLATION_PROVIDER = os.getenv("TRANSLATION_PROVIDER", "both").strip().lower()
 
 API_KEYS = {
     "deepseek": os.getenv("DEEPSEEK_API_KEY"),
@@ -40,6 +42,10 @@ TIMEOUT_CONEXAO = int(os.getenv("TRANSLATION_TIMEOUT_CONEXAO", "30"))
 TIMEOUT_LEITURA = int(os.getenv("TRANSLATION_TIMEOUT_LEITURA", "300"))
 MAX_TENTATIVAS = int(os.getenv("TRANSLATION_MAX_TENTATIVAS", "3"))
 BACKOFF_BASE_SEGUNDOS = 5
+
+# Total de tentativas de ALTERNÂNCIA (fallback) antes de desistir de uma
+# tradução: com "both", são 5 rodadas deepseek↔openai antes do erro.
+MAX_TENTATIVAS_FALLBACK = int(os.getenv("TRANSLATION_MAX_FALLBACK", "10"))
 
 # ---------------------------------------------------------------
 # 3. BATCHING INTELIGENTE

@@ -19,7 +19,7 @@ from automacoes.translation.extractor import deduplicar, texto_traduzivel
 from automacoes.translation.html_extractor import extrair_unidades_html
 from automacoes.translation.js_extractor import extrair_unidades_js
 from automacoes.translation.protection import proteger_html
-from automacoes.translation.providers import traduzir_payload, resolver_providers
+from automacoes.translation.providers import traduzir_payload
 from automacoes.translation.rebuild import gravar_arquivo, montar_html_final
 from automacoes.translation.schema_extractor import extrair_unidades_schema
 from automacoes.translation.seo_extractor import extrair_unidades_seo
@@ -125,27 +125,23 @@ def traduzir_arquivo(caminho_html, idioma_destino, modo="dry-run",
     lotes = _subdividir_templates(lotes)
     chars_enviados = sum(len(u.texto) for u in novas)
 
-    # ---- 5. Tradução ----
+    # ---- 5. Tradução (alternância deepseek ↔ openai com fallback) ----
     if modo == "real" and novas:
-        providers = resolver_providers()
         registros_memoria = []
         for indice, lote in enumerate(lotes, 1):
-            provider_atual = provider or providers[
-                (indice - 1) % len(providers)
-            ]
             payload = montar_payload(lote)
             logger.info(
                 f"Lote {indice}/{len(lotes)} ({len(lote)} itens) → "
-                f"{provider_atual}"
+                f"alternância de providers"
             )
             try:
                 resposta = traduzir_payload(
-                    payload, idioma_destino, provider=provider_atual
+                    payload, idioma_destino, provider=provider
                 )
             except RuntimeError as e:
                 logger.erro(
-                    f"Lote {indice} falhou — mantendo originais deste lote. "
-                    f"({e})"
+                    f"Lote {indice} falhou após todas as tentativas de "
+                    f"alternância — mantendo originais deste lote. ({e})"
                 )
                 continue
             for u in lote:

@@ -46,7 +46,8 @@ def main(argv=None):
     )
     parser.add_argument(
         "--provider", default=None,
-        help="Forçar provider (deepseek/openai). Padrão: config .env.",
+        help="Forçar um único provider (desativa a alternância "
+             "deepseek↔openai). Padrão: config .env.",
     )
     parser.add_argument(
         "--sem-memoria", action="store_true",

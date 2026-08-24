@@ -104,15 +104,27 @@ def _post_unico(provider, mensagens):
     return _limpar_fences(conteudo)
 
 
+def _cadeia_providers(provider=None):
+    """Cadeia de providers para alternância/fallback.
+
+    Sem provider forçado, usa a configuração (padrão: deepseek ↔ openai).
+    """
+    cadeia = [provider] if provider else resolver_providers()
+    for p in cadeia:
+        if p not in config.API_KEYS:
+            raise ValueError(f"Provider desconhecido: '{p}'")
+    return cadeia
+
+
 def traduzir_payload(payload, idioma_destino, provider=None):
     """Traduz {id: {type, context, text}} → {id: texto traduzido}.
 
-    Retry com backoff; valida que a resposta contém exatamente as mesmas
-    chaves do payload. Em falha definitiva, levanta RuntimeError.
+    ALTERNÂNCIA COM FALLBACK: cada tentativa usa o próximo provider da
+    cadeia (deepseek ↔ openai); se um falhar, o outro assume. São feitas
+    até `config.MAX_TENTATIVAS_FALLBACK` tentativas alternadas antes de
+    levantar RuntimeError.
     """
-    provider = provider or config.TRANSLATION_PROVIDER
-    if provider not in config.API_KEYS:
-        raise ValueError(f"Provider desconhecido: '{provider}'")
+    cadeia = _cadeia_providers(provider)
 
     instrucoes = _montar_instrucoes(payload, idioma_destino)
     mensagens = [
@@ -121,9 +133,10 @@ def traduzir_payload(payload, idioma_destino, provider=None):
     ]
 
     ultimo_erro = None
-    for tentativa in range(1, config.MAX_TENTATIVAS + 1):
+    for tentativa in range(1, config.MAX_TENTATIVAS_FALLBACK + 1):
+        provider_atual = cadeia[(tentativa - 1) % len(cadeia)]
         try:
-            conteudo = _post_unico(provider, mensagens)
+            conteudo = _post_unico(provider_atual, mensagens)
             dados = json.loads(conteudo)
             # Alguns modelos devolvem o objeto completo {type, context, text}
             # no lugar da string traduzida — normaliza aqui.
@@ -138,20 +151,25 @@ def traduzir_payload(payload, idioma_destino, provider=None):
             ok, problemas = validar_json_resposta(payload, dados)
             if not ok:
                 raise ValueError("; ".join(problemas))
+            if tentativa > 1:
+                logger.sucesso(
+                    f"{provider_atual} assumiu a tradução na tentativa "
+                    f"{tentativa}/{config.MAX_TENTATIVAS_FALLBACK}."
+                )
             return dados
         except Exception as e:
             ultimo_erro = e
             logger.aviso(
-                f"Provider {provider} — tentativa {tentativa}/"
-                f"{config.MAX_TENTATIVAS} falhou: {e}"
+                f"{provider_atual} — tentativa {tentativa}/"
+                f"{config.MAX_TENTATIVAS_FALLBACK} falhou: {e}"
             )
-            if tentativa < config.MAX_TENTATIVAS:
-                espera = config.BACKOFF_BASE_SEGUNDOS * tentativa
+            if tentativa < config.MAX_TENTATIVAS_FALLBACK:
+                espera = min(config.BACKOFF_BASE_SEGUNDOS * tentativa, 15)
                 time.sleep(espera)
 
     raise RuntimeError(
-        f"Falha após {config.MAX_TENTATIVAS} tentativas no provider "
-        f"'{provider}': {ultimo_erro}"
+        f"Falha após {config.MAX_TENTATIVAS_FALLBACK} tentativas de "
+        f"alternância ({' ↔ '.join(cadeia)}): {ultimo_erro}"
     )
 
 

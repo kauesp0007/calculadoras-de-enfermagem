@@ -174,6 +174,60 @@ def main():
         providers._post_unico = post_original
     logger.info("Normalização de resposta do modelo OK (regressão OK)")
 
+    # ---- 4g. Alternância deepseek ↔ openai com fallback (10 tentativas) ----
+    sleep_original = providers.time.sleep
+    cadeia_original = providers.resolver_providers
+    post_original2 = providers._post_unico
+    providers.time.sleep = lambda s: None
+
+    chamadas_alt = []
+
+    def _post_alterna(provider, mensagens):
+        chamadas_alt.append(provider)
+        if provider == "deepseek":
+            raise TimeoutError("falha simulada no deepseek")
+        return '{"t1": "성공"}'
+
+    providers.resolver_providers = lambda: ["deepseek", "openai"]
+    providers._post_unico = _post_alterna
+    try:
+        resultado_alt = providers.traduzir_payload(
+            {"t1": {"type": "js_template", "context": "template", "text": "x"}},
+            "ko",
+        )
+        assert resultado_alt == {"t1": "성공"}
+        assert chamadas_alt == ["deepseek", "openai"]  # alternou e assumiu
+    finally:
+        providers._post_unico = post_original2
+        providers.resolver_providers = cadeia_original
+
+    chamadas_falha = []
+
+    def _post_sempre_falha(provider, mensagens):
+        chamadas_falha.append(provider)
+        raise TimeoutError("falha total simulada")
+
+    providers._post_unico = _post_sempre_falha
+    providers.resolver_providers = lambda: ["deepseek", "openai"]
+    try:
+        try:
+            providers.traduzir_payload(
+                {"t1": {"type": "js_template", "context": "template",
+                        "text": "x"}},
+                "ko",
+            )
+            assert False, "deveria levantar RuntimeError após 10 tentativas"
+        except RuntimeError:
+            pass
+        assert len(chamadas_falha) == 10
+        assert chamadas_falha == ["deepseek", "openai"] * 5
+    finally:
+        providers._post_unico = post_original2
+        providers.resolver_providers = cadeia_original
+        providers.time.sleep = sleep_original
+
+    logger.info("Alternância com fallback de 10 tentativas OK (regressão OK)")
+
     # ---- 5. CLI v2 em dry-run (sem API, sem gravação) ----
     from automacoes import tradutor_inteligente_v2
     tradutor_inteligente_v2.main([

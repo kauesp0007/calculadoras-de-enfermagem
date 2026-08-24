@@ -765,7 +765,7 @@ if __name__ == "__main__":
     
     arquivos_originais = ["capurro.html"] 
      
-    idiomas_alvo = ["de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
+    idiomas_alvo = ["de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
     MODO_DRY_RUN = False      # True = testa tudo SEM chamar a API nem gravar
     COM_AUDITORIA = True      # relatório pós-tradução (estrutura, pt restante, legado)
