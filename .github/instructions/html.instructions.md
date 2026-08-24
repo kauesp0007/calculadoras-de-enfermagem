@@ -8,6 +8,20 @@ Regras completas: `AI_RULES.md` (prioridade máxima), `HTML_RULES.md`, `HTML_PAG
 Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA/`,
 `CATALOGO_DE_IDENTIDADE_VISUAL/`, `CATALOGO_SEO_METAS_HEAD/`.
 
+## Atualização e modernização de páginas existentes (regra absoluta)
+- NUNCA apagar o arquivo existente para recriá-lo do zero. Editar sempre no lugar (in-place):
+  substituir, excluir ou reescrever apenas as partes de código que precisam ser alteradas,
+  sem duplicar blocos e sem remover o que não foi solicitado.
+- PRESERVAR integralmente a parte inicial da página: do início do `<head>` até imediatamente
+  ANTES do primeiro `<style>` (charset, viewport, DNS/preconnect, title, metas, etc.).
+- Do primeiro `<style>` em diante até o final do HTML, o conteúdo PODE ser modificado
+  conforme a necessidade da modernização/atualização (usando `fugulin.html` como modelo
+  para escalas/calculadoras).
+- Modernizar ≠ recriar do zero: manter o que está correto e atualizar apenas o necessário.
+- Ao modernizar escalas/calculadoras, preservar INTACTO o cálculo matemático dos escores
+  (itens, valores, fórmulas e classificações).
+- Antes de editar, criar backup em `backups-temporarios/<arquivo>.<YYYYMMDD-HHMMSS>.bak`.
+
 ## Largura da página (obrigatório)
 - Ocupar toda a viewport, mantendo apenas os paddings laterais (`p-4 sm:p-8` no `<main>`).
 - NUNCA usar `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` no container principal.

@@ -19,3 +19,9 @@ applyTo: "**/*.css"
 ## Responsividade e acessibilidade
 - Mobile-first; preservar `dark-mode` e variáveis de acessibilidade (`--cor-foco-acessibilidade`).
 - Manter `:focus-visible` e `prefers-reduced-motion`.
+
+## Modernização de páginas existentes
+- NUNCA apagar o arquivo HTML para recriá-lo do zero: editar no lugar, substituindo/excluindo
+  apenas as partes que mudam, sem duplicar estilos.
+- Preservar o conteúdo da página do início do `<head>` até antes do primeiro `<style>`.
+- Edições de CSS (blocos `<style>` e classes) são permitidas a partir do primeiro `<style>` em diante.

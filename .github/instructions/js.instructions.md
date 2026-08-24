@@ -23,5 +23,12 @@ applyTo: "**/*.js"
 - Manter `aria`, `role`, `tabindex` e foco visível.
 - Evitar bloqueio do main-thread; adiar ads/analytics até o pós-load.
 
+## Modernização de páginas existentes
+- NUNCA apagar o arquivo HTML para recriá-lo do zero: editar no lugar, substituindo/excluindo
+  apenas as partes de código que precisam mudar, sem duplicar.
+- Preservar o conteúdo da página do início do `<head>` até antes do primeiro `<style>`; do
+  primeiro `<style>` em diante, o restante (HTML/CSS/JS) pode ser atualizado conforme a necessidade.
+- Ao modernizar escalas/calculadoras, preservar INTACTO o cálculo matemático dos escores.
+
 ## Após alterar HTML/CSS/JS do site
 Rodar o build obrigatório (ver `AI_RULES.md` / `.github/copilot-instructions.md`).
