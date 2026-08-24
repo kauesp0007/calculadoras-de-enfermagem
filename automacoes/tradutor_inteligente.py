@@ -390,7 +390,32 @@ def preparar_html_para_traducao_texto(caminho_arquivo, idioma_alvo):
 
     return html
 
-def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
+# ============================================================
+# CONFIGURAÇÃO DAS CHAMADAS DE TRADUÇÃO EM LOTE (anti-timeout)
+# ============================================================
+TIMEOUT_CONEXAO_LOTE = 30   # segundos para conectar
+TIMEOUT_LEITURA_LOTE = 300  # segundos para receber a resposta completa
+MAX_TENTATIVAS_LOTE = 3     # tentativas por requisição (retry com backoff)
+MAX_CHARS_POR_LOTE = 40000  # tamanho máximo (caracteres) por requisição em lote
+
+def dividir_lote_por_tamanho(dicionario_scripts, max_chars=MAX_CHARS_POR_LOTE):
+    """Divide o dicionário em pedaços menores para evitar timeouts de leitura."""
+    lotes = []
+    atual = {}
+    tamanho_atual = 0
+    for chave, valor in dicionario_scripts.items():
+        peso = len(chave) + len(valor)
+        if atual and (tamanho_atual + peso > max_chars):
+            lotes.append(atual)
+            atual = {}
+            tamanho_atual = 0
+        atual[chave] = valor
+        tamanho_atual += peso
+    if atual:
+        lotes.append(atual)
+    return lotes
+
+def _traduzir_lote_js_deepseek_unico(dicionario_scripts, idioma_alvo):
     """
     Função otimizada que recebe um dicionário de VÁRIOS scripts e faz uma ÚNICA
     requisição ao DeepSeek, evitando erros de rate-limit e acelerando o processo.
@@ -428,7 +453,7 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response = requests.post(url, headers=headers, json=payload, timeout=(TIMEOUT_CONEXAO_LOTE, TIMEOUT_LEITURA_LOTE))
         response.raise_for_status()
         dados = response.json()
         resultado = dados["choices"][0]["message"]["content"].strip()
@@ -448,9 +473,9 @@ def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
         return retorno_seguro
     except Exception as e:
         print(f"\n⚠️ Erro ao traduzir scripts em LOTE com DeepSeek (Mantendo originais intactos por segurança): {e}")
-        return dicionario_scripts
+        raise
 
-def traduzir_lote_js_com_openai(dicionario_scripts, idioma_alvo):
+def _traduzir_lote_js_openai_unico(dicionario_scripts, idioma_alvo):
     """
     Função que recebe um dicionário de scripts e traduz via API da OpenAI.
     """
@@ -486,7 +511,7 @@ def traduzir_lote_js_com_openai(dicionario_scripts, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=90)
+        response = requests.post(url, headers=headers, json=payload, timeout=(TIMEOUT_CONEXAO_LOTE, TIMEOUT_LEITURA_LOTE))
         response.raise_for_status()
         dados = response.json()
         resultado = dados["choices"][0]["message"]["content"].strip()
@@ -506,7 +531,59 @@ def traduzir_lote_js_com_openai(dicionario_scripts, idioma_alvo):
         return retorno_seguro
     except Exception as e:
         print(f"\n⚠️ Erro ao traduzir scripts em LOTE com OpenAI (Mantendo originais intactos por segurança): {e}")
-        return dicionario_scripts
+        raise
+
+def traduzir_lote_js_com_deepseek(dicionario_scripts, idioma_alvo):
+    """Lote dividido por tamanho + retry com backoff (evita read timeout)."""
+    if not dicionario_scripts:
+        return {}
+    traducoes_gerais = {}
+    lotes = dividir_lote_por_tamanho(dicionario_scripts)
+    for idx, pedaco in enumerate(lotes, 1):
+        if len(lotes) > 1:
+            print(f"      ↳ Lote {idx}/{len(lotes)} ({len(pedaco)} scripts) → DeepSeek...")
+        resultado = None
+        for tentativa in range(MAX_TENTATIVAS_LOTE):
+            try:
+                resultado = _traduzir_lote_js_deepseek_unico(pedaco, idioma_alvo)
+                break
+            except Exception as e:
+                if tentativa == MAX_TENTATIVAS_LOTE - 1:
+                    print(f"      ⚠️ Falha final no lote {idx} (DeepSeek): mantendo originais deste pedaço. ({e})")
+                    resultado = pedaco
+                    break
+                espera = 5 * (tentativa + 1)
+                print(f"      ⏳ DeepSeek lote {idx} — tentativa {tentativa + 1} falhou. Nova tentativa em {espera}s...")
+                time.sleep(espera)
+        traducoes_gerais.update(resultado)
+    return traducoes_gerais
+
+
+def traduzir_lote_js_com_openai(dicionario_scripts, idioma_alvo):
+    """Lote dividido por tamanho + retry com backoff (evita read timeout)."""
+    if not dicionario_scripts:
+        return {}
+    traducoes_gerais = {}
+    lotes = dividir_lote_por_tamanho(dicionario_scripts)
+    for idx, pedaco in enumerate(lotes, 1):
+        if len(lotes) > 1:
+            print(f"      ↳ Lote {idx}/{len(lotes)} ({len(pedaco)} scripts) → OpenAI...")
+        resultado = None
+        for tentativa in range(MAX_TENTATIVAS_LOTE):
+            try:
+                resultado = _traduzir_lote_js_openai_unico(pedaco, idioma_alvo)
+                break
+            except Exception as e:
+                if tentativa == MAX_TENTATIVAS_LOTE - 1:
+                    print(f"      ⚠️ Falha final no lote {idx} (OpenAI): mantendo originais deste pedaço. ({e})")
+                    resultado = pedaco
+                    break
+                espera = 5 * (tentativa + 1)
+                print(f"      ⏳ OpenAI lote {idx} — tentativa {tentativa + 1} falhou. Nova tentativa em {espera}s...")
+                time.sleep(espera)
+        traducoes_gerais.update(resultado)
+    return traducoes_gerais
+
 
 def dividir_html_em_duas_partes(html):
     """Divide o HTML em duas partes aproximadamente iguais, em uma quebra de linha segura."""
@@ -685,7 +762,7 @@ if __name__ == "__main__":
     
     arquivos_originais = ["capurro.html"] 
      
-    idiomas_alvo = ["en"] 
+    idiomas_alvo = ["es"] 
     
     # =========================================================================
 
