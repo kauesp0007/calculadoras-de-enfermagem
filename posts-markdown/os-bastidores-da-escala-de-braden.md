@@ -3,7 +3,7 @@ title: Os Bastidores da Escala de Braden - O que a Queda de 2 Pontos Realmente S
 description: A Escala de Braden é uma das ferramentas mais presentes no dia a dia da enfermagem. No entanto, o seu verdadeiro valor não está em gerar um número estático para o prontuário, mas sim em antecipar o risco clínico antes que a lesão ocorra. Para entender isso, vamos analisar um cenário clássico de plantão.
 date: 29 de Maio de 2026
 keywords: enfermagem, braden, escalas assistenciais, ciência, evidências
-image: /img/pagina_site_escala_braden.webp
+image: /img/pagina-site-escala-braden-calculadoras-de-enfermagem.webp
 ---
 
 # Os Bastidores da Escala de Braden - O que a Queda de 2 Pontos Realmente Significa?
@@ -40,7 +40,7 @@ Uma Braden 13 não é apenas um registro, é um **gatilho** para intervenção p
 
 *A Escala de Braden reflete a dinâmica do corpo humano. Quando a pontuação cai, o rigor da nossa assistência deve, necessariamente, se elevar.*
 
-![Escreva aqui a descrição para deficientes visuais](/img/pagina_braden.webp)
+![Escreva aqui a descrição para deficientes visuais](/img/pagina-braden-calculadoras-de-enfermagem.webp)
 
 Acesse a nossa [Calculadora da Escala de Braden](/braden.html) para resultados automáticos.
 

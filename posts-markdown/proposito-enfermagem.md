@@ -3,7 +3,7 @@ title: Saber separar a essência de enfermagem por amor do Propósito da enferma
 description: Reflexão sobre o propósito profissional de enfermagem.
 date: 17 de Fevereiro de 2026
 keywords: enfermagem por amor, propósito, dever profissional, enfermagem, profissão enfermagem, enfermagem por amor do Dever profissional.
-image: /img/essencia-e-proposito-enfermagem.webp
+image: /img/essencia-e-proposito-enfermagem-calculadoras-de-enfermagem.webp
 ---
 
 # REFLEXÃO SOBRE O PROPÓSITO PROFISSIONAL DA ENFERMAGEM
@@ -20,7 +20,7 @@ Muitos profissionais de enfermagem entram na profissão por 4 motivos principais
 
 Naquele momento da vida que terminamos o Ensino Médio e devemos escolher uma profissão a seguir inicialmente muitos profissionais acabam escolhendo iniciar sua trajetória profissional em alguma profissão de nível técnico pois são cursos mais acessíveis e com tempo de duração curto. As vezes a pessoa gostaria de ingressar em um curso universitário que nao tinham nem a ver com a enfermagem mas devido ao valor da graduação essa vontade acaba sendo adiada e ficando para um segundo momento da vida profissional forçando a procurarmos cursos técnicos ou de graduações mais baratas INICIALMENTE, ou nem por isso, por vezes não nos "encontramos" ainda com o que realmente queremos trabalhar e ai por vezes a enfermagem passa a ser a escolha inicial de muitos profissionais que ingressaram na profissão seja por conselho de amigos, seja por ter algum amigo que já exerce a profissão ou simplismente de forma aleatória...Bora lá, vamos ver se eu gosto, é barato, curso rapido e uma remuneração mediana para iniciar a carreira profissional.
 
-![Aparece uma imagem aqui](/img/necessidade-enfermagem.webp)
+![Aparece uma imagem aqui](/img/necessidade-enfermagem-calculadoras-de-enfermagem.webp)
 
 ## Vocação para a área de Biológicas.
 
@@ -65,6 +65,6 @@ Precisamos cumprir o nosso dever como profissionais de enfermagem sejamos técni
 
 Vamos sempre refletir no quão importante é exercermos a nossa profissão.
 
-![Aparece uma imagem aqui](/img/dever-profissional-enfermagem.webp)
+![Aparece uma imagem aqui](/img/dever-profissional-enfermagem-calculadoras-de-enfermagem.webp)
 
 Até mais ver! Enfermeiro Cauê Marques.

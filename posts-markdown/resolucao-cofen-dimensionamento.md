@@ -3,7 +3,7 @@ title: Parecer Normativo COFEN 01/2024: o que mudou no dimensionamento de enferm
 description: Entenda, de um jeito simples, o que o Parecer Normativo 01/2024 trouxe de novo para dimensionamento: IST mínimo, educação permanente, equipe “restrita”, SCP mais flexível e por que isso importa no seu dia a dia.
 date: 18 de Fevereiro de 2026
 keywords: dimensionamento de enfermagem, cofen 01/2024, parecer normativo, ist, scp, hppd, escala de enfermagem, segurança do paciente
-image: /img/resolucao-cofen-1-2024.webp
+image: /img/resolucao-cofen-1-2024-calculadoras-de-enfermagem.webp
 ---
 
 # Parecer Normativo COFEN 01/2024: o que mudou no dimensionamento de enfermagem (sem drama)
@@ -23,7 +23,7 @@ E um ponto importante: o parecer deixa claro que estamos falando de **parâmetro
 
 ## O que mudou (ou ficou mais amarrado) no dimensionamento?
 
-![Aparece uma imagem aqui](/img/o-que-mudou-no-dimensionamento.webp)
+![Aparece uma imagem aqui](/img/o-que-mudou-no-dimensionamento-calculadoras-de-enfermagem.webp)
 
 ### 1 IST mínimo ficou bem definido (e com “de onde vem”)
 
@@ -98,7 +98,7 @@ Antes de dizer que “está dimensionado”, confira se você considerou:
 * + **10%** se ≥30% da equipe tiver restrição
 * SCP adequado (e pode ser mais de um) para medir dependência e tempo de cuidado
 
-![Aparece uma imagem aqui](/img/mudancas-dimensionamento-enfermagem.webp)
+![Aparece uma imagem aqui](/img/mudancas-dimensionamento-enfermagem-calculadoras-de-enfermagem.webp)
 
 ## Fechando: isso é “liberou geral” ou ficou mais sério?
 

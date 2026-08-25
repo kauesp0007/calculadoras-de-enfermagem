@@ -3,7 +3,7 @@ title: A História do Estetoscópio: Quando e Como Foi Criado o Maior Símbolo d
 description: Descubra como um momento de timidez em 1816 levou o médico René Laennec a inventar o estetoscópio, o instrumento mais icônico da prática clínica.
 date: 05 de Junho de 2026
 keywords: enfermagem, estetoscópio, história da saúde, René Laennec, ausculta, curiosidades
-image: /img/medicos-usando-estetoscopio.webp
+image: /img/medicos-usando-estetoscopio-calculadoras-de-enfermagem.webp
 ---
 
 # A História do Estetoscópio: Quando e Como Foi Criado o Maior Símbolo da Saúde?
@@ -12,7 +12,7 @@ Se você fechar os olhos e imaginar um profissional de saúde, seja da enfermage
 
 Mas você já parou para pensar quando essa ferramenta indispensável para a nossa prática clínica foi inventada? A história por trás da criação do estetoscópio é curiosa e envolve uma mistura de genialidade com uma pitada de timidez. Vamos voltar um pouco no tempo!
 
-![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-de-madeira_articulado.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-de-madeira-articulado-calculadoras-de-enfermagem.webp)
 
 ### O ano era 1816...
 
@@ -24,19 +24,19 @@ Foi então que ele teve uma ideia brilhante: lembrou-se de um princípio físico
 
 Nascia ali o princípio do estetoscópio.
 
-![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-seculo19.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-seculo19-calculadoras-de-enfermagem.webp)
 
 ## Do papel para a madeira
 
 Percebendo o sucesso da sua invenção improvisada, Laennec começou a aprimorar o instrumento. Ele construiu o primeiro modelo oficial usando um cilindro oco de madeira, que lembrava muito uma pequena flauta ou um trompete reto.
 
-![Descrição textual para deficientes visuais e SEO Google](/img/estetoscópio-antigo-da-gravidez.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-antigo-da-gravidez-calculadoras-de-enfermagem.webp)
 
 ## A Origem do Nome
 
 Ele batizou a invenção de "estetoscópio", juntando duas palavras gregas: stethos (que significa "peito") e skopein (que significa "observar" ou "explorar"). Três anos depois, em 1819, ele publicou um tratado detalhando suas descobertas e como os diferentes sons podiam diagnosticar doenças específicas.
 
-![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-moderno.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-moderno-calculadoras-de-enfermagem.webp)
 
 ## A evolução: da madeira ao digital
 
@@ -48,6 +48,6 @@ Aquele pedaço de madeira de Laennec passou por muitas transformações até che
 
 * A Era Digital (Dias atuais): Hoje, já temos estetoscópios eletrônicos inteligentes que amplificam o som em até 40 vezes, cancelam ruídos externos e até enviam os batimentos cardíacos do paciente via Bluetooth para um aplicativo de celular!
 
-![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-digital.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/estetoscopio-digital-calculadoras-de-enfermagem.webp)
 
 Até mais ver! Enfermeiro Cauê Marques.

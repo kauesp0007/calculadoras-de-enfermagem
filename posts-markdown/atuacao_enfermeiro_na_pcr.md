@@ -3,7 +3,7 @@ title: Fugir do local da PCR - O medo de errar também faz parte do início da c
 description: O medo de errar durante uma parada cardiorrespiratória pode fazer profissionais recém-formados se afastarem da cena. Entenda por que isso acontece e como a liderança e a organização da assistência podem fazer a diferença.
 date: 25 de Agosto de 2026
 keywords: enfermagem, parada cardiorrespiratória, PCR, enfermeiro, liderança em enfermagem, emergência, código azul, reanimação cardiopulmonar, equipe de enfermagem, UTI
-image: img\enfermeira_no_posto_de_enfermagem_ligando_meta2.webp
+image: /img/enfermeira_no_posto_de_enfermagem_ligando_meta2.webp
 ---
 
 # Fugir do local da PCR: o medo de errar
@@ -126,7 +126,7 @@ Mas existe uma diferença importante:
 
 **organizar a assistência não significa necessariamente abandonar a liderança da assistência.**
 
-![Descrição textual para deficientes visuais e SEO Google](\img\Atendimento_pcr_codigo_azul_equipe_de_enfermagem.webp)
+![Descrição textual para deficientes visuais e SEO Google](/img/Atendimento_pcr_codigo_azul_equipe_de_enfermagem.webp)
 
 O problema não é fazer uma ligação.
 

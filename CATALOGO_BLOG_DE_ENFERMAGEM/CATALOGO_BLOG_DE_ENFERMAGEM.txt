@@ -1,0 +1,291 @@
+======================================================================
+  CATALOGO DO BLOG DE ENFERMAGEM - Calculadoras de Enfermagem
+  Gerado em: 25/08/2026
+======================================================================
+
+----------------------------------------------------------------------
+  1. VISAO GERAL
+----------------------------------------------------------------------
+  O Blog de Enfermagem e gerado por um conversor proprio em Node.js.
+  Voce NAO escreve HTML: escreve artigos em Markdown na pasta
+  posts-markdown/ e roda um comando no terminal que gera tudo.
+
+  Onde escrevo o artigo? .... posts-markdown/nome-do-post.md
+  O que gera os HTMLs? ..... scripts/build-blog.js (npm run blog)
+  Onde saem os HTMLs? ...... blog/ (NUNCA editar manualmente)
+  Templates usados? ........ blog-templates/index.template.html
+                             blog-templates/post.template.html
+  URL do blog .............. https://www.calculadorasdeenfermagem.com.br/blog/
+  URL de um artigo ......... https://www.calculadorasdeenfermagem.com.br/blog/<slug>.html
+
+  REGRA DE OURO: blog/ e blog-templates/ sao pastas PROIBIDAS de alterar
+  sem autorizacao. A fonte de verdade e posts-markdown/. Editar os HTMLs
+  gerados e inutil: eles sao sobrescritos no proximo build.
+
+----------------------------------------------------------------------
+  2. ESTRUTURA FISICA
+----------------------------------------------------------------------
+  posts-markdown/ .......... FONTE DE VERDADE (onde voce escreve .md)
+  blog-templates/ .......... templates (proibido editar sem autorizacao)
+    index.template.html .... molde da pagina inicial ({{posts_list}})
+    post.template.html ..... molde de cada artigo ({{title}}, {{content}}...)
+  scripts/build-blog.js .... O GERADOR (executado por "npm run blog")
+  blog/ .................... SAIDA GERADA (index.html + <slug>.html)
+  img/ ..................... imagens do site (padrao .webp)
+  package.json ............. script: "blog": "node scripts/build-blog.js"
+
+----------------------------------------------------------------------
+  3. FLUXOGRAMA (texto)
+----------------------------------------------------------------------
+  posts-markdown/*.md
+      |
+      v
+  scripts/build-blog.js  (npm run blog)
+      |
+      +--> parsePost() ............ le title/description/date/keywords/image
+      |                            monta canonical + slug
+      |
+      +--> simpleMarkdownToHtml() . converte corpo .md em HTML
+      |
+      +--> post.template.html ..... replace {{title}} {{content}} etc.
+      |        |
+      |        v
+      |   blog/nome-do-post.html
+      |
+      +--> monta card do index (imagem + titulo + descricao)
+               |
+               v
+          index.template.html .... replace {{posts_list}}
+               |
+               v
+          blog/index.html (grid de cards)
+               |
+               v
+          Build do site: tailwindcss + node gerar-sw.js
+               |
+               v
+          sw.js (novo CACHE_NAME) -> pronto para publicar
+
+  ORDENACAO DA HOME: date: "25 de Agosto de 2026"
+    -> parseDatePtBr() (meses em portugues, com/sem acento)
+    -> Date real -> posts.sort() (mais novos primeiro;
+       sem data valida vai para o fim da lista)
+
+----------------------------------------------------------------------
+  4. CRIANDO UM ARTIGO DO ZERO (passo a passo)
+----------------------------------------------------------------------
+  1. Prepare a imagem de capa em /img/ (.webp, convencao de nomes - secao 7)
+  2. Crie posts-markdown/nome-do-post.md
+     (o nome vira a URL: blog/nome-do-post.html; minusculas, hifens, sem acento)
+  3. Escreva o cabecalho (frontmatter) - secao 5
+  4. Escreva o corpo em Markdown - secao 6
+  5. Gere os HTMLs:  npm run blog
+  6. Confira blog/nome-do-post.html e blog/index.html
+  7. Rode o build obrigatorio do site:
+       .\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify
+       node gerar-sw.js
+  8. Publique (commit/push e responsabilidade do desenvolvedor)
+
+----------------------------------------------------------------------
+  5. O CABECALHO (FRONTMATTER)
+----------------------------------------------------------------------
+  Todo artigo comeca com um bloco entre --- (obrigatorio):
+
+  ---
+  title: A Importancia da SAE e da NANDA na Pratica do Enfermeiro
+  description: Entenda como a SAE e a NANDA contribuem para uma assistencia segura.
+  date: 23 de Julho de 2026
+  keywords: SAE, NANDA, enfermagem, diagnostico de enfermagem
+  image: /img/livronanda-calculadoras-de-enfermagem.webp
+  ---
+
+  CAMPOS:
+  title: ........ Titulo (card, H1 do hero, <title>, OG, Schema.org)
+  description: .. Texto do card + meta description (curta, ~155 caracteres)
+  date: ......... Data em portugues: "D de Mes de AAAA" (ordenacao da home)
+  keywords: ..... Palavras-chave separadas por virgula
+  image: ........ Thumb do card + og:image + twitter:image (regras na secao 7)
+
+  COMO O image: VIRA URL (build-blog.js):
+    /img/exemplo.webp .. -> https://www.calculadorasdeenfermagem.com.br/img/exemplo.webp
+    img/exemplo.webp ... -> https://www.calculadorasdeenfermagem.com.br/img/exemplo.webp
+    https://... (cheia) . -> mantida como esta
+
+  PADROES (se campo faltar): "Sem Titulo", "Descricao indisponivel.",
+  "Data nao informada", keywords "enfermagem", imagem iconpages.webp
+
+  DATA - REGRAS:
+  - Formato: "25 de Agosto de 2026" (dia + de + mes PT + de + ano)
+  - Acentos nao importam (parser normaliza c->c, a->a, e->e etc.)
+  - Ordena a home: mais novos primeiro; sem data valida -> fim
+
+----------------------------------------------------------------------
+  6. SINTAXE MARKDOWN SUPORTADA (ordem exata do conversor)
+----------------------------------------------------------------------
+  # Titulo .............. H1 azul-escuro (#1A3E74)
+  ## Subtitulo .......... H2 azul-escuro com borda inferior
+  ### Sub-subtitulo ..... H3 azul-claro (#4A90E2)
+  **negrito** ........... <strong> azul-escuro
+  ![alt](/img/x.webp) ... imagem largura total, rounded, lazy
+  [texto](/url) ......... link azul em negrito (hover underline)
+  * item ................ lista com marcador (ul/li)
+  linha em branco ....... quebra de paragrafo (\n\n -> </p><p>)
+
+  EXEMPLO DE CORPO:
+
+  # A Importancia da SAE
+
+  A **Sistematizacao da Assistencia de Enfermagem** organiza o cuidado.
+
+  ![Livro NANDA](/img/livronanda-calculadoras-de-enfermagem.webp)
+
+  ## O Papel da NANDA
+
+  * Diagnostico claro e objetivo
+  * Plano de cuidados individualizado
+
+  Acesse a [Calculadora da Escala de Braden](/braden.html).
+
+  NAO SUPORTADO (evite):
+  - Italico *texto* ou _texto_
+  - Tabelas Markdown
+  - Listas numeradas (1. item)
+  - Citacoes (>) e blocos de codigo
+  - Legendas de imagem (figcaption)
+  - Paragrafos so quebram com LINHA EM BRANCO entre eles
+
+----------------------------------------------------------------------
+  7. IMAGENS - REGRAS RIGIDAS (licao do incidente de 25/08/2026)
+----------------------------------------------------------------------
+  1. SEMPRE barra normal / (NUNCA \)
+  2. O arquivo precisa EXISTIR com o nome exato. Nomes reais em /img/
+     seguem: assunto-calculadoras-de-enfermagem.webp
+  3. Formato recomendado: .webp na pasta /img/
+  4. Arquivo na RAIZ do site -> caminho /nome.webp (sem /img/)
+  5. Capas (image:) viram a thumb quadrada do card + OG/Twitter
+  6. Imagens do corpo usam ![alt](/img/...) e sao copiadas como estao
+  7. alt (texto alternativo) e obrigatorio (SEO + acessibilidade)
+
+  CHECKLIST DE IMAGEM:
+  [ ] Nome no .md e IDENTICO ao arquivo em /img/ (incluindo sufixo)?
+  [ ] Caminho usa / (nunca \)?
+  [ ] O arquivo existe (Test-Path)?
+  [ ] Card e artigo carregam apos npm run blog?
+
+----------------------------------------------------------------------
+  8. OS TEMPLATES (blog-templates/)
+----------------------------------------------------------------------
+  8.1 post.template.html (artigo) - placeholders:
+    {{title}} ......... title: do frontmatter
+    {{description}} ... description:
+    {{date}} .......... date:
+    {{keywords}} ...... keywords:
+    {{image}} ......... image: (ja convertida em URL absoluta)
+    {{canonical}} ..... https://www.calculadorasdeenfermagem.com.br/blog/<slug>.html
+    {{content}} ....... corpo .md convertido
+
+    ESTRUTURA FIXA:
+    - Head: <title>{{title}} - Blog Calculadoras de Enfermagem</title>,
+      meta description/keywords, robots index,follow, Open Graph (article,
+      og:image), Twitter summary_large_image, canonical + hreflang,
+      favicon, fontes, CSS, Schema.org Article (headline, image,
+      keywords, datePublished, Organization, mainEntityOfPage), anti-CLS,
+      global-scripts.js defer
+    - Body: menu global -> <main> com hero azul (#1A3E74):
+      eyebrow com data {{date}} -> H1 {{title}} -> eyebrow
+      "Conteudo para enfermagem" -> <article class="prose max-w-none">
+      {{content}} -> widget "Duvidas Frequentes" (link forum) ->
+      footer via fetch("/footer.html") + carregarTraducoes('pt',...)
+
+  8.2 index.template.html (home) - placeholder unico:
+    {{posts_list}} .... cards de TODOS os posts, ja ordenados
+
+    ESTRUTURA FIXA:
+    - Head: title "Blog da Enfermagem - Biblioteca Visual",
+      canonical/hreflang /blog/index.html, OG website, fontes, CSS,
+      bloco consentimento/Analytics/AdSense
+    - Body: menu global -> hero "Blog de Enfermagem" -> grid
+      responsivo (1/2/3/4/5 colunas) com {{posts_list}} -> footer
+
+  8.3 CARD GERADO POR POST (injeta no {{posts_list}}):
+    <a href="{slug}" class="group ...">
+      <div class="w-full aspect-square ...">
+        <img src="{image}" alt="{title}" class="w-full h-full object-cover ...">
+      </div>
+      <h3 class="text-sm font-bold text-[#1A3E74] ...">{title}</h3>
+      <p class="text-xs text-slate-500 line-clamp-2">{description}</p>
+    </a>
+
+----------------------------------------------------------------------
+  9. O GERADOR (scripts/build-blog.js)
+----------------------------------------------------------------------
+  1. Config: caminhos + domain (https://www.calculadorasdeenfermagem.com.br)
+     + baseUrl (.../blog/). Cria blog/ se nao existir.
+  2. parsePost(): le frontmatter campo a campo, define slug
+     (arquivo .md -> .html), monta canonical, guarda dateObj.
+  3. parseDatePtBr(): "20 de Fevereiro de 2026" -> Date (acentos ok;
+     fallback new Date()).
+  4. Ordenacao: posts por data DESCENDENTE (mais novos primeiro).
+  5. simpleMarkdownToHtml(): ordem = titulos -> imagens -> links ->
+     listas -> negrito -> paragrafos -> agrupamento <ul>.
+  6. Artigos: 7 replaces no post.template.html -> grava blog/<slug>.html.
+  7. Home: acumula cards -> substitui {{posts_list}} -> blog/index.html.
+  8. Logs: "Gerado: <slug>.html" e "Indice atualizado: blog/index.html".
+
+----------------------------------------------------------------------
+  10. COMANDOS DE TERMINAL
+----------------------------------------------------------------------
+  Gerar o blog ......... npm run blog
+  Build CSS do site .... .\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify
+  Service worker ....... node gerar-sw.js
+  Publicar ............. commit/push - RESPONSABILIDADE DO DESENVOLVEDOR
+
+  WATCHERS AUTOMATICOS (tasks do VS Code): Watch HTML Build,
+  Watch Sitemap, Watch Images, Watch PDFs (fs.watch recursivo,
+  anti-rajada por mtime). Mesmo assim rode os comandos manualmente.
+
+  SEQUENCIA PADRAO:
+    # 1. edite/crie posts-markdown/meu-post.md
+    npm run blog
+    .\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify
+    node gerar-sw.js
+
+----------------------------------------------------------------------
+  11. REGRAS E PROIBICOES
+----------------------------------------------------------------------
+  PROIBIDO (sem autorizacao): blog/, blog-templates/, downloads,
+    biblioteca, node_modules, .git
+  FONTE DE VERDADE: posts-markdown/*.md
+  HTML GERADO: blog/*.html e sobrescrito a cada npm run blog - nao edite
+  BACKUP antes de editar: backups-temporarios/<arquivo>.<YYYYMMDD-HHMMSS>.bak
+  COMMIT/PUSH: nunca executar automaticamente
+  IMAGENS: barra / sempre; nome EXATO; sufixo -calculadoras-de-enfermagem; .webp
+  BUILD obrigatorio: Tailwind + gerar-sw.js apos alterar HTML/CSS/JS
+
+----------------------------------------------------------------------
+  12. TROUBLESHOOTING (erros comuns)
+----------------------------------------------------------------------
+  Thumb cinza no card ...... nome do image: nao bate com arquivo real
+                             -> conferir sufixo e rodar npm run blog
+  Barra invertida na URL ... img\arquivo no .md -> trocar \ por /
+  Imagem existe, nao aparece  arquivo na raiz mas caminho diz /img/ (ou
+                             contrario) -> raiz = /arquivo.webp;
+                             pasta img = /img/arquivo.webp
+  Post fora da home ........ .md fora de posts-markdown/ ou data invalida
+  Ordem errada ............. date: fora do padrao "D de Mes de AAAA"
+  Texto colado ............. falta linha em branco entre paragrafos
+  Site ao vivo antigo ...... cache/sw antigo ou nao publicado
+                             -> node gerar-sw.js + publicar
+  Italico nao funciona ..... conversor nao suporta -> usar **negrito**
+
+----------------------------------------------------------------------
+  13. CHECKLIST FINAL DE PUBLICACAO
+----------------------------------------------------------------------
+  [ ] Frontmatter completo (title, description, date PT-BR, keywords, image)
+  [ ] Imagem de capa existe em /img/ com nome exato e barra /
+  [ ] Corpo usa apenas a sintaxe suportada (secao 6)
+  [ ] npm run blog sem erros (Gerado / Indice atualizado)
+  [ ] Card correto em blog/index.html
+  [ ] Artigo renderiza hero, conteudo e imagens
+  [ ] Build do site rodado (Tailwind + node gerar-sw.js)
+  [ ] Alteracoes prontas para o responsavel publicar
