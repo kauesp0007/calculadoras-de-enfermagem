@@ -33,12 +33,34 @@
   window.__IS_LANG_FOLDER = !!_match;
 
   // Mapa de idiomas TTS
-  var _ttsMap = { en:"en-US", es:"es-ES", de:"de-DE", it:"it-IT", fr:"fr-FR", hi:"hi-IN", zh:"zh-CN", ar:"ar-SA", ja:"ja-JP", ru:"ru-RU", ko:"ko-KR", tr:"tr-TR", nl:"nl-NL", pl:"pl-PL", sv:"sv-SE", id:"id-ID", vi:"vi-VN", uk:"uk-UA", pt:"pt-BR" };
+  var _ttsMap = { en: "en-US", es: "es-ES", de: "de-DE", it: "it-IT", fr: "fr-FR", hi: "hi-IN", zh: "zh-CN", ar: "ar-SA", ja: "ja-JP", ru: "ru-RU", ko: "ko-KR", tr: "tr-TR", nl: "nl-NL", pl: "pl-PL", sv: "sv-SE", id: "id-ID", vi: "vi-VN", uk: "uk-UA", pt: "pt-BR" };
   window.__TTS_LANG = _ttsMap[window.__LANG] || "pt-BR";
 
-  // Prefixo para fetches (relativo na pasta de idioma, absoluto na raiz)
-  window.__FETCH_PREFIX = window.__IS_LANG_FOLDER ? "" : "/";
+  // Prefixo para fetches: calculado conforme a profundidade da página dentro da
+  // pasta de idioma (ex.: "en/escalas-de-enfermagem/centro-cirurgico/" → "../../"),
+  // para menu-global.html, global-body-elements.html e footer.html carregarem em
+  // qualquer nível. Na raiz do site (pt-BR), mantém o prefixo absoluto "/".
+  if (window.__IS_LANG_FOLDER) {
+    var _parts = _path.slice(_match[0].length).split("/").filter(function (s) { return s; });
+    var _depth = _parts.length;
+    if (_depth > 0 && _parts[_parts.length - 1].indexOf(".") !== -1) _depth -= 1;
+    window.__FETCH_PREFIX = _depth > 0 ? new Array(_depth + 1).join("../") : "";
+  } else {
+    window.__FETCH_PREFIX = "/";
+  }
 })();
+
+// Corrige links relativos em conteúdo injetado (menu-global, footer) para que
+// funcionem em páginas aninhadas dentro da pasta de idioma.
+window.__FIX_RELATIVE_LINKS = function (container) {
+  if (!container || !container.querySelectorAll) return;
+  container.querySelectorAll("a[href]").forEach(function (a) {
+    var href = a.getAttribute("href") || "";
+    if (href && href.charAt(0) !== "#" && href.charAt(0) !== "/" && href.indexOf(":") === -1) {
+      a.setAttribute("href", window.__FETCH_PREFIX + href);
+    }
+  });
+};
 
 // Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
@@ -56,6 +78,8 @@ document.addEventListener("DOMContentLoaded", function () {
     if (o) {
       window.requestAnimationFrame(() => {
         o.innerHTML = e;
+        // Corrige links relativos do menu para páginas em subpastas de idioma
+        if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
         initializeNavigationMenu();
         // Inicializa auth no menu (não bloqueante)
         initializeAuthMenu();
@@ -98,9 +122,9 @@ function initializeNavigationMenu() {
     })
   });
   // Desktop: aria-expanded dinamico nos dropdowns por hover (D08 — WCAG 4.1.2)
-  document.querySelectorAll("nav.desktop-nav button[aria-haspopup]").forEach(function(btn) {
-    btn.addEventListener("mouseenter", function() { btn.setAttribute("aria-expanded", "true"); });
-    btn.addEventListener("mouseleave", function() { btn.setAttribute("aria-expanded", "false"); });
+  document.querySelectorAll("nav.desktop-nav button[aria-haspopup]").forEach(function (btn) {
+    btn.addEventListener("mouseenter", function () { btn.setAttribute("aria-expanded", "true"); });
+    btn.addEventListener("mouseleave", function () { btn.setAttribute("aria-expanded", "false"); });
   });
 }
 
@@ -253,7 +277,7 @@ function initializeAuthMenu() {
             window.Auth.onAuthChange(function (user) {
               safeUpdateUI(user);
             });
-          }).catch(function () {});
+          }).catch(function () { });
         }
         return;
       }
@@ -283,7 +307,7 @@ function initializeAuthMenu() {
           window.Auth.onAuthChange(function (user) {
             safeUpdateUI(user);
           });
-        }).catch(function () {});
+        }).catch(function () { });
       }
     }
     waitAndUpdate();
@@ -309,16 +333,16 @@ function initializeCookieFunctionality() {
 
   // Funções Lógicas
   const h = (param) => {
-      // Atualiza consentimento no GTM/GA4
-      if (typeof gtag === "function") {
-        gtag("consent", "update", param);
-      }
-      // Salva preferências granulares
-      try {
-        localStorage.setItem("analytics_storage", param.analytics_storage);
-        localStorage.setItem("ad_storage", param.ad_storage);
-      } catch (_) {}
-    },
+    // Atualiza consentimento no GTM/GA4
+    if (typeof gtag === "function") {
+      gtag("consent", "update", param);
+    }
+    // Salva preferências granulares
+    try {
+      localStorage.setItem("analytics_storage", param.analytics_storage);
+      localStorage.setItem("ad_storage", param.ad_storage);
+    } catch (_) { }
+  },
     u = () => {
       e && e.classList.remove("show")
     },
@@ -445,13 +469,13 @@ function initializeGlobalFunctions() {
   const v = window.speechSynthesis,
     _isEN = window.__LANG === "en",
     w = _isEN ? [{ rate: .8, label: "Slow" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Fast" }]
-             : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }];
+      : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }];
   document.addEventListener("focusin", e => {
     b = e.target
   });
   const E = e => {
-      t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
-    },
+    t.textContent = e, setTimeout(() => t.textContent = "", 3e3)
+  },
     // =========================================================
     // ACESSIBILIDADE: ajustes (corrigido)
     // =========================================================
@@ -492,7 +516,7 @@ function initializeGlobalFunctions() {
       (void 0 === announce || announce) && E(`Espaçamento de letra: ${labels[iLevel]}`);
     },
     readingSpeeds = _isEN ? [{ rate: .8, label: "Slow" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Fast" }]
-                          : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
+      : [{ rate: .8, label: "Lenta" }, { rate: 1, label: "Normal" }, { rate: 1.5, label: "Rápida" }],
     applyReadingSpeed = (level, announce) => {
       const idx = Math.min(Math.max(parseInt(level || 1, 10), 1), readingSpeeds.length);
       h = idx;
@@ -674,7 +698,7 @@ function initializeGlobalFunctions() {
           const newDisplay = _lastScrollY > 200 ? "block" : "none";
           // ESCRITA NO DOM (Dentro da animação)
           if (zTop.style.display !== newDisplay) {
-            zTop.style.display = newDisplay; 
+            zTop.style.display = newDisplay;
           }
           _ticking = false;
         });
@@ -695,7 +719,7 @@ function ativarModoDislexia() {
     link.href = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
     document.head.appendChild(link);
   }
-  
+
   // 2. Adiciona a classe ao body para ativar a fonte
   document.body.classList.toggle('dyslexic');
 }
@@ -731,7 +755,7 @@ function ativarModoDislexia() {
 
     // REGRA NOVA: Captura o valor do atributo 'data-evento'
     const nomeDoEvento = elementoClicado.getAttribute("data-evento");
-    
+
     // Se o elemento não tiver o atributo data-evento, ignora o clique
     if (!nomeDoEvento) return;
 
@@ -945,68 +969,68 @@ document.addEventListener("DOMContentLoaded", initLazyLoadServices);
 
 // Verifica se a variável já existe para evitar erro de declaração duplicada
 if (typeof traducoes === 'undefined') {
-    var traducoes = {};
+  var traducoes = {};
 }
 
 /**
  * Aplica as traduções nos elementos da página
  */
 function aplicarTraducoes() {
-    // 1. Tradução para texto comum (data-i18n)
-    document.querySelectorAll("[data-i18n]").forEach(el => {
-        const chave = el.getAttribute("data-i18n");
-        const partes = chave.split('.');
+  // 1. Tradução para texto comum (data-i18n)
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const chave = el.getAttribute("data-i18n");
+    const partes = chave.split('.');
 
-        let valor = traducoes;
-        partes.forEach(p => {
-            if (valor && valor[p] !== undefined) valor = valor[p];
-            else valor = null;
-        });
-
-        if (valor !== null) el.textContent = valor;
+    let valor = traducoes;
+    partes.forEach(p => {
+      if (valor && valor[p] !== undefined) valor = valor[p];
+      else valor = null;
     });
 
-    // 2. Tradução para aria-labels
-    document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
-        const chave = el.getAttribute("data-i18n-aria-label");
-        const partes = chave.split('.');
+    if (valor !== null) el.textContent = valor;
+  });
 
-        let valor = traducoes;
-        partes.forEach(p => {
-            if (valor && valor[p] !== undefined) valor = valor[p];
-            else valor = null;
-        });
+  // 2. Tradução para aria-labels
+  document.querySelectorAll("[data-i18n-aria-label]").forEach(el => {
+    const chave = el.getAttribute("data-i18n-aria-label");
+    const partes = chave.split('.');
 
-        if (valor !== null) el.setAttribute("aria-label", valor);
+    let valor = traducoes;
+    partes.forEach(p => {
+      if (valor && valor[p] !== undefined) valor = valor[p];
+      else valor = null;
     });
 
-    // Atualiza o ano após aplicar as traduções
-    substituirAno();
+    if (valor !== null) el.setAttribute("aria-label", valor);
+  });
+
+  // Atualiza o ano após aplicar as traduções
+  substituirAno();
 }
 
 /**
  * Busca o arquivo JSON e inicia a tradução
  */
 async function carregarTraducoes(idioma, arquivoJson) {
-    try {
-        const resposta = await fetch(`/locales/${idioma}/${arquivoJson}`);
-        const novosDados = await resposta.json();
+  try {
+    const resposta = await fetch(`/locales/${idioma}/${arquivoJson}`);
+    const novosDados = await resposta.json();
 
-        traducoes = { ...traducoes, ...novosDados };
-        aplicarTraducoes();
-    } catch (error) {
-        console.error("Erro ao carregar tradução:", error);
-    }
+    traducoes = { ...traducoes, ...novosDados };
+    aplicarTraducoes();
+  } catch (error) {
+    console.error("Erro ao carregar tradução:", error);
+  }
 }
 
 /**
  * Atualiza o marcador {{year}}
  */
 function substituirAno() {
-    const yearSpan = document.querySelector('[data-i18n="footer.copyright"]');
-    if (yearSpan && yearSpan.textContent.includes('{{year}}')) {
-        yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
-    }
+  const yearSpan = document.querySelector('[data-i18n="footer.copyright"]');
+  if (yearSpan && yearSpan.textContent.includes('{{year}}')) {
+    yearSpan.textContent = yearSpan.textContent.replace('{{year}}', new Date().getFullYear());
+  }
 }
 // Função inteligente que aplica o Lazy Load e altera a fonte
 function alternarModoDislexia() {
@@ -1018,7 +1042,7 @@ function alternarModoDislexia() {
     link.href = 'https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.min.css';
     document.head.appendChild(link);
   }
-  
+
   // 2. Ativa ou desativa a classe no body
   document.body.classList.toggle('dyslexic');
 }
@@ -1032,13 +1056,13 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Carregamento adiado (lazy load) do Manifest para otimização de Core Web Vitals
-window.addEventListener('load', function() {
-    setTimeout(function() {
-        const manifestLink = document.createElement('link');
-        manifestLink.rel = 'manifest';
-        manifestLink.href = '/manifest.json';
-        document.head.appendChild(manifestLink);
-    }, 1000); // Aguarda 1 segundo após o load completo da página
+window.addEventListener('load', function () {
+  setTimeout(function () {
+    const manifestLink = document.createElement('link');
+    manifestLink.rel = 'manifest';
+    manifestLink.href = '/manifest.json';
+    document.head.appendChild(manifestLink);
+  }, 1000); // Aguarda 1 segundo após o load completo da página
 });
 
 
