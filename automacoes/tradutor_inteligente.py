@@ -763,9 +763,10 @@ if __name__ == "__main__":
     # e aplica os managers (lang, canonical, hreflang, fontes, footer, rotas).
     # =========================================================================
     
-    arquivos_originais = ["capurro.html"] 
+    # Pode ser um arquivo .html OU uma pasta (varre recursivamente os .html).
+    arquivos_originais = ["escalas-de-enfermagem"] 
      
-    idiomas_alvo = ["it", "fr"]
+    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
     MODO_DRY_RUN = False      # True = testa tudo SEM chamar a API nem gravar
     COM_AUDITORIA = True      # relatório pós-tradução (estrutura, pt restante, legado)
@@ -784,22 +785,49 @@ if __name__ == "__main__":
     modo = "dry-run" if MODO_DRY_RUN else "real"
     salvos = 0
 
-    for arquivo_original in arquivos_originais:
-        for idioma_alvo in idiomas_alvo:
-            print(f"\n{C_AMARELO}======================================================={RESET}")
-            print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{arquivo_original}{RESET}")
-            print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Destino: ./{idioma_alvo}/){RESET}")
-            print(f"{C_AMARELO}======================================================={RESET}\n")
-
-            caminho_fonte = Path(arquivo_original)
-            if not caminho_fonte.exists():
-                caminho_fonte = RAIZ / arquivo_original
-            if not caminho_fonte.exists():
-                print(f"{C_AMARELO}Atenção: o arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
+    # ---- Expande a configuração: pasta vira lista recursiva de .html ----
+    lista_processamento = []  # (rótulo exibido, caminho do arquivo fonte)
+    for entrada in arquivos_originais:
+        caminho_entrada = Path(entrada)
+        if not caminho_entrada.exists():
+            caminho_entrada = RAIZ / entrada
+        if not caminho_entrada.exists():
+            print(f"{C_AMARELO}Atenção: '{entrada}' não foi encontrado na raiz.{RESET}")
+            continue
+        # Torna o caminho absoluto: necessário para relative_to(RAIZ) funcionar
+        caminho_entrada = caminho_entrada.resolve()
+        if caminho_entrada.is_dir():
+            encontrados = sorted(caminho_entrada.rglob("*.html"))
+            if not encontrados:
+                print(f"{C_AMARELO}Atenção: nenhum arquivo .html dentro de '{entrada}'.{RESET}")
                 continue
+            print(f"{C_AZUL}📂 Pasta '{entrada}': {len(encontrados)} arquivo(s) .html para processar.{RESET}")
+            for encontrado in encontrados:
+                lista_processamento.append(
+                    (str(encontrado.relative_to(RAIZ)), encontrado))
+        else:
+            lista_processamento.append((entrada, caminho_entrada))
+
+    for rotulo, caminho_fonte in lista_processamento:
+        # Preserva a estrutura de subpastas na pasta do idioma.
+        # Ex.: escalas-de-enfermagem/dor/index.html → ./it/escalas-de-enfermagem/dor/index.html
+        if RAIZ in caminho_fonte.parents:
+            subpasta = caminho_fonte.parent.relative_to(RAIZ)
+        else:
+            subpasta = Path(".")
+        subpasta_str = subpasta.as_posix() if str(subpasta) != "." else ""
+        for idioma_alvo in idiomas_alvo:
+            pasta_saida = RAIZ / idioma_alvo / subpasta
+            destino_exibicao = (f"{idioma_alvo}/{subpasta_str}/" if subpasta_str
+                                else f"{idioma_alvo}/")
+            print(f"\n{C_AMARELO}======================================================={RESET}")
+            print(f"{C_AZUL}▶ ARQUIVO DE ORIGEM: {C_AMARELO}{rotulo}{RESET}")
+            print(f"{C_AZUL}▶ IDIOMA ALVO:       {C_AMARELO}{idioma_alvo} {C_VERDE}(Destino: ./{destino_exibicao}){RESET}")
+            print(f"{C_AMARELO}======================================================={RESET}\n")
 
             resultado = orchestrator.traduzir_arquivo(
                 caminho_fonte, idioma_alvo, modo=modo,
+                pasta_saida=str(pasta_saida),
             )
 
             print(f"{C_AZUL}[v2]{RESET} {resultado['arquivo']} → {resultado['idioma']} ({modo}): "
@@ -816,11 +844,11 @@ if __name__ == "__main__":
                 rel = audit.relatorio(
                     resultado["html_final"],
                     caminho_fonte.read_text(encoding="utf-8"),
-                    RAIZ / idioma_alvo / caminho_fonte.name,
+                    pasta_saida / caminho_fonte.name,
                 )
                 audit.imprimir_relatorio(rel)
 
-            is_last_file = (arquivo_original == arquivos_originais[-1])
+            is_last_file = (rotulo == lista_processamento[-1][0])
             is_last_lang = (idioma_alvo == idiomas_alvo[-1])
             if not (is_last_file and is_last_lang):
                 print(f"{C_AMARELO}⏳ Pausa de segurança: {PAUSA_ENTRE_EXECUCOES_SEGUNDOS}s...{RESET}")

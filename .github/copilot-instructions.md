@@ -69,9 +69,14 @@ prioritárias estão em `AI_RULES.md` (prioridade máxima), `HTML_RULES.md` e
   centenas/milhares de linhas.
 - **Verificação final**: após atualizar/criar, conferir se o conteúdo está correto e seguindo
   Core Web Vitals, responsividade mobile máxima e acessibilidade (skip-link, alt, aria, focus).
-- **Página nova**: incluí-la no `mapa-do-site.html` (regenerar `relatorio_paginas.txt`) e
-  PERGUNTAR ao desenvolvedor em qual caminho do `menu-global.html` incluir a nova página;
-  depois incluir no menu global e no menu off-canvas (mobile).
+- **Página nova**: incluí-la em `relatorio_paginas.txt` (fonte canônica — o `mapa-do-site.html`
+  é gerado dinamicamente a partir dele; NUNCA editar o mapa manualmente) e PERGUNTAR ao
+  desenvolvedor em qual caminho do `menu-global.html` incluir a nova página; depois incluir
+  no menu global (desktop) e no menu off-canvas (mobile).
+- **Menu por idioma**: cada pasta de idioma (`en/`, `es/`, ...) tem o seu próprio
+  `menu-global.html`. Ao criar/registrar página nova, o submenu deve ser adicionado ao
+  `menu-global.html` da raiz (pt-BR, caminhos absolutos `/...`) E ao `menu-global.html` de
+  cada um dos 18 idiomas (rótulos traduzidos, caminhos RELATIVOS, ex.: `pagina.html` sem `/`).
 
 ## Build obrigatório (ao alterar HTML/CSS/JS do site)
 

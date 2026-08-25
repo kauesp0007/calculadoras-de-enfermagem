@@ -100,6 +100,7 @@ Ao criar página nova, seguir o procedimento obrigatório abaixo (regra do proje
 - É terminantemente proibido adicionar links manualmente em `mapa-do-site.html`. Se for encontrada uma inclusão manual, o agente/operador deve removê-la e garantir que a entrada exista em `relatorio_paginas.txt`.
 - Após atualizar `relatorio_paginas.txt`, executar o build necessário (ex.: Tailwind rebuild e `node gerar-sw.js`) para que o site sirva a versão atualizada.
 - Perguntar ao desenvolvedor em qual caminho do `menu-global.html` a página deve entrar; depois incluir no menu global (desktop) e no menu off-canvas (mobile) conforme orientação.
+- Cada pasta de idioma (`en/`, `es/`, `de/`, ...) possui o seu próprio `menu-global.html`. A página nova deve entrar no `menu-global.html` da raiz (rótulos pt-BR, caminhos absolutos `/...`) e também no `menu-global.html` de cada um dos 18 idiomas (rótulos traduzidos, caminhos RELATIVOS, ex.: `pagina.html` sem `/`). Incluir nos dois blocos de cada arquivo: menu desktop e menu off-canvas (mobile).
 
 Observação: sempre criar backup em `backups-temporarios/` antes de editar `relatorio_paginas.txt` ou templates do mapa; não executar `git commit`/`git push` automaticamente — preparar alterações e avisar o responsável para commit/push.
 
