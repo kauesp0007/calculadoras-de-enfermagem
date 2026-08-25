@@ -1,9 +1,9 @@
 ---
-title: Fugir do local da PCR: o medo de errar também faz parte do início da carreira
+title: Fugir do local da PCR - O medo de errar também faz parte do início da carreira
 description: O medo de errar durante uma parada cardiorrespiratória pode fazer profissionais recém-formados se afastarem da cena. Entenda por que isso acontece e como a liderança e a organização da assistência podem fazer a diferença.
 date: 25 de Agosto de 2026
 keywords: enfermagem, parada cardiorrespiratória, PCR, enfermeiro, liderança em enfermagem, emergência, código azul, reanimação cardiopulmonar, equipe de enfermagem, UTI
-image: https://www.calculadorasdeenfermagem.com.br/img/fugir-do-local-da-pcr-medo-de-errar-enfermagem.webp
+image: img\enfermeira_no_posto_de_enfermagem_ligando_meta2.webp
 ---
 
 # Fugir do local da PCR: o medo de errar
@@ -52,7 +52,7 @@ O enfermeiro começa a procurar alguma coisa para fazer longe do paciente.
 
 "Vou buscar alguma coisa na farmácia."
 
-"Vou ver se alguém precisa de alguma coisa."
+"Vou ver se consigo contato com o médico."
 
 E, quando percebe, já não está mais dentro do quarto.
 
@@ -70,17 +70,19 @@ E acontece, principalmente, em momentos iniciais da vida profissional.
 
 Muitas vezes, o profissional conhece as técnicas.
 
-Conhece a sequência básica.
+Conhece o protocolo.
 
-Sabe o que é uma compressão eficaz.
+Domina a propedeutica e a semiologia.
 
 Conhece os medicamentos utilizados no atendimento.
 
-Em suma, sabe a ciência e a literatura.
+Em suma, tem a ciência e a literatura.
 
 Mas ainda não sabe liderar.
 
 Ainda não sabe conduzir uma equipe.
+
+Ainda nao sabe fazer sem tremer, sem ficar nervoso.
 
 Ainda não se sente confortável para falar em voz alta diante do médico, do fisioterapeuta e dos próprios técnicos de enfermagem.
 
@@ -123,6 +125,8 @@ E realmente é trabalho.
 Mas existe uma diferença importante:
 
 **organizar a assistência não significa necessariamente abandonar a liderança da assistência.**
+
+![Descrição textual para deficientes visuais e SEO Google](\img\Atendimento_pcr_codigo_azul_equipe_de_enfermagem.webp)
 
 O problema não é fazer uma ligação.
 
@@ -222,6 +226,8 @@ Quem vai para as compressões?
 
 Quem ficará responsável pelo carrinho?
 
+![Descrição textual para deficientes visuais e SEO Google](/img/o-responsavel-pelo-carrinho-de-emergencia-deve-ter-em-mente-as-5-causas-provaveis-h-de-uma-pcr-e-assim-organizar-o-carrinho-de-emerg-calculadoras-de-enfermagem.webp)
+
 Quem vai auxiliar nas vias aéreas?
 
 Quem vai buscar o prontuário?  chamar o médico? providenciar determinado material?
@@ -310,23 +316,23 @@ Não é para abandonar o paciente para estudar o prontuário.
 
 Enquanto o atendimento acontece, verifique os recursos que podem ser necessários.
 
-O cardioversor está disponível?
+O cardioversor está disponível, Está conectado a tomada, está em modo de monitor?
 
-Está conectado a tomada?
+O material de acesso venoso está Pérveo é Patente/Calibre grande?
 
-Está em modo de monitor?
+Os medicamentos estão sendo preparados pela pessoa responsável e voce está fazendo a dupla checagem das MAV's com o técnico? Cronômetro ligado? está registrando os acontecimentos? 
 
-O material de acesso venoso está disponível?
+A equipe está preparada para as próximas etapas? Voce está pensando nas próximas etapas?
 
-Os medicamentos estão sendo preparados pela pessoa responsável?
+A grande diferença está em antecipar necessidades sem transformar a cena em um tumulto, tenha em mente: 
 
-O cronômetro está funcionando?
+* Delegar nominalmente o responsavel por cada função primeiramente (tente nao exigir deste colaborador algo além do que lhe foi delegado, o foco desta pessoa deve ser apena em recursos assistencia relacionados ao que lhe foi delegado);
 
-Alguém está registrando os acontecimentos?
+* Verifique rapidamente se o time que você organizou esta em sincronia, se houver lacunas descobertas corrija auxiliando se preciso.
 
-A equipe está preparada para as próximas etapas?
+* Entre as inúmeras atividades e funções de sua competencia durante o Código Azul o que vai ser esperado de voce com a chegada do médico e do fisioterapeuta é a famosa META 2, conversa clinica rápida com o médico ou o fisioterapeuta atualizando-os sobre: 1. O que aconteceu 2. Quanto tempo se passou 3. Dados pessoais e clínicos do paciente 4. O que contem na prescrição (qual o tratamento está sendo empregado) 5. Informações Laboratorias recentes (ESSE É O SEGREDO!) com o tempo voce irá entender... Nao é decorar 5 paginas de impressos de exames de laboratorio mas saber na condição de enfermeiro qual o valor do ultimo sódio e potassio do paciente, como está e o que esta sendo empregado ao paciente em relaçoes as trocas de gases (parte respiratoria), se souber valor de gasometria excelente! se voce conseguiu colher uma gaso e ja foi para o laboratorio voce merece um abraço! 6. Sinais vitais nao serao tao relevantes haja vista a monitorização no momento do codigo azul é um dado tanto que um pouco "enrolação" mas GLICEMIA é importante! foi feito o dextro? você sabe o valor? **A MELHOR META 2 EMPREGADA DURANTE A PCR ESTA RELACIONADO A ESTE MOMENTO** passar essas informaçoes clinicas sobre o paciente em PCR no momento da chegada do médico é tão mais importante para direcionar o ato médico rapidamente e ajuda-lo no raciocinio clínico do que voce estar revezando compressões torácicas, vai por mim...
 
-A grande diferença está em antecipar necessidades sem transformar a cena em um tumulto.
+Clique aqui para ver a [Guia Rápido: Suporte avançado de vida Cardiologia](/suporte-avancado-de-vida.html.html).
 
 # E quando o paciente retorna?
 
@@ -340,16 +346,17 @@ Começam novas preocupações:
 * monitorização;
 * acessos;
 * medicamentos;
-* bombas de infusão;
+* bombas de infusão e preparação de sedoanalgesias e vasoativas;
+* Preparação para transferência do paciente para UTI
 * avaliação clínica;
 * exames;
-* comunicação com a UTI;
+* comunicação com a UTI - Você comunica a UTI, passa o caso ao enfermeiro intensivista e solicita o contato do Medico intensivista com o medico que atual na parada (Meta 2); Da mesma forma é preciso comunicar Nucleo Interno de Regulação (NIR) e convênio caso seja um hospital conveniado.
 * registro do atendimento;
 * Procedimentos de alta complexidade (CVC, SVD, VM).
 
 É justamente nessa hora que a organização feita durante a PCR pode fazer diferença.
 
-Uma equipe organizada consegue fazer a transição para o período pós-PCR com muito mais segurança.
+Uma equipe organizada consegue fazer a transição para o período pós-PCR para UTI com muito mais segurança e tranquilidade.
 
 # Você não precisa fazer tudo
 
@@ -375,13 +382,13 @@ Transforme o medo em organização.
 
 Durante a graduação, aprendemos procedimentos.
 
-Aprendemos medicamentos.
+Aprendemos Farmacologia.
 
-Aprendemos fisiologia.
+Aprendemos fisipatologia.
 
-Aprendemos patologias.
+Aprendemos Propedeutica e Semiologia.
 
-Aprendemos protocolos.
+Aprendemos protocolos e Ciência.
 
 Mas existe uma habilidade que só começa a ficar realmente confortável com a prática:
 
@@ -458,3 +465,5 @@ No meio de toda aquela adrenalina, talvez você descubra que não precisa de mui
 **Apenas a voz e o conhecimento.**
 
 E, no momento certo, você saberá quando começar a revezar com a equipe.
+
+Até mais ver! Enfermeiro Cauê Marques.
