@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.calculadorasdeenfermagem.com.br/schemas/evidence-source.schema.json",
+  "title": "Evidence Source — snapshot oficial adquirido",
+  "version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "evidence_source_id",
+    "canonical_id",
+    "url",
+    "authority",
+    "authority_class",
+    "acquisition_status"
+  ],
+  "properties": {
+    "evidence_source_id": {
+      "type": "string"
+    },
+    "canonical_id": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri"
+    },
+    "authority": {
+      "type": "string"
+    },
+    "authority_class": {
+      "type": "string",
+      "enum": [
+        "OFFICIAL_REGIONAL",
+        "OFFICIAL_FEDERAL_SYSTEM_COPY",
+        "OFFICIAL_TRANSPARENCY_PORTAL",
+        "SECONDARY_NOT_ACCEPTABLE"
+      ]
+    },
+    "acquisition_status": {
+      "type": "string",
+      "enum": [
+        "PENDING_ACQUISITION",
+        "ACQUIRED",
+        "ACQUISITION_FAILED"
+      ]
+    },
+    "acquired_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "http_status": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "mime_type": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "byte_length": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "storage_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "retrieval_agent": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "acquisition_status": {
+            "const": "ACQUIRED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "acquired_at",
+          "mime_type",
+          "byte_length",
+          "sha256",
+          "storage_ref"
+        ],
+        "properties": {
+          "sha256": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ]
+}

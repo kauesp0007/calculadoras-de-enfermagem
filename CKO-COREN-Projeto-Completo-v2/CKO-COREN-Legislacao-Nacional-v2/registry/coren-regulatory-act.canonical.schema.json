@@ -1,0 +1,416 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://www.calculadorasdeenfermagem.com.br/schemas/coren-regulatory-act.canonical.schema.json",
+  "title": "COREN Regional Regulatory Act — Canonical Object",
+  "version": "2.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "canonical_id",
+    "object_type",
+    "schema_version",
+    "issuer",
+    "jurisdiction",
+    "act_type",
+    "identifier",
+    "title",
+    "source",
+    "epistemic",
+    "version_envelope",
+    "projection_catalog"
+  ],
+  "properties": {
+    "canonical_id": {
+      "type": "string",
+      "pattern": "^BR-COREN-[A-Z]{2}-[A-Z]+-[A-Z0-9-]+$"
+    },
+    "object_type": {
+      "const": "COREN_REGULATORY_ACT"
+    },
+    "schema_version": {
+      "const": "2.0.0"
+    },
+    "issuer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "name",
+        "short_name"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "pattern": "^[A-Z]{2}$"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 5
+        },
+        "short_name": {
+          "type": "string",
+          "minLength": 3
+        }
+      }
+    },
+    "jurisdiction": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "state",
+        "country"
+      ],
+      "properties": {
+        "state": {
+          "type": "string"
+        },
+        "country": {
+          "const": "Brasil"
+        }
+      }
+    },
+    "act_type": {
+      "type": "string",
+      "enum": [
+        "DECISAO",
+        "PORTARIA",
+        "PARECER",
+        "PARECER_NORMATIVO",
+        "REGIMENTO_INTERNO",
+        "NORMA_INTERNA",
+        "EDITAL",
+        "RESPOSTA_TECNICA",
+        "OUTRO"
+      ]
+    },
+    "identifier": {
+      "type": "string",
+      "minLength": 3
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "summary": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "url",
+        "host",
+        "kind",
+        "authority_class"
+      ],
+      "properties": {
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "host": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "authority_class": {
+          "type": "string",
+          "enum": [
+            "OFFICIAL_REGIONAL",
+            "OFFICIAL_FEDERAL_SYSTEM_COPY",
+            "OFFICIAL_TRANSPARENCY_PORTAL",
+            "SECONDARY_NOT_ACCEPTABLE"
+          ]
+        },
+        "evidence_source_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "epistemic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_level",
+        "full_text_status",
+        "legal_status",
+        "legal_status_basis"
+      ],
+      "properties": {
+        "content_level": {
+          "type": "string",
+          "description": "Nivel maximo de conteudo sustentado por fonte. Governa elegibilidade de projecao.",
+          "enum": [
+            "METADATA",
+            "SUMMARY",
+            "FULL_TEXT_DEVICES"
+          ]
+        },
+        "status": {
+          "type": "string"
+        },
+        "full_text_status": {
+          "type": "string",
+          "enum": [
+            "SOURCE_AVAILABLE_NOT_MATERIALIZED_IN_PACKAGE",
+            "NOT_MATERIALIZED_IN_PACKAGE",
+            "MATERIALIZED_WITH_EVIDENCE"
+          ]
+        },
+        "legal_status": {
+          "type": "string",
+          "enum": [
+            "NOT_INFERRED",
+            "EFFECTIVE_ON_SIGNATURE_PER_SOURCE",
+            "EFFECTIVE_PER_SOURCE",
+            "REVOKED",
+            "SUSPENDED",
+            "SUPERSEDED"
+          ]
+        },
+        "legal_status_basis": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind",
+            "statement"
+          ],
+          "properties": {
+            "kind": {
+              "type": "string",
+              "enum": [
+                "SOURCE_EXPLICIT",
+                "NONE"
+              ]
+            },
+            "statement": {
+              "type": "string"
+            },
+            "evidence_fragment_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          }
+        },
+        "status_event_date": {
+          "type": "string",
+          "format": "date"
+        }
+      }
+    },
+    "version_envelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "content_version",
+        "source_version",
+        "first_seen",
+        "last_reviewed"
+      ],
+      "properties": {
+        "content_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+$"
+        },
+        "source_version": {
+          "type": "string"
+        },
+        "first_seen": {
+          "type": "string",
+          "format": "date"
+        },
+        "last_reviewed": {
+          "type": "string",
+          "format": "date"
+        },
+        "changesets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/changeset"
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fragment_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ipe_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "caat_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "alcoa_ref": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "type",
+          "target",
+          "class",
+          "force_declared"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CITES",
+              "REVOKES",
+              "REVOKED_BY",
+              "AMENDS",
+              "AMENDED_BY",
+              "GOVERNS_INTERNAL_PROCESS",
+              "STATUS_EVENT",
+              "RELATES_TO"
+            ]
+          },
+          "target": {
+            "type": "string"
+          },
+          "target_canonical_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "class": {
+            "type": "string",
+            "enum": [
+              "DIRECT",
+              "INDIRECT"
+            ]
+          },
+          "force_declared": {
+            "type": "string",
+            "description": "Nunca inferido a partir do titulo do alvo.",
+            "enum": [
+              "NOT_DECLARED",
+              "BINDING_PER_SOURCE",
+              "REFERENCE_ONLY"
+            ]
+          },
+          "evidence_fragment_ref": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "devices": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "label",
+          "text",
+          "evidence_fragment_ref"
+        ],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "string"
+          },
+          "evidence_fragment_ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "projection_catalog": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "changeset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "changeset_id",
+        "detected_at",
+        "kind",
+        "source_hash_before",
+        "source_hash_after"
+      ],
+      "properties": {
+        "changeset_id": {
+          "type": "string"
+        },
+        "detected_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "SOURCE_CHANGED",
+            "STATUS_CHANGED",
+            "METADATA_CORRECTED",
+            "RETRACTED"
+          ]
+        },
+        "source_hash_before": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_hash_after": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

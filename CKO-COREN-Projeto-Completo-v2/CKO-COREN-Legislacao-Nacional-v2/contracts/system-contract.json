@@ -1,0 +1,225 @@
+{
+  "system_id": "CKO-COREN-LEGISLACAO-NACIONAL-v2",
+  "version": "2.0.0",
+  "generated_at": "2026-08-26T12:00:00Z",
+  "status": "RUNTIME_GOVERNADO_COM_RELEASE_PARCIAL",
+  "pipeline": "Source → Canonical → Engine → Validator → Projection → Renderer → Output → Monitor",
+  "coverage": {
+    "regional_councils": 27,
+    "regional_hubs": 27,
+    "type_indexes_per_regional": 9,
+    "canonized_acts": 2,
+    "published_pages": 273,
+    "projection_surfaces": 34,
+    "retired_acts": 1
+  },
+  "layers": [
+    {
+      "layer_id": "L1-CANONICAL",
+      "module": "canonical/acts/*.json",
+      "version": "2.0.0",
+      "input_contract": "documento oficial do conselho regional (via evidence-source)",
+      "output_contract": "COREN_REGULATORY_ACT@2.0.0",
+      "depends_on": [],
+      "gate": "SCHEMA"
+    },
+    {
+      "layer_id": "L2-ENGINE-TEMPORAL",
+      "module": "engines/temporal-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "COREN_REGULATORY_ACT@2.0.0 + fragments",
+      "output_contract": "TemporalState (display_mode, events, valid_from/to, inference_used=false)",
+      "depends_on": [
+        "L1-CANONICAL"
+      ],
+      "gate": "TEMPORAL"
+    },
+    {
+      "layer_id": "L2-ENGINE-RELATION",
+      "module": "engines/relation-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "COREN_REGULATORY_ACT@2.0.0 + fragments + catalogIds",
+      "output_contract": "RelationState (effective_force, applicability)",
+      "depends_on": [
+        "L1-CANONICAL"
+      ],
+      "gate": "RELATIONS"
+    },
+    {
+      "layer_id": "L3-ENGINE-REGULATORY",
+      "module": "engines/regulatory-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "COREN_REGULATORY_ACT@2.0.0 + evidence context",
+      "output_contract": "RegulatoryStateObject (gates, findings, status_display)",
+      "depends_on": [
+        "L2-ENGINE-TEMPORAL",
+        "L2-ENGINE-RELATION"
+      ],
+      "gate": "SCHEMA+EVIDENCE+TEMPORAL+RELATIONS+IPE+ALCOA"
+    },
+    {
+      "layer_id": "L4-PROJECTION",
+      "module": "engines/projection-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "RegulatoryStateObject + projection-catalog",
+      "output_contract": "ValidatedProjectionDTO@1.0.0 (payload null quando bloqueado)",
+      "depends_on": [
+        "L3-ENGINE-REGULATORY"
+      ],
+      "gate": "PROJECTION"
+    },
+    {
+      "layer_id": "L5-RENDERER-PAGE",
+      "module": "renderers/page-renderer.mjs",
+      "version": "1.0.0",
+      "input_contract": "ValidatedProjectionDTO@1.0.0",
+      "output_contract": "HTML pré-renderizado",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "—"
+    },
+    {
+      "layer_id": "L5-RENDERER-RESOURCE",
+      "module": "renderers/resource-renderer.mjs",
+      "version": "1.0.0",
+      "input_contract": "ValidatedProjectionDTO@1.0.0",
+      "output_contract": "HTML de recurso",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "—"
+    },
+    {
+      "layer_id": "L5-RENDERER-SOCIAL",
+      "module": "renderers/social-renderer.mjs",
+      "version": "1.0.0",
+      "input_contract": "ValidatedProjectionDTO@1.0.0",
+      "output_contract": "HTML social + media-spec",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "—"
+    },
+    {
+      "layer_id": "L5-RENDERER-PDF",
+      "module": "renderers/pdf-renderer.mjs",
+      "version": "1.0.0",
+      "input_contract": "ValidatedProjectionDTO@1.0.0",
+      "output_contract": "HTML de impressão",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "—"
+    },
+    {
+      "layer_id": "L5-ENGINE-SEO",
+      "module": "engines/seo-schema-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "rota canônica + payload de metadados",
+      "output_contract": "head materializado (title/description/canonical/robots/OG/Twitter/JSON-LD)",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "SEO"
+    },
+    {
+      "layer_id": "L5-ENGINE-MEDIA",
+      "module": "engines/media-projection-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "ValidatedProjectionDTO social",
+      "output_contract": "media-spec determinística com input_hash",
+      "depends_on": [
+        "L4-PROJECTION"
+      ],
+      "gate": "—"
+    },
+    {
+      "layer_id": "L6-ASSURANCE",
+      "module": "assurance/assurance-engine.mjs",
+      "version": "1.0.0",
+      "input_contract": "estados + CAATs + gates de pacote",
+      "output_contract": "Assurance Object (nível por escopo)",
+      "depends_on": [
+        "L3-ENGINE-REGULATORY"
+      ],
+      "gate": "ASSURANCE"
+    },
+    {
+      "layer_id": "L7-RELEASE-GATE",
+      "module": "assurance/release-gate.mjs",
+      "version": "1.0.0",
+      "input_contract": "Assurance Object + DTOs",
+      "output_contract": "decisão de release + escopo publicável/bloqueado",
+      "depends_on": [
+        "L6-ASSURANCE"
+      ],
+      "gate": "RELEASE"
+    },
+    {
+      "layer_id": "L8-MONITOR",
+      "module": "monitoring/regulatory-monitor.mjs",
+      "version": "1.0.0",
+      "input_contract": "evidence-sources + lineage",
+      "output_contract": "changeset + plano de invalidação/revalidação/rerender",
+      "depends_on": [
+        "L7-RELEASE-GATE"
+      ],
+      "gate": "—"
+    }
+  ],
+  "gates": {
+    "order": [
+      "SCHEMA",
+      "EVIDENCE",
+      "TEMPORAL",
+      "RELATIONS",
+      "IPE",
+      "ALCOA",
+      "CAAT",
+      "PROJECTION",
+      "SEO",
+      "A11Y",
+      "PRIVACY",
+      "PDF",
+      "ASSURANCE",
+      "RELEASE"
+    ],
+    "policy": "fail-closed. Nenhum gate é compensado por outro. Proibido reportar um 'overall: PASS' único."
+  },
+  "design_system": {
+    "primary": "#1A3E74",
+    "headings": "Nunito Sans",
+    "body": "Inter",
+    "css": "assets/css/coren-regulatory-production.css@2.0.0",
+    "global_css": [
+      "/public/output.css",
+      "/global-styles.css"
+    ],
+    "wcag_target": "2.2 AA (verificação estática fechada; navegador real pendente)"
+  },
+  "production_shell": {
+    "loader": "assets/js/cko-production-shell-loader.js@2.0.0",
+    "modules": [
+      "/accessibility.html",
+      "/header.html",
+      "/language-selector.html",
+      "/footer.html"
+    ],
+    "scripts": [
+      "/global-scripts.js",
+      "/lang-selector.js"
+    ],
+    "policy": "fetch com timeout, health check e fallback acessível; falha de shell não derruba conteúdo."
+  },
+  "canonical_rule": "Cada ato tem um único objeto COREN_REGULATORY_ACT. Toda projeção consome um ValidatedProjectionDTO derivado dele — nenhum renderer lê o canônico direto.",
+  "anti_hallucination": [
+    "Nenhum ato regional inventado.",
+    "Nenhuma vigência ou revogação inferida.",
+    "Nenhum texto integral fabricado.",
+    "Nenhuma classificação de Parecer Normativo sem suporte explícito da fonte.",
+    "Nenhum hash de fonte escrito sem aquisição real do snapshot.",
+    "Nenhuma força normativa de relação inferida a partir do título do alvo.",
+    "Superfície que afirmaria conteúdo normativo fica bloqueada enquanto não houver fragmento de evidência."
+  ]
+}
