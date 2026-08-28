@@ -71,32 +71,27 @@
       var fb = await window.FirebaseInit.init();
       var auth = fb.auth;
 
-      // 2. Configura o listener de estado da sessão
-      auth.onAuthStateChanged(function (user) {
-        _currentUser = user;
-
-        if (user) {
-          console.log("[Auth] Usuário autenticado:", user.email || user.uid);
-          // Carrega o perfil do Firestore (se disponível)
-          if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
-            window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
-              _userProfile = profile;
-              _currentPlan = profile ? profile.plan : "free";
-              _notifyProfileListeners(profile);
-            }).catch(function () {
-              // Perfil ainda não existe (usuário novo)
-              _currentPlan = "free";
-            });
+      // 2. Registra o listener permanente de estado da sessão e aguarda
+      //    a restauração da sessão persistida (primeiro disparo do listener).
+      //    Sem essa espera, isLoggedIn() retornaria false imediatamente após
+      //    init(), causando redirect indevido para o login em páginas protegidas.
+      await new Promise(function (resolve) {
+        var resolved = false;
+        function finish() {
+          if (!resolved) {
+            resolved = true;
+            resolve();
           }
-        } else {
-          console.log("[Auth] Nenhum usuário autenticado.");
-          _userProfile = null;
-          _currentPlan = null;
-          _clearLocalCache();
         }
 
-        // Notifica listeners externos
-        _notifyListeners(user);
+        auth.onAuthStateChanged(function (user) {
+          _handleAuthState(user);
+          finish();
+        });
+
+        // Segurança: se o listener não disparar (ex.: problema de rede),
+        // resolve após um timeout curto para não travar a página.
+        setTimeout(finish, 5000);
       });
 
       // 3. Captura resultado de redirect (ex: popup bloqueado -> signInWithRedirect)
@@ -116,6 +111,38 @@
       console.error("[Auth] Falha na inicialização:", error);
       throw error;
     }
+  }
+
+  /**
+   * Trata mudanças no estado de autenticação (login/logout).
+   * Chamado pelo listener permanente, inclusive na restauração inicial.
+   * @param {object|null} user
+   */
+  function _handleAuthState(user) {
+    _currentUser = user;
+
+    if (user) {
+      console.log("[Auth] Usuário autenticado:", user.email || user.uid);
+      // Carrega o perfil do Firestore (se disponível)
+      if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
+        window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
+          _userProfile = profile;
+          _currentPlan = profile ? profile.plan : "free";
+          _notifyProfileListeners(profile);
+        }).catch(function () {
+          // Perfil ainda não existe (usuário novo)
+          _currentPlan = "free";
+        });
+      }
+    } else {
+      console.log("[Auth] Nenhum usuário autenticado.");
+      _userProfile = null;
+      _currentPlan = null;
+      _clearLocalCache();
+    }
+
+    // Notifica listeners externos
+    _notifyListeners(user);
   }
 
   // ─── Listeners de estado ────────────────────────────────────────
