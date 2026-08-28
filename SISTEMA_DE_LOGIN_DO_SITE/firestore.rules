@@ -42,8 +42,18 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
+    // ─── Subcoleção "favorites" (Fase 3 — Sistema de Favoritos) ──
+    // Cada usuário gerencia apenas seus próprios favoritos.
+    // O ID de cada documento é o pageId (garante unicidade por página).
+    match /users/{uid}/favorites/{favId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid) && request.resource.data.pageId == favId;
+      allow update: if isOwner(uid) && request.resource.data.pageId == resource.data.pageId;
+      allow delete: if isOwner(uid);
+    }
+
     // ─── Demais coleções ─────────────────────────────────────────
-    // Bloqueadas por padrão. Novas coleções (favoritos, histórico, etc.)
+    // Bloqueadas por padrão. Novas coleções (histórico, etc.)
     // devem receber regras específicas quando forem implementadas.
     match /{document=**} {
       allow read, write: if false;

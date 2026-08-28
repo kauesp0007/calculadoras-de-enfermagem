@@ -170,6 +170,106 @@ function initializeAuthMenu() {
     }
   }
 
+  // ── Flag para evitar registro duplicado do sistema de favoritos ──
+  var _favoritesBound = false;
+
+  /**
+   * Carrega os módulos de favoritos sob demanda e monta o botão Favoritar.
+   * Chamado após o Auth estar pronto (usuário logado ou não).
+   */
+  function bindFavorites() {
+    if (_favoritesBound) {
+      return;
+    }
+    _favoritesBound = true;
+
+    var scripts = [
+      "/js/favorites/favorites-utils.js",
+      "/js/favorites/favorites-service.js",
+      "/js/favorites/favorites-cache.js",
+      "/js/favorites/favorites-events.js",
+      "/js/favorites/favorites-sync.js",
+      "/js/favorites/favorites-ui.js"
+    ];
+
+    var loaded = 0;
+    function loadNext() {
+      if (loaded >= scripts.length) {
+        _setupFavorites();
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = scripts[loaded];
+      script.async = false;
+      script.onload = function () { loaded++; loadNext(); };
+      script.onerror = function () { loaded++; loadNext(); };
+      document.head.appendChild(script);
+    }
+    loadNext();
+  }
+
+  /**
+   * Configura a sincronização de favoritos com o estado de autenticação.
+   */
+  function _setupFavorites() {
+    if (!window.Favorites || !window.FavoritesModules) {
+      return;
+    }
+
+    function syncFor(user) {
+      if (user && user.uid) {
+        window.Favorites.init(user.uid).then(function () {
+          _mountFavoriteButton();
+        }).catch(function () { });
+      } else {
+        if (window.FavoritesModules.sync) {
+          window.FavoritesModules.sync.reset();
+        }
+        _unmountFavoriteButton();
+      }
+    }
+
+    if (window.Auth && window.Auth.isInitialized()) {
+      syncFor(window.Auth.currentUser());
+    }
+    if (window.Auth && window.Auth.onAuthChange) {
+      window.Auth.onAuthChange(function (user) {
+        syncFor(user);
+      });
+    }
+  }
+
+  /**
+   * Monta o botão flutuante "Favoritar" (fora das páginas de conta).
+   */
+  function _mountFavoriteButton() {
+    var path = window.location.pathname || "/";
+    if (path.indexOf("/conta/") === 0) {
+      return; // páginas de conta não são favoritáveis
+    }
+    if (document.getElementById("fav-float-btn")) {
+      return;
+    }
+
+    var host = document.createElement("div");
+    host.id = "fav-float-btn";
+    host.setAttribute("style", "position:fixed;bottom:24px;right:24px;z-index:9990;");
+    document.body.appendChild(host);
+
+    var pageContext = window.Favorites.getPageContext();
+    window.Favorites.mountButton(host, pageContext);
+  }
+
+  /**
+   * Remove o botão flutuante (no logout).
+   */
+  function _unmountFavoriteButton() {
+    var host = document.getElementById("fav-float-btn");
+    if (host && host.parentNode) {
+      host.parentNode.removeChild(host);
+    }
+  }
+
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function updateAuthUI(user) {
@@ -319,6 +419,7 @@ function initializeAuthMenu() {
         if (window.Auth && window.Auth.init) {
           window.Auth.init().then(function () {
             bindProfileListener();
+            bindFavorites();
             safeUpdateUI(window.Auth.currentUser());
             window.Auth.onAuthChange(function (user) {
               safeUpdateUI(user);
@@ -344,6 +445,7 @@ function initializeAuthMenu() {
     function waitAndUpdate() {
       if (window.Auth.isInitialized()) {
         bindProfileListener();
+        bindFavorites();
         safeUpdateUI(window.Auth.currentUser());
         window.Auth.onAuthChange(function (user) {
           safeUpdateUI(user);
@@ -351,6 +453,7 @@ function initializeAuthMenu() {
       } else {
         window.Auth.init().then(function () {
           bindProfileListener();
+          bindFavorites();
           safeUpdateUI(window.Auth.currentUser());
           window.Auth.onAuthChange(function (user) {
             safeUpdateUI(user);
