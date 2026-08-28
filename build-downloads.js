@@ -1,6 +1,7 @@
 /* eslint-env node */
 const fs = require("fs");
 const path = require("path");
+const { iconeSvg } = require("./scripts/icone-svg");
 
 const JSON_DATABASE = "biblioteca.json";
 const TEMPLATE_FILE = "downloads.template.html";
@@ -33,7 +34,7 @@ function gerarCardGoogleImages(item, index) {
   else if (["mp4", "webm"].includes(ext)) badgeConfig = { bg: "#f3e8ff", text: "#7e22ce", icon: "fa-solid fa-video", label: "VÍDEO" };
   else if (["png", "jpg", "jpeg", "webp", "svg"].includes(ext)) badgeConfig = { bg: "#d1fae5", text: "#047857", icon: "fa-solid fa-image", label: ext.toUpperCase() };
 
-  const badgeHtml = `<div class="absolute top-2 right-2 text-[9px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1 backdrop-blur-md" style="background-color: ${badgeConfig.bg}; color: ${badgeConfig.text};"><i class="${badgeConfig.icon}"></i> ${badgeConfig.label}</div>`;
+  const badgeHtml = `<div class="absolute top-2 right-2 text-[9px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1 backdrop-blur-md" style="background-color: ${badgeConfig.bg}; color: ${badgeConfig.text};">${iconeSvg(badgeConfig.icon)} ${badgeConfig.label}</div>`;
 
   // LÓGICA DE CORREÇÃO DE MÍDIA: Previne "broken image" para PDFs e Vídeos sem capa
   const isImagePathValidImage = /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(imagePath);
@@ -50,7 +51,7 @@ function gerarCardGoogleImages(item, index) {
   } else {
     mediaVisualHtml = `
       <div class="w-full h-full flex flex-col items-center justify-center transition-colors bg-gray-50 group-hover:bg-gray-100">
-        <i class="${badgeConfig.icon} text-5xl mb-2 transition-transform duration-300 group-hover:scale-110" style="color: ${badgeConfig.text}90;"></i>
+        ${iconeSvg(badgeConfig.icon, "text-5xl mb-2 transition-transform duration-300 group-hover:scale-110", `style="color:${badgeConfig.text}90"`)}
         <span class="text-[9px] font-black uppercase tracking-widest text-gray-400">Ver Arquivo</span>
       </div>`;
   }
@@ -77,9 +78,9 @@ function gerarPaginacaoHTML(currentPage, totalPages) {
   // Botão Anterior
   if (currentPage > 1) {
     const prevLink = currentPage === 2 ? "/downloads.html" : `/downloads/page${currentPage - 1}.html`;
-    html += `<a href="${prevLink}" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline"><i class="fa-solid fa-chevron-left mr-1"></i> Anterior</a>`;
+    html += `<a href="${prevLink}" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline">${iconeSvg('fa-solid fa-chevron-left', 'mr-1')} Anterior</a>`;
   } else {
-    html += `<span class="flex items-center px-3 py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed"><i class="fa-solid fa-chevron-left mr-1"></i> Anterior</span>`;
+    html += `<span class="flex items-center px-3 py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">${iconeSvg('fa-solid fa-chevron-left', 'mr-1')} Anterior</span>`;
   }
 
   // Lógica simples de páginas
@@ -101,7 +102,7 @@ function gerarPaginacaoHTML(currentPage, totalPages) {
 
   // Botão Próxima
   if (currentPage < totalPages) {
-    html += `<a href="/downloads/page${currentPage + 1}.html" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline">Próxima <i class="fa-solid fa-chevron-right ml-1"></i></a>`;
+    html += `<a href="/downloads/page${currentPage + 1}.html" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline">Próxima ${iconeSvg('fa-solid fa-chevron-right', 'ml-1')}</a>`;
   }
 
   html += `</nav>`;
@@ -133,7 +134,7 @@ function construirPaginas() {
       const card = gerarCardGoogleImages(item, idx);
       htmlTodos += card;
       const cat = String(item.categoria || "").toLowerCase().trim();
-      
+
       // Maior tolerância na distribuição de categorias para não perder itens nas abas
       if (cat.includes("doc") || cat.includes("pdf")) htmlDocs += card;
       if (cat.includes("foto") || cat.includes("ima") || cat === "png" || cat === "jpg") htmlFotos += card;

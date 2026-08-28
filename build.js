@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { iconeSvg } = require("./scripts/icone-svg");
 
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "downloads.template.html";
@@ -92,7 +93,7 @@ function criarCartaoHTML(item) {
       textHex = "#047857";
       icon = "fa-solid fa-image";
     }
-    fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};"><i class="${icon}"></i> ${label}</div>`;
+    fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} ${label}</div>`;
   }
 
   const cat = String(item.categoria || "")
@@ -112,15 +113,14 @@ function criarCartaoHTML(item) {
     
     <img src="${capa}" class="max-w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" alt="${titulo}" loading="lazy">
     
-    ${
-      isVideo
-        ? `
+    ${isVideo
+      ? `
     <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
       <div class="bg-black/60 rounded-full w-14 h-14 flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
-        <i class="fa-solid fa-play text-white text-2xl translate-x-[2px]"></i>
+        ${iconeSvg('fa-solid fa-play', 'text-white text-2xl translate-x-[2px]')}
       </div>
     </div>`
-        : ""
+      : ""
     }
   </div>
   <div class="p-3 flex-grow flex flex-col justify-center">
@@ -137,9 +137,9 @@ function gerarPaginacao(total, atual) {
   let html =
     '<nav class="flex items-center justify-center space-x-1 md:space-x-2 my-8">';
   if (atual > 1) {
-    html += `<a href="${linkPagina(atual - 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Página Anterior"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</a>`;
+    html += `<a href="${linkPagina(atual - 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Página Anterior">${iconeSvg('fa-solid fa-chevron-left', 'mr-1 md:mr-2 text-xs')} Anterior</a>`;
   } else {
-    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed"><i class="fa-solid fa-chevron-left mr-1 md:mr-2 text-xs"></i> Anterior</span>`;
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">${iconeSvg('fa-solid fa-chevron-left', 'mr-1 md:mr-2 text-xs')} Anterior</span>`;
   }
   let startPage = Math.max(1, atual - 4);
   let endPage = Math.min(total, atual + 5);
@@ -163,9 +163,9 @@ function gerarPaginacao(total, atual) {
     html += `<a href="${linkPagina(total)}" class="px-3 py-2 text-sm md:text-base text-[#4A90E2] hover:underline transition-all font-medium">${total}</a>`;
   }
   if (atual < total) {
-    html += `<a href="${linkPagina(atual + 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Próxima Página">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></a>`;
+    html += `<a href="${linkPagina(atual + 1)}" class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline transition-all" title="Próxima Página">Próxima ${iconeSvg('fa-solid fa-chevron-right', 'ml-1 md:ml-2 text-xs')}</a>`;
   } else {
-    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">Próxima <i class="fa-solid fa-chevron-right ml-1 md:ml-2 text-xs"></i></span>`;
+    html += `<span class="flex items-center px-3 py-2 md:px-4 md:py-2 text-sm md:text-base text-gray-400 font-bold cursor-not-allowed">Próxima ${iconeSvg('fa-solid fa-chevron-right', 'ml-1 md:ml-2 text-xs')}</span>`;
   }
   html += "</nav>";
   return html;
@@ -185,7 +185,7 @@ function construirPaginas() {
   if (fs.existsSync(OUTPUT_DIR)) {
     try {
       fs.rmSync(OUTPUT_DIR, { recursive: true, force: true });
-    } catch (e) {}
+    } catch (e) { }
   }
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   let processados = 0;

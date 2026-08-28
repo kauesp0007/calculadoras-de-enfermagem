@@ -45,6 +45,27 @@ Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA
   - Utilizar o mesmo markup e classes do modelo para garantir consistência visual e compatibilidade com impressão/PDF.
 - O agente deve montar a lista de referências a partir das fontes usadas (PDFs anexos, artigos citados, URLs) e inserir a seção já formatada ao gerar a página.
 
+### Transparência da governança editorial (obrigatória em páginas novas)
+- Imediatamente após as Referências Bibliográficas, inserir uma nota semântica de transparência. A seção de referências deve usar `data-references-section="v1"` e a nota deve usar `data-governance-disclosure="v1"`; esses marcadores são validados automaticamente para HTMLs públicos novos.
+- A nota deve ser visualmente subordinada, mas legível: usar `text-sm`, contraste adequado e altura de linha confortável. Não usar fonte minúscula ou tamanho que prejudique a leitura em dispositivos móveis.
+- O texto deve explicar que a auditoria editorial verifica identificação, autoridade, URL, versão e data das fontes, sinaliza divergências e pode preservar evidências técnicas de integridade quando aplicável. Hashes confirmam a integridade do arquivo entregue, não a veracidade ou vigência de fonte externa.
+- Informar que recursos de IA auxiliam organização, comparação e identificação de inconsistências; não substituem fonte oficial, revisão humana qualificada, julgamento clínico/jurídico ou orientação profissional.
+- Toda página, documento, artigo, calculadora ou escala novo deve declarar e registrar no fluxo editorial a revisão prévia por profissional de enfermagem habilitado e em atividade. O marcador `data-professional-review="required"` é obrigatório, mas não substitui o registro editorial verificável da habilitação e da revisão.
+- Declarar que o processo é projetado com princípios de minimização de dados, finalidade, transparência, rastreabilidade, acessibilidade e ética editorial. Nunca declarar certificação ou conformidade legal, com a LGPD ou normas internacionais sem auditoria formal independente.
+
+```html
+<section data-references-section="v1" class="mt-12 border-t border-gray-200 pt-8" aria-labelledby="referencias-title">
+  <h2 id="referencias-title">Referências Bibliográficas</h2>
+  <!-- Lista numerada de referências no padrão do projeto. -->
+</section>
+
+<aside class="governance-transparency-note mt-5 border-l-2 border-blue-200 pl-4 text-sm leading-relaxed text-gray-600" data-governance-disclosure="v1" data-professional-review="required" aria-label="Transparência de governança editorial">
+  <p>Esta página segue controles editoriais de governança para rastrear as fontes utilizadas. O processo verifica identificação, autoridade, URL, versão e data das referências, sinaliza divergências e, quando aplicável, preserva evidências técnicas de integridade. Esses controles apoiam a conferência, mas não substituem a fonte oficial nem constituem prova autônoma de vigência ou veracidade.</p>
+  <p>Antes da publicação, páginas, documentos, artigos, calculadoras e escalas devem passar por revisão editorial de profissional de enfermagem habilitado e em atividade, registrada no fluxo interno. Recursos de IA podem auxiliar na organização, comparação e identificação de inconsistências, mas não substituem essa revisão humana, a fonte oficial, o julgamento clínico/jurídico ou a orientação profissional.</p>
+  <p>O processo é projetado com princípios de minimização de dados, finalidade, transparência, rastreabilidade, acessibilidade e ética editorial. Busca apoiar boas práticas de privacidade e qualidade; não representa certificação de conformidade com a LGPD ou normas internacionais, nem substitui orientação profissional.</p>
+</aside>
+```
+
 ## Ordem do `<head>` (verificar SEMPRE ao atualizar/criar)
 Seguir a sequência hierárquica de `fugulin.html` / `HTML_PAGE_TEMPLATE_RULES.md`, sem pular:
 charset/viewport → DNS/preconnect → title/metas → critical fonts (MINIFICADA, antes do CSS) →

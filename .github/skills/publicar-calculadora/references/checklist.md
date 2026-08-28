@@ -31,7 +31,9 @@
       (Páginas de texto/artigo: modelo `integracoes_classificacao_wifi.html` — só `btnImprimir`.)
 
 ## Final
-- [ ] Seção de Referências Bibliográficas ao final.
+- [ ] Seção de Referências Bibliográficas ao final, com `data-references-section="v1"`.
+- [ ] Nota de transparência de governança imediatamente após as referências, com `data-governance-disclosure="v1"` e `data-professional-review="required"`, texto legível e limites explícitos sobre IA, fontes, LGPD e conformidade formal.
+- [ ] Revisão prévia registrada no fluxo editorial por profissional de enfermagem habilitado e em atividade.
 - [ ] Footer: raiz usa `fetch("/footer.html")` + `carregarTraducoes`; idiomas usam `fetch("footer.html")`.
 - [ ] Build executado (tailwind + `node gerar-sw.js`).
 - [ ] Testado no navegador e acessibilidade auditada.

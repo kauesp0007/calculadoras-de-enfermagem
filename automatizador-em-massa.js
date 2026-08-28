@@ -38,7 +38,7 @@ const LANGUAGES = ['en', 'es', 'de', 'it', 'fr', 'hi', 'zh', 'ar', 'ja', 'ru', '
 const IGNORE_FOLDERS = ['downloads', 'biblioteca', 'blog', 'blog-templates', 'node_modules', '.git'];
 const IGNORE_FILES = [
     'footer.html', 'menu-global.html', 'global-body-elements.html',
-    'downloads.html', 'menu-global.html', '_language_selector.html',
+    'downloads.html', '_language_selector.html',
     'googlefc0a17cdd552164b.html'
 ];
 

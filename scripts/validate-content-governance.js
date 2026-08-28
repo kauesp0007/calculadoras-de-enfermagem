@@ -12,6 +12,7 @@ const ignoredDirectories = new Set([
     ".github",
     ".chrome-perfil-pci",
     "backups-temporarios",
+    "automacoes",
     "blog",
     "blog-templates",
     "biblioteca",
@@ -59,6 +60,33 @@ function loadRuntimeStatus() {
     return status;
 }
 
+function loadEvidenceCatalog() {
+    const evidencePath = path.join(ROOT, config.canonical_runtime.root, config.canonical_runtime.evidence_sources);
+    const libraryPath = path.join(ROOT, config.document_library.catalog_path);
+    const reviewersPath = path.join(ROOT, config.document_library.reviewer_registry_path);
+    const runtimeSources = fs.existsSync(evidencePath)
+        ? JSON.parse(fs.readFileSync(evidencePath, "utf8")).sources || []
+        : [];
+    const localDocuments = fs.existsSync(libraryPath)
+        ? JSON.parse(fs.readFileSync(libraryPath, "utf8")).documents || []
+        : [];
+    const reviewers = fs.existsSync(reviewersPath)
+        ? JSON.parse(fs.readFileSync(reviewersPath, "utf8")).reviewers || []
+        : [];
+    const activeReviewerRefs = new Set(reviewers
+        .filter(reviewer => reviewer.status === "ACTIVE" && reviewer.professional_verification === "VERIFIED")
+        .map(reviewer => reviewer.reviewer_ref));
+    const approvedLocalIds = new Set(localDocuments
+        .filter(document => document.review_status === "APPROVED" && document.source_authority === "OFFICIAL" && document.sha256 && activeReviewerRefs.has(document.professional_review_ref))
+        .map(document => document.document_id));
+    return {
+        runtimeIds: new Set(runtimeSources.map(source => source.evidence_source_id)),
+        approvedLocalIds,
+        activeReviewers: activeReviewerRefs.size,
+        pendingLocalDocuments: localDocuments.filter(document => document.review_status !== "APPROVED").length
+    };
+}
+
 function isHighRiskCandidate(filePath, body, pattern) {
     const name = path.basename(filePath, ".html").toLocaleLowerCase("pt-BR");
     const filenameMatch = config.high_risk_detection.filename_terms.some(term => name.includes(term));
@@ -89,6 +117,21 @@ function validateNewHtml(file, body, findings) {
     if (!/<meta\b[^>]*\bname=["']description["'][^>]*\bcontent=["'][^"']+/i.test(body)) {
         findings.push({ code: "GOV-008", severity: "ERROR", file, message: "HTML público novo sem meta description." });
     }
+    const referencesMarker = /data-references-section\s*=\s*["']v1["']/i.exec(body);
+    const disclosureMarker = /data-governance-disclosure\s*=\s*["']v1["']/i.exec(body);
+    const professionalReviewMarker = /data-professional-review\s*=\s*["']required["']/i.exec(body);
+    if (!referencesMarker) {
+        findings.push({ code: "GOV-009", severity: "ERROR", file, message: "HTML público novo sem marcador canônico na seção de Referências Bibliográficas." });
+    }
+    if (!disclosureMarker) {
+        findings.push({ code: "GOV-010", severity: "ERROR", file, message: "HTML público novo sem nota de transparência de governança regulatória." });
+    }
+    if (referencesMarker && disclosureMarker && disclosureMarker.index < referencesMarker.index) {
+        findings.push({ code: "GOV-011", severity: "ERROR", file, message: "A nota de transparência deve estar posicionada após as Referências Bibliográficas." });
+    }
+    if (!professionalReviewMarker) {
+        findings.push({ code: "GOV-012", severity: "ERROR", file, message: "HTML público novo sem declaração de revisão obrigatória por profissional de enfermagem habilitado e em atividade." });
+    }
 }
 
 function writeBaseline() {
@@ -106,6 +149,7 @@ function writeBaseline() {
 function main() {
     if (process.argv.includes("--write-baseline")) return writeBaseline();
     const runtime = loadRuntimeStatus();
+    const evidenceCatalog = loadEvidenceCatalog();
     const baseline = loadBaseline();
     const registered = new Map((config.registered_content || []).map(item => [item.path, item]));
     const pattern = new RegExp(config.high_risk_detection.content_pattern, "i");
@@ -144,6 +188,13 @@ function main() {
                 message: "Conteúdo de alto risco sem URL de fonte oficial registrada."
             });
         }
+        if (!record.evidence_id || (!evidenceCatalog.runtimeIds.has(record.evidence_id) && !evidenceCatalog.approvedLocalIds.has(record.evidence_id))) {
+            findings.push({
+                code: "GOV-013", severity: isNew ? "ERROR" : "WARNING",
+                file,
+                message: "Conteúdo de alto risco sem evidence_id resolvível em fonte do CKO ou documento local aprovado."
+            });
+        }
     }
 
     for (const record of registered.values()) {
@@ -157,6 +208,12 @@ function main() {
         mode: config.mode,
         checked_at: new Date().toISOString(),
         runtime,
+        document_library: {
+            configured: Boolean(config.document_library),
+            approved_local_documents: evidenceCatalog.approvedLocalIds.size,
+            active_professional_reviewers: evidenceCatalog.activeReviewers,
+            pending_local_documents: evidenceCatalog.pendingLocalDocuments
+        },
         summary: {
             html_checked: listHtmlFiles(ROOT).length,
             new_public_html: listHtmlFiles(ROOT).map(relative).filter(file => isNewPublicHtml(file, baseline)).length,

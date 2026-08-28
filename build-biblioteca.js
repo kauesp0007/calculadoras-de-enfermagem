@@ -2,6 +2,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const { iconeSvg } = require("./scripts/icone-svg");
 
 const JSON_DATABASE_FILE = "biblioteca.json";
 const TEMPLATE_FILE = "item.template.html";
@@ -191,7 +192,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         else if (['mp4', 'webm', 'ogg'].includes(ext)) { bgHex = "#f3e8ff"; textHex = "#7e22ce"; icon = "fa-solid fa-video"; }
         else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) { bgHex = "#d1fae5"; textHex = "#047857"; icon = "fa-solid fa-image"; }
 
-        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm" style="background-color: ${bgHex}; color: ${textHex};"><i class="${icon}"></i> ARQUIVO ${label}</div>`;
+        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} ARQUIVO ${label}</div>`;
     }
 
     const cat = String(item.categoria || "").toLowerCase().trim();
