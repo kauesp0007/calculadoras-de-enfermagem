@@ -97,7 +97,7 @@
             _emit(window.HistoryModules.events.EVENTS.CHANGED, list.slice());
             return list.slice();
         } catch (e) {
-            console.warn("[History] Erro ao carregar histórico:", e);
+            console.error("[History] Erro ao carregar histórico:", e);
             _emit(window.HistoryModules.events.EVENTS.ERROR, e);
             return _items.slice();
         } finally {
@@ -138,7 +138,7 @@
             }
             _updateCache();
         } catch (e) {
-            console.warn("[History] Erro ao fechar visita:", e);
+            console.error("[History] Erro ao fechar visita:", e);
         }
 
         window.HistoryModules.session.clearActiveVisit();
@@ -191,11 +191,13 @@
                 visitedAt: visitedAt
             });
 
+            console.log("[History] Visita registrada:", pageContext.pageId);
+
             _emit(window.HistoryModules.events.EVENTS.RECORDED, visit);
             _emit(window.HistoryModules.events.EVENTS.CHANGED, _items.slice());
             return visit;
         } catch (e) {
-            console.warn("[History] Erro ao registrar visita:", e);
+            console.error("[History] Erro ao registrar visita:", e && e.code ? e.code : e);
             _emit(window.HistoryModules.events.EVENTS.ERROR, e);
             return null;
         }

@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260828-171827";
+const CACHE_VERSION = "20260828-192239";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -302,8 +302,16 @@ const urlsToCache = [
   'js/auth/auth-session.js',
   'js/auth/auth-ui.js',
   'js/auth/auth-user-profile.js',
+  'js/auth/authorization-events.js',
+  'js/auth/authorization.js',
+  'js/auth/feature-service.js',
   'js/auth/firestore-user.js',
+  'js/auth/permission-cache.js',
+  'js/auth/permission-service.js',
+  'js/auth/plan-service.js',
   'js/auth/preferences.js',
+  'js/auth/role-service.js',
+  'js/auth/route-guard.js',
   'js/auth/user-cache.js',
   'js/auth/user-events.js',
   'js/backToTop.js',

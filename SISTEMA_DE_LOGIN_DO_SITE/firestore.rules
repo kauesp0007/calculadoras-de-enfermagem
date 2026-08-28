@@ -29,14 +29,10 @@ service cloud.firestore {
         && (!('status' in request.resource.data) || request.resource.data.status == 'active');
 
       // Atualização: somente o próprio usuário, SEM escalar privilégios.
-      // Compara o estado resultante (request.resource.data) com o anterior
-      // (resource.data) para garantir que uid/role/plan/status/createdAt não mudem.
+      // Usa diff() para bloquear qualquer mudança em campos sensíveis.
       allow update: if isOwner(uid)
-        && request.resource.data.uid == resource.data.uid
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.plan == resource.data.plan
-        && request.resource.data.status == resource.data.status
-        && request.resource.data.createdAt == resource.data.createdAt;
+        && !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['uid', 'role', 'plan', 'status', 'createdAt', 'permissions']);
 
       // Exclusão: somente o próprio usuário (uso futuro — exclusão de conta).
       allow delete: if isOwner(uid);

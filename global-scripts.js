@@ -364,6 +364,98 @@ function initializeAuthMenu() {
     }
   }
 
+  // ── Flag para evitar registro duplicado da camada de autorização ──
+  var _authorizationBound = false;
+
+  /**
+   * Carrega os módulos de autorização (RBAC) sob demanda.
+   */
+  function bindAuthorization() {
+    if (_authorizationBound) {
+      return;
+    }
+    _authorizationBound = true;
+
+    var scripts = [
+      "/js/auth/authorization-events.js",
+      "/js/auth/permission-cache.js",
+      "/js/auth/role-service.js",
+      "/js/auth/plan-service.js",
+      "/js/auth/permission-service.js",
+      "/js/auth/feature-service.js",
+      "/js/auth/authorization.js",
+      "/js/auth/route-guard.js"
+    ];
+
+    var loaded = 0;
+    function loadNext() {
+      if (loaded >= scripts.length) {
+        _setupAuthorization();
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = scripts[loaded];
+      script.async = false;
+      script.onload = function () { loaded++; loadNext(); };
+      script.onerror = function () { loaded++; loadNext(); };
+      document.head.appendChild(script);
+    }
+    loadNext();
+  }
+
+  /**
+   * Inicializa a camada de autorização e aplica a proteção de rota.
+   */
+  function _setupAuthorization() {
+    if (!window.Authorization) {
+      return;
+    }
+    if (window.Authorization.ready) {
+      window.Authorization.ready();
+    }
+    if (window.Authorization.guard) {
+      window.Authorization.guard();
+    }
+    if (window.Auth && window.Auth.isInitialized()) {
+      safeUpdateUI(window.Auth.currentUser());
+    }
+    if (window.Authorization.onChange) {
+      window.Authorization.onChange(function () {
+        if (window.Auth) {
+          safeUpdateUI(window.Auth.currentUser());
+        }
+      });
+    }
+  }
+
+  /**
+   * Itens de menu condicionais (Assinatura Premium / Painel Admin).
+   * @param {boolean} mobile
+   * @returns {string}
+   */
+  function _extraMenuItems(mobile) {
+    var out = "";
+    if (!window.Authorization) {
+      return out;
+    }
+    if (mobile) {
+      if (!window.Authorization.hasPlan("premium")) {
+        out += '<a role="menuitem" href="/conta/assinatura.html" class="block px-4 !py-1.5 text-amber-600 hover:bg-amber-50 font-medium">⭐ Assinatura Premium</a>';
+      }
+      if (window.Authorization.hasRole("administrator")) {
+        out += '<a role="menuitem" href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 font-medium">Painel Admin</a>';
+      }
+    } else {
+      if (!window.Authorization.hasPlan("premium")) {
+        out += '<li><a href="/conta/assinatura.html" class="block px-4 !py-1.5 text-amber-600 hover:bg-amber-50 text-sm font-medium">⭐ Assinatura Premium</a></li>';
+      }
+      if (window.Authorization.hasRole("administrator")) {
+        out += '<li><a href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium">Painel Admin</a></li>';
+      }
+    }
+    return out;
+  }
+
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function updateAuthUI(user) {
@@ -403,6 +495,7 @@ function initializeAuthMenu() {
           '<li><a href="/conta/perfil.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
           '<li><a href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
           '<li><a href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          _extraMenuItems(false) +
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
           "</ul>";
 
@@ -445,6 +538,7 @@ function initializeAuthMenu() {
           '<a role="menuitem" href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
           '<a role="menuitem" href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
           '<a role="menuitem" href="/conta/configuracoes.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
+          _extraMenuItems(true) +
           '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
 
         setTimeout(function () {
@@ -515,6 +609,7 @@ function initializeAuthMenu() {
             bindProfileListener();
             bindFavorites();
             bindHistory();
+            bindAuthorization();
             safeUpdateUI(window.Auth.currentUser());
             window.Auth.onAuthChange(function (user) {
               safeUpdateUI(user);
@@ -542,6 +637,7 @@ function initializeAuthMenu() {
         bindProfileListener();
         bindFavorites();
         bindHistory();
+        bindAuthorization();
         safeUpdateUI(window.Auth.currentUser());
         window.Auth.onAuthChange(function (user) {
           safeUpdateUI(user);
@@ -551,6 +647,7 @@ function initializeAuthMenu() {
           bindProfileListener();
           bindFavorites();
           bindHistory();
+          bindAuthorization();
           safeUpdateUI(window.Auth.currentUser());
           window.Auth.onAuthChange(function (user) {
             safeUpdateUI(user);
