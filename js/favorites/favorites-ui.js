@@ -32,16 +32,16 @@
             return;
         }
         var css = [
-            ".fav-toggle-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:9999px;border:none;background:#1A3E74;color:#fff;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 8px 24px rgba(26,62,116,.35);transition:transform .15s,background .15s;}",
-            ".fav-toggle-btn:hover{background:#1E4D8C;transform:translateY(-2px);}",
+            ".fav-toggle-btn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;border-radius:8px;border:1px solid #e5e7eb;background:#f3f4f6;color:#475569;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}",
+            ".fav-toggle-btn:hover{background:#e5e7eb;border-color:#cbd5e1;}",
             ".fav-toggle-btn:focus-visible{outline:3px solid #93c5fd;outline-offset:2px;}",
-            ".fav-toggle-btn.is-favorite{background:#e11d48;}",
+            ".fav-toggle-btn.is-favorite{color:#e11d48;border-color:#fecaca;background:#fff;}",
             ".fav-toggle-btn:disabled{opacity:.6;cursor:wait;}",
-            ".fav-toggle-btn svg{width:18px;height:18px;flex-shrink:0;}",
+            ".fav-toggle-btn svg{width:20px;height:20px;flex-shrink:0;}",
             ".fav-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9999px;background:#e11d48;color:#fff;font-size:11px;font-weight:700;}",
             ".fav-item-remove{color:#e11d48;font-weight:700;font-size:13px;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:8px 14px;cursor:pointer;white-space:nowrap;}",
             ".fav-item-remove:hover{background:#fee2e2;}",
-            "@media (max-width:768px){.fav-toggle-btn .fav-label{display:none;}.fav-toggle-btn{padding:14px;}}"
+            ".fav-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#1e293b;color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:999999;max-width:90vw;text-align:center;}"
         ].join("");
 
         var style = document.createElement("style");
@@ -67,11 +67,14 @@
     // ─── Componente: botão Favoritar ────────────────────────────────
 
     function _renderButton(btn, isFav) {
+        var label = isFav
+            ? "Remover dos meus favoritos"
+            : "Salvar página nos meus favoritos";
         btn.setAttribute("aria-pressed", String(isFav));
+        btn.setAttribute("aria-label", label);
+        btn.setAttribute("title", label);
         btn.classList.toggle("is-favorite", !!isFav);
-        btn.innerHTML =
-            (isFav ? ICON_FILLED : ICON_EMPTY) +
-            '<span class="fav-label">' + (isFav ? "Favoritado" : "Favoritar") + "</span>";
+        btn.innerHTML = isFav ? ICON_FILLED : ICON_EMPTY;
     }
 
     function _handleClick(btn, pageContext) {
@@ -91,7 +94,8 @@
                 _renderButton(btn, nowFavorite);
             })
             .catch(function (e) {
-                console.warn("[FavoritesUI] Erro ao alternar favorito:", e);
+                console.error("[FavoritesUI] Erro ao alternar favorito:", e);
+                _showToast(_friendlyError(e));
             })
             .finally(function () {
                 btn.disabled = false;
@@ -109,8 +113,6 @@
         btn.type = "button";
         btn.className = "fav-toggle-btn";
         btn.setAttribute("aria-pressed", "false");
-        btn.setAttribute("aria-label", "Favoritar esta página");
-        btn.setAttribute("title", "Favoritar");
         btn.addEventListener("click", function () {
             _handleClick(btn, pageContext);
         });
@@ -235,6 +237,48 @@
                 updateBadge(el);
             });
         });
+    }
+
+    // ─── Feedback de erro ──────────────────────────────────────────
+
+    function _friendlyError(e) {
+        if (!e) {
+            return "Não foi possível salvar. Tente novamente.";
+        }
+        var code = (e.code || "").toLowerCase();
+        if (code === "permission-denied" || code.indexOf("permission") !== -1) {
+            return "Permissão negada: aplique as regras do Firestore no Console Firebase.";
+        }
+        if (code === "unavailable") {
+            return "Firestore indisponível: verifique se o banco foi criado no Console Firebase.";
+        }
+        if (e.message) {
+            return e.message;
+        }
+        return "Não foi possível salvar. Tente novamente.";
+    }
+
+    function _showToast(msg) {
+        if (!msg) {
+            return;
+        }
+        var existing = document.getElementById("fav-toast");
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+
+        var el = document.createElement("div");
+        el.id = "fav-toast";
+        el.className = "fav-toast";
+        el.setAttribute("role", "alert");
+        el.textContent = msg;
+        document.body.appendChild(el);
+
+        setTimeout(function () {
+            if (el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        }, 5000);
     }
 
     // ─── Exportação (FACADE) ────────────────────────────────────────
