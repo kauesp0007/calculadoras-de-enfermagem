@@ -293,6 +293,77 @@ function initializeAuthMenu() {
     }
   }
 
+  // ── Flag para evitar registro duplicado do sistema de histórico ──
+  var _historyBound = false;
+
+  /**
+   * Carrega os módulos de histórico sob demanda e registra a visita.
+   */
+  function bindHistory() {
+    if (_historyBound) {
+      return;
+    }
+    _historyBound = true;
+
+    var scripts = [
+      "/js/history/history-utils.js",
+      "/js/history/history-service.js",
+      "/js/history/history-cache.js",
+      "/js/history/history-events.js",
+      "/js/history/history-session.js",
+      "/js/history/history-sync.js",
+      "/js/history/history-ui.js"
+    ];
+
+    var loaded = 0;
+    function loadNext() {
+      if (loaded >= scripts.length) {
+        _setupHistory();
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = scripts[loaded];
+      script.async = false;
+      script.onload = function () { loaded++; loadNext(); };
+      script.onerror = function () { loaded++; loadNext(); };
+      document.head.appendChild(script);
+    }
+    loadNext();
+  }
+
+  /**
+   * Configura o registro de histórico com o estado de autenticação.
+   */
+  function _setupHistory() {
+    if (!window.History || !window.HistoryModules) {
+      return;
+    }
+
+    function syncFor(user) {
+      if (user && user.uid) {
+        window.History.init(user.uid).then(function () {
+          var path = window.location.pathname || "/";
+          if (path.indexOf("/conta/") !== 0) {
+            window.History.record(window.History.getPageContext());
+          }
+        }).catch(function () { });
+      } else {
+        if (window.HistoryModules.sync) {
+          window.HistoryModules.sync.reset();
+        }
+      }
+    }
+
+    if (window.Auth && window.Auth.isInitialized()) {
+      syncFor(window.Auth.currentUser());
+    }
+    if (window.Auth && window.Auth.onAuthChange) {
+      window.Auth.onAuthChange(function (user) {
+        syncFor(user);
+      });
+    }
+  }
+
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function updateAuthUI(user) {
@@ -443,6 +514,7 @@ function initializeAuthMenu() {
           window.Auth.init().then(function () {
             bindProfileListener();
             bindFavorites();
+            bindHistory();
             safeUpdateUI(window.Auth.currentUser());
             window.Auth.onAuthChange(function (user) {
               safeUpdateUI(user);
@@ -469,6 +541,7 @@ function initializeAuthMenu() {
       if (window.Auth.isInitialized()) {
         bindProfileListener();
         bindFavorites();
+        bindHistory();
         safeUpdateUI(window.Auth.currentUser());
         window.Auth.onAuthChange(function (user) {
           safeUpdateUI(user);
@@ -477,6 +550,7 @@ function initializeAuthMenu() {
         window.Auth.init().then(function () {
           bindProfileListener();
           bindFavorites();
+          bindHistory();
           safeUpdateUI(window.Auth.currentUser());
           window.Auth.onAuthChange(function (user) {
             safeUpdateUI(user);

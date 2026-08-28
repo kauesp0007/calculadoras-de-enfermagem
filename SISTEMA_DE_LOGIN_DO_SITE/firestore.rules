@@ -52,9 +52,19 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
+    // ─── Subcoleção "history" (Fase 4 — Sistema de Histórico) ────
+    // Cada usuário gerencia apenas seus próprios registros de navegação.
+    // Cada visita tem ID automático (permite múltiplas visitas à mesma página).
+    match /users/{uid}/history/{historyId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+      allow delete: if isOwner(uid);
+    }
+
     // ─── Demais coleções ─────────────────────────────────────────
-    // Bloqueadas por padrão. Novas coleções (histórico, etc.)
-    // devem receber regras específicas quando forem implementadas.
+    // Bloqueadas por padrão. Novas coleções devem receber regras
+    // específicas quando forem implementadas.
     match /{document=**} {
       allow read, write: if false;
     }
