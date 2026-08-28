@@ -10,6 +10,7 @@ const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
 const ignoredDirectories = new Set([
     ".git",
     ".github",
+    ".chrome-perfil-pci",
     "backups-temporarios",
     "blog",
     "blog-templates",

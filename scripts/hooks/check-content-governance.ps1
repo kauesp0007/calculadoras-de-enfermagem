@@ -15,6 +15,12 @@ if ($data.tool_input.replacements) {
         if ($replacement.filePath) { $filePaths += [string]$replacement.filePath }
     }
 }
+if ($data.tool_input.input) {
+    $patchPaths = [regex]::Matches([string]$data.tool_input.input, '(?m)^\*\*\*\s+(?:Add|Update)\s+File:\s+(.+?)\s*$')
+    foreach ($match in $patchPaths) {
+        $filePaths += $match.Groups[1].Value.Trim()
+    }
+}
 if ($filePaths.Count -eq 0) { exit 0 }
 
 $hasEditorialFile = $false
