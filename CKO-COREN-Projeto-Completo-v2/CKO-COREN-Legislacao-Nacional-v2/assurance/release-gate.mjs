@@ -27,7 +27,7 @@ export function evaluateRelease(assurance, projections) {
     ASSURANCE_PASS: assurance.overall_level === 'REASONABLE',
   };
 
-  const blockingP0 = assurance.findings_p0.filter(f => !f.scope?.startsWith('act:') || true);
+  const blockingP0 = assurance.findings_p0;
 
   let release;
   if (decisions.ASSURANCE_PASS && Object.values(decisions).every(Boolean)) {

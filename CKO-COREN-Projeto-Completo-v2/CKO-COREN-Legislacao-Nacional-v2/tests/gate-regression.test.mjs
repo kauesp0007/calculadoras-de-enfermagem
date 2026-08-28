@@ -21,8 +21,9 @@ import { projectAct } from '../engines/projection-engine.mjs';
 import { resolveTemporal, statusLabel } from '../engines/temporal-engine.mjs';
 import { resolveRelations } from '../engines/relation-engine.mjs';
 import { validateSourceEvidence } from '../validators/source-evidence-validator.mjs';
-import { validateCanonical } from '../validators/schema-validator.mjs';
+import { validateAgainstSchema, validateCanonical } from '../validators/schema-validator.mjs';
 import { validateProjection } from '../validators/projection-validator.mjs';
+import { run as runMonitor } from '../monitoring/regulatory-monitor.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const NOW = process.env.CKO_BUILD_NOW || new Date().toISOString();
@@ -198,6 +199,21 @@ t('REG-011', 'Fixtures não estão no corpus publicado', async () => {
   return 'verificado em tools/build.mjs: o corpus lê apenas canonical/acts/';
 });
 
+t('REG-012', 'URI malformada é recusada pelo schema', () => {
+  const errors = validateAgainstSchema('https://<script>', { type: 'string', format: 'uri' });
+  assert(errors.length === 1 && errors[0].message === 'URI inválida',
+    'URI sem hostname válido deveria ser recusada');
+  return 'URI inválida recusada';
+});
+
+t('REG-013', 'Monitor dry-run informa fontes pendentes sem alterar registro', async () => {
+  const report = await runMonitor({ root: ROOT, mode: 'dry-run' });
+  assert(report.checked > 0, 'monitor deveria verificar ao menos uma fonte');
+  assert(report.pending.length === report.checked, 'dry-run deveria listar todas as fontes pendentes');
+  assert(report.acquired === 0 && report.failed === 0, 'dry-run não pode adquirir nem falhar fontes');
+  return `${report.pending.length} fontes pendentes reportadas`;
+});
+
 /* ------------------------------------------------------------------ saída */
 const failed = results.filter(r => r.result === 'FAIL');
 const report = {
@@ -213,6 +229,8 @@ await mkdir(path.join(ROOT, 'generated'), { recursive: true });
 await writeFile(path.join(ROOT, 'generated/gate-regression.json'),
   JSON.stringify(report, null, 2) + '\n');
 
-console.log(JSON.stringify({ total: results.length, failed: failed.length,
-  cases: results.map(r => `${r.id}:${r.result}`) }, null, 2));
+console.log(JSON.stringify({
+  total: results.length, failed: failed.length,
+  cases: results.map(r => `${r.id}:${r.result}`)
+}, null, 2));
 if (failed.length) process.exit(1);

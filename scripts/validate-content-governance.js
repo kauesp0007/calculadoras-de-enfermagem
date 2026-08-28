@@ -2,6 +2,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { isProtected } = require("../automation-guard.js");
 
 const ROOT = path.resolve(__dirname, "..");
 const configPath = path.join(ROOT, "governance", "content-governance.config.json");
@@ -25,7 +26,9 @@ function listHtmlFiles(directory, files = []) {
             if (!ignoredDirectories.has(entry.name)) listHtmlFiles(path.join(directory, entry.name), files);
             continue;
         }
-        if (entry.isFile() && entry.name.endsWith(".html")) files.push(path.join(directory, entry.name));
+        if (entry.isFile() && entry.name.endsWith(".html") && !isProtected(relative(path.join(directory, entry.name)))) {
+            files.push(path.join(directory, entry.name));
+        }
     }
     return files;
 }
@@ -61,8 +64,48 @@ function isHighRiskCandidate(filePath, body, pattern) {
     return filenameMatch || pattern.test(body);
 }
 
+function loadBaseline() {
+    const baselinePath = path.join(ROOT, config.baseline_path || "governance/public-html-baseline.json");
+    if (!fs.existsSync(baselinePath)) return new Set();
+    const baseline = JSON.parse(fs.readFileSync(baselinePath, "utf8"));
+    return new Set(baseline.paths || []);
+}
+
+function isNewPublicHtml(file, baseline) {
+    return config.mode === "ENFORCE_NEW" && !baseline.has(file);
+}
+
+function validateNewHtml(file, body, findings) {
+    if (!/^<!doctype html>/i.test(body.trimStart())) {
+        findings.push({ code: "GOV-005", severity: "ERROR", file, message: "HTML público novo sem <!doctype html>." });
+    }
+    if (!/<html\b[^>]*\blang=["'][^"']+["']/i.test(body)) {
+        findings.push({ code: "GOV-006", severity: "ERROR", file, message: "HTML público novo sem atributo lang no elemento html." });
+    }
+    if (!/<title>[^<]+<\/title>/i.test(body)) {
+        findings.push({ code: "GOV-007", severity: "ERROR", file, message: "HTML público novo sem título SEO." });
+    }
+    if (!/<meta\b[^>]*\bname=["']description["'][^>]*\bcontent=["'][^"']+/i.test(body)) {
+        findings.push({ code: "GOV-008", severity: "ERROR", file, message: "HTML público novo sem meta description." });
+    }
+}
+
+function writeBaseline() {
+    const files = listHtmlFiles(ROOT).map(relative).sort();
+    const baselinePath = path.join(ROOT, config.baseline_path || "governance/public-html-baseline.json");
+    fs.writeFileSync(baselinePath, JSON.stringify({
+        contract_id: config.contract_id,
+        created_at: new Date().toISOString(),
+        purpose: "Linha de base dos HTMLs públicos existentes antes do enforcement para novas páginas.",
+        paths: files
+    }, null, 2) + "\n");
+    console.log(JSON.stringify({ baseline: relative(baselinePath), public_html: files.length }, null, 2));
+}
+
 function main() {
+    if (process.argv.includes("--write-baseline")) return writeBaseline();
     const runtime = loadRuntimeStatus();
+    const baseline = loadBaseline();
     const registered = new Map((config.registered_content || []).map(item => [item.path, item]));
     const pattern = new RegExp(config.high_risk_detection.content_pattern, "i");
     const findings = [];
@@ -71,14 +114,15 @@ function main() {
     for (const filePath of listHtmlFiles(ROOT)) {
         const file = relative(filePath);
         const body = fs.readFileSync(filePath, "utf8");
+        const isNew = isNewPublicHtml(file, baseline);
+        if (isNew) validateNewHtml(file, body, findings);
         if (!isHighRiskCandidate(filePath, body, pattern)) continue;
 
         candidates.push(file);
         const record = registered.get(file);
         if (!record) {
             findings.push({
-                code: "GOV-001",
-                severity: config.mode === "ENFORCE" ? "ERROR" : "WARNING",
+                code: "GOV-001", severity: isNew ? "ERROR" : "WARNING",
                 file,
                 message: "Página com possível conteúdo de alto risco sem registro no catálogo de governança."
             });
@@ -94,8 +138,7 @@ function main() {
         }
         if (!record.official_source_url) {
             findings.push({
-                code: "GOV-003",
-                severity: config.mode === "ENFORCE" ? "ERROR" : "WARNING",
+                code: "GOV-003", severity: isNew ? "ERROR" : "WARNING",
                 file,
                 message: "Conteúdo de alto risco sem URL de fonte oficial registrada."
             });
@@ -115,6 +158,7 @@ function main() {
         runtime,
         summary: {
             html_checked: listHtmlFiles(ROOT).length,
+            new_public_html: listHtmlFiles(ROOT).map(relative).filter(file => isNewPublicHtml(file, baseline)).length,
             high_risk_candidates: candidates.length,
             registered_content: registered.size,
             errors: findings.filter(item => item.severity === "ERROR").length,

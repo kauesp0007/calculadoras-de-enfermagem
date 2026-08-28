@@ -329,6 +329,39 @@
     </div>`;
   }
 
+  function svgCycle(items, center) {
+    const pos = [
+      { x: 230, y: 62, c: '#2563EB' },
+      { x: 392, y: 172, c: '#0EA5E9' },
+      { x: 230, y: 398, c: '#16A34A' },
+      { x: 68, y: 172, c: '#D97706' },
+      { x: 230, y: 236, c: '#E11D48' }
+    ];
+    const nodes = (items || []).slice(0, 5).map((it, i) => {
+      const p = pos[i];
+      const label = `${i + 1} · ${String(it.t || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
+      const w = Math.max(96, label.length * 6.1 + 24);
+      return `<rect x="${(p.x - w / 2).toFixed(1)}" y="${p.y - 17}" width="${w.toFixed(1)}" height="34" rx="17" fill="#fff" stroke="${p.c}" stroke-width="1.5"/><text x="${p.x}" y="${p.y + 4}" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#1A3E74">${label}</text>`;
+    }).join('');
+    const links = [
+      '<path d="M210 78 L238 130" stroke="#94A3B8" stroke-width="2"/>',
+      '<path d="M300 164 L258 160" stroke="#94A3B8" stroke-width="2"/>',
+      '<path d="M238 330 L210 278" stroke="#94A3B8" stroke-width="2"/>',
+      '<path d="M160 164 L202 160" stroke="#94A3B8" stroke-width="2"/>',
+      '<path d="M300 300 L360 260" stroke="#94A3B8" stroke-width="2"/>',
+      '<path d="M160 300 L100 260" stroke="#94A3B8" stroke-width="2"/>'
+    ].join('');
+    const arrows = [
+      '<text x="200" y="108" font-family="Arial" font-size="18" font-weight="900" fill="#1A3E74">↻</text>',
+      '<text x="322" y="148" font-family="Arial" font-size="18" font-weight="900" fill="#1A3E74">↻</text>',
+      '<text x="200" y="348" font-family="Arial" font-size="18" font-weight="900" fill="#1A3E74">↻</text>',
+      '<text x="118" y="148" font-family="Arial" font-size="18" font-weight="900" fill="#1A3E74">↻</text>'
+    ].join('');
+    const c1 = center && center.l1 ? String(center.l1).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    const c2 = center && center.l2 ? String(center.l2).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+    return `<svg viewBox="0 0 460 460" role="img" aria-label="Ciclo do Processo de Enfermagem: ${(items || []).slice(0, 5).map(i => esc(i.t)).join(', ')}"><defs><linearGradient id="gPECycle" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1A3E74"/><stop offset="100%" stop-color="#1E4D8C"/></linearGradient></defs><circle cx="230" cy="230" r="210" fill="none" stroke="#E2E8F0" stroke-width="2"/><circle cx="230" cy="230" r="60" fill="url(#gPECycle)"/>${c1 ? `<text x="230" y="222" text-anchor="middle" fill="#fff" font-family="Nunito Sans, Arial" font-size="13" font-weight="900">${c1}</text>` : ''}${c2 ? `<text x="230" y="240" text-anchor="middle" fill="#fff" font-family="Nunito Sans, Arial" font-size="13" font-weight="900">${c2}</text>` : ''}${nodes}${links}${arrows}</svg>`;
+  }
+
   function renderGuideBlocos(g) {
     const hero = `<div class="blk-hero"><span class="blk-kicker">${esc(g.hero.kicker)}</span><h3>${esc(g.hero.title)}</h3><p>${esc(g.hero.text)}</p></div>`;
     const blocks = (g.blocks || []).map(b => {
@@ -338,6 +371,20 @@
       if (b.type === 'flow') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-steps">${b.steps.map((s, i) => `<div class="blk-step"><span class="blk-step-num">${i + 1}</span><div><b>${esc(s.t)}</b><span>${esc(s.d)}</span></div></div>`).join('')}</div></div>`;
       if (b.type === 'refs') return `<div class="blk-section"><h3>${esc(b.title || 'Referências')}</h3><div class="blk-refs">${b.items.map(r => `<a class="blk-ref" href="${esc(r.url)}" target="_blank" rel="noopener noreferrer"><span class="blk-ref-label">${esc(r.label)}</span><b>${esc(r.text)}</b><span class="blk-ref-arrow" aria-hidden="true">↗</span></a>`).join('')}</div></div>`;
       if (b.type === 'links') return `<div class="blk-section"><h3>${esc(b.title || 'Aprofunde no site')}</h3><div class="blk-links">${b.items.map(l => `<a class="blk-link" href="${esc(l.url)}"><b>${esc(l.t)}</b><span>${esc(l.d || '')}</span><span class="blk-link-arrow" aria-hidden="true">→</span></a>`).join('')}</div></div>`;
+      if (b.type === 'cards') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-cards">${(b.items || []).map(it => `<button type="button" class="blk-card" aria-pressed="false"><b>${esc(it.t)}</b><span>${esc(it.d)}</span><small class="blk-card-cta">${esc(it.cta || 'Clique para marcar como revisado')}</small></button>`).join('')}</div></div>`;
+      if (b.type === 'table') {
+        const thead = `<thead><tr>${(b.head || []).map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead>`;
+        const tbody = `<tbody>${(b.rows || []).map(r => `<tr>${r.map(c => { const cell = typeof c === 'object' && c !== null ? c : { t: String(c) }; return `<td${cell.b ? ' class="em"' : ''}><b>${esc(cell.t || '')}</b>${cell.d ? `<small>${esc(cell.d)}</small>` : ''}</td>`; }).join('')}</tr>`).join('')}</tbody>`;
+        return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-table-wrap"><table class="blk-table">${thead}${tbody}</table></div>${b.note ? `<p class="blk-table-note">${esc(b.note)}</p>` : ''}</div>`;
+      }
+      if (b.type === 'bars') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-bars">${(b.items || []).map(it => `<div class="blk-bar-row"><span class="blk-bar-label">${esc(it.t)}</span><div class="blk-bar-track"><span class="blk-bar-fill" style="width:${Math.min(100, Math.max(4, Number(it.v) || 100))}%;background:${esc(it.c || 'var(--blue)')}">${esc(it.d || '')}</span></div></div>`).join('')}</div>${b.note ? `<p class="blk-table-note">${esc(b.note)}</p>` : ''}</div>`;
+      if (b.type === 'accordion') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-acc">${(b.items || []).map(it => `<details class="blk-acc-item"><summary><span class="blk-acc-num">${esc(it.num || '')}</span><b>${esc(it.t)}</b></summary><div class="blk-acc-body">${esc(it.d)}</div></details>`).join('')}</div>${b.note ? `<p class="blk-table-note">${esc(b.note)}</p>` : ''}</div>`;
+      if (b.type === 'figure') return `<figure class="blk-figure"><img src="${esc(b.src)}" alt="${esc(b.alt || b.caption || '')}" loading="lazy" decoding="async"><figcaption>${esc(b.caption || '')}${b.zoom ? ' 🔍 Clique para ampliar' : ''}</figcaption></figure>`;
+      if (b.type === 'cycle') return `<div class="blk-section"><h3>${esc(b.title)}</h3><div class="blk-cycle-wrap">${svgCycle(b.items || [], b.center)}</div>${b.note ? `<p class="blk-table-note">${esc(b.note)}</p>` : ''}</div>`;
+      if (b.type === 'quiz') {
+        const items = (b.items || []).map((q, qi) => `<div class="blk-quiz" data-correct="${Number(q.correct) || 0}" data-fb="${esc(q.fb || '')}"><p class="blk-quiz-q"><b>${qi + 1}.</b> ${esc(q.q)}</p><div class="blk-quiz-opts">${(q.options || []).map((o, oi) => `<button type="button" class="blk-quiz-opt" data-i="${oi}">${String.fromCharCode(65 + oi)}) ${esc(o)}</button>`).join('')}</div><p class="blk-quiz-fb" hidden></p></div>`).join('');
+        return `<div class="blk-section"><h3>${esc(b.title)}</h3>${items}${b.note ? `<p class="blk-table-note">${esc(b.note)}</p>` : ''}</div>`;
+      }
       return '';
     }).join('');
     const keywords = `<div class="guide-keywords"><span class="keywords-label">Palavras-chave</span>${g.keywords.map(k => `<span class="keyword">${esc(k)}</span>`).join('')}</div>`;
@@ -431,8 +478,27 @@
   }
   function closeTopic() { $('#topicModal').classList.remove('open'); document.body.classList.remove('no-scroll'); }
 
+  function bindBlkInteractions() {
+    const body = $('#modalBody'); if (!body) return;
+    body.addEventListener('click', function (ev) {
+      const card = ev.target.closest('.blk-card');
+      if (card) { const on = card.classList.toggle('done'); card.setAttribute('aria-pressed', on ? 'true' : 'false'); trackFeature('card:interativo'); return; }
+      const opt = ev.target.closest('.blk-quiz-opt'); if (!opt) return;
+      const quiz = opt.closest('.blk-quiz'); if (!quiz) return;
+      if (quiz.dataset.answered === '1') return;
+      quiz.dataset.answered = '1';
+      const correct = Number(quiz.dataset.correct || 0);
+      const picked = Number(opt.dataset.i || 0);
+      const opts = quiz.querySelectorAll('.blk-quiz-opt');
+      opts.forEach((o, oi) => { o.disabled = true; if (oi === correct) o.classList.add('ok'); else if (oi === picked) o.classList.add('bad'); });
+      const fb = quiz.querySelector('.blk-quiz-fb');
+      if (fb) { fb.hidden = false; fb.textContent = (picked === correct ? '✔ Correto! ' : '✘ Incorreto. ') + (quiz.dataset.fb || ''); }
+      trackFeature('quiz:card');
+    });
+  }
+
   function bindImageLightbox() {
-    $$('#modalBody .vig-img').forEach(img => {
+    $$('#modalBody .vig-img, #modalBody .blk-figure img').forEach(img => {
       img.style.cursor = 'zoom-in';
       img.addEventListener('click', () => openLightbox(img.getAttribute('src'), img.getAttribute('alt') || ''));
     });
@@ -647,6 +713,11 @@
       if (b.type === 'chips') return `<p class="chips">${(b.items || []).map(i => `<span class="chip">${esc(i)}</span>`).join(' ')}</p>`;
       if (b.type === 'flow') return `<ol class="steps">${(b.steps || []).map(s => `<li><b>${esc(s.t)}</b>${s.d ? ` — ${esc(s.d)}` : ''}</li>`).join('')}</ol>`;
       if (b.type === 'refs' || b.type === 'links') return `<ul class="refs">${(b.items || []).map(r => `<li><b>${esc(r.label || r.t)}</b> ${esc(r.text || r.d || '')}${r.url ? ` <span class="url">${esc(r.url)}</span>` : ''}</li>`).join('')}</ul>`;
+      if (b.type === 'cards' || b.type === 'bars' || b.type === 'accordion') return `<h4>${esc(b.title)}</h4><ul>${(b.items || []).map(it => `<li><b>${esc(it.t)}</b>${it.d ? ` — ${esc(it.d)}` : ''}</li>`).join('')}</ul>`;
+      if (b.type === 'table') return `<h4>${esc(b.title)}</h4><table><thead><tr>${(b.head || []).map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${(b.rows || []).map(r => `<tr>${r.map(c => { const cell = typeof c === 'object' && c !== null ? c : { t: String(c) }; return `<td>${cell.b ? '<b>' : ''}${esc(cell.t || '')}${cell.d ? ` — ${esc(cell.d)}` : ''}${cell.b ? '</b>' : ''}</td>`; }).join('')}</tr>`).join('')}</tbody></table>`;
+      if (b.type === 'figure') return `<p><i>${esc(b.caption || b.alt || '')}</i></p>`;
+      if (b.type === 'cycle') return `<h4>${esc(b.title)}</h4><p>${(b.items || []).map(it => esc(it.t)).join(' → ')} → ciclo contínuo</p>`;
+      if (b.type === 'quiz') return `<h4>${esc(b.title)}</h4><ol>${(b.items || []).map(q => `<li>${esc(q.q)} <b>Gabarito: ${esc((q.options || [])[Number(q.correct)] || '')}.</b>${q.fb ? ` ${esc(q.fb)}` : ''}</li>`).join('')}</ol>`;
       return '';
     }
 
@@ -781,7 +852,7 @@ tr:nth-child(even) td{background:#f8fafc}
 
   function init() {
     initClock(); renderCandidate(); renderMaterials(); renderStats(); bindTabsScroll();
-    renderWeightGrid(); renderPlan(); renderScore(); renderTimeline(); renderSources(); renderCountdown(); renderAllStateful(); bindTabs(); bindFilters(); bindSidebarMobile(); bindNotes(); bindTimer(); bindActions();
+    renderWeightGrid(); renderPlan(); renderScore(); renderTimeline(); renderSources(); renderCountdown(); renderAllStateful(); bindTabs(); bindFilters(); bindSidebarMobile(); bindNotes(); bindTimer(); bindActions(); bindBlkInteractions();
   }
   init();
 })();

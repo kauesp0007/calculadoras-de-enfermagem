@@ -1,0 +1,345 @@
+======================================================================
+  CATALOGO DA BIBLIOTECA DE ENFERMAGEM - Calculadoras de Enfermagem
+  Gerado em: 28/08/2026
+======================================================================
+
+----------------------------------------------------------------------
+  1. VISAO GERAL
+----------------------------------------------------------------------
+  A Biblioteca de Enfermagem e o acervo digital do site: documentos
+  (PDF), fotos/imagens e videos de enfermagem para download. Ela e
+  100% GERADA POR SCRIPTS: voce nao escreve HTML. Basta colocar o
+  arquivo na pasta certa e rodar o pipeline no terminal.
+
+  Onde coloco o arquivo? .... docs/ (PDF), img/ (imagens), videos/ (MP4)
+  O que cataloga os PDFs? .... automacoes/catalogador/ (Python + DeepSeek)
+  O que varre as pastas? ..... scanner-biblioteca.js -> biblioteca.json
+  Onde saem as paginas? ...... biblioteca/<slug>.html (por item)
+                              downloads.html + page2.html... (listagem)
+  Templates usados? .......... item.template.html + downloads.template.html
+  URL da biblioteca .......... https://www.calculadorasdeenfermagem.com.br/downloads.html
+  URL de um item ............. https://www.calculadorasdeenfermagem.com.br/biblioteca/<slug>.html
+  Orquestrador ............... biblioteca-automation.js (node biblioteca-automation.js)
+
+  REGRA DE OURO: downloads/ e biblioteca/ sao pastas GERADAS e PROIBIDAS
+  de alterar manualmente (downloads.html tambem e proibido). Editar os
+  HTMLs gerados e inutil: sao sobrescritos no proximo build. A fonte de
+  verdade sao os arquivos fisicos (docs/ img/ videos/), o biblioteca.json
+  e os templates (com autorizacao).
+
+----------------------------------------------------------------------
+  2. ESTRUTURA FISICA
+----------------------------------------------------------------------
+  docs/ ..................... FONTE (PDF, CSV, TXT...) -> categoria "documentos"
+  img/ ...................... FONTE (fotos) + capas <base>.webp geradas
+  videos/ ................... FONTE (.mp4 / .webm) -> categoria "videos"
+  automacoes/catalogador/ ... Catalogador Python (renomeia PDFs novos)
+    main.py ................. entrada (--once/--watch/--stats/--reprocess)
+    hash_manager.py ......... SHA-256 (nao reprocessa o que ja passou)
+    cache_manager.py ........ cache das respostas da IA
+    pdf_reader.py / ocr_engine.py ... leitura do PDF + OCR
+    deepseek_client.py ...... chamada a IA DeepSeek
+    classifier.py ........... valida a resposta da IA (fallback heuristico)
+    rename_engine.py ........ gera ANO_INSTITUICAO_CODIGO_TITULO.pdf
+  biblioteca.json ........... BASE DE DADOS (fonte de verdade de metadados)
+  scanner-biblioteca.js ..... varre as 3 pastas -> biblioteca.json
+  gerarCapasVideo.js ........ capas de video (ffmpeg, frame a 10%)
+  gerarCapasPDF.js .......... capas de PDF (pdf-poppler/pdf2pic + sharp)
+  build-biblioteca.js ....... gera biblioteca/<slug>.html
+  build-downloads.js ........ gera downloads.html + pageN.html
+  item.template.html ........ TEMPLATE do item (placeholders <!-- ... -->)
+  downloads.template.html ... TEMPLATE da listagem
+  biblioteca-automation.js .. ORQUESTRADOR (9 etapas em sequencia)
+  biblioteca/ ............... SAIDA GERADA (1.361 HTMLs - PROIBIDO editar)
+  downloads/ ................ SAIDA GERADA (listagem paginada - PROIBIDO)
+
+  NUMEROS ATUAIS (28/08/2026)
+  Itens em biblioteca.json ..... 1.361
+  Fotos ........................ 1.321
+  Videos ....................... 15
+  Documentos ................... 25 (21 PDFs + 1 CSV + 1 JSON + 1 TXT)
+  Imagens em img/ .............. 1.323
+  HTMLs em biblioteca/ ......... 1.361
+  Itens por pagina ............. 250 -> 6 paginas ativas
+
+----------------------------------------------------------------------
+  3. FLUXOGRAMA (texto)
+----------------------------------------------------------------------
+  docs/ img/ videos/
+    -> ETAPA 0: Catalogador Python (renomeia PDFs novos: DeepSeek+OCR)
+    -> ETAPA 1: scanner-biblioteca.js (titulo, slug, descricao, categoria,
+       ficheiro, capa -> biblioteca.json)
+    -> ETAPAS 2-3: Limpeza (remove orfaos do JSON e HTMLs orfaos)
+    -> ETAPA 4: Capas (gerarCapasVideo.js + gerarCapasPDF.js)
+    -> ETAPA 5: build-biblioteca.js (item.template.html -> biblioteca/<slug>.html)
+    -> ETAPA 6: build-downloads.js (downloads.template.html -> downloads.html + pageN)
+    -> ETAPA 7: Tailwind CSS (public/output.css --minify)
+    -> ETAPA 8: Service Worker (node gerar-sw.js)
+
+----------------------------------------------------------------------
+  4. AS TRES PASTAS DE ORIGEM
+----------------------------------------------------------------------
+  docs/    -> categoria "documentos" | capa = 1a pagina do PDF (ou vazia)
+  img/     -> categoria "fotos"      | capa = o proprio ficheiro
+  videos/  -> categoria "videos"     | capa = frame do video (10%)
+
+  Caminho gravado no JSON: /docs/..., /img/..., /videos/... (campo ficheiro)
+  TUDO que estiver nas pastas vira item (inclusive CSV/JSON/TXT em docs/).
+
+----------------------------------------------------------------------
+  5. RENOMEACAO DOS ARQUIVOS
+----------------------------------------------------------------------
+  FOTOS E VIDEOS: sem renomeador automatico. O nome do arquivo vira o
+  titulo exibido (extensao removida, -/_ viram espaco, palavras em
+  maiuscula). O slug e gerado: minusculas, sem acento, hifens.
+  Duplicatas recebem sufixo -2, -3...
+  O titulo pode ser refinado manualmente no biblioteca.json.
+
+  PDFS - CATALOGADOR INTELIGENTE (padrao obrigatorio):
+  ANO_INSTITUICAO_CODIGO_TITULO.pdf
+
+  Exemplos reais:
+  1956_Faculdade_de_Higiene_e_Saude_Publica_da_Glossario_de_Epidemiologia.pdf
+  1990_Camara_dos_Deputados_LEI_No_8.080_DE_19_DE_SETEMBRO_DE_1990.pdf
+  2000_American_Heart_Association_Part_4_The_Automated_External_Defibrillator.pdf
+
+  Regras do nome (rename_engine.py):
+  - sem espacos (usar _)
+  - sem acentos/cedilha; sem aspas, parenteses, colchetes
+  - sem _ repetidos; so letras, numeros, ponto, hifen, underscore
+  - extensao .pdf preservada; ano desconhecido = XXXX
+  - limites: titulo 80, instituicao 40, codigo 20, nome total 200 chars
+  - codigo interno (ex.: POP.DEA.006) entre instituicao e titulo
+
+  Fluxo interno do catalogador:
+  hash (ja catalogado?) -> cache (resposta da IA guardada?)
+  -> ler PDF (pymupdf; sem texto? OCR) -> snippet
+  -> DeepSeek catalogar -> classifier validar (fallback heuristico)
+  -> rename_engine.gerar_novo_nome -> renomear arquivo + registrar
+
+----------------------------------------------------------------------
+  6. CAPTACAO PARA O biblioteca.json (scanner-biblioteca.js)
+----------------------------------------------------------------------
+  1. Carrega o JSON existente
+  2. Garante slug unico (sufixo -2, -3... em duplicatas)
+  3. Garante descricao automatica se faltar
+  4. Garante capa para fotos (capa = proprio ficheiro)
+  5. Dedupe pelo campo "ficheiro"
+  6. Cada arquivo novo vira um item:
+     { titulo, slug, descricao, keywords:[], meta_descricao:"",
+       categoria, ficheiro, capa }
+  7. Salva o JSON e dispara os motores de capas (videos -> PDFs)
+
+  Campos do item: titulo, slug, descricao, keywords (array),
+  meta_descricao (manual/IA, prioridade maxima no build), categoria
+  (fotos|documentos|videos), ficheiro, download (opcional), capa.
+
+----------------------------------------------------------------------
+  7. CAPAS DE PDF E VIDEO
+----------------------------------------------------------------------
+  VIDEOS (gerarCapasVideo.js):
+  - para cada .mp4/.webm sem capa: ffmpeg captura 1 frame em 10% da
+    duracao -> img/<nome>.webp -> item.capa no JSON
+  - blindagem: capa existente = pula (nao regera)
+
+  PDFs (gerarCapasPDF.js):
+  - pagina 1 -> PNG 1024px (pdf-poppler; fallback pdf2pic)
+  - sharp: redimensiona 600px -> .webp qualidade 80
+  - remove o PNG temporario -> item.capa = /img/<base>.webp
+  - capa ja existente no disco = associa sem regerar
+  - so grava no JSON se houve alteracao
+
+----------------------------------------------------------------------
+  8. LIMPEZA (ETAPAS 2-3)
+----------------------------------------------------------------------
+  Etapa 2: remove do biblioteca.json entradas cujo arquivo fisico nao
+  existe mais.
+  Etapa 3: exclui HTMLs orfaos de biblioteca/.
+  Obs.: build-downloads.js NAO apaga paginas antigas de downloads/.
+  Existem arquivos page7.html..page52.html residuais, mas so downloads.html
+  + page2..page6 sao ativas (1.361 itens / 250 por pagina).
+
+----------------------------------------------------------------------
+  9. HTMLs INDIVIDUAIS (build-biblioteca.js)
+----------------------------------------------------------------------
+  1. Le biblioteca.json + item.template.html
+  2. SHA-256 do template gravado no <head>:
+     <!-- BIBLIOTECA_ITEM_TEMPLATE_HASH:<hash> -->
+  3. extrairDadosDoFicheiro() reparseia o nome ANO_INSTITUICAO_CODIGO_TITULO
+     -> ano, instituicao, codigo, titulo, tipo documental (Resolucao,
+     Portaria, Protocolo, Manual, Diretriz, Artigo Cientifico, Prova,
+     Codigo de Etica, Parecer Tecnico, Nota Tecnica, Formulario, Documento)
+  4. Descricao (prioridade): meta_descricao > descricao (>50 chars)
+     > derivada do nome > automatica
+  5. Keywords: JSON + palavras do titulo/instituicao/tipo/ano + base
+     [enfermagem, material de estudo, protocolos, saude]
+  6. Injeta placeholders e grava biblioteca/<slug>.html
+     (conteudo identico = nao reescreve)
+
+  Placeholders do item.template.html:
+    <!-- SEO_TITLE --> .......... title + og + twitter
+    <!-- SEO_DESCRIPTION --> ..... meta description
+    <!-- SEO_KEYWORDS --> ........ meta keywords
+    <!-- CANONICAL_URL --> ....... canonical + og:url
+    <!-- SCHEMA_ORG --> .......... JSON-LD ItemPage (publisher do site)
+    <!-- [TITLE] --> ............. breadcrumb + H1
+    <!-- [DESCRIPTION] --> ....... paragrafo de descricao
+    <!-- [FILE] --> .............. link do botao "Fazer Download"
+    <!-- [MEDIA_PLAYER] --> ...... <video controls> ou <img> da capa
+    <!-- [FILE_TYPE] --> ......... badge da extensao
+
+  Badges: PDF vermelho | WORD azul | EXCEL verde | VIDEO roxo | IMAGEM verde
+
+  Estrutura visual da pagina do item:
+  - breadcrumb: Inicio > Biblioteca > Titulo
+  - H1 = titulo; H2 = "Detalhes e download do material de enfermagem"
+  - container branco 2 colunas (desktop): midia a esquerda (video player
+    ou imagem da capa) | direita: badge, H3 "Descricao do Arquivo",
+    descricao, botao Fazer Download (azul #4A90E2), botao Voltar
+  - widget "Duvidas Frequentes" (forum) + MULTIPLEX_AD_RESERVED + footer
+
+----------------------------------------------------------------------
+  10. PASTA downloads (build-downloads.js)
+----------------------------------------------------------------------
+  1. Le biblioteca.json + downloads.template.html
+  2. biblioteca.reverse() -> mais recentes primeiro
+  3. 250 itens por pagina (ITEMS_PER_PAGE = 250)
+     ceil(1361/250) = 6 paginas: downloads.html + page2..page6
+  4. Gera 4 grades de cards injetadas nos placeholders:
+     <!-- TODOS --> <!-- DOCUMENTOS --> <!-- FOTOS --> <!-- VIDEOS -->
+  5. <!-- PAGINATION -->: Anterior/Proxima + numeros com elipses
+     (3 primeiras, 3 ultimas, vizinhas da atual)
+  6. SEO por pagina: title "Biblioteca de Enfermagem - Pagina N",
+     description, keywords e canonical por pagina
+
+  Card (.file-card):
+  - link para /biblioteca/<slug>.html
+  - area de midia 160px mobile / 180px desktop, fundo cinza
+  - badge da extensao no canto superior direito
+  - capa valida -> <img object-cover>; senao -> icone + "Ver Arquivo"
+  - titulo ate 2 linhas (line-clamp-2), azul no hover
+  - hover do card com scale-[1.02]
+
+  LCP/CLS: primeiras 6 imagens com fetchpriority=high loading=eager
+  width=300 height=200; demais lazy + decoding=async (tambem no JS).
+
+----------------------------------------------------------------------
+  11. PAGINA downloads.html (COMO E EXIBIDA)
+----------------------------------------------------------------------
+  Estrutura visual:
+  - Hero card azul #1A3E74: eyebrow "Acervo Digital",
+    H1 "Biblioteca de Enfermagem", subtitulo (alinhado a esquerda)
+  - Abas estilo Google: Todos | Documentos / PDF | Fotos / Imagens |
+    Videos (aba ativa sublinhada em azul institucional)
+  - Busca global a direita com lupa e botao "x" para limpar
+
+  Grades (quantos por linha):
+    mobile: 2 | sm: 3 | md: 4 | lg: 5 | xl: 6 por linha
+  - 4 grades estaticas (build, funcionam sem JS, alimentam SEO)
+  - 1 grade dinamica (#grid-dinamico) para busca/filtros
+
+  Funcionalidades:
+  - Abas de filtro: troca a grade estatica ou renderiza a dinamica
+  - Pesquisa: todas as palavras devem aparecer em titulo+descricao+slug
+    (ignora acentos); estado vazio "Nenhum item encontrado"
+  - Botao limpar: apaga a busca, restaura a aba, foco no campo
+  - Lightbox: fundo escuro com blur; img ou video; fechar/anterior/
+    proximo; titulo+descricao; botao Baixar; botao Ver pagina completa
+  - Teclado no lightbox: Esc fecha; setas navegam
+  - Mobile (<768px): carregamento progressivo de 30 cards por lote +
+    botao "Carregar mais"
+  - fetch('/biblioteca.json') carrega o acervo em memoria
+  - Paginacao: 250 por pagina com Anterior/Proxima e elipses
+  - SEO: BreadcrumbList Schema.org; title/desc/canonical por pagina
+  - CWV: anti-CLS placeholders; primeiras 6 imagens otimizadas
+  - Header/footer pelos scripts globais do site
+
+----------------------------------------------------------------------
+  12. PROIBICAO DE ALTERACAO (REGRA DO PROJETO)
+----------------------------------------------------------------------
+  PROIBIDO alterar sem autorizacao:
+  - Pastas: downloads, biblioteca (alem de blog, blog-templates,
+    node_modules, .git)
+  - Arquivos: downloads.html (alem de footer.html, menu-global.html,
+    global-body-elements.html, _language_selector.html,
+    googlefc0a17cdd552164b.html)
+
+  Por que: sao SAIDA do pipeline. Edicao manual e sobrescrita no
+  proximo build.
+
+  Como alterar corretamente:
+  - Conteudo de um item ....... biblioteca.json (campos do item)
+  - Adicionar/remover arquivo .. docs/ img/ videos/ + rodar pipeline
+  - Layout da pagina do item .. item.template.html (com autorizacao)
+  - Layout da listagem ........ downloads.template.html (com autorizacao)
+  - Regras de captura/capas ... scripts do pipeline (com autorizacao)
+  - Nome SEO de um PDF ........ Catalogador ou padrao da secao 5
+
+----------------------------------------------------------------------
+  13. PASSO A PASSO - ITEM NOVO
+----------------------------------------------------------------------
+  Documento (PDF):
+  1. Coloque o PDF em docs/
+  2. Rode o pipeline (catalogador renomeia para ANO_INSTITUICAO_CODIGO_TITULO.pdf)
+  3. Scanner adiciona ao biblioteca.json (documentos)
+  4. Motor de capas gera img/<nome>.webp (pagina 1)
+  5. build-biblioteca.js gera biblioteca/<slug>.html
+  6. build-downloads.js inclui o card na pagina 1 (mais recentes primeiro)
+  7. Opcional: refine meta_descricao e keywords no JSON e rode de novo
+
+  Foto/imagem:
+  1. Coloque em img/ com nome legivel (vira o titulo)
+  2. Scanner adiciona (fotos, capa = proprio ficheiro)
+  3. Builds geram pagina e card
+
+  Video:
+  1. Coloque o .mp4/.webm em videos/
+  2. Scanner adiciona (videos)
+  3. ffmpeg captura frame a 10% -> capa img/<nome>.webp
+  4. Builds geram pagina (com <video>) e card
+
+  Remover item: apague o arquivo fisico e rode o pipeline
+  (Etapas 2-3 removem orfaos do JSON e de biblioteca/).
+
+----------------------------------------------------------------------
+  14. SEQUENCIA COMPLETA DE EXECUCAO
+----------------------------------------------------------------------
+  node biblioteca-automation.js
+
+  Etapa 0 - Catalogador (renomeia PDFs novos): Python catalogador --once
+  Etapa 1 - Scanner: scanner-biblioteca.js
+  Etapa 2 - Limpeza do biblioteca.json (orfaos)
+  Etapa 3 - Limpeza dos HTMLs orfaos (biblioteca/)
+  Etapa 4 - Capas: gerarCapasVideo.js + gerarCapasPDF.js
+  Etapa 5 - Build dos itens: build-biblioteca.js
+  Etapa 6 - Build do downloads: build-downloads.js
+  Etapa 7 - Tailwind: .\node_modules\.bin\tailwindcss -i ./src/input.css
+           -o ./public/output.css --minify
+  Etapa 8 - Service Worker: node gerar-sw.js
+
+  Execucao individual (opcional):
+  python -m automacoes.catalogador.main --once
+  node scanner-biblioteca.js
+  node build-biblioteca.js
+  node build-downloads.js
+
+  Nunca executar git commit/git push automaticamente (responsabilidade
+  do desenvolvedor).
+
+----------------------------------------------------------------------
+  15. REFERENCIA RAPIDA
+----------------------------------------------------------------------
+  docs/ img/ videos/ ......... fonte (adicionar/remover arquivos)
+  biblioteca.json ............ base de metadados (SEO dos itens)
+  automacoes/catalogador/ .... renomeador de PDFs (com autorizacao)
+  scanner-biblioteca.js ...... varredura (com autorizacao)
+  gerarCapasVideo.js ......... capas de video (com autorizacao)
+  gerarCapasPDF.js ........... capas de PDF (com autorizacao)
+  build-biblioteca.js ........ paginas de item (com autorizacao)
+  build-downloads.js ......... listagem paginada (com autorizacao)
+  item.template.html ......... template do item (com autorizacao)
+  downloads.template.html .... template da listagem (com autorizacao)
+  biblioteca-automation.js ... orquestrador (com autorizacao)
+  biblioteca/ ................ PROIBIDO (gerado)
+  downloads/ ................. PROIBIDO (gerado)
+  downloads.html ............. PROIBIDO (gerado)

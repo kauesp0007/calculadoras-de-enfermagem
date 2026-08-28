@@ -15,10 +15,11 @@
 import { createHash } from 'node:crypto';
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export const VERSION = '1.0.0';
 export const STAGES = ['DISCOVER', 'ACQUIRE', 'HASH', 'PARSE', 'CLASSIFY', 'QUALIFY_STATUS',
-                       'LINK_RELATIONS', 'VALIDATE', 'PUBLISH_PROJECTIONS'];
+  'LINK_RELATIONS', 'VALIDATE', 'PUBLISH_PROJECTIONS'];
 
 export const sha256 = buf => createHash('sha256').update(buf).digest('hex');
 
@@ -91,9 +92,17 @@ export async function run({ root, mode = 'dry-run' }) {
   return report;
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+const invokedAsCli = process.argv[1]
+  && path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
+
+if (invokedAsCli) {
   const mode = process.argv.includes('--acquire') ? 'acquire' : 'dry-run';
-  const root = process.argv.find(a => a.startsWith('--root='))?.slice(7)
+  const root = process.argv.find(a => a.startsWith('--root='))?.slice('--root='.length)
     || path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
-  run({ root, mode }).then(r => console.log(JSON.stringify(r, null, 2)));
+  run({ root, mode })
+    .then(r => console.log(JSON.stringify(r, null, 2)))
+    .catch(err => {
+      console.error(`regulatory-monitor falhou: ${err.message}`);
+      process.exitCode = 1;
+    });
 }

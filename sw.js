@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260828-004726";
+const CACHE_VERSION = "20260828-045304";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -10,6 +10,12 @@ const urlsToCache = [
   '/offline.html',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Arquivos-para-Melhoria-Consolidado-v2.json',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Auditoria-360-Status-v2.json',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/pillow-12.3.0.dist-info/sboms/pillow-12.3.0.cdx.json',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/pip/_vendor/bom.cdx.json',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/pip/_vendor/urllib3/contrib/emscripten/emscripten_fetch_worker.js',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/weasyprint/css/html5_ph.css',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/weasyprint/css/html5_ua.css',
+  'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/weasyprint/css/html5_ua_form.css',
   'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/assets/css/coren-regulatory-production.css',
   'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/assets/js/cko-production-shell-loader.js',
   'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/assets/js/coren-regulatory-renderer.js',
@@ -270,6 +276,7 @@ const urlsToCache = [
   'global-styles.css',
   'glossary-search.js',
   'governance/content-governance.config.json',
+  'governance/public-html-baseline.json',
   'hi/favicon.ico',
   'hospitais.json',
   'id/favicon.ico',

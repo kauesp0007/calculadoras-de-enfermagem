@@ -14,8 +14,14 @@ SRC = ROOT / "generated/pdf-src"
 OUT = ROOT / "generated/pdfs"
 NOW = "2026-08-26T12:00:00Z"
 
-from weasyprint import HTML  # noqa: E402
-import pikepdf  # noqa: E402
+try:
+    from weasyprint import HTML  # noqa: E402
+    import pikepdf  # noqa: E402
+    PDF_RUNTIME_ERROR = None
+except (ImportError, OSError) as error:
+    HTML = None
+    pikepdf = None
+    PDF_RUNTIME_ERROR = str(error)
 
 
 def sha256(b: bytes) -> str:
@@ -110,6 +116,27 @@ def validate(path: pathlib.Path) -> dict:
 
 
 def main():
+    if PDF_RUNTIME_ERROR:
+        report = {
+            "report_id": "CKO-COREN-PDF-VALIDATION-v2",
+            "generated_at": NOW,
+            "result": "NOT_EXECUTED",
+            "basis": "Geração de PDF não executada porque o runtime do WeasyPrint não está disponível.",
+            "documents": [],
+            "findings": [{
+                "code": "PDF-ENV-001",
+                "severity": "P0",
+                "subject": "tools/build-pdf.py",
+                "message": "Dependência Python ou biblioteca nativa do WeasyPrint indisponível: " + PDF_RUNTIME_ERROR,
+            }],
+        }
+        (ROOT / "generated/pdf-validation.json").write_text(
+            json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (ROOT / "generated/pdf-lineage.json").write_text(
+            json.dumps({"artifacts": []}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        print(json.dumps({"pdfs": 0, "result": "NOT_EXECUTED", "findings": 1}, ensure_ascii=False))
+        return
+
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob("*.pdf"):
         old.unlink()

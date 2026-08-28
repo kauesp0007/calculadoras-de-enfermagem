@@ -14,6 +14,15 @@ export const VERSION = '1.0.0';
 const RE_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const RE_DATETIME = /^\d{4}-\d{2}-\d{2}T[\d:.]+Z?([+-]\d{2}:\d{2})?$/;
 
+function isHttpUrl(value) {
+  try {
+    const url = new URL(value);
+    return (url.protocol === 'https:' || url.protocol === 'http:') && Boolean(url.hostname);
+  } catch {
+    return false;
+  }
+}
+
 function typeOf(v) {
   if (v === null) return 'null';
   if (Array.isArray(v)) return 'array';
@@ -59,7 +68,7 @@ function walk(value, schema, root, path, errors) {
     if (schema.format === 'date-time' && !RE_DATETIME.test(value)) {
       errors.push({ path, message: 'formato date-time inválido' });
     }
-    if (schema.format === 'uri' && !/^https?:\/\/\S+$/.test(value)) {
+    if (schema.format === 'uri' && !isHttpUrl(value)) {
       errors.push({ path, message: 'URI inválida' });
     }
   }

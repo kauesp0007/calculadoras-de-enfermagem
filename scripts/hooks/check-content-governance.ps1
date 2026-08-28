@@ -1,11 +1,11 @@
-# PostToolUse: audita em modo observacional as edições de páginas e scripts editoriais.
+# PostToolUse: aplica governança a HTMLs públicos novos e reporta pendências do acervo.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()
 if ([string]::IsNullOrWhiteSpace($inputJson)) { exit 0 }
 try { $data = $inputJson | ConvertFrom-Json } catch { exit 0 }
 
-$editTools = @('create_file', 'replace_string_in_file', 'multi_replace_string_in_file', 'edit_notebook_file')
+$editTools = @('apply_patch', 'create_file', 'replace_string_in_file', 'multi_replace_string_in_file', 'edit_notebook_file')
 if ($editTools -notcontains $data.tool_name) { exit 0 }
 
 $filePaths = @()
@@ -27,5 +27,7 @@ foreach ($filePath in $filePaths) {
 if (-not $hasEditorialFile) { exit 0 }
 
 $validator = Join-Path (Get-Location).Path 'scripts\validate-content-governance.js'
-if (Test-Path $validator) { node $validator 2>&1 | Out-Null }
-exit 0
+if (-not (Test-Path $validator)) { exit 0 }
+
+& node $validator
+exit $LASTEXITCODE

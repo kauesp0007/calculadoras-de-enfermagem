@@ -214,7 +214,7 @@ async function main() {
   {
     const file = nationalRoute.file;
     const bc = [{ name: 'Início', route: '/' },
-                { name: 'Legislação COREN', route: relTo(file, file) }];
+    { name: 'Legislação COREN', route: relTo(file, file) }];
     const payload = {
       breadcrumbs: bc,
       councils: councilsReg.councils.map(c => ({
@@ -230,8 +230,10 @@ async function main() {
       title: 'Legislação dos Conselhos Regionais de Enfermagem (COREN)',
       description: 'Hub nacional da legislação dos 27 CORENs: decisões, portarias, pareceres e normas internas com fonte oficial, jurisdição e estado jurídico qualificado, sem inferência.',
       breadcrumbs: [{ name: 'Início', route: '/' }, { name: 'Legislação COREN', route: '/legislacao/coren/' }],
-      items: councilsReg.councils.map(c => ({ name: `Legislação ${c.short_name}`,
-        route: regionalRoutes.get(c.code).canonical_url.replace(SITE, '') })),
+      items: councilsReg.councils.map(c => ({
+        name: `Legislação ${c.short_name}`,
+        route: regionalRoutes.get(c.code).canonical_url.replace(SITE, '')
+      })),
       ogImage: ogForNational,
     });
     await writePage(file, pr.documentShell({
@@ -273,9 +275,11 @@ async function main() {
       title: `Legislação ${c.short_name} — atos do ${c.name}`,
       description: `Atos regionais do ${c.name} (${c.jurisdiction}) organizados por tipo jurídico, com fonte oficial e estado qualificado. ${regActs.length} ato(s) canonizado(s) nesta versão.`,
       breadcrumbs: [{ name: 'Início', route: '/' }, { name: 'Legislação COREN', route: '/legislacao/coren/' },
-                    { name: c.short_name, route: rr.canonical_url.replace(SITE, '') }],
-      items: typesReg.types.map(t => ({ name: `${t.label} · ${c.short_name}`,
-        route: typeRoutes.get(`${c.code}:${t.id}`).canonical_url.replace(SITE, '') })),
+      { name: c.short_name, route: rr.canonical_url.replace(SITE, '') }],
+      items: typesReg.types.map(t => ({
+        name: `${t.label} · ${c.short_name}`,
+        route: typeRoutes.get(`${c.code}:${t.id}`).canonical_url.replace(SITE, '')
+      })),
       ogImage: ogForCouncil(c.code),
     });
     await writePage(file, pr.documentShell({
@@ -303,8 +307,8 @@ async function main() {
         title: `${t.label} do ${c.short_name} — legislação regional`,
         description: `Índice de ${t.label.toLowerCase()} do ${c.name}: ${tActs.length} ato(s) canonizado(s), cada um com fonte oficial e qualificação de estado. Sem inferência de força normativa.`,
         breadcrumbs: [{ name: 'Início', route: '/' }, { name: 'Legislação COREN', route: '/legislacao/coren/' },
-                      { name: c.short_name, route: rr.canonical_url.replace(SITE, '') },
-                      { name: t.label, route: tr.canonical_url.replace(SITE, '') }],
+        { name: c.short_name, route: rr.canonical_url.replace(SITE, '') },
+        { name: t.label, route: tr.canonical_url.replace(SITE, '') }],
         items: tActs.map(a => ({ name: a.identifier, route: a.canonical_url.replace(SITE, '') })),
         ogImage: ogForCouncil(c.code),
       });
@@ -560,8 +564,10 @@ async function main() {
         // Rota do próprio site: deve existir como página construída.
         const asPage = clean.endsWith('/') ? `${clean.slice(1)}index.html` : clean.slice(1);
         if (existsSync(path.join(ROOT, asPage))) continue;
-        ex.push({ ref: `${f} -> ${ref}`, finding: 'Referência absoluta não resolve para arquivo do pacote.',
-                  severity: 'P0' });
+        ex.push({
+          ref: `${f} -> ${ref}`, finding: 'Referência absoluta não resolve para arquivo do pacote.',
+          severity: 'P0'
+        });
       }
     }
     caat('CAAT-LINK-002', 'absolute-reference-integrity',
@@ -574,8 +580,8 @@ async function main() {
   {
     const ex = [];
     const required = [/<title>/, /name="description"/, /rel="canonical"/, /name="robots"/,
-                      /property="og:title"/, /property="og:image"/, /name="twitter:card"/,
-                      /application\/ld\+json/];
+      /property="og:title"/, /property="og:image"/, /name="twitter:card"/,
+      /application\/ld\+json/];
     for (const f of pageIndex) {
       const html = await readFile(path.join(ROOT, f), 'utf8');
       for (const re of required) {
@@ -694,18 +700,22 @@ async function main() {
     const f = path.join(ROOT, 'generated/a11y-axe-report.json');
     if (existsSync(f)) {
       const rep = JSON.parse(await readFile(f, 'utf8'));
+      const auditExecuted = rep.result !== 'NOT_EXECUTED';
+      const layoutRules = rep.rules_not_evaluated?.rules || [];
       caats.push({
         caat_id: 'CAAT-A11Y-002', scope: 'accessibility-axe',
-        procedure: `Executar ${rep.engine} sobre o DOM entregue, em ${rep.standard}. `
-          + `Regras dependentes de layout ficam fora: ${rep.rules_not_evaluated.rules.join(', ')}.`,
-        engine_version: rep.engine, executed_at: rep.generated_at,
-        population: rep.pages_total, tested: rep.pages_tested,
-        exceptions: rep.violations.map(v => ({
+        procedure: auditExecuted
+          ? `Executar ${rep.engine} sobre o DOM entregue, em ${rep.standard}. `
+          + `Regras dependentes de layout ficam fora: ${layoutRules.join(', ')}.`
+          : rep.basis,
+        engine_version: rep.engine || 'axe-core indisponível', executed_at: rep.generated_at,
+        population: rep.pages_total || 0, tested: rep.pages_tested || 0,
+        exceptions: (rep.violations || []).map(v => ({
           ref: `${v.page}:${v.id}`, finding: v.help,
           severity: ['critical', 'serious'].includes(v.impact) ? 'P0' : 'P1',
         })),
-        result: rep.result === 'FAIL' ? 'FAIL' : 'PASS',
-        reperformance: { deterministic: true },
+        result: rep.result === 'NOT_EXECUTED' ? 'NOT_EXECUTED' : (rep.result === 'FAIL' ? 'FAIL' : 'PASS'),
+        reperformance: { deterministic: auditExecuted },
       });
     }
   }
@@ -750,8 +760,10 @@ async function main() {
     procedure: 'Reexecutar a leitura do documento oficial e comparar SHA-256 com o snapshot registrado.',
     engine_version: 'monitoring/regulatory-monitor.mjs@1.0.0', executed_at: NOW,
     population: acts.length, tested: 0,
-    exceptions: [{ ref: 'evidence/sources/evidence-sources.json',
-      finding: 'Nenhum snapshot oficial adquirido; reperformance impossível neste ambiente.', severity: 'P0' }],
+    exceptions: [{
+      ref: 'evidence/sources/evidence-sources.json',
+      finding: 'Nenhum snapshot oficial adquirido; reperformance impossível neste ambiente.', severity: 'P0'
+    }],
     result: 'NOT_EXECUTED',
     reperformance: { deterministic: true, input_hash: null, output_hash: null },
   });
@@ -762,9 +774,9 @@ async function main() {
   // Dois gates CAAT distintos: o estrutural nao pode ser contaminado pela ausencia
   // do teste de fonte, e o de fonte nao pode ser "compensado" pelos estruturais.
   const STRUCTURAL_SCOPES = ['route-determinism', 'local-link-integrity', 'seo-materialization',
-                             'dto-fidelity', 'projection-gate-enforcement', 'accessibility-static',
-                             'accessibility-axe', 'privacy-static', 'gate-regression',
-                             'absolute-reference-integrity', 'artifact-schema'];
+    'dto-fidelity', 'projection-gate-enforcement', 'accessibility-static',
+    'accessibility-axe', 'privacy-static', 'gate-regression',
+    'absolute-reference-integrity', 'artifact-schema'];
   const caatStructural = validateCAAT(caats.filter(c => STRUCTURAL_SCOPES.includes(c.scope)),
     { requiredScopes: STRUCTURAL_SCOPES });
   const caatSource = validateCAAT(caats.filter(c => c.scope === 'source-reperformance'),
@@ -778,12 +790,18 @@ async function main() {
     const findings = list.flatMap(c => (c.exceptions || []).map(e => ({
       code: c.caat_id, severity: e.severity || 'P1', subject: e.ref, message: e.finding,
     })));
+    for (const caat of list.filter(c => c.result === 'NOT_EXECUTED')) {
+      findings.push({
+        code: caat.caat_id, severity: 'P0', subject: caat.scope,
+        message: `CAAT não executado: ${caat.procedure}`,
+      });
+    }
     return { result: findings.some(f => f.severity === 'P0') ? 'FAIL' : (findings.length ? 'PASS_WITH_FINDINGS' : 'PASS'), findings, basis };
   };
 
   const structural = gateFrom(['route-determinism', 'local-link-integrity',
-                               'absolute-reference-integrity', 'dto-fidelity',
-                               'projection-gate-enforcement', 'gate-regression', 'artifact-schema'],
+    'absolute-reference-integrity', 'dto-fidelity',
+    'projection-gate-enforcement', 'gate-regression', 'artifact-schema'],
     'CAATs determinísticos de rota, referência local, fidelidade de DTO, enforcement do gate e '
     + 'regressão fail-closed sobre fixtures sintéticas.');
   const seoGate = gateFrom(['seo-materialization'], 'SEO materializado em build-time e verificado por CAAT.');
