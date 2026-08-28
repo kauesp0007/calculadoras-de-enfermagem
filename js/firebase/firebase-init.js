@@ -47,6 +47,9 @@
   /** @type {import("firebase/auth").Auth|null} */
   let _auth = null;
 
+  /** @type {import("firebase/firestore").Firestore|null} */
+  let _db = null;
+
   /** @type {boolean} */
   let _loading = false;
 
@@ -58,6 +61,8 @@
     "https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js";
   const FIREBASE_AUTH_URL =
     "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js";
+  const FIREBASE_FIRESTORE_URL =
+    "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js";
 
   /**
    * Carrega um script externo sob demanda.
@@ -111,6 +116,7 @@
         // 1. Carrega os scripts do Firebase
         await loadScript(FIREBASE_APP_URL);
         await loadScript(FIREBASE_AUTH_URL);
+        await loadScript(FIREBASE_FIRESTORE_URL);
 
         // 2. Inicializa o Firebase App
         if (!window.firebase || !window.firebase.initializeApp) {
@@ -122,7 +128,13 @@
         _app = window.firebase.initializeApp(firebaseConfig);
         _auth = window.firebase.auth();
 
-        // 3. Configura idioma da interface Firebase (emails, etc.)
+        // 3. Inicializa o Firestore (única fonte de dados do usuário)
+        if (window.firebase.firestore) {
+          _db = window.firebase.firestore();
+          console.log("[Firebase] Firestore inicializado.");
+        }
+
+        // 4. Configura idioma da interface Firebase (emails, etc.)
         if (_auth && _auth.useDeviceLanguage) {
           _auth.useDeviceLanguage();
         }
@@ -151,10 +163,38 @@
     return _auth;
   }
 
+  /**
+   * Retorna a instância do Firestore, inicializando o Firebase se necessário.
+   * Este é o único ponto de acesso ao Firestore no projeto.
+   * @returns {Promise<object>} Instância do Firestore.
+   */
+  async function getFirestore() {
+    if (_db) {
+      return _db;
+    }
+    await initFirebase();
+    if (!_db) {
+      throw new Error(
+        "Firestore não disponível. Verifique se o SDK Firestore foi carregado."
+      );
+    }
+    return _db;
+  }
+
+  /**
+   * Retorna a instância do Firestore sem inicializar.
+   * @returns {object|null}
+   */
+  function getDbSync() {
+    return _db;
+  }
+
   // ─── Exportação para o escopo global ───────────────────────────
   window.FirebaseInit = {
     init: initFirebase,
     getAuthSync: getAuthSync,
+    getFirestore: getFirestore,
+    getDbSync: getDbSync,
     config: firebaseConfig
   };
 

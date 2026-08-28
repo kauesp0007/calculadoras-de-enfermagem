@@ -82,6 +82,7 @@
             window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
               _userProfile = profile;
               _currentPlan = profile ? profile.plan : "free";
+              _notifyProfileListeners(profile);
             }).catch(function () {
               // Perfil ainda não existe (usuário novo)
               _currentPlan = "free";
@@ -91,6 +92,7 @@
           console.log("[Auth] Nenhum usuário autenticado.");
           _userProfile = null;
           _currentPlan = null;
+          _clearLocalCache();
         }
 
         // Notifica listeners externos
@@ -120,6 +122,9 @@
   /** @type {Array<function(object|null):void>} */
   var _listeners = [];
 
+  /** @type {Array<function(object|null):void>} */
+  var _profileListeners = [];
+
   /**
    * Registra um callback para mudanças no estado de autenticação.
    * @param {function(object|null):void} callback
@@ -140,6 +145,32 @@
         cb(user);
       } catch (e) {
         console.error("[Auth] Erro em listener:", e);
+      }
+    });
+  }
+
+  /**
+   * Registra um callback para mudanças no PERFIL do usuário (dados do Firestore).
+   * Diferente de onAuthChange (estado de login), este dispara quando o perfil
+   * carrega/atualiza (nome, foto, plano, preferências).
+   * @param {function(object|null):void} callback
+   */
+  function onProfileChange(callback) {
+    if (typeof callback === "function") {
+      _profileListeners.push(callback);
+    }
+  }
+
+  /**
+   * Notifica todos os listeners de perfil.
+   * @param {object|null} profile
+   */
+  function _notifyProfileListeners(profile) {
+    _profileListeners.forEach(function (cb) {
+      try {
+        cb(profile);
+      } catch (e) {
+        console.error("[Auth] Erro em listener de perfil:", e);
       }
     });
   }
@@ -259,11 +290,24 @@
         _currentUser = null;
         _userProfile = null;
         _currentPlan = null;
+        _clearLocalCache();
         console.log("[Auth] Sessão encerrada.");
       }
     } catch (error) {
       console.error("[Auth] Erro ao encerrar sessão:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Limpa caches locais de autenticação/perfil no logout.
+   */
+  function _clearLocalCache() {
+    if (window.AuthModules.session && window.AuthModules.session.clearCache) {
+      window.AuthModules.session.clearCache();
+    }
+    if (window.AuthModules.userCache && window.AuthModules.userCache.clear) {
+      window.AuthModules.userCache.clear();
     }
   }
 
@@ -287,6 +331,7 @@
     signIn: signIn,
     signOut: signOut,
     onAuthChange: onAuthChange,
+    onProfileChange: onProfileChange,
     isInitialized: isInitialized
   };
 

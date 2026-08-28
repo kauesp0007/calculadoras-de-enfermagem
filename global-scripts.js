@@ -132,6 +132,44 @@ function initializeNavigationMenu() {
    Auth Menu — Integração com Sistema de Contas
    ========================= */
 function initializeAuthMenu() {
+  // ── Flag para evitar registro duplicado do listener de perfil ──
+  var _profileListenerBound = false;
+
+  /**
+   * Mescla o usuário do Firebase Auth com o perfil do Firestore,
+   * priorizando os dados do perfil (fonte oficial) para exibição.
+   */
+  function mergeUserAndProfile(user, profile) {
+    if (!user) {
+      return null;
+    }
+    if (!profile) {
+      return user;
+    }
+    return {
+      uid: user.uid,
+      email: profile.email || user.email || "",
+      displayName: profile.displayName || user.displayName || "",
+      photoURL: profile.photoURL || user.photoURL || ""
+    };
+  }
+
+  /**
+   * Re-renderiza o menu quando o perfil do Firestore carrega/atualiza.
+   */
+  function bindProfileListener() {
+    if (_profileListenerBound) {
+      return;
+    }
+    _profileListenerBound = true;
+
+    if (window.Auth && window.Auth.onProfileChange) {
+      window.Auth.onProfileChange(function (profile) {
+        safeUpdateUI(mergeUserAndProfile(window.Auth.currentUser(), profile));
+      });
+    }
+  }
+
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function updateAuthUI(user) {
@@ -264,6 +302,13 @@ function initializeAuthMenu() {
     var scripts = [
       "/js/firebase/firebase-init.js",
       "/js/auth/auth-session.js",
+      "/js/auth/auth-providers.js",
+      "/js/auth/auth-permissions.js",
+      "/js/auth/firestore-user.js",
+      "/js/auth/user-cache.js",
+      "/js/auth/user-events.js",
+      "/js/auth/preferences.js",
+      "/js/auth/auth-user-profile.js",
       "/js/auth/auth-core.js"
     ];
 
@@ -273,6 +318,7 @@ function initializeAuthMenu() {
       if (loaded >= scripts.length) {
         if (window.Auth && window.Auth.init) {
           window.Auth.init().then(function () {
+            bindProfileListener();
             safeUpdateUI(window.Auth.currentUser());
             window.Auth.onAuthChange(function (user) {
               safeUpdateUI(user);
@@ -297,12 +343,14 @@ function initializeAuthMenu() {
   function _useExistingAuth() {
     function waitAndUpdate() {
       if (window.Auth.isInitialized()) {
+        bindProfileListener();
         safeUpdateUI(window.Auth.currentUser());
         window.Auth.onAuthChange(function (user) {
           safeUpdateUI(user);
         });
       } else {
         window.Auth.init().then(function () {
+          bindProfileListener();
           safeUpdateUI(window.Auth.currentUser());
           window.Auth.onAuthChange(function (user) {
             safeUpdateUI(user);

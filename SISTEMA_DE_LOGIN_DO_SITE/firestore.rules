@@ -1,0 +1,52 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ─── Helpers ─────────────────────────────────────────────────
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    // ─── Coleção "users" ─────────────────────────────────────────
+    // Cada usuário acessa EXCLUSIVAMENTE o próprio documento.
+    // A fonte de verdade do perfil é o Firestore; o Firebase Auth
+    // é usado apenas para autenticação/UID.
+    match /users/{uid} {
+
+      // Leitura: somente o dono do documento.
+      allow read: if isOwner(uid);
+
+      // Criação: somente o próprio usuário, com valores iniciais seguros.
+      // Impede que o cliente crie contas já como admin/premium/status privilegiado.
+      allow create: if isOwner(uid)
+        && request.resource.data.uid == uid
+        && (!('role' in request.resource.data) || request.resource.data.role == 'user')
+        && (!('plan' in request.resource.data) || request.resource.data.plan == 'free')
+        && (!('status' in request.resource.data) || request.resource.data.status == 'active');
+
+      // Atualização: somente o próprio usuário, SEM escalar privilégios.
+      // Compara o estado resultante (request.resource.data) com o anterior
+      // (resource.data) para garantir que uid/role/plan/status/createdAt não mudem.
+      allow update: if isOwner(uid)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.plan == resource.data.plan
+        && request.resource.data.status == resource.data.status
+        && request.resource.data.createdAt == resource.data.createdAt;
+
+      // Exclusão: somente o próprio usuário (uso futuro — exclusão de conta).
+      allow delete: if isOwner(uid);
+    }
+
+    // ─── Demais coleções ─────────────────────────────────────────
+    // Bloqueadas por padrão. Novas coleções (favoritos, histórico, etc.)
+    // devem receber regras específicas quando forem implementadas.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
