@@ -1704,6 +1704,45 @@ window.SANTOS_DATA = {
             }
           ]
         },
+        "parameters": {
+          "title": "ESF e eAB: números que merecem revisão",
+          "text": "A Estratégia Saúde da Família (eSF) é o modelo prioritário para organizar e expandir a Atenção Básica. As equipes de Atenção Básica (eAB) também são reconhecidas, com arranjos de carga horária flexíveis.",
+          "items": [
+            {
+              "t": "Cobertura da eSF",
+              "d": "Recomenda-se que cada equipe seja responsável por 2.000 a 3.500 pessoas; o território considera densidade, acesso, perfil epidemiológico e vulnerabilidades."
+            },
+            {
+              "t": "Carga horária",
+              "d": "Na eSF, os profissionais atuam 40 horas semanais. Na eAB, a carga horária por profissional pode variar de 10 a 40 horas semanais, preservando o caráter multiprofissional."
+            },
+            {
+              "t": "ACS",
+              "d": "Cada Agente Comunitário de Saúde deve ser responsável por até 750 pessoas; em áreas de maior dispersão, o número deve ser menor."
+            },
+            {
+              "t": "Gerente de Atenção Básica",
+              "d": "Profissional de nível superior voltado à administração e à organização dos fluxos da unidade, sem atuação assistencial direta."
+            }
+          ]
+        },
+        "recognizedTeams": {
+          "title": "Outras equipes reconhecidas pela PNAB",
+          "items": [
+            {
+              "t": "Consultório na Rua (eCR)",
+              "d": "Oferece atenção integral à população em situação de rua."
+            },
+            {
+              "t": "eSF Ribeirinha e Fluvial",
+              "d": "Organiza o cuidado de populações dispersas da Amazônia Legal e do Pantanal Sul-Mato-Grossense."
+            },
+            {
+              "t": "Equipes de Atenção Básica Prisional (eABP)",
+              "d": "Atendem a população privada de liberdade, articuladas à rede de saúde."
+            }
+          ]
+        },
         "determinants": {
           "title": "Determinantes e condicionantes da saúde",
           "text": "A saúde é condicionada por fatores que vão além do setor sanitário. A APS atua sobre esses determinantes para reduzir desigualdades:",
