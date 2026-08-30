@@ -16,7 +16,7 @@ forum-enfermagem.html
        │    ├─ tabelas: posts, profiles, reports, translations, blocks, moderation_actions
        │    └─ Storage: avatars, forum-media
        ├─ Supabase Edge Function: translate-forum-message
-       │    └─ Google Cloud Translation API (secret: GOOGLE_TRANSLATION_API_KEY)
+       │    └─ Google Translation (principal) + DeepSeek (fallback)
        └─ interface (feed 3 colunas, compositor, tradução, denúncia)
 ```
 
@@ -207,19 +207,27 @@ import { serve } from "https://deno.land/std/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const GOOGLE_KEY = Deno.env.get("GOOGLE_TRANSLATION_API_KEY");
-
+const DEEPSEEK_KEY = Deno.env.get("DEEPSEEK_API_KEY"); // fallback
 serve(async (req) => {
   try {
-    const { message_id, text, target_language } = await req.json();
-    if (!text) return new Response(JSON.stringify({ error: "empty" }), { status: 400 });
-
-    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
-      .then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""));
+    const { message_id, target_language } = await req.json();
+    if (!Number.isSafeInteger(message_id) || message_id <= 0) {
+      return new Response(JSON.stringify({ error: "invalid_message_id" }), { status: 400 });
+    }
 
     const sb = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
+
+    // O texto deve ser lido no servidor a partir de posts.id. Não aceite texto
+    // arbitrário enviado pelo navegador: isso evita abuso e cache poisoning.
+    const { data: post } = await sb.from("posts")
+      .select("conteudo, original_language").eq("id", message_id).maybeSingle();
+    const text = post?.conteudo;
+    if (!text) return new Response(JSON.stringify({ error: "message_not_found" }), { status: 404 });
+    const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text))
+      .then(b => [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""));
 
     // cache primeiro
     const { data: cached } = await sb.from("translations")
@@ -228,11 +236,15 @@ serve(async (req) => {
       .maybeSingle();
     if (cached?.translated_text) return new Response(JSON.stringify({ translated_text: cached.translated_text }), { status: 200 });
 
-    const url = `https://translation.googleapis.com/language/translate/v2?key=${GOOGLE_KEY}`;
-    const g = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ q: text, target: target_language, format: "text" }) });
+    const g = await fetch("https://api.deepseek.com/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${DEEPSEEK_KEY}` },
+      body: JSON.stringify({ model: "deepseek-chat", temperature: 0.1,
+        messages: [{ role: "system", content: `Translate only to ${target_language}. Return only the translation.` },
+          { role: "user", content: text }] })
+    });
     const data = await g.json();
-    const translated_text = data?.data?.translations?.[0]?.translatedText;
+    const translated_text = data?.choices?.[0]?.message?.content?.trim();
     if (!translated_text) throw new Error("no translation");
 
     await sb.from("translations").upsert(
@@ -247,7 +259,8 @@ serve(async (req) => {
 ```
 
 **Segredos (nunca no frontend, nunca no Git):**
-- `GOOGLE_TRANSLATION_API_KEY` (Google Cloud Translation)
+- `GOOGLE_TRANSLATION_API_KEY` (Google Translation, provedor principal)
+- `DEEPSEEK_API_KEY` (DeepSeek, fallback)
 - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
 
 ---
@@ -268,7 +281,7 @@ PICC, SBAR, UTI, CME, etc.
 | Políticas RLS (seção 4) | ⏳ Requer execução no painel | Desenvolvedor |
 | Buckets `avatars`/`forum-media` + políticas | ⏳ Requer configuração | Desenvolvedor |
 | Edge Function `translate-forum-message` | ⏳ Requer deploy + segredos | Desenvolvedor |
-| Google Cloud Translation API | ⏳ Requer chave (secret) | Desenvolvedor |
+| Google Translation + fallback DeepSeek | ⏳ Requer deploy + secrets | Desenvolvedor |
 | Discussões com URL própria (`/forum/thread/ID`) | 🔭 Futuro | Desenvolvedor |
 
 > O frontend **não finge** que esses recursos estão ativos: tradução/denúncia exibem
