@@ -1,0 +1,57 @@
+FLUXO DE COMPLEMENTARIDADE - AGENTES E HOOKS
+Projeto: Calculadoras de Enfermagem
+Pergunta central: como os 8 agentes e os 5 hooks se complementam e em que ordem entram?
+
+PRINCIPIO
+- Hooks atuam por baixo, automaticos, em todo o ciclo.
+- Agentes atuam por cima, sob demanda, cada um em uma etapa.
+- Juntos: hooks GARANTEM (backup, build, governanca, indice, bloqueio de git) e
+  agentes DECIDEM (pesquisar, criar, gerar imagens, testar, auditar, traduzir).
+
+PIPELINE DE CRIACAO DE PAGINA NOVA
+1. Descoberta de Conhecimento (read, search) -> dossie JSON
+2. Nova Calculadora (read, edit, search)
+3. Gerador de Imagens (read, edit, search) -> 3 WebPs em /img
+4. Nova Calculadora (insere imagens no HTML)
+5. Testador no Navegador (read, search, execute) -> relatorio
+6. Auditor SEO (read, search, web) -> relatorio
+7. Auditor de Governanca Regulatoria (read, search) -> relatorio
+8. Tradutor de Pagina (read, edit, search) -> arquivos nos idiomas
+9. Build do Site (execute) -> build final
+
+HOOKS ATIVOS EM PARALELO (sem IA)
+- auto-backup: antes de editar (create/replace/multi_replace/edit_notebook).
+- security-git: antes de run_in_terminal (bloqueia git commit/push).
+- build-after-edit: depois de editar .html/.js/.css.
+- content-governance: depois de editar .html/.md.
+- knowledge-index: depois de editar .html da raiz.
+
+QUANDO CADA UM INICIA (GATILHO)
+auto-backup -> antes de create_file / replace_string_in_file / multi_replace_string_in_file / edit_notebook_file
+security-git -> antes de run_in_terminal (se comando for git commit/push)
+build-after-edit -> depois de editar .html/.js/.css
+content-governance -> depois de editar .html/.md
+knowledge-index -> depois de editar .html da raiz
+Descoberta de Conhecimento -> antes de criar/atualizar pagina
+Nova Calculadora -> pedido de nova ferramenta
+Gerador de Imagens -> apos estruturar conteudo
+Testador no Navegador -> apos criacao/edicao
+Auditor SEO -> antes de publicar
+Auditor de Governanca -> quando ha conteudo regulatorio/normativo
+Tradutor de Pagina -> pedido de traducao
+Build do Site -> quando o build precisa ser forcado
+
+PARES DE COMPLEMENTARIDADE
+Nova Calculadora <-> auto-backup + build-after-edit (cria; backup antes, build depois)
+Nova Calculadora <-> content-governance (insere marcadores; hook valida)
+Nova Calculadora <-> knowledge-index (cria HTML; hook reindexa)
+Descoberta de Conhecimento <-> knowledge-index (hook mantem indice; agente consulta)
+Auditor de Governanca <-> content-governance (agente audita qualidade; hook fiscaliza presenca)
+Auditor SEO <-> build-after-edit (agente reporta CLS/CWV; hook mantem SW/cache)
+Tradutor de Pagina <-> auto-backup + build-after-edit (traduz; hook faz backup e build)
+Build do Site <-> build-after-edit (build manual; build automatico)
+
+CICLO DE VIDA RESUMIDO
+[Pedido] -> Descoberta -> Criacao -> Imagens -> Teste -> SEO -> Governanca -> Traducao -> Build
+Hooks: auto-backup (antes); content-governance, build-after-edit, knowledge-index (depois).
+security-git e transversal: vale para qualquer etapa, bloqueando commit/push o tempo todo.

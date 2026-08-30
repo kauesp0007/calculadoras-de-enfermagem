@@ -1,0 +1,89 @@
+LACUNAS E RECOMENDACOES - AGENTES E HOOKS FALTANTES
+Projeto: Calculadoras de Enfermagem
+
+CRITERIOS DE PRIORIDADE
+- ALTA: regra rigida ainda sem garantia automatica.
+- MEDIA: automacao valiosa, com scripts base existentes.
+- BAIXA: melhoria de qualidade de vida.
+
+AGENTES QUE AINDA NAO EXISTEM (CARENCIAS)
+
+ALTA
+1. Auditor de Acessibilidade (agente)
+   - Por que: existe a skill auditar-acessibilidade, mas nao um agente dedicado.
+   - Sugestao: auditor-acessibilidade.agent.md | tools: read, search | somente leitura.
+   - Competencia: auditar lang, skip-link, alt, headings, labels, aria, contraste.
+2. Revisor de Links Quebrados / Integridade (agente)
+   - Por que: MAPA_DE_DEPENDENCIAS.md aponta 357 referencias quebradas e nao ha agente.
+   - Sugestao: revisor-integridade.agent.md | tools: read, edit, search.
+   - Competencia: localizar e corrigir referencias quebradas (imagens, links internos).
+
+MEDIA
+3. Auditor de Core Web Vitals / Performance (agente)
+   - Por que: existem auditar-cwv.js e corrigir-cwv.js, mas CWV/CLS fica diluido no SEO.
+   - Sugestao: auditor-performance.agent.md focado em CLS, LCP, INP, imagens, fontes.
+4. Gerador de Sitemap / Mapas (agente)
+   - Por que: existe prompt /gerar-sitemap e generate-sitemap.js, mas nenhum agente.
+   - Sugestao: gerador-sitemap.agent.md que valida relatorio_paginas.txt e gera o mapa.
+5. Verificador de Hreflang/Canonical (agente)
+   - Por que: existem log_hreflang.txt e relatorio_hreflang.json; conferencia e manual.
+   - Sugestao: verificador-hreflang.agent.md para auditar clusters multilingues.
+
+BAIXA
+6. Curador da Base de Conhecimento (agente)
+   - Por que: /knowledge/ e gerada por hook, mas curadoria de aliases/taxonomia e manual.
+   - Sugestao: curador-conhecimento.agent.md para revisar aliases.json e taxonomy.json.
+7. Revisor Final (QA Gate) (agente)
+   - Por que: nao ha gate consolidado antes de publicar.
+   - Sugestao: revisor-final.agent.md que agrega relatorios e da veredito publicar/nao.
+
+HOOKS QUE AINDA NAO EXISTEM (CARENCIAS)
+
+ALTA
+1. Bloqueio de edicao em arquivos/pastas proibidos (PreToolUse)
+   - Por que: security-git so bloqueia git commit/push; as demais proibicoes dependem da memoria.
+   - Sugestao: block-protected-files.json -> scripts/hooks/block-protected-files.ps1
+     (deny ou ask para footer.html, menu-global.html, global-body-elements.html,
+     downloads.html, _language_selector.html, googlefc0a17cdd552164b.html e pastas
+     downloads, biblioteca, blog, blog-templates, node_modules, .git).
+2. Validacao de largura e hero card (PostToolUse)
+   - Por que: regra "sem container/max-w-*/mx-auto" e "hero width 100%" e central.
+   - Sugestao: check-layout.json que detecta container, max-w-*, mx-auto no main.
+
+MEDIA
+3. Validacao da ordem do <head> (PostToolUse)
+   - Sugestao: check-head.json (charset, canonical, hreflang, Schema.org, anti-CLS, defer).
+4. Verificacao de links quebrados apos edicao (PostToolUse)
+   - Sugestao: check-links.json que valida links internos do arquivo editado.
+5. Registro automatico em relatorio_paginas.txt (PostToolUse)
+   - Sugestao: register-page.json que detecta HTML novo na raiz e sugere/registra.
+6. Regeneracao automatica do sitemap (PostToolUse)
+   - Sugestao: generate-sitemap.json que roda apos criar pagina nova.
+
+BAIXA
+7. Lint de acessibilidade basica (PostToolUse)
+   - Sugestao: check-a11y.json (alt, lang, skip-link, h1 unico).
+8. Validacao de JSON (PreToolUse/PostToolUse)
+   - Sugestao: check-json.json para validar sintaxe ao editar .json.
+
+MATRIZ DE PRIORIDADE CONSOLIDADA
+Hook  - Bloqueio de arquivos/pastas proibidos - ALTA - regra em AI_RULES.md
+Hook  - Validacao de largura/hero - ALTA - regra em instrucoes
+Agente - Auditor de Acessibilidade - ALTA - skill auditar-acessibilidade
+Agente - Revisor de Links Quebrados - ALTA - 357 quebras no MAPA_DE_DEPENDENCIAS.md
+Hook  - Validacao da ordem do head - MEDIA - instrucoes de head
+Hook  - Verificacao de links quebrados - MEDIA - scripts de analise
+Hook  - Registro em relatorio_paginas.txt - MEDIA - regra de pagina nova
+Hook  - Regeneracao de sitemap - MEDIA - generate-sitemap.js
+Agente - Auditor de CWV/Performance - MEDIA - auditar-cwv.js
+Agente - Gerador de Sitemap - MEDIA - prompt /gerar-sitemap
+Agente - Verificador de Hreflang - MEDIA - relatorio_hreflang.json
+Agente - Curador da Base de Conhecimento - BAIXA - build-knowledge-index.js
+Agente - Revisor Final (QA Gate) - BAIXA - relatorios dos demais
+Hook  - Lint de acessibilidade basica - BAIXA - skill de acessibilidade
+Hook  - Validacao de JSON - BAIXA - regras de JSON
+
+CONCLUSAO
+Maiores carencias: transformar regras rigidas em garantias automaticas (bloqueio de
+arquivos proibidos e validacao de layout) e criar agentes para problemas ja
+diagnosticados (links quebrados e acessibilidade). Comecar pelos itens ALTA.

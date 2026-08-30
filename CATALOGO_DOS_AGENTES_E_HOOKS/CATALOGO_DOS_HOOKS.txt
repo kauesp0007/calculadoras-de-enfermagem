@@ -1,0 +1,61 @@
+CATALOGO DOS HOOKS
+Projeto: Calculadoras de Enfermagem
+Local: .github/hooks/*.json + scripts/hooks/*.ps1
+Total: 5 hooks
+
+RESUMO GERAL
+1. auto-backup | PreToolUse | auto-backup.ps1 | 20s | nao bloqueia (sempre allow)
+2. build-after-edit | PostToolUse | build-after-edit.ps1 | 120s | nao bloqueia
+3. content-governance | PostToolUse | check-content-governance.ps1 | 30s | nao bloqueia
+4. knowledge-index | PostToolUse | knowledge-index.ps1 | 120s | nao bloqueia
+5. security-git | PreToolUse | block-git.ps1 | 15s | BLOQUEIA (deny)
+
+Hooks sao deterministicos: rodam em PowerShell local e nao consomem creditos de IA.
+Eles GARANTEM o que as instrucoes apenas ORIENTAM.
+
+--------------------------------------------------------------
+1. AUTO-BACKUP (auto-backup.json)
+- Evento: PreToolUse (antes da ferramenta).
+- Gatilho: create_file, replace_string_in_file, multi_replace_string_in_file,
+  edit_notebook_file.
+- O que faz: coleta caminhos (filePath ou replacements[]); se o arquivo existe, copia
+  para backups-temporarios/<subpasta>/<arquivo>.<YYYYMMDD-HHMMSS>.bak; sempre allow.
+- Diferenciacao: preventivo; garante a regra "backup antes de editar".
+
+2. BUILD-AFTER-EDIT (build-after-edit.json)
+- Evento: PostToolUse (depois da ferramenta).
+- Gatilho: ferramentas de edicao quando o arquivo tem extensao .html/.js/.css.
+- O que faz: .html/.js -> node gerar-sw.js; .css -> recompila Tailwind + gerar-sw.js.
+- Diferenciacao: de entrega; garante o "build obrigatorio" automaticamente.
+
+3. CONTENT-GOVERNANCE (content-governance.json)
+- Evento: PostToolUse.
+- Gatilho: ferramentas de edicao (inclui apply_patch) quando ha .html/.md.
+- O que faz: roda node scripts/validate-content-governance.js; valida marcadores
+  data-references-section="v1", data-governance-disclosure="v1",
+  data-professional-review="required".
+- Diferenciacao: conformidade editorial automatizada.
+
+4. KNOWLEDGE-INDEX (knowledge-index.json)
+- Evento: PostToolUse.
+- Gatilho: ferramentas de edicao, somente para .html direto na raiz (nao subpastas/
+  idiomas) e fora da lista de proibidos (footer.html, menu-global.html,
+  global-body-elements.html, downloads.html, menu-lateral.html, _language_selector.html,
+  googlefc0a17cdd552164b.html).
+- O que faz: roda node scripts/build-knowledge-index.js --file <arquivo> (incremental).
+- Diferenciacao: mantem /knowledge/ atualizada para o Descoberta de Conhecimento.
+
+5. SECURITY-GIT (security-git.json)
+- Evento: PreToolUse.
+- Gatilho: run_in_terminal.
+- O que faz: se o comando casar com regex \bgit\s+(commit|push)\b, responde
+  permissionDecision: deny (git commit/push e responsabilidade do usuario).
+- Diferenciacao: unico hook com poder de bloquear.
+
+ORDEM DE EXECUCAO NO CICLO DE VIDA
+Antes de editar -> auto-backup -> cria backup
+Antes de terminal -> security-git -> bloqueia commit/push
+Depois de editar HTML/JS -> build-after-edit -> renova SW
+Depois de editar CSS -> build-after-edit -> recompila Tailwind + SW
+Depois de editar HTML/MD -> content-governance -> valida governanca
+Depois de editar HTML da raiz -> knowledge-index -> reindexa /knowledge/

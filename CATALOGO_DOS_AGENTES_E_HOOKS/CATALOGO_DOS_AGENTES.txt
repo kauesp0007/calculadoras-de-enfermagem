@@ -1,0 +1,87 @@
+CATALOGO DOS AGENTES
+Projeto: Calculadoras de Enfermagem
+Local: .github/agents/*.agent.md
+Total: 8 agentes (todos user-invocable: true)
+
+RESUMO GERAL
+1. Auditor de Governanca Regulatoria | auditor-governanca-regulatoria.agent.md | read, search | nao edita | Auditoria
+2. Auditor SEO | auditor-seo.agent.md | read, search, web | nao edita | Auditoria
+3. Build do Site | build.agent.md | execute | nao edita | Execucao
+4. Descoberta de Conhecimento | descoberta-conhecimento.agent.md | read, search | nao edita | Pesquisa
+5. Gerador de Imagens | gerador-imagens.agent.md | read, edit, search | edita | Criacao
+6. Nova Calculadora | nova-calculadora.agent.md | read, edit, search | edita | Criacao
+7. Testador no Navegador | testador-browser.agent.md | read, search, execute | nao edita | Validacao
+8. Tradutor de Pagina | tradutor-pagina.agent.md | read, edit, search | edita | Criacao
+
+--------------------------------------------------------------
+1. AUDITOR DE GOVERNANCA REGULATORIA
+- Ferramentas: read, search | Somente leitura.
+- Competencia: auditar governanca editorial de conteudo regulatorio/etico/legal/clinico.
+  Classifica HIGH/MEDIUM/LOW e verifica fonte oficial, risco, evidencia, data de revisao.
+- Fontes: governance/content-governance.config.json, CKO-COREN-Projeto-Completo-v2,
+  AI_RULES.md, HTML_RULES.md, HTML_PAGE_TEMPLATE_RULES.md.
+- Quando inicia: chamada explicita para auditar confiabilidade de conteudo normativo
+  ou validar marcadores data-references-section / data-governance-disclosure /
+  data-professional-review.
+- Diferenciacao: unico focado em confiabilidade regulatoria/clinica (nao avalia SEO/layout).
+
+2. AUDITOR SEO
+- Ferramentas: read, search, web | Somente leitura.
+- Competencia: auditar title, meta description, canonical, hreflang, Schema.org,
+  Open Graph, Twitter Card, CWV, CLS, acessibilidade, largura e hero card.
+- Fontes: CATALOGO_SEO_METAS_HEAD, CATALOGO_DA_ARQUITETURA_ESTRUTURAL, regras do projeto.
+- Quando inicia: chamada para auditar pagina antes de publicar.
+- Diferenciacao: auditoria de descoberta e conformidade tecnica; tem ferramenta web.
+
+3. BUILD DO SITE
+- Ferramentas: execute | Somente execucao.
+- Competencia: rodar Tailwind (tailwindcss/lib/cli.js) e node gerar-sw.js;
+  reportar sucesso/falha e o novo CACHE_NAME.
+- Quando inicia: quando o build precisa ser rodado apos alterar HTML/CSS/JS.
+- Diferenciacao: mais restrito; nao edita e nao le arquivos de regras (economiza contexto).
+
+4. DESCOBERTA DE CONHECIMENTO
+- Ferramentas: read, search | Somente leitura.
+- Competencia: consultar /knowledge/ e produzir CONTENT DISCOVERY DOSSIER (paginas,
+  escalas, calculadoras, legislacao, referencias, imagens, componentes).
+- Quando inicia: antes de criar/atualizar pagina, para descobrir conteudo relacionado.
+- Diferenciacao: pesquisa previa; nao escreve HTML; alimenta o Nova Calculadora.
+
+5. GERADOR DE IMAGENS
+- Ferramentas: read, edit, search | Edita.
+- Competencia: planejar, gerar e validar as 3 imagens de conteudo (1 banner + 2 medias),
+  WebP, ALT, figcaption, lightbox; salvar em /img/.
+- Quando inicia: apos estruturar o conteudo da pagina (acionado pelo Nova Calculadora).
+- Diferenciacao: unico que orquestra geracao de imagens; reutiliza watch-images.js.
+
+6. NOVA CALCULADORA
+- Ferramentas: read, edit, search | Edita.
+- Competencia: criar pagina nova de calculadora/escala no padrao do projeto
+  (main largura total, hero Eyebrow->H1->H2, head completo, Schema.org, calculo,
+  resultado, referencias, impressao/PDF).
+- Quando inicia: pedido de nova calculadora/escala/ferramenta.
+- Diferenciacao: agente principal de criacao; consome dossie e delega imagens.
+
+7. TESTADOR NO NAVEGADOR
+- Ferramentas: read, search, execute | Nao edita.
+- Competencia: abrir pagina no navegador e validar renderizacao, largura, hero,
+  responsividade, CLS, funcionamento (Calcular/Limpar), footer, erros de console.
+- Quando inicia: apos criacao/edicao, para validar antes de publicar.
+- Diferenciacao: validacao visual/funcional; reporta e sugere, mas nao corrige.
+
+8. TRADUTOR DE PAGINA
+- Ferramentas: read, edit, search | Edita.
+- Competencia: traduzir pagina para os 18 idiomas preservando estrutura, IDs, classes,
+  JS; atualizar canonical/hreflang (cluster + x-default) e footer relativo.
+- Quando inicia: pedido de traducao de pagina existente.
+- Diferenciacao: internacionalizacao; traduz so conteudo visivel e metadados.
+
+TABELA DE DIFERENCIACAO RAPIDA
+Auditor de Governanca -> conteudo confiavel? -> relatorio de severidade
+Auditor SEO -> pagina encontraria/performatica? -> relatorio de problemas
+Build do Site -> build passou? -> sucesso/falha + CACHE_NAME
+Descoberta de Conhecimento -> o que ja existe? -> dossie JSON
+Gerador de Imagens -> 3 imagens prontas? -> plano + WebPs
+Nova Calculadora -> pagina completa? -> HTML completo
+Testador no Navegador -> funciona no navegador? -> relatorio de testes
+Tradutor de Pagina -> traduzida? -> arquivos no idioma
