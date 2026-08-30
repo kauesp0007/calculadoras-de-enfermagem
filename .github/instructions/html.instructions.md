@@ -22,9 +22,15 @@ Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA
   (itens, valores, fórmulas e classificações).
 - Antes de editar, criar backup em `backups-temporarios/<arquivo>.<YYYYMMDD-HHMMSS>.bak`.
 
-## Largura da página (obrigatório)
-- Ocupar toda a viewport, mantendo apenas os paddings laterais (`p-4 sm:p-8` no `<main>`).
-- NUNCA usar `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` no container principal.
+## Largura da página (obrigatório — regra 60)
+- Ocupar toda a LARGURA ÚTIL da viewport, mantendo apenas os paddings laterais (`p-4 sm:p-8` no `<main>`).
+- NUNCA usar `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` como estrutura dominante.
+- Evitar grandes margens laterais (`mx-16+`, `px-16+`).
+
+## Espaçamento e densidade (obrigatório — regra 61)
+- Reduzir `margin`, `padding` e `gap`; criar interface de ALTA DENSIDADE.
+- Evitar espaçamento grande (`p-16+`, `m-16+`, `gap-16+`).
+- Sensação: "comunidade viva", não "página com grandes áreas vazias".
 
 ## Hero card (obrigatório)
 - `width:100%`; altura compacta; alinhado à esquerda.

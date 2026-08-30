@@ -1,7 +1,10 @@
 # 🔄 Fluxo de Complementaridade — Agentes e Hooks
 
 **Projeto:** Calculadoras de Enfermagem  
-**Pergunta central:** como os 8 agentes e os 5 hooks se complementam e em que ordem entram?
+**Pergunta central:** como os 12 agentes e os 11 hooks se complementam e em que ordem entram?
+
+> **Nota:** o fluxo consolidado, a criticidade, o versionamento e as decisões de
+> não-criação estão no `CATALOGO_CENTRAL_DA_ARQUITETURA.md` (fonte canônica da camada de IA).
 
 ## 🎯 Princípio
 

@@ -1,4 +1,4 @@
-# PostToolUse: aplica governança a HTMLs públicos novos e reporta pendências do acervo.
+﻿# PostToolUse: aplica governança a HTMLs públicos novos e reporta pendências do acervo.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()

@@ -19,16 +19,23 @@ VS Code (Copilot) e ferramentas compatíveis.
 |---|---|---|
 | Instruções globais | `.github/copilot-instructions.md` | Regras sempre ativas + fontes de verdade + proibições |
 | Instruções por arquivo | `.github/instructions/*.instructions.md` | `html`, `js`, `css`, `json` (via `applyTo`) |
-| Agentes | `.github/agents/*.agent.md` | build, auditor-seo, tradutor-pagina, nova-calculadora, testador-browser |
+| Agentes | `.github/agents/*.agent.md` | build, auditor-seo, auditor-performance, auditor-conformidade-tecnica, agente-alfandegario, revisor-integridade, verificador-hreflang, revisor-final, auditor-ecossistema, tradutor-pagina, nova-calculadora, testador-browser, gerador-imagens, descoberta-conhecimento, auditor-governanca-regulatoria |
 | Skills | `.github/skills/<nome>/SKILL.md` | limpar-backups, auditar-acessibilidade, publicar-calculadora |
 | Prompts | `.github/prompts/*.prompt.md` | `/auditar-seo`, `/traduzir-pagina`, `/testar-pagina`, `/gerar-sitemap`, `/comparar-edital` |
-| Hooks | `.github/hooks/*.json` + `scripts/hooks/*.ps1` | Bloqueio de git, backup automático, build pós-edição |
+| Hooks | `.github/hooks/*.json` + `scripts/hooks/*.ps1` | Bloqueio de git/arquivos proibidos, backup, build, validação de layout/head/JSON/a11y, registro de página, conformidade |
 
 ## Hooks (garantia, não só orientação)
 
-- `security-git.json` → bloqueia `git commit`/`git push` (responsabilidade do usuário).
+- `security-git.json` → bloqueia `git commit`/`git push`, comandos destrutivos e pede autorização para instalação de dependências.
 - `auto-backup.json` → gera backup automático antes de editar, centralizado em `backups-temporarios/`.
 - `build-after-edit.json` → roda `gerar-sw.js` após editar HTML/JS; tailwind + `gerar-sw` após CSS.
+- `block-protected-files.json` → nega edição em `.git/`/`node_modules/`, regras canônicas, MCP, segredos e login/deploy; pede autorização para arquivos/pastas protegidos e catálogos.
+- `check-layout.json` → reporta `container`/`max-w-*`/`mx-auto` e hero fora do padrão após editar HTML.
+- `check-json.json` → valida sintaxe JSON após editar `.json` (reporta se inválido).
+- `check-head.json` → reporta elementos essenciais faltando no `<head>` após editar HTML.
+- `register-page.json` → lembra de registrar HTML novo da raiz em `relatorio_paginas.txt`.
+- `check-a11y.json` → reporta lang/skip-link/h1/alt básicos após editar HTML.
+- `check-conformidade.json` → reporta componente novo (agente/hook/skill/prompt) sem registro de conformidade.
 
 ## Regras rígidas
 

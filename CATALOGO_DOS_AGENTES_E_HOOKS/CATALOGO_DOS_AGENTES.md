@@ -2,7 +2,7 @@
 
 **Projeto:** Calculadoras de Enfermagem  
 **Local:** `.github/agents/*.agent.md`  
-**Total:** 8 agentes (todos `user-invocable: true`)
+**Total:** 15 agentes (todos `user-invocable: true`)
 
 ## 📊 Resumo Geral
 
@@ -16,6 +16,13 @@
 | 6 | Nova Calculadora | `nova-calculadora.agent.md` | read, edit, search | ✅ | Criação |
 | 7 | Testador no Navegador | `testador-browser.agent.md` | read, search, execute | ❌ | Validação |
 | 8 | Tradutor de Página | `tradutor-pagina.agent.md` | read, edit, search | ✅ | Criação |
+| 9 | Auditor de Performance (CWV) | `auditor-performance.agent.md` | read, search, execute | ❌ | Auditoria |
+| 10 | Revisor de Integridade | `revisor-integridade.agent.md` | read, edit, search, execute | ✅ | Correção |
+| 11 | Verificador de Hreflang/Canonical | `verificador-hreflang.agent.md` | read, search | ❌ | Auditoria |
+| 12 | Revisor Final (QA Gate) | `revisor-final.agent.md` | read, search | ❌ | Auditoria (contra-prova) |
+| 13 | Auditor do Ecossistema | `auditor-ecossistema.agent.md` | read, search | ❌ | Auditoria |
+| 14 | Auditor de Conformidade Técnica | `auditor-conformidade-tecnica.agent.md` | read, search, execute | ❌ | Auditoria |
+| 15 | Agente Alfandegário | `agente-alfandegario.agent.md` | read, search | ❌ | Gate (processo) |
 
 ---
 
@@ -193,6 +200,149 @@ nunca traduz variáveis, IDs, classes, URLs ou código JS/JSON.
 
 ---
 
+## 9. Auditor de Performance (Core Web Vitals)
+
+- **Arquivo:** `auditor-performance.agent.md`
+- **Ferramentas:** `read`, `search`, `execute`
+- **Natureza:** somente leitura (não edita)
+
+**Competência**
+Auditar Core Web Vitals e performance: LCP, INP, CLS, fontes (preload, `font-display`),
+imagens (`loading="lazy"`, `decoding="async"`, `alt`, WebP) e render-blocking.
+Roda `scripts/auditar-cwv.js` (gera `relatorios/auditoria-cwv.csv`).
+
+**Quando inicia**
+Quando é chamado para auditar a performance de uma página antes de publicar ou para
+investigar problemas de CLS/LCP/INP.
+
+**Diferenciação**
+É a especialização de CWV/performance que antes ficava diluída no `Auditor SEO`.
+O `Auditor SEO` olha **descoberta** (title, canonical, hreflang, Schema); este olha
+**velocidade e estabilidade visual** (CWV). Só leitura, como os demais auditores.
+
+---
+
+## 10. Revisor de Integridade (Links Quebrados)
+
+- **Arquivo:** `revisor-integridade.agent.md`
+- **Ferramentas:** `read`, `edit`, `search`, `execute`
+
+**Competência**
+Localizar e corrigir referências quebradas (links internos e imagens) de forma cirúrgica,
+apontando para o destino correto **somente quando ele existe**. Usa
+`scripts/fix-broken-links.js` (backup em `backups-temporarios/links-quebrados/`) e o
+`CATALOGO_DE_ESTRUTURA_FISICA/MAPA_DE_DEPENDENCIAS.md` (357 referências quebradas).
+
+**Quando inicia**
+Quando há links quebrados para corrigir ou quando se pede auditoria de integridade.
+
+**Diferenciação**
+É o agente **de correção de integridade**. Complementa o `Auditor de Performance`
+(que reporta) e os hooks (que validam): é o único agente que **corrige** links
+quebrados respeitando os arquivos/pastas proibidos.
+
+---
+
+## 11. Verificador de Hreflang/Canonical
+
+- **Arquivo:** `verificador-hreflang.agent.md`
+- **Ferramentas:** `read`, `search`
+- **Natureza:** somente leitura
+
+**Competência**
+Auditar clusters hreflang e canonical das páginas multilingues (18 idiomas + x-default):
+idiomas ausentes, canônico apontando para outra língua, falta de reciprocidade e
+x-default ausente.
+
+**Quando inicia**
+Quando há dúvida sobre a consistência de um cluster hreflang/canonical.
+
+**Diferenciação**
+É a especialização de hreflang/canonical do `Auditor SEO` (que cobre o head completo).
+Olha apenas a **consistência entre idiomas** de um mesmo cluster.
+
+---
+
+## 12. Revisor Final (QA Gate)
+
+- **Arquivo:** `revisor-final.agent.md`
+- **Ferramentas:** `read`, `search`
+- **Natureza:** somente leitura (contra-prova)
+
+**Competência**
+Consolidar as auditorias (SEO, Performance, Governança, Acessibilidade, Testador) e
+emitir o veredito PUBLICAR / PUBLICAR COM RESSALVAS / NÃO PUBLICAR.
+
+**Quando inicia**
+No fim do pipeline, antes de publicar uma página nova ou modificada.
+
+**Diferenciação**
+É o **gate de contra-prova**: não cria nem edita; decide se a página está pronta.
+Nunca aprova um trabalho próprio — exige independência do autor.
+
+---
+
+## 13. Auditor do Ecossistema
+
+- **Arquivo:** `auditor-ecossistema.agent.md`
+- **Ferramentas:** `read`, `search`
+- **Natureza:** somente leitura
+
+**Competência**
+Auditar o próprio ecossistema de IA: agentes/hooks duplicados, responsabilidades
+sobrepostas, órfãos, loops, permissões excessivas, scripts obsoletos e catálogos
+desatualizados (item sem arquivo / arquivo sem catalogar).
+
+**Quando inicia**
+Quando se quer auditar a saúde estrutural da camada de automação.
+
+**Diferenciação**
+É o auditor **do ecossistema** (meta-auditoria): não audita páginas, audita os próprios
+agentes, hooks, skills, prompts e catálogos. Complementa os demais auditores de conteúdo.
+
+---
+
+## 14. Auditor de Conformidade Técnica
+
+- **Arquivo:** `auditor-conformidade-tecnica.agent.md`
+- **Ferramentas:** `read`, `search`, `execute`
+- **Natureza:** somente leitura
+
+**Competência**
+Auditar de forma exclusiva e consolidada a conformidade técnica de páginas novas ou
+modificadas: Core Web Vitals (LCP/INP/CLS), responsividade 100% mobile e acessibilidade.
+Roda `scripts/auditar-cwv.js` e usa o resultado dos hooks `check-layout`/`check-head`/`check-a11y`.
+
+**Quando inicia**
+Antes de publicar uma página nova ou modificada, como gate único de conformidade técnica.
+
+**Diferenciação**
+É o **gate único** que consolida CWV + responsividade + acessibilidade (as peças estavam
+dispersas entre `Auditor de Performance`, `Auditor SEO`, skill `auditar-acessibilidade` e
+`Testador no Navegador`). Os demais continuam para análise profunda de cada área.
+
+---
+
+## 15. Agente Alfandegário (Gate de Entrada/Saída)
+
+- **Arquivo:** `agente-alfandegario.agent.md`
+- **Ferramentas:** `read`, `search`
+- **Natureza:** somente leitura (gate de processo)
+
+**Competência**
+Validar o que ENTRA e o que SAI de cada etapa do pipeline: pré-condições cumpridas,
+contexto mínimo, regras lidas, validações automáticas, catalogação e evidência de
+conformidade. Emite APROVADO / REPROVADO COM PENDÊNCIAS.
+
+**Quando inicia**
+Entre etapas do pipeline, como controle de fronteira antes de avançar.
+
+**Diferenciação**
+Julga o **processo** (etapas e evidências), não o conteúdo. Complementa o
+`Revisor Final (QA Gate)` — que julga a página.
+
+---
+
 ## 🧭 Tabela de Diferenciação Rápida
 
 | Agente | Pergunta que responde | Saída típica |
@@ -205,3 +355,10 @@ nunca traduz variáveis, IDs, classes, URLs ou código JS/JSON.
 | Nova Calculadora | A página nova está completa? | Arquivo HTML completo |
 | Testador no Navegador | A página funciona no navegador? | Relatório de testes |
 | Tradutor de Página | A página está traduzida nos idiomas? | Arquivos na pasta do idioma |
+| Auditor de Performance | A página está rápida e sem CLS? | Relatório CWV por página |
+| Revisor de Integridade | Há links/imagens quebrados? | Correções cirúrgicas + pendências |
+| Verificador de Hreflang | O cluster multilingue está consistente? | Relatório por cluster |
+| Revisor Final (QA Gate) | A página pode ser publicada? | Veredito PUBLICAR/NÃO PUBLICAR |
+| Auditor do Ecossistema | O ecossistema tem duplicações/órfãos? | Relatório de divergências |
+| Auditor de Conformidade Técnica | A página está 100% conforme (CWV/mobile/a11y)? | Relatório consolidado + CONFORME/NÃO CONFORME |
+| Agente Alfandegário | A etapa cumpriu pré-condições e deixou evidência? | APROVADO / REPROVADO COM PENDÊNCIAS |

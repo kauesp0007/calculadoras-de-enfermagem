@@ -8,9 +8,18 @@ applyTo: "**/*.css"
 - Navy: `#1A3E74` (principal), `#1E4D8C`, `#163269`; azul: `#2563EB`/`#4A90E2`.
 - Fontes: `Inter` (corpo) e `Nunito Sans` (títulos). Ver `CATALOGO_DE_IDENTIDADE_VISUAL/`.
 
-## Largura e hero
-- Página: ocupar toda a viewport (apenas paddings laterais). NUNCA `container`, `max-w-5xl/6xl/7xl`, `mx-auto`.
+## Largura (regra 60)
+- Página: ocupar toda a LARGURA ÚTIL da viewport (apenas paddings laterais). NUNCA
+  `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` como estrutura dominante.
+- EVITAR grandes margens laterais (ex.: `mx-16+`, `px-16+`).
+- Seguir os agentes/hooks do projeto (o hook `check-layout` valida automaticamente).
 - Hero card: `width:100%`, alinhado à esquerda, gradiente azul institucional. NUNCA `max-w-*`/`mx-auto` no hero.
+
+## Espaçamento e densidade (regra 61)
+- REDUZIR `margin`, `padding` e `gap`. Criar uma interface de ALTA DENSIDADE.
+- A sensação deve ser de "comunidade viva", e NÃO de "página com grandes áreas vazias".
+- Evitar espaçamento grande: `p-16+`, `m-16+`, `gap-16+` (>= 4rem).
+- Preferir escala compacta: `p-4`/`p-6`/`p-8`, `gap-4`/`gap-6`.
 
 ## Tailwind
 - Fonte canônica: `src/input.css` → `public/output.css` (rodar build Tailwind após alterações).

@@ -8,8 +8,8 @@
 
 | Camada | Local | Quantidade | Natureza |
 |---|---|---|---|
-| **Agentes** | `.github/agents/*.agent.md` | **8** | Subagentes especializados (IA) |
-| **Hooks** | `.github/hooks/*.json` + `scripts/hooks/*.ps1` | **5** | Automações determinísticas (sem IA) |
+| **Agentes** | `.github/agents/*.agent.md` | **15** | Subagentes especializados (IA) |
+| **Hooks** | `.github/hooks/*.json` + `scripts/hooks/*.ps1` | **12** | Automações determinísticas (sem IA) |
 | Skills | `.github/skills/<nome>/SKILL.md` | 3 | Conhecimento de domínio sob demanda |
 | Prompts | `.github/prompts/*.prompt.md` | 5 | Comandos de barra reutilizáveis |
 | Instruções por arquivo | `.github/instructions/*.instructions.md` | 4 | Regras por extensão (`applyTo`) |
@@ -22,8 +22,13 @@
 | Arquivo | Conteúdo |
 |---|---|
 | `README.md` | Visão geral e índice (este arquivo) |
-| `CATALOGO_DOS_AGENTES.md` | Ficha detalhada dos 8 agentes: competência, ferramentas, gatilho, limitações e diferenciação |
-| `CATALOGO_DOS_HOOKS.md` | Ficha detalhada dos 5 hooks: evento, gatilho, script, decisão e quando iniciam |
+| `CATALOGO_DOS_AGENTES.md` | Ficha detalhada dos 13 agentes: competência, ferramentas, gatilho, limitações e diferenciação |
+| `CATALOGO_DOS_HOOKS.md` | Ficha detalhada dos 11 hooks: evento, gatilho, script, decisão e quando iniciam |
+| `CATALOGO_CENTRAL_DA_ARQUITETURA.md` | Visão consolidada: criticidade, orquestração, prova/contra-prova, versionamento e decisões |
+| `MAPA_DE_RESPONSABILIDADES.md` | Matriz tarefa → mecanismo → custo → gatilho |
+| `CATALOGO_DAS_SKILLS.md` · `CATALOGO_DOS_PROMPTS.md` · `CATALOGO_DAS_INSTRUCTIONS.md` · `CATALOGO_DOS_MCP.md` | Catálogos de skills, prompts, instructions e MCP |
+| `CATALOGO_DA_BASE_DE_CONHECIMENTO.md` · `CATALOGO_DE_TEMPLATES.md` · `CATALOGO_DE_IMAGENS.md` | Catálogos de conhecimento, templates e imagens |
+| `CATALOGO_DE_ERROS.md` · `CATALOGO_DE_SOLUCOES.md` · `CATALOGO_DE_AUDITORIAS.md` | Catálogos de erros, soluções e auditorias |
 | `FLUXO_DE_COMPLEMENTARIDADE.md` | Como agentes e hooks se complementam, pipeline de criação e ciclo de vida |
 | `ECONOMIA_DE_CREDITOS_E_IMPACTO.md` | Economia de créditos de IA e impacto econômico (estimativas qualitativas) |
 | `LACUNAS_E_RECOMENDACOES.md` | Agentes e hooks ainda não criados (carências) e prioridades sugeridas |

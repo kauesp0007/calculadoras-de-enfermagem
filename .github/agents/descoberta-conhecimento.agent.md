@@ -27,9 +27,9 @@ dos HTMLs da raiz, e vive em `/knowledge/`:
 - `didactic-assets.json` — componentes didáticos por página.
 - `reports/index-report.json` — cobertura, órfãs, links quebrados, duplicações.
 
-## Como trabalhar
-1. Normalize o tema solicitado (minúsculas, sem acentos).
-2. Consulte os JSONs ou rode `node scripts/knowledge-discover.js "<tema>"` para gerar o dossiê.
+## Como trabalhar (determinístico primeiro — economizar IA)
+1. SEMPRE rode primeiro `node scripts/knowledge-discover.js "<tema>"` (gera o dossiê bruto).
+2. Depois, consulte os JSONs relevantes do `/knowledge/` somente se o dossiê for insuficiente.
 3. Verifique manualmente as relações de maior confiança (título/H1/links explícitos).
 4. Produza o dossiê no formato abaixo.
 

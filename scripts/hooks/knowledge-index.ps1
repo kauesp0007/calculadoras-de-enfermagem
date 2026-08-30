@@ -1,4 +1,4 @@
-# PostToolUse: reindexa incrementalmente a base de conhecimento quando um HTML da raiz é editado.
+﻿# PostToolUse: reindexa incrementalmente a base de conhecimento quando um HTML da raiz é editado.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()
