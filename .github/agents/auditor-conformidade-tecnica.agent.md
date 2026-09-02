@@ -29,8 +29,11 @@ acessibilidade. Você NÃO edita arquivos.
 
 ## Como agir (determinístico primeiro — economizar IA)
 1. Confira o resultado dos hooks `check-layout`, `check-head` e `check-a11y` (já rodam no PostToolUse).
-2. Rode `node scripts/auditar-cwv.js` se quiser o retrato de CWV do acervo.
-3. Inspecione a página-alvo e emita o relatório consolidado.
+2. Confira a evidência do gate CWV (`relatorios/cwv-gate/*.json`) — a auditoria de CWV é
+   obrigatória e automática a cada edição (hook `build-after-edit` → `scripts/cwv-gate.js`).
+   Verifique se o status final é PASS/PASS_STABLE ou se há WARNING/FAIL documentado.
+3. Rode `node scripts/auditar-cwv.js` se quiser o retrato de CWV do acervo.
+4. Inspecione a página-alvo e emita o relatório consolidado.
 
 ## Saída
 Relatório por página com 3 blocos (CWV / responsividade / acessibilidade), severidade

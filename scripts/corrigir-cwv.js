@@ -3,6 +3,7 @@
 // Sem --dry-run: aplica com backup em automacoes/backups_cwv/<timestamp>/
 const fs = require('fs');
 const path = require('path');
+const { correct } = require('./lib/cwv-core');
 
 const DRY_RUN = process.argv.includes('--dry-run');
 
@@ -30,95 +31,7 @@ function walk(currentPath, isLangFolder) {
   });
 }
 
-function heroBounds(content) {
-  const h1 = content.indexOf('<h1');
-  if (h1 === -1) return null;
-  const start = Math.max(0, content.lastIndexOf('<main', h1));
-  const endSec = content.indexOf('</section>', h1);
-  const end = endSec !== -1 ? endSec + 10 : Math.min(content.length, h1 + 1500);
-  return { start, end };
-}
-
-function limparClasses(html) {
-  return html.replace(/class="([^"]+)"/g, (m, c) => 'class="' + c.replace(/\s+/g, ' ').trim() + '"');
-}
-
-function aplicarFontSansEmTag(tag) {
-  // remove fontes de família específicas e garante font-sans
-  let t = tag.replace(/\bfont-(inter|nunito)\b/g, '');
-  t = limparClasses(t);
-  if (/class="/.test(t)) {
-    t = t.replace(/class="([^"]*)"/, (m, c) => {
-      const classes = c.split(/\s+/).filter(Boolean);
-      if (!classes.includes('font-sans')) classes.push('font-sans');
-      return 'class="' + classes.join(' ') + '"';
-    });
-  } else {
-    t = t.slice(0, -1) + ' class="font-sans">';
-  }
-  return t;
-}
-
-function corrigirArquivo(content) {
-  let novo = content;
-
-  // 1. font-inter (classe inexistente) -> font-sans (global)
-  novo = novo.replace(/\bfont-inter\b/g, 'font-sans');
-
-  // 2. Correções no hero
-  const bounds = heroBounds(novo);
-  if (bounds) {
-    let hero = novo.slice(bounds.start, bounds.end);
-    hero = hero.replace(/backdrop-blur-?[\w-]*/g, '');
-    hero = hero.replace(/blur-(2xl|3xl)/g, 'blur-xl');
-    hero = hero.replace(/drop-shadow(-\w+)?/g, '');
-    hero = hero.replace(/shadow-(2xl|3xl)/g, 'shadow-lg');
-
-    // H1 -> font-sans
-    const h1Idx = hero.indexOf('<h1');
-    if (h1Idx !== -1) {
-      const h1End = hero.indexOf('>', h1Idx) + 1;
-      hero = hero.slice(0, h1Idx) + aplicarFontSansEmTag(hero.slice(h1Idx, h1End)) + hero.slice(h1End);
-    }
-    // Subtítulo do hero (primeiro <p> ou <h2> após o H1) -> font-sans
-    const h1Pos = hero.indexOf('<h1');
-    if (h1Pos !== -1) {
-      const busca = hero.slice(hero.indexOf('>', h1Pos) + 1, hero.indexOf('>', h1Pos) + 1 + 900);
-      const pMatch = busca.match(/<(p|h2)\b[^>]*>/);
-      if (pMatch) {
-        const pAbs = hero.indexOf('>', h1Pos) + 1 + pMatch.index;
-        const pEnd = pAbs + pMatch[0].length;
-        hero = hero.slice(0, pAbs) + aplicarFontSansEmTag(hero.slice(pAbs, pEnd)) + hero.slice(pEnd);
-      }
-    }
-    novo = novo.slice(0, bounds.start) + hero + novo.slice(bounds.end);
-  }
-
-  // 3. Preloads de Nunito ociosos (família não usada fora de @font-face/preload)
-  const linhas = novo.split('\n');
-  let nunitoUso = 0;
-  linhas.forEach(l => { if (l.includes('Nunito') && !l.includes('@font-face') && !l.includes('preload')) nunitoUso++; });
-  if (nunitoUso === 0) {
-    const filtradas = linhas.filter(l => !(l.includes('preload') && l.includes('/nunito/')));
-    if (filtradas.length !== linhas.length) novo = filtradas.join('\n');
-  }
-
-  // 4. Imagens: decoding + lazy (exceto 1ª img e lightbox)
-  let firstImg = true;
-  novo = novo.replace(/<img\b[^>]*>/g, tag => {
-    if (/id="lightboxImg"/.test(tag) || /src=""/.test(tag)) return tag;
-    let t = tag;
-    if (!/decoding=/.test(t)) t = t.slice(0, -1) + ' decoding="async">';
-    if (!/loading=/.test(t) && !firstImg) t = t.slice(0, -1) + ' loading="lazy">';
-    firstImg = false;
-    return t;
-  });
-
-  // 5. Limpeza de espaços duplos em classes
-  novo = limparClasses(novo);
-
-  return novo;
-}
+// Regras de correção delegadas à fonte única (lib/cwv-core.js)
 
 walk(ROOT_DIR, false);
 LANGUAGES.forEach(l => { const p = path.join(ROOT_DIR, l); if (fs.existsSync(p)) walk(p, true); });
@@ -128,7 +41,7 @@ if (!DRY_RUN && !fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive
 
 files.forEach(filePath => {
   const original = fs.readFileSync(filePath, 'utf8');
-  const novo = corrigirArquivo(original);
+  const novo = correct(original).content;
   if (novo !== original) {
     changedCount++;
     if (DRY_RUN) {

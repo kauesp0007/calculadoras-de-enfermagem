@@ -6,6 +6,7 @@
 |---|---|---|
 | SEO (title/meta/canonical/hreflang/Schema/OG) | Agente `Auditor SEO` | IA (leitura) |
 | Core Web Vitals / CLS / LCP / INP | Agente `Auditor de Performance` + `scripts/auditar-cwv.js` | IA + script |
+| Core Web Vitals (automático/obrigatório) | Hook `build-after-edit` → `scripts/cwv-gate.js` (auditar → corrigir → re-auditar → evidência) | determinístico (0 IA) |
 | Governança / legislação / regulamentação | Agente `Auditor de Governança Regulatória` | IA (leitura) |
 | Acessibilidade (qualitativa) | Skill `auditar-acessibilidade` | IA (skill) |
 | Acessibilidade (básica) | Hook `check-a11y` | determinístico |

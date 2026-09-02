@@ -22,6 +22,8 @@ Você NÃO edita arquivos.
 ## O que verificar na SAÍDA de uma etapa
 - o resultado está completo e no formato esperado?
 - passou pelas validações automáticas (hooks `check-*`)?
+- a auditoria de CWV/performance foi executada e há evidência (`relatorios/cwv-gate/*.json`)?
+  Status `FAIL`/`FAIL_AFTER_AUTOCORRECTION` sem pendência documentada = bloqueio.
 - foi catalogado e registrado em `registro-conformidade.json` (quando componente novo)?
 - as evidências de conformidade existem?
 

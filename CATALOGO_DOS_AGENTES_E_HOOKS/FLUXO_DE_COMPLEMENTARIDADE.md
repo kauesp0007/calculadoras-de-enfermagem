@@ -41,7 +41,7 @@ flowchart TD
 
     subgraph HOOKS[🤖 Hooks — camada transversal, sempre ativos]
         H1[auto-backup] ; H2[security-git] ; H3[block-protected-files]
-        H4[build-after-edit] ; H5[content-governance] ; H6[knowledge-index]
+        H4[build-after-edit → cwv-gate] ; H5[content-governance] ; H6[knowledge-index]
         H7[check-layout] ; H8[check-json] ; H9[check-head]
         H10[register-page] ; H11[check-a11y] ; H12[check-conformidade]
     end

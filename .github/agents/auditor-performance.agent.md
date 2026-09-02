@@ -27,9 +27,14 @@ NÃO edita arquivos.
 6. Render-blocking: CSS/JS no `<head>` sem `defer`/`async`, scripts de terceiros pesados.
 
 ## Como agir
-1. Rode `node scripts/auditar-cwv.js` para varrer o acervo (gera CSV em `relatorios/`).
-2. Leia o CSV e/ou inspecione a página-alvo.
-3. Reporte por página: problema, severidade (crítico/alto/médio/baixo) e correção sugerida.
+1. Confira a evidência automática em `relatorios/cwv-gate/` (gerada pelo gate determinístico
+   `scripts/cwv-gate.js`, disparado pelo hook `build-after-edit` a cada edição).
+2. Rode `node scripts/auditar-cwv.js` para varrer o acervo (gera CSV em `relatorios/`).
+3. Leia o CSV e/ou inspecione a página-alvo.
+4. Reporte por página: problema, severidade (crítico/alto/médio/baixo) e correção sugerida.
+
+**Divisão de trabalho:** a DETECÇÃO e a CORREÇÃO SEGURA são determinísticas (gate);
+você interpreta o resultado e cobre o que o gate não mede (runtime, análise qualitativa).
 
 ## Formato de saída
 Relatório por arquivo com problema, severidade e correção sugerida. Não altere nada — apenas reporte.

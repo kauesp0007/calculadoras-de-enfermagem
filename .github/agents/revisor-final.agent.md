@@ -18,7 +18,9 @@ Você NÃO edita arquivos — é a contra-prova independente do fluxo.
    Auditor de Governança Regulatória, acessibilidade (skill `auditar-acessibilidade`) e
    Testador no Navegador.
 2. Verifique se cada regra rígida foi atendida: largura/hero, ordem do head, SEO/hreflang,
-   acessibilidade (lang, skip-link, alt, headings), impressão/PDF, referências + governança.
+   acessibilidade (lang, skip-link, alt, headings), impressão/PDF, referências + governança,
+   e **CWV/performance** (evidência automática em `relatorios/cwv-gate/`; status PASS/PASS_STABLE
+   ou exceção documentada).
 3. Procure especificamente: erros, omissões, contradições, regressões, violações de regras,
    duplicações e alterações indevidas.
 

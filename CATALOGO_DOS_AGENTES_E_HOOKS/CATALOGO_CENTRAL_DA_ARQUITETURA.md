@@ -89,7 +89,14 @@
 - `scripts/build-knowledge-index.js` / `knowledge-discover.js` (base de conhecimento)
 - `scripts/validate-content-governance.js` (governança) · `scripts/auditar-cwv.js` / `corrigir-cwv.js` (CWV)
 - `scripts/fix-broken-links.js` (integridade de links) · `scripts/validate_new_page.js`
+- `scripts/cwv-gate.js` (gate automático CWV: auditar → corrigir → re-auditar → evidência)
+  + `scripts/lib/cwv-core.js` (fonte única das regras de análise/correção)
 - `scripts/build-biblioteca.js` / `build-downloads.js` / `build-blog.js` / `build-nanda.js`
+
+> **CWV/performance é uma validação automática obrigatória** para criação, atualização,
+> modernização, melhoria, refatoração e alterações relevantes de páginas. O hook
+> `build-after-edit` dispara `scripts/cwv-gate.js` (determinístico, sem IA) a cada edição
+> de HTML/CSS/JS/imagem/fonte, gerando evidência em `relatorios/cwv-gate/`.
 
 ---
 

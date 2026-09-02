@@ -1,5 +1,5 @@
-﻿# PostToolUse: após editar HTML/JS/CSS, renova o service worker
-# (e recompila o Tailwind apenas quando o arquivo alterado é CSS).
+﻿# PostToolUse: após editar HTML/JS/CSS/imagens/fontes, renova o service worker,
+# recompila o Tailwind (quando CSS) e roda o gate determinístico de CWV/performance.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()
@@ -19,18 +19,23 @@ if ($data.tool_input.replacements) {
 if ($filePaths.Count -eq 0) { exit 0 }
 
 $root = (Get-Location).Path
+
+# Extensões web (afetam HTML/CSS/JS e recursos que impactam LCP/CLS/INP)
+$webExts = @('.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.woff', '.woff2')
 $isWeb = $false
 $isCss = $false
+$webFiles = @()
 foreach ($fp in $filePaths) {
     $ext = [System.IO.Path]::GetExtension([string]$fp).ToLowerInvariant()
-    if ($ext -in @('.html', '.js', '.css')) { $isWeb = $true }
+    if ($ext -in $webExts) {
+        $isWeb = $true
+        $webFiles += [string]$fp
+    }
     if ($ext -eq '.css') { $isCss = $true }
 }
 if (-not $isWeb) { exit 0 }
 
-$sw = Join-Path $root 'gerar-sw.js'
-if (-not (Test-Path $sw)) { exit 0 }
-
+# 1. Build (Tailwind quando CSS; service worker sempre)
 if ($isCss) {
     $twCli = Join-Path $root 'node_modules\tailwindcss\lib\cli.js'
     if (Test-Path $twCli) {
@@ -40,7 +45,20 @@ if ($isCss) {
     }
 }
 
-Push-Location $root
-node $sw 2>&1 | Out-Null
-Pop-Location
+$sw = Join-Path $root 'gerar-sw.js'
+if (Test-Path $sw) {
+    Push-Location $root
+    node $sw 2>&1 | Out-Null
+    Pop-Location
+}
+
+# 2. Gate CWV/performance (determinístico): auditar -> corrigir -> re-auditar -> evidência.
+$gate = Join-Path $root 'scripts\cwv-gate.js'
+if (Test-Path $gate) {
+    $payload = @{ files = @($webFiles) } | ConvertTo-Json -Compress
+    Push-Location $root
+    $payload | node $gate 2>&1 | Out-Null
+    Pop-Location
+}
+
 exit 0

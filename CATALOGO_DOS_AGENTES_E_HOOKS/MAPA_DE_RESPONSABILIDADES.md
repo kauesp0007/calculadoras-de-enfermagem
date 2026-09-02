@@ -9,6 +9,7 @@ Prioridade: 1. script determinístico → 2. hook → 3. validator → 4. index 
 | Bloquear `git commit/push` | Hook `security-git` | Determinístico (segurança) | 0 IA | PreToolUse (terminal) |
 | Proteger arquivos/pastas | Hook `block-protected-files` | Determinístico (segurança) | 0 IA | PreToolUse (edição) |
 | Build + service worker | Hook `build-after-edit` | Determinístico | 0 IA | PostToolUse (.html/.js/.css) |
+| Auditoria CWV/performance (automática) | Hook `build-after-edit` → `cwv-gate.js` | Determinístico (auditar → corrigir → re-auditar → evidência) | 0 IA | PostToolUse (.html/.js/.css/imagem/fonte) |
 | Build manual | Agente `Build do Site` | Execução sob demanda | IA (mínima) | pedido do usuário |
 | Tailwind | Hook `build-after-edit` / `build.js` | Determinístico | 0 IA | CSS editado |
 | Validação editorial (marcadores) | Hook `content-governance` | Determinístico | 0 IA | PostToolUse (.html/.md) |
