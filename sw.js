@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-125813";
+const CACHE_VERSION = "20260902-140610";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -478,6 +478,7 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-02T15-38-47.json',
   'relatorios/cwv-gate/2026-09-02T15-39-55.json',
   'relatorios/cwv-gate/2026-09-02T15-41-05.json',
+  'relatorios/cwv-gate/2026-09-02T16-08-43.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -518,6 +519,7 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-02T15-38-48.json',
   'relatorios/impacto/2026-09-02T15-39-57.json',
   'relatorios/impacto/2026-09-02T15-41-06.json',
+  'relatorios/impacto/2026-09-02T16-08-43.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'remover-circulo-hero-card.js',

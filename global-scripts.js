@@ -419,11 +419,13 @@ function initializeAuthMenu() {
     if (window.Auth && window.Auth.isInitialized()) {
       safeUpdateUI(window.Auth.currentUser());
     }
+    hideAdsForPremium();
     if (window.Authorization.onChange) {
       window.Authorization.onChange(function () {
         if (window.Auth) {
           safeUpdateUI(window.Auth.currentUser());
         }
+        hideAdsForPremium();
       });
     }
     bindAccess();
@@ -1173,10 +1175,51 @@ function ativarModoDislexia() {
 })();
 
 /* =========================
-   /* =========================
+   Controle de anúncios para assinantes premium
+   ========================= */
+// Planos considerados premium (espelha plan-service.js PREMIUM_PLANS)
+var PREMIUM_AD_FREE_PLANS = ["premium_monthly", "premium_yearly", "lifetime", "institution"];
+
+/**
+ * Verifica se o usuário atual é assinante premium.
+ * Prioriza a camada Authorization (definitiva) e usa o cache síncrono
+ * do perfil como fallback antes do auth carregar.
+ */
+function isPremiumSubscriber() {
+  if (window.Authorization && window.Authorization.hasPlan) {
+    return window.Authorization.hasPlan("premium");
+  }
+  try {
+    var keys = ["auth_user_profile_cache", "auth_profile"];
+    for (var i = 0; i < keys.length; i++) {
+      var raw = localStorage.getItem(keys[i]);
+      if (!raw) continue;
+      var obj = JSON.parse(raw);
+      var plan = (obj && obj.data && obj.data.plan) || (obj && obj.plan) || null;
+      if (plan && PREMIUM_AD_FREE_PLANS.indexOf(plan) !== -1) return true;
+    }
+  } catch (e) { /* ignora */ }
+  return false;
+}
+
+/**
+ * Oculta os anúncios (multiplex + auto-placed) para assinantes premium.
+ */
+function hideAdsForPremium() {
+  if (!isPremiumSubscriber()) return;
+  document.querySelectorAll("ins.adsbygoogle, .google-auto-placed").forEach(function (ad) {
+    ad.style.display = "none";
+    ad.innerHTML = "";
+  });
+  var reserved = document.getElementById("multiplex-ad-reserved");
+  if (reserved) reserved.style.display = "none";
+}
+
+/* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
    ========================= */
 function initializeMultiplexAds() {
+  if (isPremiumSubscriber()) return;
   document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
     if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
     ad.dataset.multiplexInitialized = "true";
@@ -1195,6 +1238,7 @@ function initializeMultiplexAds() {
 
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
+  hideAdsForPremium();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
     new URLSearchParams(window.location.search).get('admin') === '1'
@@ -1252,7 +1296,7 @@ function initLazyLoadServices() {
     }
 
     function loadAdSenseOnce() {
-      if (window.__adsenseLoaded || adsBlocked) return;
+      if (window.__adsenseLoaded || adsBlocked || isPremiumSubscriber()) return;
       window.__adsenseLoaded = true;
 
       var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
