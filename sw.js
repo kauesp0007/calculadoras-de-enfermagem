@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-094414";
+const CACHE_VERSION = "20260902-104331";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -424,6 +424,7 @@ const urlsToCache = [
   'public/output.css',
   'relatorio_auditoria_seo.json',
   'relatorio_hreflang.json',
+  'relatorios/.cwv-batch.json',
   'relatorios/auditoria-cwv-html.json',
   'relatorios/cwv-gate/2026-09-02T10-00-22.json',
   'relatorios/cwv-gate/2026-09-02T10-03-16.json',
@@ -456,6 +457,9 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-02T12-39-24.json',
   'relatorios/cwv-gate/2026-09-02T12-39-38.json',
   'relatorios/cwv-gate/2026-09-02T12-39-49.json',
+  'relatorios/cwv-gate/2026-09-02T12-44-15.json',
+  'relatorios/cwv-gate/2026-09-02T13-27-17.json',
+  'relatorios/cwv-gate/2026-09-02T13-41-51.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -484,6 +488,9 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-02T12-39-25.json',
   'relatorios/impacto/2026-09-02T12-39-39.json',
   'relatorios/impacto/2026-09-02T12-39-50.json',
+  'relatorios/impacto/2026-09-02T12-44-16.json',
+  'relatorios/impacto/2026-09-02T13-27-18.json',
+  'relatorios/impacto/2026-09-02T13-41-51.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'remover-circulo-hero-card.js',
