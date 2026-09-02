@@ -151,6 +151,14 @@ node gerar-sw.js
 
 (Use o subagente `build`.)
 
+## Ambiente Base44
+
+- O site é estático e é servido diretamente da raiz do repositório pelo serviço `web` em `docker-compose.base44.yml`.
+- Inicie o preview com `docker compose -f docker-compose.base44.yml up -d`; a entrada web fica na porta 3000.
+- Verifique com `curl -fsS http://localhost:3000/` e com um cabeçalho `Host` externo.
+- As chaves usadas pelos scripts de automação/IA não são necessárias para servir o site no preview.
+- Como os arquivos são montados diretamente no contêiner, alterações ficam disponíveis sem reconstruir a imagem; recarregue o navegador para HTML estático.
+
 ## Idioma
 
 Responder em pt-BR.
