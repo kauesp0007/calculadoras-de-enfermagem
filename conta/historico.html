@@ -119,217 +119,217 @@ Carregando seu histórico…
 <script src="/js/history/history-ui.js"></script>
 <script>
 (function () {
-  "use strict";
+"use strict";
 
-  var TYPE_LABELS = {
-    calculator: "Calculadora", scale: "Escala", article: "Artigo",
-    protocol: "Protocolo", download: "Download", course: "Curso",
-    premium: "Premium", library: "Biblioteca", simulation: "Simulado",
-    page: "Página"
-  };
+var TYPE_LABELS = {
+calculator: "Calculadora", scale: "Escala", article: "Artigo",
+protocol: "Protocolo", download: "Download", course: "Curso",
+premium: "Premium", library: "Biblioteca", simulation: "Simulado",
+page: "Página"
+};
 
-  var LANG_LABELS = {
-    pt: "Português", en: "Inglês", es: "Espanhol", de: "Alemão",
-    it: "Italiano", fr: "Francês", hi: "Hindi", zh: "Chinês", ar: "Árabe",
-    ja: "Japonês", ru: "Russo", ko: "Coreano", tr: "Turco", nl: "Holandês",
-    pl: "Polonês", sv: "Sueco", id: "Indonésio", vi: "Vietnamita", uk: "Ucraniano"
-  };
+var LANG_LABELS = {
+pt: "Português", en: "Inglês", es: "Espanhol", de: "Alemão",
+it: "Italiano", fr: "Francês", hi: "Hindi", zh: "Chinês", ar: "Árabe",
+ja: "Japonês", ru: "Russo", ko: "Coreano", tr: "Turco", nl: "Holandês",
+pl: "Polonês", sv: "Sueco", id: "Indonésio", vi: "Vietnamita", uk: "Ucraniano"
+};
 
-  var PAGE_SIZE = 20;
-  var _page = 0;
+var PAGE_SIZE = 20;
+var _page = 0;
 
-  function redirectLogin() {
-    window.location.href =
-      "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
-  }
+function redirectLogin() {
+window.location.href =
+"/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
+}
 
-  function showContent() {
-    var loading = document.getElementById("history-loading");
-    var content = document.getElementById("history-content");
-    if (loading) loading.style.display = "none";
-    if (content) content.style.display = "block";
-  }
+function showContent() {
+var loading = document.getElementById("history-loading");
+var content = document.getElementById("history-content");
+if (loading) loading.style.display = "none";
+if (content) content.style.display = "block";
+}
 
-  function showMessage(msg, isError) {
-    var el = document.getElementById("history-message");
-    if (!el) return;
-    el.textContent = msg;
-    el.style.display = "block";
-    el.className =
-      "mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
-      (isError
-        ? "bg-red-50 text-red-700 border border-red-200"
-        : "bg-green-50 text-green-700 border border-green-200");
-    setTimeout(function () { el.style.display = "none"; }, 6000);
-  }
+function showMessage(msg, isError) {
+var el = document.getElementById("history-message");
+if (!el) return;
+el.textContent = msg;
+el.style.display = "block";
+el.className =
+"mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
+(isError
+? "bg-red-50 text-red-700 border border-red-200"
+: "bg-green-50 text-green-700 border border-green-200");
+setTimeout(function () { el.style.display = "none"; }, 6000);
+}
 
-  function buildOptions(select, values, labelFn) {
-    if (!select) return;
-    var current = select.value;
-    select.innerHTML = "";
-    var all = document.createElement("option");
-    all.value = "";
-    all.textContent = labelFn ? labelFn("") : "Todos";
-    select.appendChild(all);
-    values.forEach(function (v) {
-      var o = document.createElement("option");
-      o.value = v;
-      o.textContent = labelFn ? labelFn(v) : v;
-      select.appendChild(o);
-    });
-    select.value = current || "";
-  }
+function buildOptions(select, values, labelFn) {
+if (!select) return;
+var current = select.value;
+select.innerHTML = "";
+var all = document.createElement("option");
+all.value = "";
+all.textContent = labelFn ? labelFn("") : "Todos";
+select.appendChild(all);
+values.forEach(function (v) {
+var o = document.createElement("option");
+o.value = v;
+o.textContent = labelFn ? labelFn(v) : v;
+select.appendChild(o);
+});
+select.value = current || "";
+}
 
-  function getVisibleItems() {
-    var items = window.History.getAll();
-    var q = (document.getElementById("history-search").value || "").trim().toLowerCase();
-    var cat = document.getElementById("history-filter-category").value;
-    var type = document.getElementById("history-filter-type").value;
-    var lang = document.getElementById("history-filter-language").value;
-    var sort = document.getElementById("history-sort").value;
+function getVisibleItems() {
+var items = window.History.getAll();
+var q = (document.getElementById("history-search").value || "").trim().toLowerCase();
+var cat = document.getElementById("history-filter-category").value;
+var type = document.getElementById("history-filter-type").value;
+var lang = document.getElementById("history-filter-language").value;
+var sort = document.getElementById("history-sort").value;
 
-    var filtered = items.filter(function (h) {
-      if (q) {
-        var hay = ((h.title || "") + " " + (h.url || "")).toLowerCase();
-        if (hay.indexOf(q) === -1) return false;
-      }
-      if (cat && h.category !== cat) return false;
-      if (type && h.pageType !== type) return false;
-      if (lang && h.language !== lang) return false;
-      return true;
-    });
+var filtered = items.filter(function (h) {
+if (q) {
+var hay = ((h.title || "") + " " + (h.url || "")).toLowerCase();
+if (hay.indexOf(q) === -1) return false;
+}
+if (cat && h.category !== cat) return false;
+if (type && h.pageType !== type) return false;
+if (lang && h.language !== lang) return false;
+return true;
+});
 
-    filtered.sort(function (a, b) {
-      if (sort === "alpha") return (a.title || "").localeCompare(b.title || "");
-      var ta = a.visitedAt ? new Date(a.visitedAt).getTime() : 0;
-      var tb = b.visitedAt ? new Date(b.visitedAt).getTime() : 0;
-      return sort === "oldest" ? ta - tb : tb - ta;
-    });
+filtered.sort(function (a, b) {
+if (sort === "alpha") return (a.title || "").localeCompare(b.title || "");
+var ta = a.visitedAt ? new Date(a.visitedAt).getTime() : 0;
+var tb = b.visitedAt ? new Date(b.visitedAt).getTime() : 0;
+return sort === "oldest" ? ta - tb : tb - ta;
+});
 
-    return filtered;
-  }
+return filtered;
+}
 
-  function refreshFilters() {
-    var items = window.History.getAll();
-    var cats = [], types = [], langs = [];
-    items.forEach(function (h) {
-      if (h.category && cats.indexOf(h.category) === -1) cats.push(h.category);
-      if (h.pageType && types.indexOf(h.pageType) === -1) types.push(h.pageType);
-      if (h.language && langs.indexOf(h.language) === -1) langs.push(h.language);
-    });
-    cats.sort(); types.sort(); langs.sort();
+function refreshFilters() {
+var items = window.History.getAll();
+var cats = [], types = [], langs = [];
+items.forEach(function (h) {
+if (h.category && cats.indexOf(h.category) === -1) cats.push(h.category);
+if (h.pageType && types.indexOf(h.pageType) === -1) types.push(h.pageType);
+if (h.language && langs.indexOf(h.language) === -1) langs.push(h.language);
+});
+cats.sort(); types.sort(); langs.sort();
 
-    buildOptions(document.getElementById("history-filter-category"), cats, function (v) {
-      return v || "Todas as categorias";
-    });
-    buildOptions(document.getElementById("history-filter-type"), types, function (v) {
-      return v ? (TYPE_LABELS[v] || v) : "Todos os tipos";
-    });
-    buildOptions(document.getElementById("history-filter-language"), langs, function (v) {
-      return v ? (LANG_LABELS[v] || v.toUpperCase()) : "Todos os idiomas";
-    });
-  }
+buildOptions(document.getElementById("history-filter-category"), cats, function (v) {
+return v || "Todas as categorias";
+});
+buildOptions(document.getElementById("history-filter-type"), types, function (v) {
+return v ? (TYPE_LABELS[v] || v) : "Todos os tipos";
+});
+buildOptions(document.getElementById("history-filter-language"), langs, function (v) {
+return v ? (LANG_LABELS[v] || v.toUpperCase()) : "Todos os idiomas";
+});
+}
 
-  function updateStats() {
-    var items = window.History.getAll();
-    var pages = {};
-    var totalMs = 0;
-    items.forEach(function (h) {
-      if (h.pageId) pages[h.pageId] = true;
-      if (h.duration) totalMs += h.duration;
-    });
-    document.getElementById("stat-visits").textContent = String(items.length);
-    document.getElementById("stat-unique").textContent = String(Object.keys(pages).length);
-    document.getElementById("stat-time").textContent = window.History.formatDuration(totalMs);
-  }
+function updateStats() {
+var items = window.History.getAll();
+var pages = {};
+var totalMs = 0;
+items.forEach(function (h) {
+if (h.pageId) pages[h.pageId] = true;
+if (h.duration) totalMs += h.duration;
+});
+document.getElementById("stat-visits").textContent = String(items.length);
+document.getElementById("stat-unique").textContent = String(Object.keys(pages).length);
+document.getElementById("stat-time").textContent = window.History.formatDuration(totalMs);
+}
 
-  function render() {
-    var all = getVisibleItems();
-    var totalPages = Math.ceil(all.length / PAGE_SIZE) || 1;
-    if (_page >= totalPages) _page = totalPages - 1;
-    if (_page < 0) _page = 0;
-    var pageItems = all.slice(_page * PAGE_SIZE, (_page + 1) * PAGE_SIZE);
+function render() {
+var all = getVisibleItems();
+var totalPages = Math.ceil(all.length / PAGE_SIZE) || 1;
+if (_page >= totalPages) _page = totalPages - 1;
+if (_page < 0) _page = 0;
+var pageItems = all.slice(_page * PAGE_SIZE, (_page + 1) * PAGE_SIZE);
 
-    updateStats();
+updateStats();
 
-    var countEl = document.getElementById("history-count");
-    if (countEl) countEl.textContent = String(window.History.count());
+var countEl = document.getElementById("history-count");
+if (countEl) countEl.textContent = String(window.History.count());
 
-    var info = document.getElementById("history-page-info");
-    if (info) info.textContent = "Página " + (_page + 1) + " de " + totalPages + " · " + all.length + " registro(s)";
+var info = document.getElementById("history-page-info");
+if (info) info.textContent = "Página " + (_page + 1) + " de " + totalPages + " · " + all.length + " registro(s)";
 
-    var prev = document.getElementById("history-prev");
-    var next = document.getElementById("history-next");
-    if (prev) prev.disabled = _page <= 0;
-    if (next) next.disabled = _page >= totalPages - 1;
+var prev = document.getElementById("history-prev");
+var next = document.getElementById("history-next");
+if (prev) prev.disabled = _page <= 0;
+if (next) next.disabled = _page >= totalPages - 1;
 
-    window.History.renderList(document.getElementById("history-list"), pageItems, render);
-  }
+window.History.renderList(document.getElementById("history-list"), pageItems, render);
+}
 
-  ["history-search", "history-filter-category", "history-filter-type", "history-filter-language", "history-sort"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("input", function () { _page = 0; render(); });
-      el.addEventListener("change", function () { _page = 0; render(); });
-    }
-  });
+["history-search", "history-filter-category", "history-filter-type", "history-filter-language", "history-sort"].forEach(function (id) {
+var el = document.getElementById(id);
+if (el) {
+el.addEventListener("input", function () { _page = 0; render(); });
+el.addEventListener("change", function () { _page = 0; render(); });
+}
+});
 
-  document.getElementById("history-prev").addEventListener("click", function () {
-    if (_page > 0) { _page--; render(); }
-  });
-  document.getElementById("history-next").addEventListener("click", function () {
-    _page++; render();
-  });
+document.getElementById("history-prev").addEventListener("click", function () {
+if (_page > 0) { _page--; render(); }
+});
+document.getElementById("history-next").addEventListener("click", function () {
+_page++; render();
+});
 
-  document.getElementById("btn-clear-history").addEventListener("click", function () {
-    if (!window.confirm("Excluir todo o histórico? Essa ação não pode ser desfeita.")) {
-      return;
-    }
-    window.History.clearAll()
-      .then(function () {
-        _page = 0;
-        refreshFilters();
-        render();
-        showMessage("Histórico excluído com sucesso.", false);
-      })
-      .catch(function (e) {
-        showMessage(
-          "Erro ao excluir: " + (e && e.message ? e.message : "tente novamente."),
-          true
-        );
-      });
-  });
+document.getElementById("btn-clear-history").addEventListener("click", function () {
+if (!window.confirm("Excluir todo o histórico? Essa ação não pode ser desfeita.")) {
+return;
+}
+window.History.clearAll()
+.then(function () {
+_page = 0;
+refreshFilters();
+render();
+showMessage("Histórico excluído com sucesso.", false);
+})
+.catch(function (e) {
+showMessage(
+"Erro ao excluir: " + (e && e.message ? e.message : "tente novamente."),
+true
+);
+});
+});
 
-  window.Auth.init()
-    .then(function () {
-      if (!window.Auth.isLoggedIn()) {
-        redirectLogin();
-        return;
-      }
+window.Auth.init()
+.then(function () {
+if (!window.Auth.isLoggedIn()) {
+redirectLogin();
+return;
+}
 
-      var uid = window.Auth.currentUser().uid;
-      window.History.init(uid)
-        .then(function () {
-          refreshFilters();
-          render();
-          showContent();
-        })
-        .catch(function (e) {
-          showMessage(
-            "Erro ao carregar histórico: " + (e && e.message ? e.message : "tente novamente."),
-            true
-          );
-          showContent();
-        });
+var uid = window.Auth.currentUser().uid;
+window.History.init(uid)
+.then(function () {
+refreshFilters();
+render();
+showContent();
+})
+.catch(function (e) {
+showMessage(
+"Erro ao carregar histórico: " + (e && e.message ? e.message : "tente novamente."),
+true
+);
+showContent();
+});
 
-      window.History.on("history-changed", function () {
-        refreshFilters();
-        render();
-      });
-    })
-    .catch(function () {
-      redirectLogin();
-    });
+window.History.on("history-changed", function () {
+refreshFilters();
+render();
+});
+})
+.catch(function () {
+redirectLogin();
+});
 })();
 </script>
 <div id="footer-placeholder"></div>

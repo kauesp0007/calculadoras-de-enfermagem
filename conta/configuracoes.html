@@ -134,130 +134,130 @@ Carregando suas preferências…
 <script src="/js/auth/auth-core.js"></script>
 <script>
 (function () {
-  "use strict";
+"use strict";
 
-  function redirectLogin() {
-    window.location.href =
-      "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
-  }
+function redirectLogin() {
+window.location.href =
+"/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
+}
 
-  function showMessage(msg, isError) {
-    var el = document.getElementById("settings-message");
-    if (!el) return;
-    el.textContent = msg;
-    el.style.display = "block";
-    el.className =
-      "mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
-      (isError
-        ? "bg-red-50 text-red-700 border border-red-200"
-        : "bg-green-50 text-green-700 border border-green-200");
-    setTimeout(function () {
-      el.style.display = "none";
-    }, 6000);
-  }
+function showMessage(msg, isError) {
+var el = document.getElementById("settings-message");
+if (!el) return;
+el.textContent = msg;
+el.style.display = "block";
+el.className =
+"mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
+(isError
+? "bg-red-50 text-red-700 border border-red-200"
+: "bg-green-50 text-green-700 border border-green-200");
+setTimeout(function () {
+el.style.display = "none";
+}, 6000);
+}
 
-  function showContent() {
-    var loading = document.getElementById("settings-loading");
-    var content = document.getElementById("settings-content");
-    if (loading) loading.style.display = "none";
-    if (content) content.style.display = "block";
-  }
+function showContent() {
+var loading = document.getElementById("settings-loading");
+var content = document.getElementById("settings-content");
+if (loading) loading.style.display = "none";
+if (content) content.style.display = "block";
+}
 
-  function fillForm(profile) {
-    var prefs = window.AuthModules.preferences.normalize(
-      profile ? profile.preferences : null
-    );
+function fillForm(profile) {
+var prefs = window.AuthModules.preferences.normalize(
+profile ? profile.preferences : null
+);
 
-    var lang = document.getElementById("setting-language");
-    if (lang) lang.value = prefs.language;
+var lang = document.getElementById("setting-language");
+if (lang) lang.value = prefs.language;
 
-    var themeRadios = document.querySelectorAll("input[name='setting-theme']");
-    themeRadios.forEach(function (r) {
-      r.checked = r.value === prefs.theme;
-    });
+var themeRadios = document.querySelectorAll("input[name='setting-theme']");
+themeRadios.forEach(function (r) {
+r.checked = r.value === prefs.theme;
+});
 
-    var newsletter = document.getElementById("setting-newsletter");
-    if (newsletter) newsletter.checked = !!prefs.newsletter;
+var newsletter = document.getElementById("setting-newsletter");
+if (newsletter) newsletter.checked = !!prefs.newsletter;
 
-    var fontSize = document.getElementById("setting-fontsize");
-    if (fontSize) fontSize.value = String(prefs.fontSize);
-  }
+var fontSize = document.getElementById("setting-fontsize");
+if (fontSize) fontSize.value = String(prefs.fontSize);
+}
 
-  function applyLocalPrefs(prefs) {
-    // Tema
-    if (prefs.theme === "dark") {
-      document.documentElement.classList.add("dark-mode");
-      localStorage.setItem("darkMode", "true");
-    } else {
-      document.documentElement.classList.remove("dark-mode");
-      localStorage.setItem("darkMode", "false");
-    }
+function applyLocalPrefs(prefs) {
+// Tema
+if (prefs.theme === "dark") {
+document.documentElement.classList.add("dark-mode");
+localStorage.setItem("darkMode", "true");
+} else {
+document.documentElement.classList.remove("dark-mode");
+localStorage.setItem("darkMode", "false");
+}
 
-    // Tamanho da fonte
-    var sizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
-    var i = Math.min(Math.max(parseInt(prefs.fontSize, 10), 1), sizes.length);
-    document.documentElement.style.fontSize = sizes[i - 1];
-    localStorage.setItem("fontSize", String(i));
-  }
+// Tamanho da fonte
+var sizes = ["1em", "1.15em", "1.3em", "1.5em", "2em"];
+var i = Math.min(Math.max(parseInt(prefs.fontSize, 10), 1), sizes.length);
+document.documentElement.style.fontSize = sizes[i - 1];
+localStorage.setItem("fontSize", String(i));
+}
 
-  document.getElementById("btn-save-settings").addEventListener("click", function () {
-    var user = window.Auth.currentUser();
-    if (!user) return;
+document.getElementById("btn-save-settings").addEventListener("click", function () {
+var user = window.Auth.currentUser();
+if (!user) return;
 
-    var language = document.getElementById("setting-language").value;
-    var themeInput = document.querySelector("input[name='setting-theme']:checked");
-    var newsletter = document.getElementById("setting-newsletter").checked;
-    var fontSize =
-      parseInt(document.getElementById("setting-fontsize").value, 10) || 1;
+var language = document.getElementById("setting-language").value;
+var themeInput = document.querySelector("input[name='setting-theme']:checked");
+var newsletter = document.getElementById("setting-newsletter").checked;
+var fontSize =
+parseInt(document.getElementById("setting-fontsize").value, 10) || 1;
 
-    var prefs = {
-      language: language,
-      theme: themeInput ? themeInput.value : "light",
-      newsletter: newsletter,
-      fontSize: fontSize
-    };
+var prefs = {
+language: language,
+theme: themeInput ? themeInput.value : "light",
+newsletter: newsletter,
+fontSize: fontSize
+};
 
-    var btn = document.getElementById("btn-save-settings");
-    btn.disabled = true;
+var btn = document.getElementById("btn-save-settings");
+btn.disabled = true;
 
-    window.AuthModules.preferences
-      .setPreferences(user.uid, prefs)
-      .then(function (normalized) {
-        applyLocalPrefs(normalized);
-        showMessage("Preferências salvas com sucesso!", false);
-      })
-      .catch(function (e) {
-        showMessage(
-          "Erro ao salvar: " + (e && e.message ? e.message : "tente novamente."),
-          true
-        );
-      })
-      .finally(function () {
-        btn.disabled = false;
-      });
-  });
+window.AuthModules.preferences
+.setPreferences(user.uid, prefs)
+.then(function (normalized) {
+applyLocalPrefs(normalized);
+showMessage("Preferências salvas com sucesso!", false);
+})
+.catch(function (e) {
+showMessage(
+"Erro ao salvar: " + (e && e.message ? e.message : "tente novamente."),
+true
+);
+})
+.finally(function () {
+btn.disabled = false;
+});
+});
 
-  window.Auth.init()
-    .then(function () {
-      if (!window.Auth.isLoggedIn()) {
-        redirectLogin();
-        return;
-      }
+window.Auth.init()
+.then(function () {
+if (!window.Auth.isLoggedIn()) {
+redirectLogin();
+return;
+}
 
-      var profile = window.Auth.profile();
-      if (profile) {
-        fillForm(profile);
-      }
-      showContent();
+var profile = window.Auth.profile();
+if (profile) {
+fillForm(profile);
+}
+showContent();
 
-      window.Auth.onProfileChange(function (p) {
-        fillForm(p);
-        showContent();
-      });
-    })
-    .catch(function () {
-      redirectLogin();
-    });
+window.Auth.onProfileChange(function (p) {
+fillForm(p);
+showContent();
+});
+})
+.catch(function () {
+redirectLogin();
+});
 })();
 </script>
 <div id="footer-placeholder"></div>

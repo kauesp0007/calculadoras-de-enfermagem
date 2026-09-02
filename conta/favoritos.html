@@ -89,163 +89,163 @@ Carregando seus favoritos…
 <script src="/js/favorites/favorites-ui.js"></script>
 <script>
 (function () {
-  "use strict";
+"use strict";
 
-  var TYPE_LABELS = {
-    calculator: "Calculadora", scale: "Escala", article: "Artigo",
-    protocol: "Protocolo", download: "Download", course: "Curso",
-    premium: "Premium", library: "Biblioteca", simulation: "Simulado",
-    page: "Página"
-  };
+var TYPE_LABELS = {
+calculator: "Calculadora", scale: "Escala", article: "Artigo",
+protocol: "Protocolo", download: "Download", course: "Curso",
+premium: "Premium", library: "Biblioteca", simulation: "Simulado",
+page: "Página"
+};
 
-  var LANG_LABELS = {
-    pt: "Português", en: "Inglês", es: "Espanhol", de: "Alemão",
-    it: "Italiano", fr: "Francês", hi: "Hindi", zh: "Chinês", ar: "Árabe",
-    ja: "Japonês", ru: "Russo", ko: "Coreano", tr: "Turco", nl: "Holandês",
-    pl: "Polonês", sv: "Sueco", id: "Indonésio", vi: "Vietnamita", uk: "Ucraniano"
-  };
+var LANG_LABELS = {
+pt: "Português", en: "Inglês", es: "Espanhol", de: "Alemão",
+it: "Italiano", fr: "Francês", hi: "Hindi", zh: "Chinês", ar: "Árabe",
+ja: "Japonês", ru: "Russo", ko: "Coreano", tr: "Turco", nl: "Holandês",
+pl: "Polonês", sv: "Sueco", id: "Indonésio", vi: "Vietnamita", uk: "Ucraniano"
+};
 
-  function redirectLogin() {
-    window.location.href =
-      "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
-  }
+function redirectLogin() {
+window.location.href =
+"/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
+}
 
-  function showContent() {
-    var loading = document.getElementById("fav-loading");
-    var content = document.getElementById("fav-content");
-    if (loading) loading.style.display = "none";
-    if (content) content.style.display = "block";
-  }
+function showContent() {
+var loading = document.getElementById("fav-loading");
+var content = document.getElementById("fav-content");
+if (loading) loading.style.display = "none";
+if (content) content.style.display = "block";
+}
 
-  function showMessage(msg, isError) {
-    var el = document.getElementById("fav-message");
-    if (!el) return;
-    el.textContent = msg;
-    el.style.display = "block";
-    el.className =
-      "mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
-      (isError
-        ? "bg-red-50 text-red-700 border border-red-200"
-        : "bg-green-50 text-green-700 border border-green-200");
-    setTimeout(function () { el.style.display = "none"; }, 6000);
-  }
+function showMessage(msg, isError) {
+var el = document.getElementById("fav-message");
+if (!el) return;
+el.textContent = msg;
+el.style.display = "block";
+el.className =
+"mb-4 px-4 py-3 rounded-xl text-sm font-semibold " +
+(isError
+? "bg-red-50 text-red-700 border border-red-200"
+: "bg-green-50 text-green-700 border border-green-200");
+setTimeout(function () { el.style.display = "none"; }, 6000);
+}
 
-  function buildOptions(select, values, labelFn) {
-    if (!select) return;
-    var current = select.value;
-    select.innerHTML = "";
+function buildOptions(select, values, labelFn) {
+if (!select) return;
+var current = select.value;
+select.innerHTML = "";
 
-    var all = document.createElement("option");
-    all.value = "";
-    all.textContent = labelFn ? labelFn("") : "Todos";
-    select.appendChild(all);
+var all = document.createElement("option");
+all.value = "";
+all.textContent = labelFn ? labelFn("") : "Todos";
+select.appendChild(all);
 
-    values.forEach(function (v) {
-      var o = document.createElement("option");
-      o.value = v;
-      o.textContent = labelFn ? labelFn(v) : v;
-      select.appendChild(o);
-    });
+values.forEach(function (v) {
+var o = document.createElement("option");
+o.value = v;
+o.textContent = labelFn ? labelFn(v) : v;
+select.appendChild(o);
+});
 
-    select.value = current || "";
-  }
+select.value = current || "";
+}
 
-  function getVisibleItems() {
-    var items = window.Favorites.getAll();
-    var q = (document.getElementById("fav-search").value || "").trim().toLowerCase();
-    var cat = document.getElementById("fav-filter-category").value;
-    var type = document.getElementById("fav-filter-type").value;
-    var lang = document.getElementById("fav-filter-language").value;
-    var sort = document.getElementById("fav-sort").value;
+function getVisibleItems() {
+var items = window.Favorites.getAll();
+var q = (document.getElementById("fav-search").value || "").trim().toLowerCase();
+var cat = document.getElementById("fav-filter-category").value;
+var type = document.getElementById("fav-filter-type").value;
+var lang = document.getElementById("fav-filter-language").value;
+var sort = document.getElementById("fav-sort").value;
 
-    var filtered = items.filter(function (f) {
-      if (q) {
-        var hay = ((f.title || "") + " " + (f.description || "")).toLowerCase();
-        if (hay.indexOf(q) === -1) return false;
-      }
-      if (cat && f.category !== cat) return false;
-      if (type && f.favoriteType !== type) return false;
-      if (lang && f.language !== lang) return false;
-      return true;
-    });
+var filtered = items.filter(function (f) {
+if (q) {
+var hay = ((f.title || "") + " " + (f.description || "")).toLowerCase();
+if (hay.indexOf(q) === -1) return false;
+}
+if (cat && f.category !== cat) return false;
+if (type && f.favoriteType !== type) return false;
+if (lang && f.language !== lang) return false;
+return true;
+});
 
-    filtered.sort(function (a, b) {
-      if (sort === "alpha") {
-        return (a.title || "").localeCompare(b.title || "");
-      }
-      var ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
-      var tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
-      return sort === "oldest" ? ta - tb : tb - ta;
-    });
+filtered.sort(function (a, b) {
+if (sort === "alpha") {
+return (a.title || "").localeCompare(b.title || "");
+}
+var ta = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+var tb = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+return sort === "oldest" ? ta - tb : tb - ta;
+});
 
-    return filtered;
-  }
+return filtered;
+}
 
-  function refreshFilters() {
-    var items = window.Favorites.getAll();
-    var cats = [], types = [], langs = [];
-    items.forEach(function (f) {
-      if (f.category && cats.indexOf(f.category) === -1) cats.push(f.category);
-      if (f.favoriteType && types.indexOf(f.favoriteType) === -1) types.push(f.favoriteType);
-      if (f.language && langs.indexOf(f.language) === -1) langs.push(f.language);
-    });
-    cats.sort(); types.sort(); langs.sort();
+function refreshFilters() {
+var items = window.Favorites.getAll();
+var cats = [], types = [], langs = [];
+items.forEach(function (f) {
+if (f.category && cats.indexOf(f.category) === -1) cats.push(f.category);
+if (f.favoriteType && types.indexOf(f.favoriteType) === -1) types.push(f.favoriteType);
+if (f.language && langs.indexOf(f.language) === -1) langs.push(f.language);
+});
+cats.sort(); types.sort(); langs.sort();
 
-    buildOptions(document.getElementById("fav-filter-category"), cats, function (v) {
-      return v || "Todas as categorias";
-    });
-    buildOptions(document.getElementById("fav-filter-type"), types, function (v) {
-      return v ? (TYPE_LABELS[v] || v) : "Todos os tipos";
-    });
-    buildOptions(document.getElementById("fav-filter-language"), langs, function (v) {
-      return v ? (LANG_LABELS[v] || v.toUpperCase()) : "Todos os idiomas";
-    });
-  }
+buildOptions(document.getElementById("fav-filter-category"), cats, function (v) {
+return v || "Todas as categorias";
+});
+buildOptions(document.getElementById("fav-filter-type"), types, function (v) {
+return v ? (TYPE_LABELS[v] || v) : "Todos os tipos";
+});
+buildOptions(document.getElementById("fav-filter-language"), langs, function (v) {
+return v ? (LANG_LABELS[v] || v.toUpperCase()) : "Todos os idiomas";
+});
+}
 
-  function render() {
-    var countEl = document.getElementById("fav-count");
-    if (countEl) countEl.textContent = String(window.Favorites.count());
-    window.Favorites.renderList(document.getElementById("fav-list"), getVisibleItems(), render);
-  }
+function render() {
+var countEl = document.getElementById("fav-count");
+if (countEl) countEl.textContent = String(window.Favorites.count());
+window.Favorites.renderList(document.getElementById("fav-list"), getVisibleItems(), render);
+}
 
-  ["fav-search", "fav-filter-category", "fav-filter-type", "fav-filter-language", "fav-sort"].forEach(function (id) {
-    var el = document.getElementById(id);
-    if (el) {
-      el.addEventListener("input", render);
-      el.addEventListener("change", render);
-    }
-  });
+["fav-search", "fav-filter-category", "fav-filter-type", "fav-filter-language", "fav-sort"].forEach(function (id) {
+var el = document.getElementById(id);
+if (el) {
+el.addEventListener("input", render);
+el.addEventListener("change", render);
+}
+});
 
-  window.Auth.init()
-    .then(function () {
-      if (!window.Auth.isLoggedIn()) {
-        redirectLogin();
-        return;
-      }
+window.Auth.init()
+.then(function () {
+if (!window.Auth.isLoggedIn()) {
+redirectLogin();
+return;
+}
 
-      var uid = window.Auth.currentUser().uid;
-      window.Favorites.init(uid)
-        .then(function () {
-          refreshFilters();
-          render();
-          showContent();
-        })
-        .catch(function (e) {
-          showMessage(
-            "Erro ao carregar favoritos: " + (e && e.message ? e.message : "tente novamente."),
-            true
-          );
-          showContent();
-        });
+var uid = window.Auth.currentUser().uid;
+window.Favorites.init(uid)
+.then(function () {
+refreshFilters();
+render();
+showContent();
+})
+.catch(function (e) {
+showMessage(
+"Erro ao carregar favoritos: " + (e && e.message ? e.message : "tente novamente."),
+true
+);
+showContent();
+});
 
-      window.Favorites.on("favorites-changed", function () {
-        refreshFilters();
-        render();
-      });
-    })
-    .catch(function () {
-      redirectLogin();
-    });
+window.Favorites.on("favorites-changed", function () {
+refreshFilters();
+render();
+});
+})
+.catch(function () {
+redirectLogin();
+});
 })();
 </script>
 <div id="footer-placeholder"></div>
