@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-140610";
+const CACHE_VERSION = "20260902-154956";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -218,7 +218,10 @@ const urlsToCache = [
   'automacoes/validacao_mapa_notificacao_compulsoria.json',
   'automation-guard.js',
   'automatizador-em-massa.js',
+  'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.codex-plugin/plugin.json',
+  'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.mcp.json',
   'backups-temporarios/inserir-menu-lei5905.js',
+  'backups-temporarios/marketplace-before-copilot-bridge-20260902-151732.json',
   'banco_nanda.json',
   'banco_nanda_en.json',
   'banco_nanda_es.json',
@@ -479,6 +482,13 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-02T15-39-55.json',
   'relatorios/cwv-gate/2026-09-02T15-41-05.json',
   'relatorios/cwv-gate/2026-09-02T16-08-43.json',
+  'relatorios/cwv-gate/2026-09-02T17-41-00.json',
+  'relatorios/cwv-gate/2026-09-02T17-42-27.json',
+  'relatorios/cwv-gate/2026-09-02T17-43-41.json',
+  'relatorios/cwv-gate/2026-09-02T17-44-51.json',
+  'relatorios/cwv-gate/2026-09-02T17-45-55.json',
+  'relatorios/cwv-gate/2026-09-02T17-46-36.json',
+  'relatorios/cwv-gate/2026-09-02T17-47-31.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -520,8 +530,16 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-02T15-39-57.json',
   'relatorios/impacto/2026-09-02T15-41-06.json',
   'relatorios/impacto/2026-09-02T16-08-43.json',
+  'relatorios/impacto/2026-09-02T17-41-01.json',
+  'relatorios/impacto/2026-09-02T17-42-28.json',
+  'relatorios/impacto/2026-09-02T17-43-42.json',
+  'relatorios/impacto/2026-09-02T17-44-52.json',
+  'relatorios/impacto/2026-09-02T17-45-56.json',
+  'relatorios/impacto/2026-09-02T17-46-38.json',
+  'relatorios/impacto/2026-09-02T17-47-31.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
+  'relatorios/orquestracao/task-ae363e9a3ccd.json',
   'remover-circulo-hero-card.js',
   'reports/lighthouse-concurso_publico.json',
   'ru/favicon.ico',

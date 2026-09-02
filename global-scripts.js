@@ -420,12 +420,14 @@ function initializeAuthMenu() {
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
+    applyPlanRestrictions();
     if (window.Authorization.onChange) {
       window.Authorization.onChange(function () {
         if (window.Auth) {
           safeUpdateUI(window.Auth.currentUser());
         }
         hideAdsForPremium();
+        applyPlanRestrictions();
       });
     }
     bindAccess();
@@ -1178,7 +1180,7 @@ function ativarModoDislexia() {
    Controle de anúncios para assinantes premium
    ========================= */
 // Planos considerados premium (espelha plan-service.js PREMIUM_PLANS)
-var PREMIUM_AD_FREE_PLANS = ["premium_monthly", "premium_yearly", "lifetime", "institution"];
+var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
 
 /**
  * Verifica se o usuário atual é assinante premium.
@@ -1215,6 +1217,24 @@ function hideAdsForPremium() {
   if (reserved) reserved.style.display = "none";
 }
 
+/**
+ * Aplica restrições de plano na interface (ex.: esconde impressão/PDF
+ * para o plano Gratuito, que não imprime escalas e calculadoras).
+ */
+function applyPlanRestrictions() {
+  // Planos pagos (júnior+) têm tudo liberado.
+  if (isPremiumSubscriber()) return;
+
+  // O botão de PDF é exclusivo de escalas/calculadoras; quando presente,
+  // a página é uma ferramenta e o gratuito não imprime nem gera PDF.
+  var pdfBtn = document.getElementById("btnGerarPDF");
+  if (pdfBtn) {
+    pdfBtn.style.display = "none";
+    var printBtn = document.getElementById("btnImprimir");
+    if (printBtn) printBtn.style.display = "none";
+  }
+}
+
 /* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
    ========================= */
@@ -1239,6 +1259,7 @@ function initializeMultiplexAds() {
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
   hideAdsForPremium();
+  applyPlanRestrictions();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
     new URLSearchParams(window.location.search).get('admin') === '1'

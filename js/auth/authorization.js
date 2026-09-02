@@ -88,7 +88,8 @@
         if (name === "premium") {
             return window.AuthorizationModules.planService.isPremium(getPlan());
         }
-        return getPlan() === name;
+        // Hierárquico: plano maior atende requisito de plano menor.
+        return window.AuthorizationModules.planService.hasPlan(getPlan(), name);
     }
 
     /**

@@ -12,36 +12,49 @@
 
     window.AuthorizationModules = window.AuthorizationModules || {};
 
-    // Planos considerados "premium"
-    var PREMIUM_PLANS = ["premium_monthly", "premium_yearly", "lifetime", "institution"];
+    // Níveis dos planos (maior = mais benefícios). Usado na hierarquia.
+    var LEVELS = {
+        free: 0,
+        junior: 10,
+        pleno: 20,
+        senior: 30
+    };
+
+    // Planos considerados "sem anúncios" (qualquer plano pago).
+    var PREMIUM_PLANS = ["junior", "pleno", "senior"];
 
     var PLANS = {
-        free: { label: "Gratuito", permissions: [] },
-        premium_monthly: {
-            label: "Premium Mensal",
-            permissions: ["viewPremium", "downloadPremium", "accessCourses", "accessCertificates", "downloadProtocols"]
-        },
-        premium_yearly: {
-            label: "Premium Anual",
-            permissions: ["viewPremium", "downloadPremium", "accessCourses", "accessCertificates", "downloadProtocols"]
-        },
-        lifetime: {
-            label: "Vitalício",
-            permissions: ["viewPremium", "downloadPremium", "accessCourses", "accessCertificates", "downloadProtocols"]
-        },
-        student: {
-            label: "Estudante",
-            permissions: ["viewPremium", "accessCourses"]
-        },
-        professional: {
-            label: "Profissional",
-            permissions: ["viewPremium", "downloadPremium", "accessCourses", "accessCertificates"]
-        },
-        institution: {
-            label: "Institucional",
-            permissions: ["viewPremium", "downloadPremium", "accessCourses", "accessCertificates", "downloadProtocols"]
-        }
+        free: { label: "Gratuito", level: 0, available: true, permissions: [] },
+        junior: { label: "Júnior", level: 10, available: true, permissions: ["viewPremium"] },
+        pleno: { label: "Pleno", level: 20, available: true, permissions: ["viewPremium", "downloadPremium"] },
+        senior: { label: "Sênior (em breve)", level: 30, available: false, permissions: ["viewPremium", "downloadPremium"] }
     };
+
+    /**
+     * Retorna o nível de um plano.
+     * @param {string} plan
+     * @returns {number}
+     */
+    function levelOf(plan) {
+        return LEVELS[plan] !== undefined ? LEVELS[plan] : -1;
+    }
+
+    /**
+     * Verifica se o plano do usuário atende a um plano requerido (hierárquico).
+     * Ex.: hasPlan("pleno", "junior") === true (pleno >= junior).
+     * @param {string} userPlan
+     * @param {string} required
+     * @returns {boolean}
+     */
+    function hasPlan(userPlan, required) {
+        if (!required || required === "free") {
+            return true;
+        }
+        if (userPlan === "senior") {
+            return true;
+        }
+        return levelOf(userPlan) >= levelOf(required);
+    }
 
     /**
      * Retorna as permissões implícitas de um plano.
@@ -54,12 +67,21 @@
     }
 
     /**
-     * Verifica se um plano é considerado premium.
+     * Verifica se um plano é pago (sem anúncios).
      * @param {string} plan
      * @returns {boolean}
      */
     function isPremium(plan) {
         return PREMIUM_PLANS.indexOf(plan) !== -1;
+    }
+
+    /**
+     * Verifica se um plano está disponível para contratação.
+     * @param {string} plan
+     * @returns {boolean}
+     */
+    function isAvailable(plan) {
+        return (PLANS[plan] || {}).available === true;
     }
 
     /**
@@ -80,10 +102,14 @@
     }
 
     window.AuthorizationModules.planService = {
+        LEVELS: LEVELS,
         PLANS: PLANS,
         PREMIUM_PLANS: PREMIUM_PLANS,
+        levelOf: levelOf,
+        hasPlan: hasPlan,
         permissionsFor: permissionsFor,
         isPremium: isPremium,
+        isAvailable: isAvailable,
         list: list,
         label: label
     };

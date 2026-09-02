@@ -20,48 +20,27 @@
         free: [
             { id: "calculators", icon: "🧮", label: "Calculadoras e escalas gratuitas" },
             { id: "favorites", icon: "⭐", label: "Favoritos ilimitados" },
-            { id: "history", icon: "🕘", label: "Histórico de navegação" }
+            { id: "history", icon: "🕘", label: "Histórico de navegação" },
+            { id: "ads", icon: "📢", label: "Exibição de anúncios" }
         ],
-        premium_monthly: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "downloads", icon: "⬇️", label: "Downloads premium" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" },
-            { id: "certificates", icon: "📜", label: "Certificados" },
-            { id: "protocols", icon: "📋", label: "Protocolos completos" }
+        junior: [
+            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
+            { id: "all-scales", icon: "🧮", label: "Todas as escalas e calculadoras" },
+            { id: "5-simulados", icon: "📝", label: "Acesso aos 5 primeiros simulados" }
         ],
-        premium_yearly: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "downloads", icon: "⬇️", label: "Downloads premium" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" },
-            { id: "certificates", icon: "📜", label: "Certificados" },
-            { id: "protocols", icon: "📋", label: "Protocolos completos" },
-            { id: "discount", icon: "💎", label: "Economia no plano anual" }
+        pleno: [
+            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
+            { id: "all-scales", icon: "🧮", label: "Todas as escalas e calculadoras" },
+            { id: "all-simulados", icon: "📝", label: "Todos os simulados" },
+            { id: "blank-forms", icon: "🖨️", label: "Formulários de escalas em branco para imprimir e preencher" }
         ],
-        lifetime: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "downloads", icon: "⬇️", label: "Downloads premium" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" },
-            { id: "certificates", icon: "📜", label: "Certificados" },
-            { id: "protocols", icon: "📋", label: "Protocolos completos" },
-            { id: "lifetime", icon: "♾️", label: "Acesso vitalício" }
-        ],
-        student: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" }
-        ],
-        professional: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "downloads", icon: "⬇️", label: "Downloads premium" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" },
-            { id: "certificates", icon: "📜", label: "Certificados" }
-        ],
-        institution: [
-            { id: "all-calculators", icon: "🧮", label: "Todas as calculadoras e escalas" },
-            { id: "downloads", icon: "⬇️", label: "Downloads premium" },
-            { id: "courses", icon: "🎓", label: "Acesso a cursos" },
-            { id: "certificates", icon: "📜", label: "Certificados" },
-            { id: "protocols", icon: "📋", label: "Protocolos completos" },
-            { id: "seats", icon: "🏥", label: "Múltiplos acessos institucionais" }
+        senior: [
+            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
+            { id: "all-pleno", icon: "✅", label: "Tudo do plano Pleno" },
+            { id: "excel-schedules", icon: "📊", label: "Escalas de folga e férias semiautomáticas em Excel" },
+            { id: "excel-scales", icon: "📈", label: "Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel" },
+            { id: "handouts", icon: "📚", label: "Apostilas e mapa cirúrgico" },
+            { id: "apk", icon: "📱", label: "Aplicativos APK para assistência" }
         ]
     };
 
