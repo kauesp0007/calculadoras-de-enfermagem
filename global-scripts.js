@@ -426,6 +426,59 @@ function initializeAuthMenu() {
         }
       });
     }
+    bindAccess();
+  }
+
+  // ── Flag para evitar registro duplicado da camada de acesso ──
+  var _accessBound = false;
+
+  /**
+   * Carrega os módulos de acesso a conteúdo (Fase 6) sob demanda.
+   */
+  function bindAccess() {
+    if (_accessBound) {
+      return;
+    }
+    _accessBound = true;
+
+    var scripts = [
+      "/js/access/access-events.js",
+      "/js/access/content-policy.js",
+      "/js/access/benefit-engine.js",
+      "/js/access/license-engine.js",
+      "/js/access/access-analytics.js",
+      "/js/access/premium-widgets.js",
+      "/js/access/premium-banner-manager.js",
+      "/js/access/content-access.js",
+      "/js/access/access-router.js"
+    ];
+
+    var loaded = 0;
+    function loadNext() {
+      if (loaded >= scripts.length) {
+        _setupAccess();
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = scripts[loaded];
+      script.async = false;
+      script.onload = function () { loaded++; loadNext(); };
+      script.onerror = function () { loaded++; loadNext(); };
+      document.head.appendChild(script);
+    }
+    loadNext();
+  }
+
+  /**
+   * Inicializa a camada de acesso e aplica a proteção de conteúdo.
+   */
+  function _setupAccess() {
+    if (!window.Access) {
+      return;
+    }
+    if (window.Access.guard) {
+      window.Access.guard();
+    }
   }
 
   /**

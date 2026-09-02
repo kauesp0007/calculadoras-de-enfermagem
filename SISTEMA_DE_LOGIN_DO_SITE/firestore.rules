@@ -58,6 +58,27 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
+    // ─── Catálogos públicos (Fase 6 — Content Access Engine) ─────
+    // Planos e benefícios são catálogos de leitura pública. A escrita
+    // (criação/edição) ficará a cargo de Cloud Functions/admin no futuro.
+    match /plans/{planId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /benefits/{benefitId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // ─── Licenças por usuário (Fase 6 — licenças independentes de plano) ──
+    // O dono pode LER suas licenças; a concessão é feita exclusivamente
+    // por Cloud Functions (pagamentos), nunca pelo cliente.
+    match /users/{uid}/licenses/{licenseId} {
+      allow read: if isOwner(uid);
+      allow write: if false;
+    }
+
     // ─── Demais coleções ─────────────────────────────────────────
     // Bloqueadas por padrão. Novas coleções devem receber regras
     // específicas quando forem implementadas.
