@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-061722";
+const CACHE_VERSION = "20260902-081127";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -425,6 +425,25 @@ const urlsToCache = [
   'relatorio_auditoria_seo.json',
   'relatorio_hreflang.json',
   'relatorios/auditoria-cwv-html.json',
+  'relatorios/cwv-gate/2026-09-02T10-00-22.json',
+  'relatorios/cwv-gate/2026-09-02T10-03-16.json',
+  'relatorios/cwv-gate/2026-09-02T10-04-15.json',
+  'relatorios/cwv-gate/2026-09-02T10-08-14.json',
+  'relatorios/cwv-gate/2026-09-02T10-55-46.json',
+  'relatorios/cwv-gate/2026-09-02T10-59-27.json',
+  'relatorios/cwv-gate/2026-09-02T11-01-08.json',
+  'relatorios/cwv-gate/2026-09-02T11-02-17.json',
+  'relatorios/cwv-gate/2026-09-02T11-03-54.json',
+  'relatorios/cwv-gate/2026-09-02T11-06-20.json',
+  'relatorios/cwv-gate/2026-09-02T11-07-00.json',
+  'relatorios/impacto/2026-09-02T10-01-10.json',
+  'relatorios/impacto/2026-09-02T10-55-46.json',
+  'relatorios/impacto/2026-09-02T10-59-28.json',
+  'relatorios/impacto/2026-09-02T11-01-09.json',
+  'relatorios/impacto/2026-09-02T11-02-19.json',
+  'relatorios/impacto/2026-09-02T11-03-56.json',
+  'relatorios/impacto/2026-09-02T11-06-20.json',
+  'relatorios/impacto/2026-09-02T11-07-01.json',
   'relatorios/multiplex-reserva.json',
   'remover-circulo-hero-card.js',
   'reports/lighthouse-concurso_publico.json',
@@ -439,6 +458,7 @@ const urlsToCache = [
   'scripts/build-knowledge-index.js',
   'scripts/build-obfuscate.js',
   'scripts/build-regulatory-document-library.js',
+  'scripts/classificar-impacto.js',
   'scripts/completar-icones-fa.js',
   'scripts/corrigir-cwv.js',
   'scripts/cwv-gate.js',
@@ -466,6 +486,8 @@ const urlsToCache = [
   'scripts/test-checagem-reformulacao.js',
   'scripts/test-cwv-gate.js',
   'scripts/test-knowledge-index.js',
+  'scripts/test-orquestracao.js',
+  'scripts/test-prova-execucao.js',
   'scripts/validate-content-governance.js',
   'scripts/validate_new_page.js',
   'simpleRename.js',

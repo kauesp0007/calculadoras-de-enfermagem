@@ -8,6 +8,11 @@
 
 ## 🎯 Princípio
 
+> **Camada de orquestração (transversal a todos os ambientes):** `AI_ORCHESTRATION/PROMPT_CORE.md`
+> é a fonte única das regras de orquestração; os adapters (`ADAPTER_OPENAI.md`,
+> `ADAPTER_DEEPSEEK.md`, `ADAPTER_COPILOT.md`) só definem como cada ambiente a carrega.
+> Nenhum adapter duplica as regras do Core.
+
 - **Hooks** atuam **por baixo**, de forma invisível e automática, em todo o ciclo
   (camada transversal).
 - **Agentes** atuam **por cima**, sob demanda, cada um em uma etapa específica.

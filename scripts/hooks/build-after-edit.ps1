@@ -61,4 +61,13 @@ if (Test-Path $gate) {
     Pop-Location
 }
 
+# 3. Classificador de impacto (determinístico): tipo + seleção mínima de subagentes.
+$classificador = Join-Path $root 'scripts\classificar-impacto.js'
+if (Test-Path $classificador) {
+    $payload2 = @{ files = @($webFiles) } | ConvertTo-Json -Compress
+    Push-Location $root
+    $payload2 | node $classificador 2>&1 | Out-Null
+    Pop-Location
+}
+
 exit 0

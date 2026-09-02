@@ -91,6 +91,7 @@
 - `scripts/fix-broken-links.js` (integridade de links) · `scripts/validate_new_page.js`
 - `scripts/cwv-gate.js` (gate automático CWV: auditar → corrigir → re-auditar → evidência)
   + `scripts/lib/cwv-core.js` (fonte única das regras de análise/correção)
+- `scripts/classificar-impacto.js` (classificador determinístico de impacto + seleção de subagentes)
 - `scripts/build-biblioteca.js` / `build-downloads.js` / `build-blog.js` / `build-nanda.js`
 
 > **CWV/performance é uma validação automática obrigatória** para criação, atualização,
@@ -210,6 +211,24 @@ definitivo e nenhum agente aciona outro automaticamente sem decisão do orquestr
 | **V3** | Governança editorial + base de conhecimento `/knowledge/` + sistema de contas Firebase (Fases 1–5). |
 | **V4** | Auditoria e orquestração: hooks de garantia (proteção de arquivos, layout, JSON, head, a11y, registro de página) + agentes de auditoria/correção (Performance, Integridade, Hreflang, QA Gate). |
 | **V5** | **Canonical Architecture & Catalog Sanitation** — fonte canônica única; arquivamento do legado (`historico/`); reconciliação catálogo × arquivos reais (15 agentes, 12 hooks, 3 skills, 5 prompts, 5 instructions, 0 MCP); governança documental explícita. |
+
+---
+
+## 🧭 Camada de orquestração (AI_ORCHESTRATION)
+
+Regras universais de orquestração com **fonte conceitual única** e adapters por ambiente:
+
+| Arquivo | Papel |
+|---|---|
+| `AI_ORCHESTRATION/PROMPT_CORE.md` | **Fonte única** das 16 regras universais de orquestração |
+| `AI_ORCHESTRATION/ADAPTER_OPENAI.md` | Como OpenAI/Codex carrega/aplica o Core (via `AGENTS.md`) |
+| `AI_ORCHESTRATION/ADAPTER_DEEPSEEK.md` | Como DeepSeek no VS Code aplica o Core (via `.github/`) |
+| `AI_ORCHESTRATION/ADAPTER_COPILOT.md` | Como Copilot aplica o Core (via `.github/prompts/orquestrar.prompt.md`) |
+| `.github/prompts/orquestrar.prompt.md` | Wrapper fino do Copilot (`/orquestrar`) que aponta para o Core |
+| `AI_ORCHESTRATION/MATRIZ_SELECAO_DE_SUBAGENTES.md` | Matriz de seleção mínima de subagentes (fonte: `scripts/classificar-impacto.js`) |
+
+**Regra:** o Core é a única cópia das regras; os adapters só descrevem o carregamento
+por ambiente, sem duplicar o conteúdo.
 
 ---
 
