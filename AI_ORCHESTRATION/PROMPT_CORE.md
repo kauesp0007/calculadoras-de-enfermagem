@@ -43,6 +43,37 @@ Nunca acione todos os agentes por padrão. Escolha dinamicamente conforme o impa
 - Tradução → tradutor + SEO/hreflang quando aplicável;
 - Deploy/build → build + validação.
 
+## 3.1 EXECUÇÃO DO PLANO (obrigatório — não basta selecionar)
+A seleção sozinha **não é execução**. Sempre que houver alteração relevante:
+1. gere/consuma o **plano de execução** (`node scripts/orquestrador.js --files <arquivos>`,
+   que usa `classificar-impacto.js` como fonte da seleção);
+2. verifique `plan.agentsSelected` e `plan.agentsExcluded`;
+3. invoque **somente** os agentes selecionados (via a capacidade de subagentes do
+   ambiente — `runSubagent` no Copilot, subagentes no Codex);
+4. forneça a cada subagente **contexto mínimo** (objetivo + arquivos/trechos relevantes +
+   resultado dos scripts pertinentes + restrições + saída esperada);
+5. execute tarefas independentes em **paralelo** quando o runtime permitir
+   (`parallelGroups`); respeite as dependências (`sequentialSteps`);
+6. colete os resultados estruturados (status + findings + correctionsRequired + evidence);
+7. trate falhas (`ERROR`) e insuficiência (`NOT_MEASURED`/`PENDING`) sem falsificar `PASS`;
+8. execute correções (script determinístico quando existir; subagente especializado quando
+   exigir edição) e revalide;
+9. execute validações determinísticas (hooks `check-*`, `cwv-gate`);
+10. execute a contra-prova quando `contraProva` indicar;
+11. envie o conjunto consolidado ao **Revisor Final** (que emite PUBLICAR /
+    PUBLICAR_COM_RESSALVAS / NAO_PUBLICAR);
+12. registre a evidência distinguindo `SELECTED` de `EXECUTED`.
+
+> **Modo de invocação:** `ORCHESTRATION_MODE = MODEL_DRIVEN`. O Node classifica/planeja/
+> valida; a invocação real dos subagentes é do modelo principal. `parallelismMode =
+> SEQUENTIAL_RUNTIME_LIMITATION` quando o runtime não permitir paralelismo real (ou
+> `PARALLEL_RUNTIME` quando permitir).
+>
+> **Estados do fluxo:** `CLASSIFIED → PLANNED → SELECTED → EXECUTED →
+> RESULTS_COLLECTED → VALIDATED → COUNTER_PROVED → FINAL_REVIEWED → COMPLETED`.
+> `planCreated` **não** implica `planExecuted`. Se um agente selecionado não puder ser
+> executado pelo runtime, registre `UNAVAILABLE_AT_RUNTIME` — nunca `EXECUTED` falso.
+
 ## 4. PARALELISMO
 Quando duas tarefas forem independentes, permita execução paralela (ex.: SEO +
 Performance + Acessibilidade antes da consolidação). Não paralelize tarefas com

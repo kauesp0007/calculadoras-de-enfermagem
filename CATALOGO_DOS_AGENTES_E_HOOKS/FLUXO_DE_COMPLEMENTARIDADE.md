@@ -12,6 +12,10 @@
 > é a fonte única das regras de orquestração; os adapters (`ADAPTER_OPENAI.md`,
 > `ADAPTER_DEEPSEEK.md`, `ADAPTER_COPILOT.md`) só definem como cada ambiente a carrega.
 > Nenhum adapter duplica as regras do Core.
+>
+> **Execução (MODEL_DRIVEN):** `scripts/classificar-impacto.js` seleciona; `scripts/orquestrador.js`
+> monta o plano (paralelismo + sequência + evidência) e executa a parte determinística; a
+> invocação dos subagentes é do modelo principal (runSubagent no Copilot).
 
 - **Hooks** atuam **por baixo**, de forma invisível e automática, em todo o ciclo
   (camada transversal).

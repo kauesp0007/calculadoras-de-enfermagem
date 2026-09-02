@@ -60,11 +60,15 @@ Dispara após as ferramentas de edição, **apenas** quando o arquivo alterado t
 (`.woff`/`.woff2`).
 
 **O que faz**
-1. Se algum arquivo tocado for `.html`/`.js` → roda `node gerar-sw.js` (renova o service worker).
-2. Se for `.css` → recompila o Tailwind (`tailwindcss/lib/cli.js`) **e** roda `gerar-sw.js`.
-3. Roda o **gate CWV** `node scripts/cwv-gate.js` com os arquivos afetados
+1. **Debounce por lote (cooldown 5s):** acumula os arquivos alterados em
+   `relatorios/.cwv-batch.json` e roda o build **uma única vez** quando o cooldown expira —
+   evita rebuild repetido em edição em massa.
+2. Se o lote tiver `.css` → recompila o Tailwind (`tailwindcss/lib/cli.js`).
+3. Roda `node gerar-sw.js` (renova o service worker).
+4. Roda o **gate CWV** `node scripts/cwv-gate.js` com todos os arquivos do lote
    (auditar → corrigir seguro → re-auditar → evidência em `relatorios/cwv-gate/`).
-4. Descarta a saída; nunca bloqueia.
+5. Roda o **classificador** `node scripts/classificar-impacto.js`.
+6. Descarta a saída; nunca bloqueia.
 
 **Diferenciação**
 É o hook **de entrega**: garante o "build obrigatório" automaticamente após cada edição

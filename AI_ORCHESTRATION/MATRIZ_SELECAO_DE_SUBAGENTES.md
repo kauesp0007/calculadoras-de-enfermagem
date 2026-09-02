@@ -2,7 +2,9 @@
 
 > **Fonte conceitual:** `AI_ORCHESTRATION/PROMPT_CORE.md` (regras de orquestração).
 > **Implementação determinística:** `scripts/classificar-impacto.js` (fonte única da matriz).
-> Este documento é a visão legível; o script é a fonte executável — não editar um sem o outro.
+> **Plano/execução:** `scripts/orquestrador.js` (MODEL_DRIVEN) consome a seleção e monta
+> o plano (paralelismo + sequência + evidência). Este documento é a visão legível; o script
+> é a fonte executável — não editar um sem o outro.
 
 A regra central é: **não executar todos os agentes em todas as tarefas** — executar só os
 especialistas necessários, sem omitir validação obrigatória.

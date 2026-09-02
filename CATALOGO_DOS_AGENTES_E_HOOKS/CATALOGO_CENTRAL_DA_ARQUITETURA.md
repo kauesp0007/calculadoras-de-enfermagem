@@ -92,6 +92,7 @@
 - `scripts/cwv-gate.js` (gate automático CWV: auditar → corrigir → re-auditar → evidência)
   + `scripts/lib/cwv-core.js` (fonte única das regras de análise/correção)
 - `scripts/classificar-impacto.js` (classificador determinístico de impacto + seleção de subagentes)
+- `scripts/orquestrador.js` (plano de execução + orquestração MODEL_DRIVEN: paralelismo, sequência, evidência)
 - `scripts/build-biblioteca.js` / `build-downloads.js` / `build-blog.js` / `build-nanda.js`
 
 > **CWV/performance é uma validação automática obrigatória** para criação, atualização,

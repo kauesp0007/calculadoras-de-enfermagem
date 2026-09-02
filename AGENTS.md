@@ -25,6 +25,8 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 - Camada de IA (agentes, hooks, catálogos): `CATALOGO_DOS_AGENTES_E_HOOKS/`.
 - Orquestração (Prompt Core + adapters): `AI_ORCHESTRATION/PROMPT_CORE.md` (fonte única das
   regras de orquestração); adapter do Codex: `AI_ORCHESTRATION/ADAPTER_OPENAI.md`.
+  Plano de execução: `scripts/orquestrador.js` (MODEL_DRIVEN) + `scripts/classificar-impacto.js`
+  (seleção); o modelo principal consome o plano e invoca só os subagentes selecionados.
 - Modelos HTML: `fugulin.html`, `mapa-do-site.html`, `perroca.html`, `dimensionamento.html`,
   `centro-cirurgico.html`, `guia_rapido_dispositivos.html`, `meem.html`,
   `integracoes_classificacao_wifi.html`.

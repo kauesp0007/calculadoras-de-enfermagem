@@ -36,6 +36,7 @@ Prioridade: 1. script determinístico → 2. hook → 3. validator → 4. index 
 | Gate de processo (entrada/saída de etapa) | Agente `Agente Alfandegário` | Julgamento de pré-condições/evidências | IA | entre etapas do pipeline |
 | Auditoria de consistência do ecossistema | `auditar-ecossistema.js` (script) | Determinístico | 0 IA | pedido/auditoria |
 | Classificação de impacto + seleção de subagentes | `classificar-impacto.js` (script) | Determinístico | 0 IA | após editar (hook) ou sob demanda |
+| Plano de execução + orquestração (MODEL_DRIVEN) | `orquestrador.js` (script) | Determinístico (plano/evidência) + invocação pelo modelo | 0 IA (plano) | sob demanda (modelo principal) |
 | Auditoria semântica do ecossistema | Agente `Auditor do Ecossistema` | Julgamento (interpreta o script) | IA | após rodar o script |
 | Login/permissões/premium | `js/auth` + `js/firebase` (Firebase) | Código (não é IA) | 0 IA | runtime |
 | Diagnóstico de erros | `acervo-erros.json` (memória) | Consulta (não é IA) | 0 IA | antes de depurar |

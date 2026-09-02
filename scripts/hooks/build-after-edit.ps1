@@ -1,5 +1,7 @@
 ﻿# PostToolUse: após editar HTML/JS/CSS/imagens/fontes, renova o service worker,
-# recompila o Tailwind (quando CSS) e roda o gate determinístico de CWV/performance.
+# recompila o Tailwind (quando CSS) e roda o gate CWV + classificador de impacto.
+# DEBOUNCE POR LOTE: acumula os arquivos alterados e roda UMA ÚNICA VEZ quando o
+# cooldown expira (evita rebuild repetido em edição em massa).
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()
@@ -22,20 +24,45 @@ $root = (Get-Location).Path
 
 # Extensões web (afetam HTML/CSS/JS e recursos que impactam LCP/CLS/INP)
 $webExts = @('.html', '.js', '.css', '.png', '.jpg', '.jpeg', '.webp', '.svg', '.woff', '.woff2')
-$isWeb = $false
-$isCss = $false
 $webFiles = @()
 foreach ($fp in $filePaths) {
     $ext = [System.IO.Path]::GetExtension([string]$fp).ToLowerInvariant()
-    if ($ext -in $webExts) {
-        $isWeb = $true
-        $webFiles += [string]$fp
-    }
-    if ($ext -eq '.css') { $isCss = $true }
+    if ($ext -in $webExts) { $webFiles += [string]$fp }
 }
-if (-not $isWeb) { exit 0 }
+if ($webFiles.Count -eq 0) { exit 0 }
 
-# 1. Build (Tailwind quando CSS; service worker sempre)
+# ---- DEBOUNCE / COALESCÊNCIA (uma única execução por lote) ----
+$COOLDOWN_SECONDS = 5
+$markerPath = Join-Path $root 'relatorios\.cwv-batch.json'
+$nowEpoch = [int64][DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+
+# Carrega o estado pendente acumulado
+$pendingFiles = @()
+$lastBuild = [int64]0
+if (Test-Path $markerPath) {
+    try {
+        $st = Get-Content $markerPath -Raw | ConvertFrom-Json
+        $lastBuild = [int64]$st.lastBuild
+        $pendingFiles = @($st.files)
+    } catch {
+        $lastBuild = 0
+        $pendingFiles = @()
+    }
+}
+
+# Acumula (dedupe) os arquivos do lote
+$all = @($pendingFiles) + @($webFiles)
+$all = @($all | Select-Object -Unique)
+
+# Se ainda está dentro do cooldown, apenas acumula e sai (build roda depois)
+if (($lastBuild -ne 0) -and (($nowEpoch - $lastBuild) -lt $COOLDOWN_SECONDS)) {
+    @{ lastBuild = $lastBuild; files = @($all) } | ConvertTo-Json -Compress | Set-Content $markerPath -Encoding UTF8
+    exit 0
+}
+
+# ---- EXECUTA O BUILD UMA VEZ, SOBRE O LOTE COMPLETO ----
+$isCss = @($all | Where-Object { [System.IO.Path]::GetExtension([string]$_).ToLowerInvariant() -eq '.css' }).Count -gt 0
+
 if ($isCss) {
     $twCli = Join-Path $root 'node_modules\tailwindcss\lib\cli.js'
     if (Test-Path $twCli) {
@@ -52,22 +79,24 @@ if (Test-Path $sw) {
     Pop-Location
 }
 
-# 2. Gate CWV/performance (determinístico): auditar -> corrigir -> re-auditar -> evidência.
+$payload = @{ files = @($all) } | ConvertTo-Json -Compress
+
 $gate = Join-Path $root 'scripts\cwv-gate.js'
 if (Test-Path $gate) {
-    $payload = @{ files = @($webFiles) } | ConvertTo-Json -Compress
     Push-Location $root
     $payload | node $gate 2>&1 | Out-Null
     Pop-Location
 }
 
-# 3. Classificador de impacto (determinístico): tipo + seleção mínima de subagentes.
 $classificador = Join-Path $root 'scripts\classificar-impacto.js'
 if (Test-Path $classificador) {
-    $payload2 = @{ files = @($webFiles) } | ConvertTo-Json -Compress
     Push-Location $root
-    $payload2 | node $classificador 2>&1 | Out-Null
+    $payload | node $classificador 2>&1 | Out-Null
     Pop-Location
 }
+
+# Reseta o marcador (lote processado) — timestamp do FIM do build (cooldown medido a partir daqui)
+$endEpoch = [int64][DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+@{ lastBuild = $endEpoch; files = @() } | ConvertTo-Json -Compress | Set-Content $markerPath -Encoding UTF8
 
 exit 0

@@ -16,7 +16,10 @@ Os mecanismos existentes em `.github/`:
 1. O usuário invoca `/orquestrar` (`.github/prompts/orquestrar.prompt.md`).
 2. O prompt é um **wrapper fino** que aponta para `AI_ORCHESTRATION/PROMPT_CORE.md`.
 3. O Copilot lê o Core e aplica as regras universais.
-4. Os subagentes (`Auditor SEO`, `Nova Calculadora`, etc.) e hooks (`scripts/hooks/*.ps1`)
+4. Para a execução: `scripts/orquestrador.js` gera o plano (MODEL_DRIVEN); o Copilot
+   invoca os subagentes selecionados via `runSubagent`, consolida os resultados e envia
+   ao `Revisor Final`.
+5. Os subagentes (`Auditor SEO`, `Nova Calculadora`, etc.) e hooks (`scripts/hooks/*.ps1`)
    continuam sendo os executores; o Core só orienta a orquestração.
 
 ## Nota de ambiente
