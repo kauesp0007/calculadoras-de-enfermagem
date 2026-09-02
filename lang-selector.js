@@ -32,6 +32,7 @@ function langSelectorInit() {
   const pathName = window.location.pathname;
   const fileNameMatch = pathName.match(/[^/]*.html$/i);
   const currentFileName = fileNameMatch ? fileNameMatch[0] : "";
+  const isAccountPage = pathName.indexOf("/conta/") === 0;
 
   // Abrir/fechar menu
   button.addEventListener("click", () => {
@@ -44,6 +45,7 @@ function langSelectorInit() {
     if (!button.contains(e.target) && !menu.contains(e.target)) {
       menu.classList.add("hidden");
       button.setAttribute("aria-expanded", "false");
+
     }
   });
 
@@ -59,6 +61,14 @@ function langSelectorInit() {
       langText.textContent = text;
       menu.classList.add("hidden");
       button.setAttribute("aria-expanded", "false");
+
+      if (isAccountPage) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", value || "pt");
+        try { localStorage.setItem("conta.language", value === "pt" ? "pt-BR" : value); } catch (e) {}
+        window.location.href = url.pathname + "?" + url.searchParams.toString() + url.hash;
+        return;
+      }
 
       // O fórum agora tem uma página por idioma; o redirecionamento normal
       // abaixo leva para /{idioma}/forum-enfermagem.html (ou /forum-enfermagem.html no pt-BR).
@@ -98,8 +108,12 @@ function langSelectorInit() {
 
   // Lógica otimizada de deteção
   const langs = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
+  const queryLang = isAccountPage ? new URLSearchParams(window.location.search).get("lang") : null;
+  if (queryLang === "pt" || langs.indexOf(queryLang) !== -1) {
+    current = document.querySelector(`[data-value="${queryLang}"]`);
+  }
   for (const lang of langs) {
-    if (path.startsWith(`/${lang}/`)) {
+    if (!queryLang && path.startsWith(`/${lang}/`)) {
       current = document.querySelector(`[data-value="${lang}"]`);
       break;
     }

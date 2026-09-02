@@ -44,20 +44,23 @@
     // Este é o mapa canônico "o que é pago" — atualize AQUI ao criar novas
     // páginas restritas (ver .github/instructions/planos-de-acesso.instructions.md).
     var RESTRICTED_CONTENT = {
-        // Escalas premium (bloqueadas no plano Gratuito)
-        "fugulin": "junior",
+        // Escalas premium (bloqueadas no Gratuito; liberadas a partir do Júnior)
         "braden": "junior",
+        "fugulin": "junior",
         "morse": "junior",
         "dimensionamento": "junior",
         "perroca": "junior",
-        "gasometria": "junior",
+        "capurro": "junior",
+        "balancohidrico": "junior",
+        "meem": "junior",
+        "moca": "junior",
 
-        // Simulados (1º ao 5º: Júnior; 6º em diante: Pleno)
-        "simulado-de-enfermagem": "junior",
-        "simulado-de-enfermagem4": "junior",
-        "simulado-de-enfermagem2": "junior",
-        "simulado-de-enfermagem3": "junior",
-        "simulado-de-enfermagem-nucleo-de-seguranca-do-paciente": "junior",
+        // Simulados (bloqueados no Gratuito e no Júnior; liberados a partir do Pleno)
+        "simulado-de-enfermagem": "pleno",
+        "simulado-de-enfermagem4": "pleno",
+        "simulado-de-enfermagem2": "pleno",
+        "simulado-de-enfermagem3": "pleno",
+        "simulado-de-enfermagem-nucleo-de-seguranca-do-paciente": "pleno",
         "simulado-de-enfermagem-doencas-de-notificacao-compulsoria": "pleno",
         "simulado_vacinacao": "pleno",
         "simulado_pcr": "pleno",
@@ -68,7 +71,22 @@
         "simulado_ibam_guarulhos_enfermeiro_esf_2024": "pleno",
         "simulado_ibam_japaratuba_sergipe_enfermeiro_2014": "pleno",
         "simulado_lei_organica_do_sus_8080-90": "pleno",
-        "simulado_codigo_de_etica_enfermagem": "pleno"
+        "simulado_codigo_de_etica_enfermagem": "pleno",
+
+        // Formulários em branco (exclusivos do plano Sênior)
+        "formularios-em-branco-de-escalas": "senior",
+        "fotmulario_escala_de_perroca": "senior",
+        "formulario_de_fugulin": "senior",
+        "formulario_meem": "senior",
+        "formulario_impresso_sbar": "senior",
+        "formulario_impresso_saep": "senior",
+        "formulario_bishop": "senior",
+        "formulario_bps": "senior",
+        "formulario_cam": "senior",
+        "formulario_capurro": "senior",
+        "formulario_escala_cincinnati": "senior",
+        "formulario_escala_curb65": "senior",
+        "formulario_morse": "senior"
     };
 
     /**

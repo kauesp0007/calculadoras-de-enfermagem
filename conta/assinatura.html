@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Assinatura Premium - Calculadoras de Enfermagem</title>
+<title>Planos e Assinatura - Calculadoras de Enfermagem</title>
 <meta content="noindex, follow" name="robots"/>
 <style id="critical-fonts">@font-face{font-family:"Inter";src:url("/fonts/inter/inter-regular.woff2") format("woff2");font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-600.woff2") format("woff2");font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-700.woff2") format("woff2");font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:98%;}</style>
 <link href="/public/output.css" rel="stylesheet">
@@ -12,6 +12,7 @@
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
+<script src="/js/conta-i18n.js" defer></script>
 <script src="/js/firebase/firebase-init.js"></script>
 <script src="/js/auth/auth-core.js"></script>
 <script src="/js/auth/plan-service.js"></script>
@@ -34,37 +35,44 @@
 <div class="absolute inset-0 bg-white opacity-5"></div>
 <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4 sm:px-8 py-6 md:py-8">
 <div class="w-full md:w-3/4 text-left">
-<p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PREMIUM</p>
-<h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Assinatura Premium</h1>
-<h2 class="text-blue-100 text-base font-medium font-sans">Desbloqueie cursos, certificados, biblioteca premium e muito mais.</h2>
+<p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PLANOS</p>
+<h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Planos e Assinatura</h1>
+<h2 class="text-blue-100 text-base font-medium font-sans">Escolha o plano ideal: Gratuito, Júnior, Pleno ou Sênior.</h2>
 </div>
 <div class="hidden md:flex w-full md:w-auto justify-center md:justify-end shrink-0">
 <img src="/img/ilustracao_enfermeira.webp" alt="Ilustração de enfermeira" class="w-24 md:w-32 h-auto rounded-xl" width="1920" height="2230" loading="lazy" decoding="async"/>
 </div>
 </div>
 </section>
-<div id="subscription-container" class="max-w-4xl mx-auto">
+<div id="subscription-container" class="w-full">
 <p class="text-center text-slate-500">Carregando...</p>
 </div>
 </main>
 <div id="footer-placeholder"></div>
-<script>document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer.html").then(r=>r.text()).then(d=>{document.getElementById("footer-placeholder").innerHTML=d}).catch(()=>{})},150)});</script>
+<script>document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer.html").then(r=>r.text()).then(d=>{document.getElementById("footer-placeholder").innerHTML=d;var l=window.AccountI18n.getLanguage()==="pt-BR"?"pt":window.AccountI18n.getLanguage();if(typeof carregarTraducoes==="function"){carregarTraducoes(l,"footer.json");carregarTraducoes(l,"cookies.json")}}).catch(()=>{})},150)});</script>
 <script>
 (function(){
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
   function plansHtml(){
-    var plans = window.SubscriptionModules.planManager.listAvailable();
-    var out = '<h2 class="text-2xl font-black text-[#1A3E74] mb-4">Escolha seu plano</h2><div class="grid md:grid-cols-2 gap-6">';
+    var plans = window.SubscriptionModules.planManager.list();
+    var out = '<h2 class="text-2xl font-black text-[#1A3E74] mb-6">Escolha seu plano</h2>';
+    out += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">';
     plans.forEach(function(p){
       var benefits = window.SubscriptionModules.benefitsManager.forPlan(p.id);
-      out += '<div class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">';
-      out += '<h3 class="text-xl font-bold text-[#1A3E74]">'+esc(p.label)+'</h3>';
-      out += '<ul class="mt-3 mb-4 text-sm text-slate-600 space-y-1">';
-      benefits.forEach(function(b){ out += '<li class="flex items-center gap-2"><span>'+esc(b.icon||"•")+'</span><span>'+esc(b.label)+'</span></li>'; });
-      out += '</ul>';
-      out += '<button type="button" data-plan="'+esc(p.id)+'" class="js-subscribe px-5 py-2 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold">Assinar '+esc(p.label)+'</button>';
+      var priceLabel = p.priceLabel || ("R$ " + Number(p.price||0).toFixed(2).replace(".",","));
+      var isFree = p.id === "free";
+      out += '<a href="/conta/cobranca.html?plano='+encodeURIComponent(p.id)+'" class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all h-full no-underline">';
+      out += '<h3 class="text-lg font-bold text-[#1A3E74]">'+esc(p.label)+'</h3>';
+      out += '<div class="mt-3 mb-4">';
+      out += '<span class="text-3xl font-black text-[#1A3E74]">'+esc(priceLabel)+'</span>';
+      if(!isFree){ out += '<span class="text-sm text-[#1A3E74]"> /mês</span>'; }
       out += '</div>';
+      out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+      benefits.forEach(function(b){ out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>'+esc(b.label)+'</span></li>'; });
+      out += '</ul>';
+      out += '<span class="block mt-auto w-full text-center px-4 py-2.5 rounded-lg bg-[#1A3E74] text-white font-semibold">'+(isFree?'Começar grátis':'Assinar')+'</span>';
+      out += '</a>';
     });
     out += '</div>';
     return out;
@@ -100,11 +108,6 @@
   }
 
   function bind(){
-    document.querySelectorAll(".js-subscribe").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        window.Subscription.create(btn.getAttribute("data-plan")).then(render).catch(function(e){ alert(e.message||"Erro ao assinar"); });
-      });
-    });
     var act=document.getElementById("js-activate"); if(act) act.addEventListener("click",function(){ window.Subscription.activate().then(render).catch(function(e){alert(e.message);}); });
     var pause=document.getElementById("js-pause"); if(pause) pause.addEventListener("click",function(){ window.Subscription.pause().then(render).catch(function(e){alert(e.message);}); });
     var resume=document.getElementById("js-resume"); if(resume) resume.addEventListener("click",function(){ window.Subscription.resume().then(render).catch(function(e){alert(e.message);}); });
@@ -113,9 +116,9 @@
 
   function init(){
     Auth.init().then(function(){
-      if(!Auth.isLoggedIn()){ window.location.href="/conta/login.html?returnUrl="+encodeURIComponent(window.location.pathname); return; }
+      if(!Auth.isLoggedIn()){ window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search); return; }
       return window.Subscription.load();
-    }).then(render).catch(function(){ window.location.href="/conta/login.html"; });
+    }).then(render).catch(function(){ window.location.href=window.AccountI18n.buildLoginUrl(); });
   }
 
   if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",init); } else { init(); }

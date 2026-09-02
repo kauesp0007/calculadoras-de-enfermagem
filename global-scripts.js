@@ -29,7 +29,14 @@
 (function () {
   var _path = window.location.pathname;
   var _match = _path.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
-  window.__LANG = _match ? _match[1] : "pt";
+  var _queryLang = null;
+  if (_path.indexOf("/conta/") === 0) {
+    _queryLang = new URLSearchParams(window.location.search).get("lang");
+    if (!/^(pt|en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)$/.test(_queryLang || "")) {
+      _queryLang = null;
+    }
+  }
+  window.__LANG = _queryLang || (_match ? _match[1] : "pt");
   window.__IS_LANG_FOLDER = !!_match;
 
   // Mapa de idiomas TTS
@@ -50,6 +57,21 @@
   }
 })();
 
+window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
+  var lang = window.__LANG || "pt";
+  var fallback = lang === "pt" ? "/" : "/" + lang + "/";
+  var target = returnUrl || (window.location.pathname + window.location.search + window.location.hash);
+  if (!target || target.charAt(0) !== "/" || target.indexOf("//") === 0 || target.indexOf("\\") !== -1 || target.indexOf("/conta/login.html") === 0) {
+    target = fallback;
+  }
+  return "/conta/login.html?lang=" + encodeURIComponent(lang) + "&returnUrl=" + encodeURIComponent(target);
+};
+
+window.__ACCOUNT_PAGE_URL = function (path) {
+  var separator = path.indexOf("?") === -1 ? "?" : "&";
+  return path + separator + "lang=" + encodeURIComponent(window.__LANG || "pt");
+};
+
 // Corrige links relativos em conteúdo injetado (menu-global, footer) para que
 // funcionem em páginas aninhadas dentro da pasta de idioma.
 window.__FIX_RELATIVE_LINKS = function (container) {
@@ -58,6 +80,9 @@ window.__FIX_RELATIVE_LINKS = function (container) {
     var href = a.getAttribute("href") || "";
     if (href && href.charAt(0) !== "#" && href.charAt(0) !== "/" && href.indexOf(":") === -1) {
       a.setAttribute("href", window.__FETCH_PREFIX + href);
+    }
+    if (/\/?conta\/login\.html(?:[?#]|$)/.test(a.getAttribute("href") || "")) {
+      a.setAttribute("href", window.__ACCOUNT_LOGIN_URL());
     }
   });
 };
@@ -486,7 +511,7 @@ function initializeAuthMenu() {
   }
 
   /**
-   * Itens de menu condicionais (Assinatura Premium / Painel Admin).
+   * Itens de menu condicionais (Plano / Painel Admin).
    * @param {boolean} mobile
    * @returns {string}
    */
@@ -497,17 +522,17 @@ function initializeAuthMenu() {
     }
     if (mobile) {
       if (!window.Authorization.hasPlan("premium")) {
-        out += '<a role="menuitem" href="/conta/assinatura.html" class="block px-4 !py-1.5 text-amber-600 hover:bg-amber-50 font-medium">⭐ Assinatura Premium</a>';
+        out += '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a>';
       }
       if (window.Authorization.hasRole("administrator")) {
-        out += '<a role="menuitem" href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 font-medium">Painel Admin</a>';
+        out += '<a role="menuitem" href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Painel Admin</a>';
       }
     } else {
       if (!window.Authorization.hasPlan("premium")) {
-        out += '<li><a href="/conta/assinatura.html" class="block px-4 !py-1.5 text-amber-600 hover:bg-amber-50 text-sm font-medium">⭐ Assinatura Premium</a></li>';
+        out += '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a></li>';
       }
       if (window.Authorization.hasRole("administrator")) {
-        out += '<li><a href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium">Painel Admin</a></li>';
+        out += '<li><a href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Painel Admin</a></li>';
       }
     }
     return out;
@@ -549,9 +574,9 @@ function initializeAuthMenu() {
           '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
           "</button>" +
           '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100">' +
-          '<li><a href="/conta/perfil.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
-          '<li><a href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
-          '<li><a href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
+          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
+          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
           _extraMenuItems(false) +
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
           "</ul>";
@@ -572,7 +597,7 @@ function initializeAuthMenu() {
       } else {
         desktopItem.className = "flex items-center";
         desktopItem.innerHTML =
-          '<a href="/conta/login.html" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
+          '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
           "</a>";
@@ -591,10 +616,10 @@ function initializeAuthMenu() {
           '<div><p class="font-bold text-sm text-gray-800 m-0">' + (user.displayName || "Usuário") + "</p>" +
           '<p class="text-xs text-gray-500 m-0">' + (user.email || "") + "</p></div>" +
           "</div>" +
-          '<a role="menuitem" href="/conta/perfil.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Meu Perfil</a>' +
-          '<a role="menuitem" href="/conta/favoritos.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
-          '<a role="menuitem" href="/conta/historico.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
-          '<a role="menuitem" href="/conta/configuracoes.html" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Meu Perfil</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
           _extraMenuItems(true) +
           '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
 
@@ -614,7 +639,7 @@ function initializeAuthMenu() {
       } else {
         mobileItem.className = "border-t border-gray-200 mt-2 pt-2";
         mobileItem.innerHTML =
-          '<a role="menuitem" href="/conta/login.html" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_LOGIN_URL() + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
           "</a>";
@@ -1527,5 +1552,3 @@ window.addEventListener('load', function () {
     document.head.appendChild(manifestLink);
   }, 1000); // Aguarda 1 segundo após o load completo da página
 });
-
-

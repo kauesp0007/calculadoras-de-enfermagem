@@ -13,6 +13,7 @@
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
+<script src="/js/conta-i18n.js" defer></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 <div id="global-header-container"></div>
@@ -134,7 +135,7 @@ Carregando seu perfil…
 
 function redirectLogin() {
 window.location.href =
-"/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname);
+window.AccountI18n.buildLoginUrl(window.location.pathname + window.location.search);
 }
 
 function setText(id, value) {
@@ -271,7 +272,7 @@ btn.disabled = false;
 
 document.getElementById("btn-sair").addEventListener("click", function () {
 window.Auth.signOut().then(function () {
-window.location.href = "/";
+window.location.href = window.AccountI18n.localizedHome();
 });
 });
 
@@ -306,8 +307,9 @@ fetch("/footer.html")
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
 if (typeof carregarTraducoes === "function") {
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
+var locale = window.AccountI18n.getLanguage() === "pt-BR" ? "pt" : window.AccountI18n.getLanguage();
+carregarTraducoes(locale, "footer.json");
+carregarTraducoes(locale, "cookies.json");
 }
 })
 .catch((e) => console.log("Footer indisponível"));

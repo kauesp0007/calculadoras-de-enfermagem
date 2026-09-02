@@ -18,29 +18,28 @@
 
     var BENEFITS = {
         free: [
-            { id: "calculators", icon: "🧮", label: "Calculadoras e escalas gratuitas" },
-            { id: "favorites", icon: "⭐", label: "Favoritos ilimitados" },
-            { id: "history", icon: "🕘", label: "Histórico de navegação" },
-            { id: "ads", icon: "📢", label: "Exibição de anúncios" }
+            { id: "calculators", icon: "✓", label: "Calculadoras e escalas gratuitas" },
+            { id: "favorites", icon: "✓", label: "Favoritos ilimitados" },
+            { id: "history", icon: "✓", label: "Histórico de navegação" },
+            { id: "ads", icon: "✓", label: "Exibição de anúncios" }
         ],
         junior: [
-            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
-            { id: "all-scales", icon: "🧮", label: "Todas as escalas e calculadoras" },
-            { id: "5-simulados", icon: "📝", label: "Acesso aos 5 primeiros simulados" }
+            { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
+            { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" }
         ],
         pleno: [
-            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
-            { id: "all-scales", icon: "🧮", label: "Todas as escalas e calculadoras" },
-            { id: "all-simulados", icon: "📝", label: "Todos os simulados" },
-            { id: "blank-forms", icon: "🖨️", label: "Formulários de escalas em branco para imprimir e preencher" }
+            { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
+            { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" },
+            { id: "all-simulados", icon: "✓", label: "Todos os simulados" }
         ],
         senior: [
-            { id: "no-ads", icon: "🚫", label: "Navegação sem anúncios" },
-            { id: "all-pleno", icon: "✅", label: "Tudo do plano Pleno" },
-            { id: "excel-schedules", icon: "📊", label: "Escalas de folga e férias semiautomáticas em Excel" },
-            { id: "excel-scales", icon: "📈", label: "Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel" },
-            { id: "handouts", icon: "📚", label: "Apostilas e mapa cirúrgico" },
-            { id: "apk", icon: "📱", label: "Aplicativos APK para assistência" }
+            { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
+            { id: "all-pleno", icon: "✓", label: "Tudo do plano Pleno" },
+            { id: "blank-forms", icon: "✓", label: "Formulários de escalas em branco para imprimir e preencher" },
+            { id: "excel-schedules", icon: "✓", label: "Escalas de folga e férias semiautomáticas em Excel" },
+            { id: "excel-scales", icon: "✓", label: "Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel" },
+            { id: "handouts", icon: "✓", label: "Apostilas e mapa cirúrgico" },
+            { id: "apk", icon: "✓", label: "Aplicativos APK para assistência" }
         ]
     };
 

@@ -18,7 +18,7 @@ páginas. O registro técnico (que efetivamente bloqueia o acesso) fica em:
 | free    | Gratuito| Sim      | Ativo           |
 | junior  | Júnior  | Não      | Ativo           |
 | pleno   | Pleno   | Não      | Ativo           |
-| senior  | Sênior  | Não      | Em breve (não configurado) |
+| senior  | Sênior  | Não      | Ativo           |
 
 Hierarquia: free < junior < pleno < senior (plano maior libera o menor).
 
@@ -27,25 +27,27 @@ Hierarquia: free < junior < pleno < senior (plano maior libera o menor).
 -------------------------------------------------------------------------------
 free (Gratuito):
   - Exibe anúncios.
-  - NÃO acessa as escalas premium (fugulin, braden, morse, dimensionamento,
-    perroca, gasometria).
+  - NÃO acessa as escalas premium (braden, fugulin, morse, dimensionamento,
+    perroca, capurro, balancohidrico, meem, moca).
   - NÃO acessa os simulados de enfermagem.
+  - NÃO acessa os formulários em branco.
   - NÃO imprime nem gera PDF de escalas e calculadoras.
 
 junior (Júnior):
   - Sem anúncios.
   - Acessa todas as escalas e calculadoras.
-  - Acessa os 5 primeiros simulados (ordem do menu).
+  - NÃO acessa simulados nem formulários em branco.
 
 pleno (Pleno):
   - Sem anúncios.
   - Todas as escalas e calculadoras.
   - Todos os simulados.
-  - Formulários de escalas em branco para imprimir e preencher.
+  - NÃO acessa formulários em branco.
 
 senior (Sênior):
   - Sem anúncios.
   - Acesso total (tudo do Pleno).
+  - Formulários de escalas em branco para imprimir e preencher.
   - Escalas de folga e férias semiautomáticas em Excel.
   - Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel.
   - Apostilas e mapa cirúrgico.
@@ -55,27 +57,24 @@ senior (Sênior):
 3. CONTEÚDO RESTRITO (mapa canônico)
 -------------------------------------------------------------------------------
 Escalas premium (exigem plano "junior" ou superior):
-  fugulin, braden, morse, dimensionamento, perroca, gasometria
+  braden, fugulin, morse, dimensionamento, perroca, capurro, balancohidrico,
+  meem, moca
 
-Simulados 1º ao 5º (exigem plano "junior" ou superior):
-  1. simulado-de-enfermagem
-  2. simulado-de-enfermagem4
-  3. simulado-de-enfermagem2
-  4. simulado-de-enfermagem3
-  5. simulado-de-enfermagem-nucleo-de-seguranca-do-paciente
+Simulados (todos exigem plano "pleno" ou superior):
+  simulado-de-enfermagem, simulado-de-enfermagem4, simulado-de-enfermagem2,
+  simulado-de-enfermagem3, simulado-de-enfermagem-nucleo-de-seguranca-do-paciente,
+  simulado-de-enfermagem-doencas-de-notificacao-compulsoria, simulado_vacinacao,
+  simulado_pcr, simulado_bloco-operatorio, flashcards_quiz,
+  simulado_ibam_bebedouro_enfermeiro_2024, simulado_ibam_guarulhos_enfermeiro_2024,
+  simulado_ibam_guarulhos_enfermeiro_esf_2024, simulado_ibam_japaratuba_sergipe_enfermeiro_2014,
+  simulado_lei_organica_do_sus_8080-90, simulado_codigo_de_etica_enfermagem
 
-Simulados 6º em diante (exigem plano "pleno" ou superior):
-  6. simulado-de-enfermagem-doencas-de-notificacao-compulsoria
-  7. simulado_vacinacao
-  8. simulado_pcr
-  9. simulado_bloco-operatorio
-  10. flashcards_quiz
-  11. simulado_ibam_bebedouro_enfermeiro_2024
-  12. simulado_ibam_guarulhos_enfermeiro_2024
-  13. simulado_ibam_guarulhos_enfermeiro_esf_2024
-  14. simulado_ibam_japaratuba_sergipe_enfermeiro_2014
-  15. simulado_lei_organica_do_sus_8080-90
-  16. simulado_codigo_de_etica_enfermagem
+Formulários em branco (exigem plano "senior"):
+  formularios-em-branco-de-escalas, fotmulario_escala_de_perroca,
+  formulario_de_fugulin, formulario_meem, formulario_impresso_sbar,
+  formulario_impresso_saep, formulario_bishop, formulario_bps,
+  formulario_cam, formulario_capurro, formulario_escala_cincinnati,
+  formulario_escala_curb65, formulario_morse
 
 -------------------------------------------------------------------------------
 4. ONDE FICA CADA COISA (implementação)

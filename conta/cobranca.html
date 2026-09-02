@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pagamento - Calculadoras de Enfermagem</title>
+<meta content="noindex, follow" name="robots"/>
+<style id="critical-fonts">@font-face{font-family:"Inter";src:url("/fonts/inter/inter-regular.woff2") format("woff2");font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-600.woff2") format("woff2");font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-700.woff2") format("woff2");font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:98%;}</style>
+<link href="/public/output.css" rel="stylesheet">
+<link href="/global-styles.css" rel="stylesheet">
+<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
+<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
+<script src="/global-scripts.js" defer></script>
+<script src="/lang-selector.js" defer></script>
+<script src="/js/conta-i18n.js" defer></script>
+<script src="/js/firebase/firebase-init.js"></script>
+<script src="/js/auth/auth-core.js"></script>
+<script src="/js/auth/plan-service.js"></script>
+<script src="/js/access/benefit-engine.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+<div id="global-header-container"></div>
+<div id="language-selector-placeholder"></div>
+<main class="flex-grow p-4 sm:p-8">
+<section class="mb-6 w-full overflow-hidden rounded-2xl relative shadow-lg bg-gradient-to-br from-[#1A3E74] via-[#1E4D8C] to-[#163269]">
+<div class="absolute inset-0 bg-white opacity-5"></div>
+<div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4 sm:px-8 py-6 md:py-8">
+<div class="w-full md:w-3/4 text-left">
+<p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PAGAMENTO</p>
+<h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Finalizar assinatura</h1>
+<h2 class="text-blue-100 text-base font-medium font-sans">Confira o plano escolhido e realize o pagamento.</h2>
+</div>
+</div>
+</section>
+<div id="billing-container" class="w-full">
+<p class="text-center text-slate-500">Carregando...</p>
+</div>
+</main>
+<div id="footer-placeholder"></div>
+<script>document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer.html").then(r=>r.text()).then(d=>{document.getElementById("footer-placeholder").innerHTML=d;var l=window.AccountI18n.getLanguage()==="pt-BR"?"pt":window.AccountI18n.getLanguage();if(typeof carregarTraducoes==="function"){carregarTraducoes(l,"footer.json");carregarTraducoes(l,"cookies.json")}}).catch(()=>{})},150)});</script>
+<script>
+(function(){
+  function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+  function param(name){ return new URLSearchParams(window.location.search).get(name); }
+
+  function render(){
+    var c = document.getElementById("billing-container");
+    var planId = param("plano") || "junior";
+    var plan = (window.AuthorizationModules && window.AuthorizationModules.planService) ? (window.AuthorizationModules.planService.PLANS[planId] || null) : null;
+    var benefits = (window.AccessModules && window.AccessModules.benefits) ? window.AccessModules.benefits.forPlan(planId) : [];
+    var label = plan ? plan.label : planId;
+    var priceLabel = plan && plan.priceLabel ? plan.priceLabel : "—";
+    var html = "";
+    html += '<div class="rounded-2xl border-2 border-[#1A3E74] bg-white p-6 sm:p-8 shadow-md">';
+    html += '<h2 class="text-2xl font-black text-[#1A3E74] mb-2">Plano '+esc(label)+'</h2>';
+    html += '<p class="text-4xl font-black text-[#1A3E74] mb-4">'+esc(priceLabel)+' <span class="text-base font-medium">/mês</span></p>';
+    html += '<ul class="mb-6 text-sm text-slate-700 space-y-2 list-none p-0">';
+    benefits.forEach(function(b){ html += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>'+esc(b.label)+'</span></li>'; });
+    html += '</ul>';
+    html += '<div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">';
+    html += 'A integração de pagamento (cartão de crédito, PIX e boleto) ainda não está disponível. Esta tela de cobrança é um placeholder e será finalizada na próxima fase do projeto.';
+    html += '</div>';
+    html += '</div>';
+    c.innerHTML = html;
+  }
+
+  function init(){
+    if(window.Auth){
+      Auth.init().then(function(){
+        if(!Auth.isLoggedIn()){ window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search); return; }
+        render();
+      }).catch(function(){ window.location.href=window.AccountI18n.buildLoginUrl(); });
+    } else {
+      render();
+    }
+  }
+  if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",init); } else { init(); }
+})();
+</script>
+</body>
+</html>

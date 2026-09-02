@@ -24,21 +24,21 @@ A resposta DEVE ser registrada:
 
 | ID | Nome | Anúncios | Acesso |
 |---|---|---|---|
-| `free` | Gratuito | Sim | Tudo, exceto escalas premium e simulados; **não imprime/PDF** de escalas/calculadoras |
-| `junior` | Júnior | Não | Tudo + os 5 primeiros simulados |
-| `pleno` | Pleno | Não | Tudo + todos os simulados + formulários de escalas em branco |
-| `senior` | Sênior | Não | Tudo + Excel/apostilas/mapa cirúrgico/APK (indisponível por enquanto) |
+| `free` | Gratuito | Sim | Calculadoras/escalas gratuitas; **não acessa** escalas premium, simulados e formulários; **não imprime/PDF** |
+| `junior` | Júnior | Não | Sem anúncios + todas as escalas e calculadoras |
+| `pleno` | Pleno | Não | Tudo do Júnior + todos os simulados |
+| `senior` | Sênior | Não | Tudo do Pleno + formulários de escalas em branco + Excel/apostilas/APK |
 
 Hierarquia: `free < junior < pleno < senior` (plano maior libera o menor).
 
 ## Conteúdo restrito atual (canônico — em `js/access/content-policy.js`)
 
-- **Escalas premium (exigem `junior`):** `fugulin`, `braden`, `morse`,
-  `dimensionamento`, `perroca`, `gasometria`.
-- **Simulados 1º–5º (exigem `junior`):** `simulado-de-enfermagem`,
-  `simulado-de-enfermagem4`, `simulado-de-enfermagem2`, `simulado-de-enfermagem3`,
-  `simulado-de-enfermagem-nucleo-de-seguranca-do-paciente`.
-- **Simulados 6º em diante (exigem `pleno`):** demais `simulado_*` e `flashcards_quiz`.
+- **Escalas premium (exigem `junior`):** `braden`, `fugulin`, `morse`,
+  `dimensionamento`, `perroca`, `capurro`, `balancohidrico`, `meem`, `moca`.
+- **Simulados (exigem `pleno`):** todos os `simulado_*`, `simulado-de-*` e
+  `flashcards_quiz`.
+- **Formulários em branco (exigem `senior`):** `formularios-em-branco-de-escalas`
+  e demais `formulario_*`.
 
 ## Como registrar uma página restrita
 

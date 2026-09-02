@@ -231,6 +231,10 @@
    */
   function _detectLanguage() {
     try {
+      if (window.AccountI18n) {
+        var selected = window.AccountI18n.getLanguage();
+        return selected === "pt-BR" ? "pt" : selected;
+      }
       var lang = (navigator.language || navigator.userLanguage || "pt").toLowerCase();
       // Mapeia para idiomas suportados no site
       var supported = ["pt", "en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
@@ -247,6 +251,10 @@
    */
   function _detectCountry() {
     try {
+      if (window.AccountI18n) {
+        var countries = { "pt-BR":"BR", en:"US", es:"ES", de:"DE", it:"IT", fr:"FR", hi:"IN", zh:"CN", ar:"SA", ja:"JP", ru:"RU", ko:"KR", tr:"TR", nl:"NL", pl:"PL", sv:"SE", id:"ID", vi:"VN", uk:"UA" };
+        return countries[window.AccountI18n.getLanguage()] || "BR";
+      }
       var locale = navigator.language || "pt-BR";
       var parts = locale.split("-");
       return parts.length > 1 ? parts[1].toUpperCase() : "BR";

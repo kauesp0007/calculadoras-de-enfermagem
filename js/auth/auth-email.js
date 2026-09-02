@@ -187,7 +187,7 @@
 
     try {
       await auth.sendPasswordResetEmail(email.trim(), {
-        url: window.location.origin + "/conta/login.html",
+        url: window.location.origin + (window.AccountI18n ? window.AccountI18n.buildLoginUrl() : "/conta/login.html"),
         handleCodeInApp: false
       });
       console.log("[Email] E-mail de recuperação enviado para:", email);

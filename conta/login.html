@@ -51,8 +51,6 @@
 <!-- 8. SEO Internacional (Canonical e Hreflang) -->
 <link href="https://www.calculadorasdeenfermagem.com.br/conta/login.html" rel="canonical"/>
 <link href="https://www.calculadorasdeenfermagem.com.br/conta/login.html" hreflang="pt-br" rel="alternate"/>
-<link href="https://www.calculadorasdeenfermagem.com.br/en/conta/login.html" hreflang="en" rel="alternate"/>
-<link href="https://www.calculadorasdeenfermagem.com.br/es/conta/login.html" hreflang="es" rel="alternate"/>
 <link href="https://www.calculadorasdeenfermagem.com.br/conta/login.html" hreflang="x-default" rel="alternate"/>
 
 <!-- 9. Favicon -->
@@ -349,6 +347,7 @@ display: none !important;
 <style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
+<script src="/js/conta-i18n.js" defer></script>
 <script id="anti-cls-acessibilidade">
 (function(){try{var f=localStorage.getItem("fontSize");if(f&&f!=="1"){var s=["1em","1.15em","1.3em","1.5em","2em"];var i=Math.min(Math.max(parseInt(f,10),1),s.length);document.documentElement.style.fontSize=s[i-1];}if(localStorage.getItem("darkMode")==="true"){document.documentElement.classList.add("dark-mode");}}catch(e){}})();
 </script>
@@ -432,7 +431,14 @@ Acesse sua conta para salvar favoritos, acompanhar seu histórico e desbloquear 
 <div id="auth-error" class="auth-message auth-error" role="alert"></div>
 <div id="auth-success" class="auth-message auth-success" role="alert"></div>
 
-<h3 class="text-lg font-black text-[#1A3E74] mb-5">Entrar na sua conta</h3>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+<h3 class="text-lg font-black text-[#1A3E74] m-0">Entrar na sua conta</h3>
+<label for="account-language-select" class="flex items-center gap-2 text-xs font-bold text-slate-600">
+<span class="sr-only">Idioma</span>
+<img id="account-language-flag" src="/bandeira-brasil-calculadoras-de-enfermagem.webp" alt="" width="24" height="16" class="w-6 h-4 rounded-sm object-cover border border-slate-200"/>
+<select id="account-language-select" class="rounded-lg border border-slate-300 bg-white px-2 py-1.5 text-xs font-semibold text-slate-700 focus:border-[#1A3E74] focus:outline-none focus:ring-2 focus:ring-blue-200" aria-label="Idioma"></select>
+</label>
+</div>
 
 <!-- Botões de provedores sociais -->
 <div class="space-y-3 mb-0">
@@ -548,6 +554,39 @@ height="533"
 <script src="/js/auth/auth-apple.js"></script>
 <script src="/js/auth/auth-email.js"></script>
 <script src="/js/auth/auth-ui.js"></script>
+<script>
+(function () {
+  function initAccountLanguageSelect() {
+  var select = document.getElementById("account-language-select");
+  var flag = document.getElementById("account-language-flag");
+  if (!select || !window.AccountI18n) return;
+  window.AccountI18n.languages.forEach(function (language) {
+    var option = document.createElement("option");
+    option.value = language.code;
+    option.textContent = language.label;
+    select.appendChild(option);
+  });
+  function sync() {
+    var current = window.AccountI18n.getLanguage();
+    var language = window.AccountI18n.languages.find(function (item) { return item.code === current; });
+    select.value = current;
+    if (language) flag.src = language.flag;
+  }
+  select.addEventListener("change", function () {
+    var url = new URL(window.location.href);
+    url.searchParams.set("lang", select.value);
+    try { localStorage.setItem("conta.language", select.value); } catch (e) {}
+    window.location.href = url.pathname + url.search + url.hash;
+  });
+  sync();
+  }
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initAccountLanguageSelect);
+  } else {
+    initAccountLanguageSelect();
+  }
+})();
+</script>
 <div id="footer-placeholder"></div>
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -557,8 +596,9 @@ fetch("/footer.html")
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
 if (typeof carregarTraducoes === "function") {
-carregarTraducoes("pt", "footer.json");
-carregarTraducoes("pt", "cookies.json");
+var locale = window.AccountI18n.getLanguage() === "pt-BR" ? "pt" : window.AccountI18n.getLanguage();
+carregarTraducoes(locale, "footer.json");
+carregarTraducoes(locale, "cookies.json");
 }
 })
 .catch((e) => console.log("Footer indisponível"));

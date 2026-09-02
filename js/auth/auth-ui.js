@@ -29,6 +29,17 @@
   // ─── Elementos do DOM (preenchidos no init) ─────────────────────
   var _elements = {};
 
+  function _t(key) {
+    return window.AccountI18n ? window.AccountI18n.t(key) : key;
+  }
+
+  function _localizedError(error) {
+    if (window.AccountI18n && window.AccountI18n.error) {
+      return window.AccountI18n.error(error && error.code, error && error.message);
+    }
+    return error && error.message ? error.message : "Ocorreu um erro. Tente novamente.";
+  }
+
   // ─── Inicialização ─────────────────────────────────────────────
 
   /**
@@ -190,7 +201,7 @@
       _redirectAfterLogin();
     } catch (error) {
       // Tratamento de erro
-      _showError(error.message || "Erro ao realizar login. Tente novamente.");
+      _showError(_localizedError(error));
     } finally {
       _showLoading(false);
     }
@@ -237,7 +248,7 @@
             email: email,
             password: password
           });
-          _showSuccess("Conta criada com sucesso! Redirecionando...");
+          _showSuccess(_t("authSuccess"));
           setTimeout(function () {
             _redirectAfterLogin();
           }, 1500);
@@ -248,10 +259,7 @@
             mode: "reset",
             email: email
           });
-          _showSuccess(
-            "E-mail de recuperação enviado! Verifique sua caixa de entrada " +
-            "e siga as instruções para redefinir sua senha."
-          );
+          _showSuccess(_t("resetSent"));
           _showLoginMode();
           break;
 
@@ -259,7 +267,7 @@
           _showError("Modo de operação desconhecido.");
       }
     } catch (error) {
-      _showError(error.message || "Ocorreu um erro. Tente novamente.");
+      _showError(_localizedError(error));
     } finally {
       _showLoading(false);
     }
@@ -287,13 +295,13 @@
 
     // Atualiza textos
     if (_elements.formTitle) {
-      _elements.formTitle.textContent = "Entrar com E-mail";
+      _elements.formTitle.textContent = _t("emailSignIn");
     }
     if (_elements.submitButtonText) {
-      _elements.submitButtonText.textContent = "Entrar";
+      _elements.submitButtonText.textContent = _t("signIn");
     }
     if (_elements.toggleModeText) {
-      _elements.toggleModeText.textContent = "Criar conta";
+      _elements.toggleModeText.textContent = _t("createAccount");
     }
 
     // Exibe/esconde campos
@@ -332,13 +340,13 @@
     _clearMessages();
 
     if (_elements.formTitle) {
-      _elements.formTitle.textContent = "Criar Conta";
+      _elements.formTitle.textContent = _t("createYourAccount");
     }
     if (_elements.submitButtonText) {
-      _elements.submitButtonText.textContent = "Criar Conta";
+      _elements.submitButtonText.textContent = _t("register");
     }
     if (_elements.toggleModeText) {
-      _elements.toggleModeText.textContent = "Já tenho conta";
+      _elements.toggleModeText.textContent = _t("backToLogin");
     }
 
     // Exibe campo de nome
@@ -363,10 +371,10 @@
     _clearMessages();
 
     if (_elements.formTitle) {
-      _elements.formTitle.textContent = "Recuperar Senha";
+      _elements.formTitle.textContent = _t("resetPassword");
     }
     if (_elements.submitButtonText) {
-      _elements.submitButtonText.textContent = "Enviar E-mail";
+      _elements.submitButtonText.textContent = _t("sendResetLink");
     }
 
     // Esconde campos não necessários
@@ -425,7 +433,7 @@
             ? _elements.submitButtonText.textContent
             : "Entrar";
         if (_elements.submitButtonText) {
-          _elements.submitButtonText.textContent = "Aguarde...";
+          _elements.submitButtonText.textContent = "...";
         }
       } else {
         if (
@@ -448,7 +456,7 @@
       return;
     }
 
-    _elements.errorContainer.textContent = message;
+    _elements.errorContainer.textContent = window.AccountI18n ? window.AccountI18n.translate(message) : message;
     _elements.errorContainer.style.display = "block";
 
     // Oculta mensagem de sucesso
@@ -473,7 +481,7 @@
       return;
     }
 
-    _elements.successContainer.textContent = message;
+    _elements.successContainer.textContent = window.AccountI18n ? window.AccountI18n.translate(message) : message;
     _elements.successContainer.style.display = "block";
 
     // Oculta mensagem de erro
@@ -518,8 +526,8 @@
     var returnUrl = params.get("returnUrl");
 
     // Valida que a URL de retorno é do mesmo domínio (segurança)
-    var targetUrl = "/";
-    if (returnUrl && returnUrl.indexOf("/") === 0 && returnUrl.indexOf("//") !== 0) {
+    var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
+    if (returnUrl && returnUrl.indexOf("/") === 0 && returnUrl.indexOf("//") !== 0 && returnUrl.indexOf("\\") === -1 && returnUrl.indexOf("/conta/login.html") !== 0) {
       targetUrl = returnUrl;
     }
 
