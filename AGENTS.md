@@ -154,3 +154,10 @@ node gerar-sw.js
 ## Idioma
 
 Responder em pt-BR.
+
+## Ambiente Base44
+
+- O projeto é um site estático; a prévia serve os arquivos diretamente da raiz do repositório.
+- Inicie com `docker compose -f docker-compose.base44.yml up -d` e verifique `http://localhost:3000/`.
+- Não há migrações, banco de dados ou segredos externos obrigatórios para renderizar a página inicial.
+- O serviço usa `python -m http.server`; alterações entram na próxima requisição, mas a prévia pode precisar de recarga completa.
