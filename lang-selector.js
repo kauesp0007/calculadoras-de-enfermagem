@@ -60,15 +60,8 @@ function langSelectorInit() {
       menu.classList.add("hidden");
       button.setAttribute("aria-expanded", "false");
 
-      // Fórum Mundial de Enfermagem: página global única (sem versão por idioma).
-      // Troca o idioma da interface no cliente, sem redirecionar (evita o 404).
-      if (currentFileName === "forum-enfermagem.html") {
-        if (typeof window.forumSetLang === "function") {
-          window.forumSetLang(value);
-        }
-        return;
-      }
-
+      // O fórum agora tem uma página por idioma; o redirecionamento normal
+      // abaixo leva para /{idioma}/forum-enfermagem.html (ou /forum-enfermagem.html no pt-BR).
       let newPath = "";
       switch (value) {
         case "en": newPath = "/en/"; break;
