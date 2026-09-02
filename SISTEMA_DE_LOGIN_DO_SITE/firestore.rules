@@ -79,6 +79,18 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // ─── Assinaturas (Fase 7 — Sistema de Assinaturas) ───────────
+    // O dono gerencia apenas suas próprias assinaturas. Nesta fase (sem
+    // gateway de pagamento) a criação/edição fica aberta ao dono para
+    // teste; na Fase 8 a ativação pós-pagamento passará a Cloud Functions
+    // e estas regras serão endurecidas (status/planId via servidor).
+    match /users/{uid}/subscriptions/{subscriptionId} {
+      allow read: if isOwner(uid);
+      allow create: if isOwner(uid);
+      allow update: if isOwner(uid);
+      allow delete: if isOwner(uid);
+    }
+
     // ─── Demais coleções ─────────────────────────────────────────
     // Bloqueadas por padrão. Novas coleções devem receber regras
     // específicas quando forem implementadas.
