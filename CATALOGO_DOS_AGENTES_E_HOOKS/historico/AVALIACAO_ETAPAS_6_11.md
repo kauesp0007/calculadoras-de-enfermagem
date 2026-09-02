@@ -1,3 +1,9 @@
+> ESTE ARQUIVO É HISTÓRICO.
+> NÃO É FONTE CANÔNICA.
+> CONSULTE CATALOGO_CENTRAL_DA_ARQUITETURA.md.
+
+---
+
 # 🔎 Avaliação das ETAPAS 6–9 e 11 — FASE 2
 
 **Regra:** AVALIAR antes de criar; não instalar servidor/extensão/dependência sem justificativa

@@ -1,14 +1,29 @@
 # 🗂️ Catálogo Central da Arquitetura de IA
 
-**Projeto:** Calculadoras de Enfermagem  
-**Versão da arquitetura:** V4 (ver "Versionamento" ao final)  
-**Atualizado em:** 30/08/2026  
-**Escopo:** agentes, hooks, skills, prompts, instruções, scripts, MCPs, integrações, componentes críticos e fluxo de orquestração.
+> ## 🏛️ SOURCE OF TRUTH / FONTE CANÔNICA ÚNICA
+> Este arquivo é a **única fonte canônica** da arquitetura de agentes, hooks, skills,
+> prompts, instructions e MCPs do projeto.
+>
+> - **README.md** é apenas um índice de navegação.
+> - **Catálogos temáticos** (`CATALOGO_DOS_AGENTES.md`, `CATALOGO_DOS_HOOKS.md`, …)
+>   são detalhamento derivado.
+> - **Arquivos reais** (`.github/agents/`, `.github/hooks/`, `scripts/hooks/`, …)
+>   são a implementação.
+> - **`historico/`** contém apenas documentos históricos (nunca operacionais).
+>
+> **Regra:** qualquer contagem ou inventário deve derivar dos arquivos reais. Toda
+> divergência entre catálogo e implementação é **defeito**.
 
-> Este catálogo consolida a camada de IA do projeto. As regras canônicas de conteúdo
-> continuam em `AI_RULES.md` (prioridade máxima), `HTML_RULES.md` e
-> `HTML_PAGE_TEMPLATE_RULES.md`. Os catálogos temáticos (`CATALOGO_DOS_AGENTES.md`,
-> `CATALOGO_DOS_HOOKS.md`) têm as fichas detalhadas.
+---
+
+**Projeto:** Calculadoras de Enfermagem  
+**Versão da arquitetura:** V5 — Canonical Architecture & Catalog Sanitation  
+**Atualizado em:** 02/09/2026  
+**Escopo:** agentes, hooks, skills, prompts, instructions, scripts, MCPs, integrações, componentes críticos e fluxo de orquestração.
+
+> As regras canônicas de conteúdo continuam em `AI_RULES.md` (prioridade máxima),
+> `HTML_RULES.md` e `HTML_PAGE_TEMPLATE_RULES.md`. Este catálogo documenta a **camada
+> de IA** (agentes/hooks/skills/prompts/instructions), não o conteúdo clínico.
 
 ---
 
@@ -20,7 +35,12 @@
 | Hooks | `.github/hooks/*.json` + `scripts/hooks/*.ps1` | **12** | Automações determinísticas (sem IA) |
 | Skills | `.github/skills/<nome>/SKILL.md` | 3 | Conhecimento de domínio sob demanda |
 | Prompts | `.github/prompts/*.prompt.md` | 5 | Comandos de barra |
-| Instruções por arquivo | `.github/instructions/*.instructions.md` | 4 | Regras por extensão (`applyTo`) |
+| Instruções por arquivo | `.github/instructions/*.instructions.md` | **5** | Regras por extensão (`applyTo`) |
+
+> **Nota de reconciliação:** o inventário declara **5 instructions** (e não 4), porque
+> existe o arquivo real `.github/instructions/pdf-form-page.instructions.md`
+> (registrado em `registro-conformidade.json` em 02/09/2026, status CONFORME). A
+> contagem deriva dos arquivos, nunca de listas históricas.
 | Workflows | `.github/workflows/*.yml` | 1 | Deploy (GitHub Pages) |
 | MCPs | — | **0 no repo** | nenhum `.mcp.json`; ver seção MCPs |
 
@@ -106,23 +126,37 @@ ferramenta, e decide a sequência. O fluxo canônico de criação de página é:
 ```mermaid
 flowchart TD
     U[Usuário] --> DC[Descoberta de Conhecimento]
-    DC -->|dossiê| NC[Nova Calculadora]
+    DC -->|dossiê| AF1{{Agente Alfandegário<br/>gate de entrada}}
+    AF1 --> NC[Nova Calculadora]
     NC --> GI[Gerador de Imagens]
     GI -->|3 WebPs| NC
     NC --> TB[Testador no Navegador]
-    TB --> AS[Auditor SEO]
+    TB --> AF2{{Agente Alfandegário<br/>gate}}
+    AF2 --> AS[Auditor SEO]
     AS --> AP[Auditor de Performance]
-    AP --> AG[Auditor de Governança]
-    AG --> VH[Verificador de Hreflang]
-    VH --> RF[Revisor Final - QA Gate]
-    RF -->|veredito| P[Publicar]
-    TP[Tradutor de Página] -.-> VH
-    subgraph HOOKS[Hooks determinísticos — sempre ativos]
+    AP --> AG[Auditor de Governança Regulatória]
+    AG --> CT[Auditor de Conformidade Técnica]
+    CT --> VH[Verificador de Hreflang/Canonical]
+    VH --> RI[Revisor de Integridade<br/>se necessário]
+    RI --> TR[Tradutor de Página<br/>quando aplicável]
+    TR --> BD[Build do Site]
+    BD --> RF[Revisor Final - QA Gate]
+    RF -->|PUBLICAR| P[Publicação]
+    AE[Auditor do Ecossistema<br/>meta-auditoria] -.->|validação estrutural| ALL
+    subgraph HOOKS[Hooks determinísticos — camada transversal, sempre ativos]
         H1[auto-backup] ; H2[security-git] ; H3[block-protected-files]
         H4[build-after-edit] ; H5[content-governance] ; H6[knowledge-index]
-        H7[check-layout] ; H8[check-json] ; H9[check-head] ; H10[register-page] ; H11[check-a11y]
+        H7[check-layout] ; H8[check-json] ; H9[check-head]
+        H10[register-page] ; H11[check-a11y] ; H12[check-conformidade]
     end
 ```
+
+- **Agente Alfandegário** = gate de processo (entrada/saída de cada etapa). Não é agente
+  sequencial de conteúdo.
+- **Auditor do Ecossistema** = meta-auditoria da própria arquitetura. Não é auditor comum
+  de página.
+- **Hooks** = camada transversal (rodam "por baixo", em todo o ciclo).
+- **Revisor Final** = gate de contra-prova (consolida e emite veredito).
 
 ## ✅ Prova e Contra-Prova (§11)
 
@@ -168,8 +202,22 @@ definitivo e nenhum agente aciona outro automaticamente sem decisão do orquestr
 | **V2** | Especialização: 8 agentes + 5 hooks + 3 skills + 5 prompts + instruções por extensão. |
 | **V3** | Governança editorial + base de conhecimento `/knowledge/` + sistema de contas Firebase (Fases 1–5). |
 | **V4** | Auditoria e orquestração: hooks de garantia (proteção de arquivos, layout, JSON, head, a11y, registro de página) + agentes de auditoria/correção (Performance, Integridade, Hreflang, QA Gate). |
+| **V5** | **Canonical Architecture & Catalog Sanitation** — fonte canônica única; arquivamento do legado (`historico/`); reconciliação catálogo × arquivos reais (15 agentes, 12 hooks, 3 skills, 5 prompts, 5 instructions, 0 MCP); governança documental explícita. |
 
 ---
+
+## 📏 Regras de governança documental
+
+1. Existe uma **única fonte canônica** (este arquivo).
+2. Catálogos derivados **não podem contradizer** a fonte canônica.
+3. Arquivos históricos devem ser **claramente marcados** (pasta `historico/`).
+4. Contagens devem **derivar dos arquivos reais**.
+5. Nenhum componente novo deve existir **sem registro de conformidade**.
+6. Mudanças estruturais devem ser **auditadas** (`auditar-ecossistema.js`).
+7. Não criar agente para tarefa **puramente determinística** coberta por script/hook.
+8. Não duplicar responsabilidade **sem justificativa**.
+9. Toda divergência entre catálogo e implementação é **defeito**.
+10. O `Auditor do Ecossistema` deve ser usado para **validação estrutural**.
 
 ## 🕳️ Lacunas restantes (e decisões de não-criação)
 
@@ -225,4 +273,4 @@ O hook `check-conformidade` reporta como **NÃO CONFORME** qualquer componente n
   a partir da base existente (página → conteúdo social), sem recorrer ao repositório inteiro.
 
 ---
-*Catálogo Central da Arquitetura — V4*
+*Catálogo Central da Arquitetura — V5 (fonte canônica única)*

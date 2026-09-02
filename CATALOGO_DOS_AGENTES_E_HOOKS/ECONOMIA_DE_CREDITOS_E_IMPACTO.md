@@ -5,7 +5,7 @@
 
 ## 🎯 Ideia central
 
-A arquitetura (8 agentes + 5 hooks) foi desenhada para **gastar menos créditos de IA**,
+A arquitetura (15 agentes + 12 hooks + 3 skills) foi desenhada para **gastar menos créditos de IA**,
 não mais. O princípio é simples:
 
 > **Tudo o que pode ser automatizado de forma determinística vira hook (custo ≈ 0).

@@ -98,6 +98,60 @@ if (fs.existsSync(regFile)) {
     issues.push('[registro] registro-conformidade.json não encontrado');
 }
 
+// 7. Camadas complementares: skills, prompts, instructions
+const skillsDir = path.join(ROOT, '.github', 'skills');
+const promptsDir = path.join(ROOT, '.github', 'prompts');
+const instructionsDir = path.join(ROOT, '.github', 'instructions');
+const skills = fs.existsSync(skillsDir)
+    ? fs.readdirSync(skillsDir).filter((d) => fs.existsSync(path.join(skillsDir, d, 'SKILL.md'))).sort()
+    : [];
+const prompts = listFiles(promptsDir, '.prompt.md');
+const instructions = listFiles(instructionsDir, '.instructions.md');
+info.push(`skills=${skills.length} prompts=${prompts.length} instructions=${instructions.length}`);
+
+// 8. Fonte canônica (CATALOGO_CENTRAL_DA_ARQUITETURA.md) existe?
+const centralCatalog = path.join(catalogoDir, 'CATALOGO_CENTRAL_DA_ARQUITETURA.md');
+if (!fs.existsSync(centralCatalog)) {
+    issues.push('[catalogo] CATALOGO_CENTRAL_DA_ARQUITETURA.md não encontrado (fonte canônica)');
+}
+
+// 9. Documentos legados (.txt) na RAIZ do catálogo = "segunda fonte" (devem estar em historico/)
+const legacyTxt = fs.existsSync(catalogoDir)
+    ? fs.readdirSync(catalogoDir).filter((f) => f.endsWith('.txt')).sort()
+    : [];
+for (const t of legacyTxt) {
+    issues.push(`[legado] ${t}: .txt na raiz do catálogo — pode ser interpretado como fonte concorrente (mover para historico/)`);
+}
+
+// 10. Skills/prompts/instructions catalogadas
+const skillsCatalog = path.join(catalogoDir, 'CATALOGO_DAS_SKILLS.md');
+const promptsCatalog = path.join(catalogoDir, 'CATALOGO_DOS_PROMPTS.md');
+const instructionsCatalog = path.join(catalogoDir, 'CATALOGO_DAS_INSTRUCTIONS.md');
+if (fs.existsSync(skillsCatalog)) {
+    const c = fs.readFileSync(skillsCatalog, 'utf8');
+    for (const s of skills) {
+        if (!c.includes(s)) issues.push(`[catalogo] skill ${s} NÃO listada em CATALOGO_DAS_SKILLS.md`);
+    }
+} else {
+    issues.push('[catalogo] CATALOGO_DAS_SKILLS.md não encontrado');
+}
+if (fs.existsSync(promptsCatalog)) {
+    const c = fs.readFileSync(promptsCatalog, 'utf8');
+    for (const p of prompts) {
+        if (!c.includes(p)) issues.push(`[catalogo] prompt ${p} NÃO listado em CATALOGO_DOS_PROMPTS.md`);
+    }
+} else {
+    issues.push('[catalogo] CATALOGO_DOS_PROMPTS.md não encontrado');
+}
+if (fs.existsSync(instructionsCatalog)) {
+    const c = fs.readFileSync(instructionsCatalog, 'utf8');
+    for (const i of instructions) {
+        if (!c.includes(i)) issues.push(`[catalogo] instruction ${i} NÃO listada em CATALOGO_DAS_INSTRUCTIONS.md`);
+    }
+} else {
+    issues.push('[catalogo] CATALOGO_DAS_INSTRUCTIONS.md não encontrado');
+}
+
 // Saída compacta
 console.log('=== AUDITORIA DETERMINÍSTICA DO ECOSSISTEMA ===');
 for (const i of info) console.log('INFO  ' + i);

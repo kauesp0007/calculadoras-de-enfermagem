@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-040542";
+const CACHE_VERSION = "20260902-044955";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -8,6 +8,7 @@ const urlsToCache = [
   '.vscode/tasks.json',
   '/index.html',
   '/offline.html',
+  'CATALOGO_DOS_AGENTES_E_HOOKS/INVENTARIO_CANONICO_DA_ARQUITETURA.json',
   'CATALOGO_DOS_AGENTES_E_HOOKS/registro-conformidade.json',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Arquivos-para-Melhoria-Consolidado-v2.json',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Auditoria-360-Status-v2.json',

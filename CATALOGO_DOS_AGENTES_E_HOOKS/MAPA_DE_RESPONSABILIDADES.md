@@ -31,6 +31,8 @@ Prioridade: 1. script determinístico → 2. hook → 3. validator → 4. index 
 | Ordem/head essencial | Hook `check-head` | Determinístico | 0 IA | .html editado |
 | Registro em `relatorio_paginas.txt` | Hook `register-page` (reporta) + humano | Determinístico + confirmação | 0 IA | HTML novo na raiz |
 | QA final (publicar?) | Agente `Revisor Final (QA Gate)` | Contra-prova | IA | fim do pipeline |
+| Conformidade técnica (CWV + mobile + a11y) | Agente `Auditor de Conformidade Técnica` | Julgamento consolidado | IA | antes de publicar |
+| Gate de processo (entrada/saída de etapa) | Agente `Agente Alfandegário` | Julgamento de pré-condições/evidências | IA | entre etapas do pipeline |
 | Auditoria de consistência do ecossistema | `auditar-ecossistema.js` (script) | Determinístico | 0 IA | pedido/auditoria |
 | Auditoria semântica do ecossistema | Agente `Auditor do Ecossistema` | Julgamento (interpreta o script) | IA | após rodar o script |
 | Login/permissões/premium | `js/auth` + `js/firebase` (Firebase) | Código (não é IA) | 0 IA | runtime |

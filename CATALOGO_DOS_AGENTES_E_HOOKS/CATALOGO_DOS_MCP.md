@@ -2,6 +2,13 @@
 
 **Total:** 0 (nenhum `.mcp.json` no repositório).
 
+## Decisão (explícita)
+
+- **Nenhum MCP está configurado no repositório** — e isso é **deliberado**, não uma lacuna.
+- **Nenhum MCP deve ser criado como parte do saneamento** da arquitetura (missão V5).
+- A criação de MCP depende de **necessidade comprovada** + **autorização explícita** do
+  usuário. Ausência de MCP não é falsa lacuna.
+
 ## Estado
 - Não há servidores MCP configurados **no projeto**. Os MCPs visíveis no editor (Pylance, notebook, servidores GCP) são **externos ao repositório** e não fazem parte da arquitetura do site.
 - **Imposto por hook:** a criação/edição de `mcp.json`/`.mcp.json` é **bloqueada (`deny`)** pelo hook `block-protected-files` — decisão "não criar MCP sem autorização explícita" agora é garantida por máquina.
