@@ -1243,21 +1243,13 @@ function hideAdsForPremium() {
 }
 
 /**
- * Aplica restrições de plano na interface (ex.: esconde impressão/PDF
- * para o plano Gratuito, que não imprime escalas e calculadoras).
+ * Aplica restrições de plano na interface.
+ *
+ * DESATIVADO: todas as páginas e botões (imprimir/PDF) ficam liberados para
+ * todos os usuários. O sistema de conta permanece, mas sem bloqueios.
  */
 function applyPlanRestrictions() {
-  // Planos pagos (júnior+) têm tudo liberado.
-  if (isPremiumSubscriber()) return;
-
-  // O botão de PDF é exclusivo de escalas/calculadoras; quando presente,
-  // a página é uma ferramenta e o gratuito não imprime nem gera PDF.
-  var pdfBtn = document.getElementById("btnGerarPDF");
-  if (pdfBtn) {
-    pdfBtn.style.display = "none";
-    var printBtn = document.getElementById("btnImprimir");
-    if (printBtn) printBtn.style.display = "none";
-  }
+  return;
 }
 
 /* =========================
