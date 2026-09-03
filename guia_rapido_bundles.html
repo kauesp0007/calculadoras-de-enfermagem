@@ -135,8 +135,9 @@ img{max-width:100%;display:block}
 /* FLUXOGRAMA */
 .flow{display:flex;flex-direction:row;align-items:center;gap:16px;background:#f8fafc;border:2px solid #e2e8f0;border-radius:14px;padding:14px;margin:8px 0}
 .flow-steps{display:flex;flex-direction:column;align-items:flex-start;gap:4px;flex:1;min-width:0;text-align:left}
-.flow-figure{flex:none;width:230px;max-width:42%;margin:0;display:flex;flex-direction:column;align-items:center;gap:6px}
-.flow-figure img{width:100%;height:auto;border-radius:10px}
+.flow-figure{flex:none;width:50%;max-width:50%;margin:0 0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px}
+.flow-figure img{width:100%;height:auto;border-radius:10px;cursor:pointer;transition:transform .15s ease}
+.flow-figure img:hover{transform:scale(1.02)}
 .flow-figure figcaption{font-size:11px;font-weight:700;color:var(--slate-500);font-style:italic;margin:0}
 @media(max-width:640px){.flow{flex-direction:column;align-items:stretch;gap:12px}.flow-steps{align-items:center;text-align:center}.flow-figure{width:100%;max-width:100%}}
 .flow-node{display:inline-flex;align-items:center;background:linear-gradient(180deg,#ffffff,#eff6ff);border:1px solid #cbd5e1;color:var(--navy);border-radius:10px;padding:7px 14px;font-size:12.5px;font-weight:800;text-align:center;box-shadow:0 6px 16px rgba(15,23,42,.08);max-width:100%}
@@ -193,6 +194,13 @@ table.art td b{color:var(--navy)}
 .refs{font-size:12px;color:var(--slate-500)}
 .refs p{margin:4px 0;padding-left:12px;border-left:3px solid var(--navy);line-height:1.5}
 .refs a{color:var(--navy);word-break:break-all}
+
+/* LIGHTBOX */
+.lightbox{position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.88);display:none;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
+.lightbox.open{display:flex}
+.lightbox img{max-width:100%;max-height:100%;border-radius:10px;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.lightbox .lb-close{position:absolute;top:16px;right:20px;font-size:36px;line-height:1;color:#fff;cursor:pointer;background:transparent;border:0;padding:4px 10px;font-family:inherit}
+.lightbox .lb-close:hover{opacity:.7}
 
 @media print{.no-print{display:none!important}}
 </style>
@@ -560,6 +568,42 @@ var htmlDoc = "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"
 var janela=window.open("","_blank");janela.document.write(htmlDoc);janela.document.close();
 }
 document.getElementById("btnImprimir").addEventListener("click",imprimirLaudo);
+
+/* ===== LIGHTBOX (imagem em tela cheia) ===== */
+var figImg = document.querySelector('.flow-figure img');
+if(figImg){
+var lb = document.createElement('div');
+lb.className = 'lightbox';
+lb.setAttribute('role','dialog');
+lb.setAttribute('aria-modal','true');
+lb.setAttribute('aria-label','Imagem ampliada');
+var lbImg = document.createElement('img');
+var lbClose = document.createElement('button');
+lbClose.className = 'lb-close';
+lbClose.type = 'button';
+lbClose.setAttribute('aria-label','Fechar imagem');
+lbClose.textContent = '\u00d7';
+lb.appendChild(lbClose);
+lb.appendChild(lbImg);
+document.body.appendChild(lb);
+function closeLb(){
+lb.classList.remove('open');
+document.body.style.overflow = '';
+}
+figImg.addEventListener('click', function(){
+lbImg.src = figImg.src;
+lbImg.alt = figImg.alt;
+lb.classList.add('open');
+document.body.style.overflow = 'hidden';
+});
+lb.addEventListener('click', function(e){
+if(e.target === lb || e.target === lbImg){ closeLb(); }
+});
+lbClose.addEventListener('click', closeLb);
+document.addEventListener('keydown', function(e){
+if(e.key === 'Escape' && lb.classList.contains('open')){ closeLb(); }
+});
+}
 
 })();
 </script>
