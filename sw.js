@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260902-192327";
+const CACHE_VERSION = "20260902-213553";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -524,6 +524,8 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-02T21-40-12.json',
   'relatorios/cwv-gate/2026-09-02T21-54-36.json',
   'relatorios/cwv-gate/2026-09-02T21-57-43.json',
+  'relatorios/cwv-gate/2026-09-02T23-02-19.json',
+  'relatorios/cwv-gate/2026-09-03T00-24-11.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -587,6 +589,8 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-02T21-40-13.json',
   'relatorios/impacto/2026-09-02T21-54-39.json',
   'relatorios/impacto/2026-09-02T21-57-45.json',
+  'relatorios/impacto/2026-09-02T23-02-20.json',
+  'relatorios/impacto/2026-09-03T00-24-13.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
@@ -642,6 +646,7 @@ const urlsToCache = [
   'scripts/validate_new_page.js',
   'simpleRename.js',
   'src/input.css',
+  'supabase/.temp/linked-project.json',
   'sv/favicon.ico',
   'terminologias.json',
   'termos_medicos_parsed.json',

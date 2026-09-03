@@ -17,6 +17,16 @@
 <script src="/js/auth/auth-core.js"></script>
 <script src="/js/auth/plan-service.js"></script>
 <script src="/js/access/benefit-engine.js"></script>
+<script src="/js/subscriptions/subscription-events.js"></script>
+<script src="/js/subscriptions/subscription-utils.js"></script>
+<script src="/js/subscriptions/subscription-validator.js"></script>
+<script src="/js/subscriptions/subscription-cache.js"></script>
+<script src="/js/subscriptions/subscription-history.js"></script>
+<script src="/js/subscriptions/subscription-service.js"></script>
+<script src="/js/subscriptions/plan-manager.js"></script>
+<script src="/js/subscriptions/benefits-manager.js"></script>
+<script src="/js/subscriptions/subscription-manager.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans">
 <div id="global-header-container"></div>
@@ -40,39 +50,129 @@
 <script>document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer.html").then(r=>r.text()).then(d=>{document.getElementById("footer-placeholder").innerHTML=d;var l=window.AccountI18n.getLanguage()==="pt-BR"?"pt":window.AccountI18n.getLanguage();if(typeof carregarTraducoes==="function"){carregarTraducoes(l,"footer.json");carregarTraducoes(l,"cookies.json")}}).catch(()=>{})},150)});</script>
 <script>
 (function(){
+  var SUPABASE_URL = "https://asjkftjfbkuuhilnqonx.supabase.co";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
+  var CHECKOUT_KEY = "ce_checkout_id";
+
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
   function param(name){ return new URLSearchParams(window.location.search).get(name); }
+  function sbClient(){
+    if (window.supabase && window.supabase.createClient) {
+      return window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+    return null;
+  }
+
+  var state = { planId: param("plano") || "junior", paying: false, checking: false, done: false };
+
+  function planMeta(planId){
+    var svc = window.AuthorizationModules && window.AuthorizationModules.planService;
+    var p = svc ? svc.PLANS[planId] : null;
+    return p || { label: planId, priceLabel: "—" };
+  }
 
   function render(){
     var c = document.getElementById("billing-container");
-    var planId = param("plano") || "junior";
-    var plan = (window.AuthorizationModules && window.AuthorizationModules.planService) ? (window.AuthorizationModules.planService.PLANS[planId] || null) : null;
-    var benefits = (window.AccessModules && window.AccessModules.benefits) ? window.AccessModules.benefits.forPlan(planId) : [];
-    var label = plan ? plan.label : planId;
-    var priceLabel = plan && plan.priceLabel ? plan.priceLabel : "—";
+    var p = planMeta(state.planId);
+    var benefits = (window.AccessModules && window.AccessModules.benefits) ? window.AccessModules.benefits.forPlan(state.planId) : [];
     var html = "";
     html += '<div class="rounded-2xl border-2 border-[#1A3E74] bg-white p-6 sm:p-8 shadow-md">';
-    html += '<h2 class="text-2xl font-black text-[#1A3E74] mb-2">Plano '+esc(label)+'</h2>';
-    html += '<p class="text-4xl font-black text-[#1A3E74] mb-4">'+esc(priceLabel)+' <span class="text-base font-medium">/mês</span></p>';
+    html += '<h2 class="text-2xl font-black text-[#1A3E74] mb-2">Plano '+esc(p.label)+'</h2>';
+    html += '<p class="text-4xl font-black text-[#1A3E74] mb-4">'+esc(p.priceLabel)+' <span class="text-base font-medium">/mês</span></p>';
     html += '<ul class="mb-6 text-sm text-slate-700 space-y-2 list-none p-0">';
     benefits.forEach(function(b){ html += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>'+esc(b.label)+'</span></li>'; });
     html += '</ul>';
-    html += '<div class="rounded-xl border border-amber-300 bg-amber-50 p-4 text-sm text-amber-800">';
-    html += 'A integração de pagamento (cartão de crédito, PIX e boleto) ainda não está disponível. Esta tela de cobrança é um placeholder e será finalizada na próxima fase do projeto.';
+    html += '<div id="pay-area">';
+    if (state.done) {
+      html += '<p class="text-green-700 font-semibold mb-4">Pagamento aprovado! Seu plano '+esc(p.label)+' foi ativado.</p>';
+      html += '<a href="/conta/assinatura.html" class="block text-center w-full px-5 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold no-underline">Ver minha conta</a>';
+    } else if (state.paying) {
+      html += '<p class="text-slate-600 mb-4">Criando cobrança segura...</p>';
+    } else if (state.checking) {
+      html += '<p class="text-slate-600 mb-4">Confirmando pagamento...</p>';
+    } else {
+      html += '<button type="button" id="btn-pay" class="w-full px-5 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold">Pagar com Mercado Pago (PIX ou cartão)</button>';
+      html += '<p class="text-xs text-slate-500 mt-3 text-center">Você será redirecionado para o checkout seguro do Mercado Pago.</p>';
+    }
     html += '</div>';
+    html += '<div id="pay-msg" class="mt-4"></div>';
     html += '</div>';
     c.innerHTML = html;
+    var btn = document.getElementById("btn-pay");
+    if (btn) btn.addEventListener("click", pay);
+  }
+
+  function msg(text, isError){
+    var el = document.getElementById("pay-msg");
+    if (el) el.innerHTML = '<div class="rounded-lg px-4 py-3 text-sm '+(isError?'bg-red-50 text-red-700':'bg-green-50 text-green-700')+'">'+esc(text)+'</div>';
+  }
+
+  async function pay(){
+    if (state.paying) return;
+    var client = sbClient();
+    if (!client) { msg("Serviço de pagamento indisponível. Recarregue a página.", true); return; }
+    state.paying = true; render();
+    try {
+      var u = Auth.currentUser();
+      var { data, error } = await client.functions.invoke("mercadopago-create-preference", {
+        body: { planId: state.planId, userId: u.uid, email: u.email || "" }
+      });
+      if (error) throw new Error(error.message || "Erro ao criar cobrança");
+      var res = data && data.data ? data.data : data;
+      var initPoint = res && (res.initPoint || res.sandboxInitPoint);
+      if (!initPoint) throw new Error((res && res.error) || "Resposta inválida do servidor");
+      sessionStorage.setItem(CHECKOUT_KEY, res.checkoutId);
+      window.location.href = initPoint;
+    } catch (e) {
+      state.paying = false;
+      render();
+      msg(e.message || "Não foi possível criar a cobrança.", true);
+    }
+  }
+
+  function verifyPayment(){
+    var checkoutId = sessionStorage.getItem(CHECKOUT_KEY);
+    if (!checkoutId) return;
+    var client = sbClient();
+    if (!client) return;
+    state.checking = true; render();
+    var deadline = Date.now() + 5 * 60 * 1000;
+    var poll = setInterval(async function(){
+      try {
+        var { data, error } = await client.from("payments").select("status").eq("id", checkoutId).maybeSingle();
+        if (error) return;
+        var status = data && data.status;
+        if (status === "approved") {
+          clearInterval(poll);
+          sessionStorage.removeItem(CHECKOUT_KEY);
+          state.checking = false; state.done = true;
+          if (window.Auth && typeof Auth.refreshProfile === "function") { try { await Auth.refreshProfile(); } catch(e){} }
+          if (window.Subscription) { try { await window.Subscription.load(); } catch(e){} }
+          render();
+        } else if (status === "rejected" || status === "cancelled") {
+          clearInterval(poll);
+          sessionStorage.removeItem(CHECKOUT_KEY);
+          state.checking = false;
+          render();
+          msg("Pagamento não aprovado. Tente novamente.", true);
+        }
+        if (Date.now() > deadline) {
+          clearInterval(poll);
+          state.checking = false;
+          render();
+          msg("A confirmação está demorando. Se você já pagou, aguarde alguns minutos e recarregue a página.", true);
+        }
+      } catch (e) {}
+    }, 3000);
   }
 
   function init(){
-    if(window.Auth){
-      Auth.init().then(function(){
-        if(!Auth.isLoggedIn()){ window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search); return; }
-        render();
-      }).catch(function(){ window.location.href=window.AccountI18n.buildLoginUrl(); });
-    } else {
-      render();
-    }
+    if(!window.Auth){ render(); return; }
+    Auth.init().then(function(){
+      if(!Auth.isLoggedIn()){ window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search); return; }
+      var checkoutId = sessionStorage.getItem(CHECKOUT_KEY);
+      if (checkoutId) { verifyPayment(); } else { render(); }
+    }).catch(function(){ window.location.href=window.AccountI18n.buildLoginUrl(); });
   }
   if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",init); } else { init(); }
 })();
