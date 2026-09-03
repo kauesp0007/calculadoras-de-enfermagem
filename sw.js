@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260903-002232";
+const CACHE_VERSION = "20260903-032204";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -528,6 +528,16 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-03T00-24-11.json',
   'relatorios/cwv-gate/2026-09-03T03-01-38.json',
   'relatorios/cwv-gate/2026-09-03T03-09-28.json',
+  'relatorios/cwv-gate/2026-09-03T04-08-03.json',
+  'relatorios/cwv-gate/2026-09-03T04-17-10.json',
+  'relatorios/cwv-gate/2026-09-03T04-21-14.json',
+  'relatorios/cwv-gate/2026-09-03T04-28-52.json',
+  'relatorios/cwv-gate/2026-09-03T04-33-24.json',
+  'relatorios/cwv-gate/2026-09-03T04-35-07.json',
+  'relatorios/cwv-gate/2026-09-03T05-34-26.json',
+  'relatorios/cwv-gate/2026-09-03T05-57-31.json',
+  'relatorios/cwv-gate/2026-09-03T06-01-42.json',
+  'relatorios/cwv-gate/2026-09-03T06-13-40.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -595,6 +605,16 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-03T00-24-13.json',
   'relatorios/impacto/2026-09-03T03-01-38.json',
   'relatorios/impacto/2026-09-03T03-09-29.json',
+  'relatorios/impacto/2026-09-03T04-08-06.json',
+  'relatorios/impacto/2026-09-03T04-17-11.json',
+  'relatorios/impacto/2026-09-03T04-21-18.json',
+  'relatorios/impacto/2026-09-03T04-28-54.json',
+  'relatorios/impacto/2026-09-03T04-33-25.json',
+  'relatorios/impacto/2026-09-03T04-35-09.json',
+  'relatorios/impacto/2026-09-03T05-34-28.json',
+  'relatorios/impacto/2026-09-03T05-57-33.json',
+  'relatorios/impacto/2026-09-03T06-01-43.json',
+  'relatorios/impacto/2026-09-03T06-13-42.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',

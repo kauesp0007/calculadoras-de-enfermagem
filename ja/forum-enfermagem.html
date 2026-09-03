@@ -849,6 +849,17 @@ if(window.supabase){ sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_AN
 }
 initSb();
 
+function getAuthorKey(){
+var k = localStorage.getItem('forum_author_key');
+if(!k){ k = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'k'+Date.now()+Math.random().toString(36).slice(2); try{ localStorage.setItem('forum_author_key', k); }catch(e){} }
+return k;
+}
+function isDev(){
+try{ if(localStorage.getItem('admin_mode')==='true') return true; }catch(e){}
+if(window.Authorization && window.Authorization.hasRole && window.Authorization.hasRole('administrator')) return true;
+return false;
+}
+
 /* ===== CARREGAR POSTS (paginação) ===== */
 async function carregarPosts(){
 var st = document.getElementById('feed-status');
@@ -913,11 +924,14 @@ var pflag = flagOf(post.pais_codigo) ? '<img class="pflag" src="'+flagOf(post.pa
 var corpo = rem ? '<p class="removed">この投稿はモデレーションにより削除されました。 · This post was removed by moderation.</p>' : '<div class="txt">'+renderText(post.conteudo)+'</div>';
 var imgHtml = (post.imagem_url && !rem) ? '<img class="pimg" src="'+escapeHtml(post.imagem_url)+'" alt="投稿の画像" loading="lazy" decoding="async" width="600" height="338" onclick="window.__forumLightbox && window.__forumLightbox(this.src)"/>' : '';
 var replies = (post.children||[]).map(function(c){ return renderPost(c, true).outerHTML; }).join('');
+var authorKey = getAuthorKey();
+var canManage = isDev() || (post.author_key && post.author_key === authorKey);
+var editDelete = canManage ? '<button class="pact post-edit" data-a="edit" data-id="'+post.id+'"><svg viewBox="0 0 512 512" fill="currentColor"><path d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.9 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1 0 32c0 8.8 7.2 16 16 16l32 0zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.7 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"/></svg><span class="bi"><span>Editar</span><span class="en">Edit</span></span></button><button class="pact post-delete" data-a="delete" data-id="'+post.id+'"><svg viewBox="0 0 448 512" fill="currentColor"><path d="M135.2 17.7L128 32 32 32C14.3 32 0 46.3 0 64S14.3 96 32 96l384 0c17.7 0 32-14.3 32-32s-14.3-32-32-32l-96 0-7.2-14.3C307.4 6.8 296.3 0 284.2 0L163.8 0c-12.1 0-23.2 6.8-28.6 17.7zM416 128L32 128 53.2 467c1.6 25.3 22.6 45 47.9 45l245.8 0c25.3 0 46.3-19.7 47.9-45L416 128z"/></svg><span class="bi"><span>Excluir</span><span class="en">Delete</span></span></button>' : '';
 div.innerHTML =
 '<div class="ph">' +
 '<span class="avatar"><svg viewBox="0 0 448 512" fill="currentColor" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3C0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7C448 383.8 368.2 304 269.7 304l-91.4 0z"/></svg></span>' +
 '<span class="who"><span class="name">'+nome+'</span>' +
-'<span class="meta">'+(meta?('<span>'+meta+'</span>'):'')+(lang?('<span class="lang">'+lang+'</span>'):'')+'</span></span>' +
+'<span class="meta">'+(meta?('<span>'+meta+'</span>'):'')+'</span></span>' +
 '<span class="time">'+escapeHtml(quando)+'</span>' + pflag +
 '</div>' +
 corpo + imgHtml +
@@ -926,6 +940,7 @@ corpo + imgHtml +
 '<button class="pact" data-a="translate" data-id="'+post.id+'"><svg viewBox="0 0 512 512" fill="currentColor"><path d="M0 96C0 60.7 28.7 32 64 32l384 0c35.3 0 64 28.7 64 64l0 320c0 35.3-28.7 64-64 64L64 480c-35.3 0-64-28.7-64-64L0 96zm377 47L256 377l-30.5-40.9 33.6-38.1 57.3 76.6L377 143zm-17.1-47l-16.6 15.2L323 86.9c-3.7 4.9-12.9 20.4-20.8 38.6L359.9 143zm-15.1 31.4L215.4 308.1l-23.7-31.8L280.3 127.4c9.1 14.2 20.2 31.1 64.5 0z"/></svg><span class="bi"><span>翻訳</span><span class="en">Translate</span></span></button>' +
 '<button class="pact" data-a="share" data-id="'+post.id+'"><svg viewBox="0 0 512 512" fill="currentColor"><path d="M307 34.8c-11.5 5.1-19 16.6-19 29.2l0 64-112 0C78.8 128 0 206.8 0 304C0 417.3 81.5 467.9 100.2 478.1c2.5 1.4 5.3 1.9 8.1 1.9c10.9 0 19.7-8.9 19.7-19.7c0-7.5-4.3-14.4-9.8-19.5C108.8 431.9 96 414.4 96 384c0-53 43-96 96-96l96 0 0 64c0 12.6 7.4 24.1 19 29.2s25 3 34.4-5.4l160-144c6.7-6.1 10.6-14.7 10.6-23.8s-3.8-17.7-10.6-23.8l-160-144c-9.4-8.5-22.9-10.6-34.4-5.4z"/></svg><span class="bi"><span>共有</span><span class="en">Share</span></span></button>' +
 '<button class="pact" data-a="more" data-id="'+post.id+'"><svg viewBox="0 0 128 512" fill="currentColor"><path d="M64 360a56 56 0 1 0 0 112 56 56 0 1 0 0-112zm0-160a56 56 0 1 0 0 112 56 56 0 1 0 0-112zM120 96A56 56 0 1 0 8 96a56 56 0 1 0 112 0z"/></svg><span class="bi"><span>その他</span><span class="en">More</span></span></button>' +
+editDelete +
 '</div>' +
 (replies ? '<div class="reply-thread">'+replies+'</div>' : '');
 return div;
@@ -940,6 +955,8 @@ if(a==='reply'){ abrirResposta(id); }
 else if(a==='share'){ compartilhar(id); }
 else if(a==='translate'){ traduzir(id, btn); }
 else if(a==='more'){ abrirその他(id, post); }
+else if(a==='edit'){ abrirEdicao(id, post); }
+else if(a==='delete'){ excluirPost(id); }
 });
 
 function abrirその他(id, post){
@@ -962,7 +979,7 @@ if(!txt){ showToast('返信を書いてください。 · Write your reply.'); r
 if(!sb){ showToast('現在投稿できません。 · Could not publish right now.'); return; }
 closeModal();
 try{
-var { error } = await sb.from('posts').insert([{ nome_usuario: nome, conteudo: txt, parent_id: parentId }]);
+var { error } = await sb.from('posts').insert([{ nome_usuario: nome, conteudo: txt, parent_id: parentId, author_key: getAuthorKey() }]);
 if(error) throw error;
 showToast('返信を投稿しました。 · Reply published.');
 PAGE=0; ALL_POSTS=[]; carregarPosts();
@@ -975,6 +992,43 @@ var url = location.origin + location.pathname + '#post-' + id;
 if(navigator.share){ navigator.share({title:'多言語看護フォーラム · Multilingual Nursing Forum', url:url}).catch(function(){}); }
 else if(navigator.clipboard){ navigator.clipboard.writeText(url).then(function(){ showToast('リンクをコピーしました。 · Link copied.'); }); }
 else { prompt('投稿のリンクをコピー · Copy post link:', url); }
+}
+
+/* ===== EDITAR ===== */
+function abrirEdicao(id, post){
+openModal('Editar publicação · Edit post',
+'<textarea id="edit-txt" class="post-editor" placeholder="Edite sua publicação… · Edit your post…">'+escapeHtml(post ? post.conteudo : '')+'</textarea>',
+'<button class="mbtn sec" onclick="closeModal()"><span class="bi"><span>Cancelar</span><span class="en">Cancel</span></span></button><button class="mbtn pri" id="edit-send"><span class="bi"><span>Salvar</span><span class="en">Save</span></span></button>');
+document.getElementById('edit-send').addEventListener('click', function(){ salvarEdicao(id); });
+}
+async function salvarEdicao(id){
+var txt = document.getElementById('edit-txt').value.trim();
+if(!txt){ showToast('Escreva algo para salvar. · Write something to save.'); return; }
+if(!sb){ showToast('Não foi possível editar agora. · Could not edit right now.'); return; }
+closeModal();
+try{
+var { error } = await sb.from('posts').update({ conteudo: txt }).eq('id', id);
+if(error) throw error;
+showToast('Publicação atualizada. · Post updated.');
+PAGE=0; ALL_POSTS=[]; carregarPosts();
+}catch(err){ showToast('Não foi possível editar. · Could not edit.'); console.error('Editar:', err); }
+}
+/* ===== EXCLUIR ===== */
+function excluirPost(id){
+openModal('Excluir publicação · Delete post',
+'<p>Tem certeza que deseja excluir esta publicação? Esta ação não pode ser desfeita.<br><span class="en-txt">Are you sure you want to delete this post? This cannot be undone.</span></p>',
+'<button class="mbtn sec" onclick="closeModal()"><span class="bi"><span>Cancelar</span><span class="en">Cancel</span></span></button><button class="mbtn danger" id="del-send"><span class="bi"><span>Excluir</span><span class="en">Delete</span></span></button>');
+document.getElementById('del-send').addEventListener('click', function(){ confirmarExclusao(id); });
+}
+async function confirmarExclusao(id){
+closeModal();
+if(!sb){ showToast('Não foi possível excluir agora. · Could not delete right now.'); return; }
+try{
+var { error } = await sb.from('posts').delete().eq('id', id);
+if(error) throw error;
+showToast('Publicação excluída. · Post deleted.');
+PAGE=0; ALL_POSTS=[]; carregarPosts();
+}catch(err){ showToast('Não foi possível excluir. · Could not delete.'); console.error('Excluir:', err); }
 }
 
 /* ===== TRADUÇÃO (via Edge Function — requer configuração) ===== */
@@ -1078,7 +1132,8 @@ pais_nome: paisNome || null,
 profissao: document.getElementById('f-profissao').value || null,
 area: document.getElementById('f-area').value || null,
 local_trabalho: document.getElementById('f-local').value.trim() || null,
-original_language: (LANG === 'pt') ? 'pt-BR' : LANG
+original_language: (LANG === 'pt') ? 'pt-BR' : LANG,
+author_key: getAuthorKey()
 };
 var { error } = await sb.from('posts').insert([payload]);
 if(error){
