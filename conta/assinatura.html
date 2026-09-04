@@ -37,7 +37,7 @@
 <div class="w-full md:w-3/4 text-left">
 <p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PLANOS</p>
 <h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Planos e Assinatura</h1>
-<h2 class="text-blue-100 text-base font-medium font-sans">Escolha o plano ideal: Gratuito, Júnior, Pleno ou Sênior.</h2>
+<h2 class="text-blue-100 text-base font-medium font-sans">Assine o Premium (Júnior) por R$ 5,00/mês e navegue sem anúncios.</h2>
 </div>
 <div class="hidden md:flex w-full md:w-auto justify-center md:justify-end shrink-0">
 <img src="/img/ilustracao_enfermeira.webp" alt="Ilustração de enfermeira" class="w-24 md:w-32 h-auto rounded-xl" width="1920" height="2230" loading="lazy" decoding="async"/>
@@ -55,26 +55,28 @@
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
   function plansHtml(){
-    var plans = window.SubscriptionModules.planManager.list();
     var out = '<h2 class="text-2xl font-black text-[#1A3E74] mb-6">Escolha seu plano</h2>';
-    out += '<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">';
-    plans.forEach(function(p){
-      var benefits = window.SubscriptionModules.benefitsManager.forPlan(p.id);
-      var priceLabel = p.priceLabel || ("R$ " + Number(p.price||0).toFixed(2).replace(".",","));
-      var isFree = p.id === "free";
-      out += '<a href="/conta/cobranca.html?plano='+encodeURIComponent(p.id)+'" class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md hover:shadow-xl hover:-translate-y-1 transition-all h-full no-underline">';
-      out += '<span class="text-xs font-bold uppercase tracking-wide text-red-600 mb-2">Em desenvolvimento</span>';
-      out += '<h3 class="text-lg font-bold text-[#1A3E74]">'+esc(p.label)+'</h3>';
-      out += '<div class="mt-3 mb-4">';
-      out += '<span class="text-3xl font-black text-[#1A3E74]">'+esc(priceLabel)+'</span>';
-      if(!isFree){ out += '<span class="text-sm text-[#1A3E74]"> /mês</span>'; }
-      out += '</div>';
-      out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
-      benefits.forEach(function(b){ out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>'+esc(b.label)+'</span></li>'; });
-      out += '</ul>';
-      out += '<span class="block mt-auto w-full text-center px-4 py-2.5 rounded-lg bg-[#1A3E74] text-white font-semibold">'+(isFree?'Começar grátis':'Assinar')+'</span>';
-      out += '</a>';
-    });
+    out += '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
+
+    out += '<div class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full">';
+    out += '<span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span>';
+    out += '<h3 class="text-lg font-bold text-[#1A3E74]">Plano Júnior</h3>';
+    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 5,00</span><span class="text-sm text-[#1A3E74]"> /mês</span></div>';
+    out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+    out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Navegação sem anúncios</span></li>';
+    out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Acesso ao conteúdo premium</span></li>';
+    out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Cancele quando quiser</span></li>';
+    out += '</ul>';
+    out += '<div id="paypal-button-container" class="mt-auto w-full"></div>';
+    out += '</div>';
+
+    out += '<div class="flex flex-col rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 shadow-sm h-full">';
+    out += '<span class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">Em breve</span>';
+    out += '<h3 class="text-lg font-bold text-gray-700">Pagamento via Pix</h3>';
+    out += '<p class="mt-3 mb-4 text-sm text-slate-600 flex-1">Em breve você poderá assinar o Premium pagando com Pix, direto e sem taxa extra.</p>';
+    out += '<span class="block mt-auto w-full text-center px-4 py-2.5 rounded-lg bg-gray-200 text-gray-500 font-semibold">Disponível em breve</span>';
+    out += '</div>';
+
     out += '</div>';
     return out;
   }
@@ -106,6 +108,7 @@
     html += plansHtml();
     c.innerHTML = html;
     bind();
+    initPayPal();
   }
 
   function bind(){
@@ -113,6 +116,50 @@
     var pause=document.getElementById("js-pause"); if(pause) pause.addEventListener("click",function(){ window.Subscription.pause().then(render).catch(function(e){alert(e.message);}); });
     var resume=document.getElementById("js-resume"); if(resume) resume.addEventListener("click",function(){ window.Subscription.resume().then(render).catch(function(e){alert(e.message);}); });
     var cancel=document.getElementById("js-cancel"); if(cancel) cancel.addEventListener("click",function(){ if(confirm("Cancelar assinatura?")){ window.Subscription.cancel().then(render).catch(function(e){alert(e.message);}); } });
+  }
+
+  var PAYPAL_CLIENT_ID = "AY_l7-9s-x6hrY9gJUKICmssR7bzjcMypsTDH_-2t1KAO_31VAEIXz1mvUq1s1Hk53BM5pNfZHi9ZEYx";
+  var PAYPAL_PLAN_ID = "P-5HK236923V929921LNKNGXWI";
+
+  function initPayPal(){
+    var el = document.getElementById("paypal-button-container");
+    if(!el){ return; }
+    if(window.paypal && window.paypal.Buttons){
+      renderPayPalButton();
+      return;
+    }
+    var s = document.createElement("script");
+    s.src = "https://www.sandbox.paypal.com/sdk/js?client-id=" + PAYPAL_CLIENT_ID + "&vault=true&intent=subscription";
+    s.onload = renderPayPalButton;
+    document.head.appendChild(s);
+  }
+
+  function renderPayPalButton(){
+    var el = document.getElementById("paypal-button-container");
+    if(!el || !window.paypal || !window.paypal.Buttons){ return; }
+    window.paypal.Buttons({
+      style: { shape: "rect", color: "blue", layout: "vertical", label: "subscribe" },
+      createSubscription: function(data, actions){
+        var planObj = { plan_id: PAYPAL_PLAN_ID };
+        try {
+          var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
+          if (u && u.uid) { planObj.custom_id = u.uid; }
+        } catch (e) { /* ignora */ }
+        return actions.subscription.create(planObj);
+      },
+      onApprove: function(data, actions){
+        onPayPalApproved(data.subscriptionID);
+      },
+      onError: function(){
+        alert("Erro ao processar o pagamento. Tente novamente.");
+      }
+    }).render("#paypal-button-container");
+  }
+
+  function onPayPalApproved(subscriptionId){
+    localStorage.setItem("paypal_subscription_id", subscriptionId);
+    alert("Pagamento aprovado! Seu plano Premium será ativado em instantes (sem anúncios).");
+    setTimeout(function(){ location.reload(); }, 2500);
   }
 
   function init(){
