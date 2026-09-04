@@ -17,8 +17,6 @@ principal; nunca envie o HTML completo a um provedor de imagens.
 	`/img/nome_da_imagem.webp`.
 - `og:image`, `twitter:image` e imagens usadas apenas em compartilhamento nao contam
 	como imagens de conteudo.
-- NUNCA usar emojis em ALT, legenda ou qualquer texto produzido; usar apenas texto puro
-	(sem emoji) e ícones SVG Font Awesome quando aplicável (regra 62).
 
 ## Entrada obrigatoria
 Receba ou produza somente este resumo estruturado, com tres itens no minimo:

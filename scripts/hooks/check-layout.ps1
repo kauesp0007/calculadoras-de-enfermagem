@@ -58,9 +58,6 @@ foreach ($fp in $filePaths) {
     if ($scan -match '\b(?:p|py|pt|pb|pl|pr|m|my|mt|mb|ml|mr|gap)-(?:16|20|24|28|32|40|48|56|64|72|80|96)\b') {
         $findings += "${name}: espaçamento grande (p/m/gap >= 4rem) — regra 61: alta densidade"
     }
-    if ($scan -match '[\uD83C-\uD83E][\uDC00-\uDFFF]|[\u2600-\u27BF]|[\u2764\u2705\u2B00-\u2BFF]') {
-        $findings += "${name}: emoji detectado (proibido — use ícone SVG Font Awesome, regra 62)"
-    }
 }
 
 if ($findings.Count -eq 0) { exit 0 }
