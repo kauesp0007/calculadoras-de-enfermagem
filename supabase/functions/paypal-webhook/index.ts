@@ -122,7 +122,7 @@ async function firestoreCreate(path: string, fields: Record<string, unknown>, to
 // Atualiza o plano do usuário no Firestore (server-authoritative).
 // ---------------------------------------------------------------------
 async function setPlan(uid: string, planId: string, subscriptionId: string) {
-  const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT!);
+  const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT || "");
   const token = await firestoreAccessToken(sa);
 
   const now = new Date().toISOString();
@@ -199,6 +199,9 @@ serve(async (req) => {
     return new Response("ok", { status: 200 });
   } catch (err) {
     console.error("Erro no webhook PayPal", err);
-    return new Response("error", { status: 500 });
+    return new Response(
+      JSON.stringify({ error: String((err && err.message) || err) }),
+      { status: 500, headers: { "Content-Type": "application/json" } },
+    );
   }
 });
