@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "biblioteca_de_enfermagem_json/schemas/status.schema.json",
+  "title": "Máquina de Estados do Conhecimento",
+  "description": "Estados do ciclo de vida de cada documento/item de conhecimento (spec §38) e alertas (spec §68).",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "enum": [
+        "INGESTED",
+        "EXTRACTED",
+        "CATALOGED",
+        "ANALYZED",
+        "AUDITING",
+        "AUDITED",
+        "WRITING",
+        "REVIEW",
+        "APPROVED",
+        "PUBLISHED",
+        "OUTDATED",
+        "CONFLICTING",
+        "REQUIRES_HUMAN_REVIEW",
+        "ERROR"
+      ],
+      "description": "Estado atual do item na pipeline. Transições válidas seguem a ordem INGESTED → EXTRACTED → CATALOGED → ANALYZED → AUDITING → AUDITED → WRITING → REVIEW → APPROVED → PUBLISHED. Estados terminais/de desvio: OUTDATED, CONFLICTING, REQUIRES_HUMAN_REVIEW, ERROR."
+    },
+    "alerta": {
+      "type": ["string", "null"],
+      "enum": [
+        "POSSIBLY_OUTDATED",
+        "NEWER_SOURCE_AVAILABLE",
+        "CONFLICTING_EVIDENCE",
+        "INSUFFICIENT_EVIDENCE",
+        null
+      ],
+      "description": "Alerta opcional associado ao conhecimento (não é um estado, é um sinalizador)."
+    },
+    "transicoes": {
+      "type": "array",
+      "description": "Histórico de transições de estado (data + de → para + motivo).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "de": { "type": "string" },
+          "para": { "type": "string" },
+          "data": { "type": "string", "format": "date-time" },
+          "motivo": { "type": ["string", "null"] },
+          "agente": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

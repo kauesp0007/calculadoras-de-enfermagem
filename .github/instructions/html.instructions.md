@@ -32,6 +32,16 @@ Catálogos: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`, `CATALOGO_DE_ESTRUTURA_FISICA
 - Evitar espaçamento grande (`p-16+`, `m-16+`, `gap-16+`).
 - Sensação: "comunidade viva", não "página com grandes áreas vazias".
 
+## Ícones e emojis (obrigatório — regra 62)
+- PROIBIDO usar emojis em qualquer página HTML do site (títulos, seções, cards, listas,
+  botões, notas, legendas, timeline, etc.). Vale para páginas novas e traduzidas.
+- Usar SEMPRE ícones vetoriais SVG inline do Font Awesome (mesmo glyph oficial), no padrão:
+  `<svg class="icn" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="1em" height="1em" fill="currentColor" aria-hidden="true" focusable="false" style="vertical-align:-0.125em"><path d="..."/></svg>`.
+- Em geradores Node, obter o SVG pronto via `require('./scripts/icone-svg').iconeSvg('fa-NOME', 'icn')`;
+  os nomes válidos estão em `scripts/icones-fa.json`.
+- O SVG herda `font-size` do contêiner (ex.: `.ic svg{font-size:18px}`); não fixar
+  `width`/`height` além do `1em` padrão.
+
 ## Hero card (obrigatório)
 - `width:100%`; altura compacta; alinhado à esquerda.
 - Gradiente azul institucional (`#1A3E74 → #1E4D8C → #163269`), glassmorphism discreto.

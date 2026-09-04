@@ -25,7 +25,7 @@ $rootNorm = ($root -replace '\\', '/').TrimEnd('/')
 
 $secretSuffixes = @('.env', '.pem', '.key', '.p12', 'credentials.json', 'serviceAccount.json')
 
-$protectedFiles = @('footer.html', 'menu-global.html', 'global-body-elements.html', 'downloads.html', 'menu-lateral.html', '_language_selector.html', 'googlefc0a17cdd552164b.html', 'mapa-do-site.html', 'relatorio_paginas.txt', 'package.json', 'package-lock.json', 'AI_RULES.md', 'HTML_RULES.md', 'HTML_PAGE_TEMPLATE_RULES.md', 'copilot-instructions.md', 'mcp.json', '.mcp.json', 'deploy.yml', 'gerar-sw.js', 'sw-template.js', 'firestore.rules')
+$protectedFiles = @('footer.html', 'global-body-elements.html', 'downloads.html', 'menu-lateral.html', '_language_selector.html', 'googlefc0a17cdd552164b.html', 'mapa-do-site.html', 'package.json', 'package-lock.json', 'AI_RULES.md', 'HTML_RULES.md', 'HTML_PAGE_TEMPLATE_RULES.md', 'copilot-instructions.md', 'mcp.json', '.mcp.json', 'deploy.yml', 'gerar-sw.js', 'sw-template.js', 'firestore.rules')
 $protectedDirs = @('downloads', 'biblioteca', 'blog', 'blog-templates', 'CATALOGO_DOS_AGENTES_E_HOOKS', 'CATALOGO_DA_ARQUITETURA_ESTRUTURAL', 'CATALOGO_DE_ESTRUTURA_FISICA', 'CATALOGO_DE_IDENTIDADE_VISUAL', 'CATALOGO_SEO_METAS_HEAD', 'governance', 'knowledge', 'scripts/hooks', '.github/hooks', 'js/auth', 'js/firebase', 'SISTEMA_DE_LOGIN_DO_SITE')
 
 $decision = 'allow'

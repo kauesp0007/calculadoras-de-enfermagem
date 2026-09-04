@@ -38,7 +38,7 @@ classificada como concluída.**
 - É PROIBIDO (absoluto) editar: `.git/`, `node_modules/` e segredos (`.env`, chaves,
   credenciais). Bloqueado por hook `deny`, **sem exceção**.
 - É PROIBIDO alterar, por padrão: pastas `downloads`, `biblioteca`, `blog`,
-  `blog-templates`; arquivos `footer.html`, `menu-global.html`,
+  `blog-templates`; arquivos `footer.html`,
   `global-body-elements.html`, `downloads.html`, `_language_selector.html`,
   `googlefc0a17cdd552164b.html`.
 - EXCEÇÃO CONTROLADA: os itens acima, bem como regras canônicas (`AI_RULES.md`,
@@ -46,7 +46,7 @@ classificada como concluída.**
   `mcp.json`/`.mcp.json`, login (`js/auth/`, `js/firebase/`), deploy/SW
   (`deploy.yml`, `gerar-sw.js`, `sw-template.js`, `firestore.rules`), catálogos,
   `governance/`, `knowledge/`, `scripts/hooks/`, `.github/hooks/`,
-  `mapa-do-site.html`, `relatorio_paginas.txt` e `package.json` — **só podem ser
+  `mapa-do-site.html` e `package.json` — **só podem ser
   alterados com autorização explícita do usuário** (o hook `block-protected-files`
   exige confirmação `ask`).
 

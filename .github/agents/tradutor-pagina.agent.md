@@ -22,6 +22,8 @@ Você é o tradutor de páginas do projeto Calculadoras de Enfermagem.
    cluster completo de hreflang com x-default.
 6. Manter Schema.org e a ordem do `<head>` conforme `.github/instructions/html.instructions.md`.
 7. Largura da página e hero card: seguir o padrão (viewport total, hero 100%, Eyebrow → H1 → H2).
+8. NÃO introduzir emojis. Manter os ícones SVG inline do Font Awesome; se a página original
+   usar emoji, substituir por ícone SVG equivalente via `scripts/icone-svg.js` (regra 62).
 
 ## Formato de saída
 Criar/editar o arquivo na pasta do idioma (ex.: `en/perroca.html`) e confirmar as alterações.

@@ -1,0 +1,170 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "biblioteca_de_enfermagem_json/schemas/item-conhecimento.schema.json",
+  "title": "Item de Conhecimento",
+  "description": "Registro canônico de uma unidade de conhecimento catalogada. Campos ausentes na fonte = null ou 'não identificado na fonte' (spec §9, §12). Rastreabilidade absoluta até a fonte (spec §11, §13).",
+  "type": "object",
+  "required": ["id", "fonte_id", "status", "data_entrada", "data_processamento"],
+  "properties": {
+    "id": { "type": "string" },
+    "fonte_id": { "type": "string", "description": "ID do documento fonte (proveniência)." },
+
+    "titulo": { "type": ["string", "null"] },
+    "subtitulo": { "type": ["string", "null"] },
+    "tipo_documental": { "$ref": "taxonomia.schema.json#/definitions/tipoDocumental" },
+    "idioma": { "type": ["string", "null"] },
+    "pais": { "type": ["string", "null"] },
+
+    "autoria": {
+      "type": "object",
+      "properties": {
+        "autores": { "type": "array", "items": { "type": "string" } },
+        "editores": { "type": "array", "items": { "type": "string" } },
+        "organizadores": { "type": "array", "items": { "type": "string" } },
+        "instituicao": { "type": ["string", "null"] },
+        "universidade": { "type": ["string", "null"] },
+        "hospital": { "type": ["string", "null"] },
+        "orgao_governamental": { "type": ["string", "null"] },
+        "sociedade_cientifica": { "type": ["string", "null"] },
+        "editora": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "publicacao": {
+      "type": "object",
+      "properties": {
+        "periodico": { "type": ["string", "null"] },
+        "volume": { "type": ["string", "null"] },
+        "numero": { "type": ["string", "null"] },
+        "edicao": { "type": ["string", "null"] },
+        "paginas": { "type": ["string", "null"] },
+        "doi": { "type": ["string", "null"] },
+        "isbn": { "type": ["string", "null"] },
+        "issn": { "type": ["string", "null"] },
+        "url": { "type": ["string", "null"] },
+        "url_fonte_original": { "type": ["string", "null"] },
+        "url_acesso_verificavel": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "datas": {
+      "type": "object",
+      "description": "Datação do conhecimento — nunca confundir publicação com processamento (spec §10).",
+      "properties": {
+        "data_publicacao": { "type": ["string", "null"] },
+        "ano_publicacao": { "type": ["integer", "null"] },
+        "data_atualizacao_fonte": { "type": ["string", "null"] },
+        "data_historica": { "type": ["string", "null"], "description": "Data a que o conhecimento se refere, quando aplicável." }
+      },
+      "additionalProperties": true
+    },
+
+    "classificacao": {
+      "type": "object",
+      "properties": {
+        "especialidade": { "type": "array", "items": { "$ref": "taxonomia.schema.json#/definitions/especialidade" } },
+        "area_saude": { "type": ["string", "null"] },
+        "subarea": { "type": ["string", "null"] },
+        "assuntos": { "type": "array", "items": { "type": "string" } },
+        "palavras_chave": { "type": "array", "items": { "type": "string" } },
+        "descritores": { "type": "array", "items": { "type": "string" } },
+        "profissoes_relacionadas": { "type": "array", "items": { "$ref": "taxonomia.schema.json#/definitions/profissao" } },
+        "publico_alvo": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "conteudo": {
+      "type": "object",
+      "description": "Conceitos e entidades extraídos (spec §9).",
+      "properties": {
+        "conceitos": { "type": "array", "items": { "type": "string" } },
+        "procedimentos": { "type": "array", "items": { "type": "string" } },
+        "medicamentos": { "type": "array", "items": { "type": "string" } },
+        "equipamentos": { "type": "array", "items": { "type": "string" } },
+        "escalas": { "type": "array", "items": { "type": "string" } },
+        "classificacoes": { "type": "array", "items": { "type": "string" } },
+        "diagnosticos": { "type": "array", "items": { "type": "string" } },
+        "intervencoes": { "type": "array", "items": { "type": "string" } },
+        "protocolos": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+
+    "evidencia": { "$ref": "evidencia.schema.json" },
+
+    "dados_sociais_epidemiologicos": {
+      "type": "object",
+      "description": "Dados sociais e epidemiológicos com fonte, data e contexto (spec §33).",
+      "properties": {
+        "populacao": { "type": ["string", "null"] },
+        "territorio": { "type": ["string", "null"] },
+        "condicoes_socioeconomicas": { "type": ["string", "null"] },
+        "epidemiologia": { "type": ["string", "null"] },
+        "fatores_sociais": { "type": ["string", "null"] },
+        "determinantes_sociais": { "type": ["string", "null"] },
+        "acesso_servicos": { "type": ["string", "null"] },
+        "fatores_ambientais": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+
+    "referencias": {
+      "type": "array",
+      "description": "Referências bibliográficas (Vancouver).",
+      "items": { "$ref": "referencia.schema.json" }
+    },
+
+    "relacionamentos": {
+      "type": "object",
+      "description": "Grafo lógico de relações com outros conhecimentos (spec §36).",
+      "properties": {
+        "documentos_relacionados": { "type": "array", "items": { "type": "string" } },
+        "corrobora": { "type": "array", "items": { "type": "string" } },
+        "contradiz": { "type": "array", "items": { "type": "string" } },
+        "mais_recentes": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+
+    "validade": {
+      "type": "object",
+      "properties": {
+        "status_validade": { "type": ["string", "null"] },
+        "status_auditoria": { "type": ["string", "null"] },
+        "confiabilidade_fonte": {
+          "$ref": "taxonomia.schema.json#/definitions/nivelEvidencia"
+        }
+      },
+      "additionalProperties": true
+    },
+
+    "status": { "$ref": "status.schema.json#/properties/status" },
+    "alerta": { "$ref": "status.schema.json#/properties/alerta" },
+
+    "data_entrada": { "type": "string", "format": "date-time" },
+    "data_processamento": { "type": "string", "format": "date-time" },
+    "data_ultima_auditoria": { "type": ["string", "null"], "format": "date-time" },
+    "data_ultima_verificacao_externa": { "type": ["string", "null"], "format": "date-time" },
+
+    "observacoes": { "type": ["string", "null"] },
+
+    "historico_alteracoes": {
+      "type": "array",
+      "description": "Histórico de versões/alterações (spec §37, §62).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "versao": { "type": "integer" },
+          "data": { "type": "string", "format": "date-time" },
+          "descricao": { "type": ["string", "null"] },
+          "agente": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "biblioteca_de_enfermagem_json/schemas/auditoria.schema.json",
+  "title": "Registro de Auditoria",
+  "description": "Auditoria bibliográfica e de integridade de um item/documento (spec §15, §59).",
+  "type": "object",
+  "required": ["id", "alvo_id", "data"],
+  "properties": {
+    "id": { "type": "string" },
+    "alvo_id": { "type": "string", "description": "ID do item de conhecimento ou documento auditado." },
+    "data": { "type": "string", "format": "date-time" },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "BIBLIOGRAFICA",
+        "PROVENIENCIA",
+        "ANTI_INVENCAO",
+        "DUPLICIDADE",
+        "TEMPORAL",
+        "REFERENCIAS",
+        "INTEGRIDADE"
+      ]
+    },
+    "resultado": {
+      "type": "string",
+      "enum": ["PASS", "PASS_COM_RESSALVAS", "FAIL", "PENDING", "NOT_MEASURED"]
+    },
+    "checks": {
+      "type": "array",
+      "description": "Lista de checagens (ex.: CHECK_01 fonte existe ... CHECK_15 logs atualizados — spec §59).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "codigo": { "type": "string" },
+          "descricao": { "type": ["string", "null"] },
+          "status": { "type": ["string", "null"] },
+          "observacao": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "divergencias": {
+      "type": "array",
+      "description": "Divergências encontradas entre fontes (spec §15).",
+      "items": {
+        "type": "object",
+        "properties": {
+          "assunto": { "type": ["string", "null"] },
+          "fonte_a": { "type": ["string", "null"] },
+          "fonte_b": { "type": ["string", "null"] },
+          "descricao": { "type": ["string", "null"] }
+        },
+        "additionalProperties": true
+      }
+    },
+    "agente": { "type": ["string", "null"], "description": "Agente/subagente responsável pela auditoria." },
+    "observacoes": { "type": ["string", "null"] }
+  },
+  "additionalProperties": true
+}

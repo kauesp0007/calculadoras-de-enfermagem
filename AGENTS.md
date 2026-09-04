@@ -44,15 +44,15 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 - É PROIBIDO (absoluto) editar: `.git/`, `node_modules/` e segredos (`.env`, chaves,
   credenciais).
 - É PROIBIDO alterar, por padrão: pastas `downloads`, `biblioteca`, `blog`,
-  `blog-templates`; arquivos `footer.html`, `menu-global.html`,
+  `blog-templates`; arquivos `footer.html`,
   `global-body-elements.html`, `downloads.html`, `_language_selector.html`,
   `googlefc0a17cdd552164b.html`.
 - EXCEÇÃO CONTROLADA (só com autorização explícita do usuário): regras canônicas
   (`AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`, `copilot-instructions.md`),
   `mcp.json`/`.mcp.json`, login (`js/auth/`, `js/firebase/`), deploy/SW (`deploy.yml`,
   `gerar-sw.js`, `sw-template.js`, `firestore.rules`), catálogos, `governance/`,
-  `knowledge/`, `scripts/hooks/`, `.github/hooks/`, `mapa-do-site.html`,
-  `relatorio_paginas.txt` e `package.json`.
+  `knowledge/`, `scripts/hooks/`, `.github/hooks/`, `mapa-do-site.html` e
+  `package.json`.
   - No Codex **não há** hook `block-protected-files`: esta proteção vale por instrução +
     `sandbox_mode` dos subagentes. Antes de tocar qualquer item acima, **pergunte ao usuário**.
 

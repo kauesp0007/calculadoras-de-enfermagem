@@ -24,6 +24,9 @@ reproduzindo exatamente o padrão do projeto.
   diagnósticos NANDA sugeridos.
 - Impressão/PDF: modelo `meem.html` (`btnGerarPDF` jsPDF + `btnImprimir`).
 - Seção de Referências Bibliográficas ao final.
+- Ícones: NUNCA usar emojis. Usar ícones SVG inline do Font Awesome via
+  `require('./scripts/icone-svg').iconeSvg('fa-NOME', 'icn')` (ver
+  `.github/instructions/html.instructions.md`, regra 62).
 
 ## Planejamento visual obrigatório
 Depois de estruturar o conteúdo e antes da validação final, produza um plano visual

@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "biblioteca_de_enfermagem_json/schemas/documento.schema.json",
+  "title": "Documento Fonte (Ingestão)",
+  "description": "Registro do arquivo físico original colocado em LIVROS_PARA_O_AGENTE_LER/ (spec §5, §6, §54). O original nunca é modificado.",
+  "type": "object",
+  "required": ["id", "hash_sha256", "caminho_original", "status"],
+  "properties": {
+    "id": { "type": "string", "description": "ID único do documento fonte." },
+    "hash_sha256": { "type": "string", "description": "SHA-256 do arquivo. Usado para deduplicação e processamento incremental (§5, §82)." },
+    "nome_original": { "type": ["string", "null"] },
+    "caminho_original": { "type": "string", "description": "Caminho do arquivo dentro do repositório (fonte original, imutável)." },
+    "tamanho_bytes": { "type": ["integer", "null"] },
+    "extensao": { "type": ["string", "null"] },
+    "mime_type": { "type": ["string", "null"] },
+    "tipo_documental": {
+      "$ref": "taxonomia.schema.json#/definitions/tipoDocumental"
+    },
+    "status": {
+      "$ref": "status.schema.json#/properties/status"
+    },
+    "versao_processamento": { "type": ["integer", "null"], "description": "Incrementa a cada reprocessamento da mesma fonte (spec §5, §37)." },
+    "data_entrada": { "type": ["string", "null"], "format": "date-time" },
+    "data_processamento": { "type": ["string", "null"], "format": "date-time" },
+    "data_ultima_auditoria": { "type": ["string", "null"], "format": "date-time" },
+    "itens_conhecimento": {
+      "type": "array",
+      "description": "IDs dos itens de conhecimento extraídos deste documento.",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}
