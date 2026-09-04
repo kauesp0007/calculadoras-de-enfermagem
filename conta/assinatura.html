@@ -158,8 +158,28 @@
 
   function onPayPalApproved(subscriptionId){
     localStorage.setItem("paypal_subscription_id", subscriptionId);
-    alert("Pagamento aprovado! Seu plano Premium será ativado em instantes (sem anúncios).");
-    setTimeout(function(){ location.reload(); }, 2500);
+
+    // Limpa o cache do perfil (senão o site lê o plano "free" antigo por 5 min).
+    try {
+      localStorage.removeItem("auth_user_profile_cache");
+      localStorage.removeItem("auth_profile");
+    } catch (e) { /* ignora */ }
+
+    alert("Pagamento aprovado! Ativando seu plano Premium (sem anúncios)...");
+
+    // Aguarda o webhook ativar a assinatura (timeout ~30s) e então recarrega.
+    var tentativas = 0;
+    var timer = setInterval(function(){
+      tentativas++;
+      window.Subscription.load().then(function(s){
+        if ((s && s.status === "active") || tentativas >= 15) {
+          clearInterval(timer);
+          location.reload();
+        }
+      }).catch(function(){
+        if (tentativas >= 15) { clearInterval(timer); location.reload(); }
+      });
+    }, 2000);
   }
 
   function init(){
