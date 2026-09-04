@@ -107,17 +107,6 @@ async function firestorePatch(path: string, fields: Record<string, unknown>, tok
   }
 }
 
-async function firestoreCreate(path: string, fields: Record<string, unknown>, token: string) {
-  const res = await fetch(firestoreUrl(path), {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields }),
-  });
-  if (!res.ok) {
-    throw new Error(`Firestore POST ${path} -> ${res.status}: ${await res.text()}`);
-  }
-}
-
 // ---------------------------------------------------------------------
 // Atualiza o plano do usuário no Firestore (server-authoritative).
 // ---------------------------------------------------------------------
@@ -142,7 +131,7 @@ async function setPlan(uid: string, planId: string, subscriptionId: string) {
 
   // 2) Documento de assinatura (histórico/status).
   try {
-    await firestoreCreate(
+    await firestorePatch(
       `users/${uid}/subscriptions/${subscriptionId}`,
       {
         planId: stringValue(planId),
