@@ -23,6 +23,8 @@ function corsHeaders() {
   };
 }
 
+const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "kauepg18@gmail.com";
+
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
@@ -141,10 +143,9 @@ serve(async (req) => {
     const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
     const token = await firestoreAccessToken(sa);
 
-    // Verifica se o chamador é administrador.
-    const adminDoc = await firestoreGet(`users/${adminUid}`, token);
-    const role = adminDoc?.fields?.role?.stringValue;
-    if (role !== "administrator" && role !== "admin") {
+    // Verifica se o chamador é o administrador (por email, enviado pelo front).
+    const adminEmail = body?.adminEmail || "";
+    if (adminEmail.toLowerCase() !== (ADMIN_EMAIL || "").toLowerCase()) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
