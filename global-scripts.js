@@ -510,6 +510,12 @@ function initializeAuthMenu() {
     }
   }
 
+  function _isAdmin() {
+    var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
+    var email = u ? (u.email || "") : "";
+    return email.toLowerCase() === "kauepg18@gmail.com";
+  }
+
   /**
    * Itens de menu condicionais (Plano / Painel Admin).
    * @param {boolean} mobile
@@ -520,19 +526,20 @@ function initializeAuthMenu() {
     if (!window.Authorization) {
       return out;
     }
+    var isAdmin = _isAdmin() || window.Authorization.hasRole("administrator");
     if (mobile) {
       if (!window.Authorization.hasPlan("premium")) {
         out += '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a>';
       }
-      if (window.Authorization.hasRole("administrator")) {
-        out += '<a role="menuitem" href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Painel Admin</a>';
+      if (isAdmin) {
+        out += '<a role="menuitem" href="/conta/admin-pagamentos.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Admin</a>';
       }
     } else {
       if (!window.Authorization.hasPlan("premium")) {
         out += '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a></li>';
       }
-      if (window.Authorization.hasRole("administrator")) {
-        out += '<li><a href="/admin/" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Painel Admin</a></li>';
+      if (isAdmin) {
+        out += '<li><a href="/conta/admin-pagamentos.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Admin</a></li>';
       }
     }
     return out;

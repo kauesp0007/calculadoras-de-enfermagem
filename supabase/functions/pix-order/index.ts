@@ -15,7 +15,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
-const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "";
+const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "kauepg18@gmail.com";
+const ADMIN_EMAIL_2 = Deno.env.get("ADMIN_EMAIL_2") ?? "kauesp07@hotmail.com";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
 function corsHeaders() {
@@ -148,7 +149,7 @@ serve(async (req) => {
 
     // Envia email ao admin (opcional, via Resend).
     let emailSent = false;
-    if (RESEND_API_KEY && ADMIN_EMAIL) {
+    if (RESEND_API_KEY && (ADMIN_EMAIL || ADMIN_EMAIL_2)) {
       try {
         const r = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -157,8 +158,8 @@ serve(async (req) => {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            from: "Calculadoras de Enfermagem <onboarding@resend.dev>",
-            to: [ADMIN_EMAIL],
+            from: "Calculadoras de Enfermagem <no-reply@calculadorasdeenfermagem.com.br>",
+            to: [ADMIN_EMAIL, ADMIN_EMAIL_2].filter(Boolean),
             subject: "Novo pagamento Pix aguardando liberação",
             html:
               "<p><strong>Novo pedido de assinatura (Plano Júnior)!</strong></p>" +

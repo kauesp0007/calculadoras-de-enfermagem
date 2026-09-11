@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260911-051618";
+const CACHE_VERSION = "20260911-060958";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -72,8 +72,6 @@ const urlsToCache = [
   'Imagens_autorais/enfermeira-svg.svg',
   'Imagens_autorais/enfermeiro-svg.svg',
   '_compress_sa.js',
-  '_diag_admin.js',
-  '_test_admin_email.js',
   'atualizar-scripts.js',
   'automacoes/add-guias-especificos.js',
   'automacoes/add-guias-gerais.js',
@@ -669,6 +667,15 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-11T08-05-49.json',
   'relatorios/cwv-gate/2026-09-11T08-11-10.json',
   'relatorios/cwv-gate/2026-09-11T08-15-50.json',
+  'relatorios/cwv-gate/2026-09-11T08-17-26.json',
+  'relatorios/cwv-gate/2026-09-11T08-21-30.json',
+  'relatorios/cwv-gate/2026-09-11T08-24-14.json',
+  'relatorios/cwv-gate/2026-09-11T08-27-48.json',
+  'relatorios/cwv-gate/2026-09-11T08-32-14.json',
+  'relatorios/cwv-gate/2026-09-11T08-33-28.json',
+  'relatorios/cwv-gate/2026-09-11T08-39-35.json',
+  'relatorios/cwv-gate/2026-09-11T08-41-10.json',
+  'relatorios/cwv-gate/2026-09-11T09-07-20.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -818,6 +825,15 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-11T08-05-49.json',
   'relatorios/impacto/2026-09-11T08-11-10.json',
   'relatorios/impacto/2026-09-11T08-15-51.json',
+  'relatorios/impacto/2026-09-11T08-17-27.json',
+  'relatorios/impacto/2026-09-11T08-21-30.json',
+  'relatorios/impacto/2026-09-11T08-24-15.json',
+  'relatorios/impacto/2026-09-11T08-27-51.json',
+  'relatorios/impacto/2026-09-11T08-32-15.json',
+  'relatorios/impacto/2026-09-11T08-33-28.json',
+  'relatorios/impacto/2026-09-11T08-39-35.json',
+  'relatorios/impacto/2026-09-11T08-41-11.json',
+  'relatorios/impacto/2026-09-11T09-07-21.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
