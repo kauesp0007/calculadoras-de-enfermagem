@@ -227,6 +227,22 @@ async function alreadyProcessed(paymentId: string): Promise<boolean> {
   return !!doc;
 }
 
+// Registra o assinante em um log dedicado (para o painel admin).
+async function logSubscriber(paymentId: string, name: string, email: string, planId: string) {
+  const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT || "");
+  const token = await firestoreAccessToken(sa);
+  await firestorePatch(
+    `asaasSubscribers/${paymentId}`,
+    {
+      name: stringValue(name),
+      email: stringValue(email),
+      planId: stringValue(planId),
+      createdAt: timestampValue(new Date().toISOString()),
+    },
+    token,
+  );
+}
+
 // ───────────────────────── Handlers ─────────────────────────────────
 
 // Ativa o plano quando o pagamento é confirmado/recebido.
@@ -253,12 +269,14 @@ async function handlePayment(event: string, paymentId: string) {
   const paid = status === "CONFIRMED" || status === "RECEIVED";
   if (!paid) return;
 
-  // Email do cliente (usado para localizar o UID). Normaliza para minúsculas
-  // porque o Firebase Auth guarda emails em minúsculas.
+  // Email e nome do cliente (para localizar o UID e registrar o log).
+  // Normaliza o email para minúsculas (Firebase Auth guarda em minúsculas).
   let email = "";
+  let name = "";
   if (customerId) {
     const customer = await asaasGet(`/customers/${customerId}`);
     email = String(customer?.email || "").trim().toLowerCase();
+    name = String(customer?.name || "").trim();
   }
   if (!email) return;
 
@@ -271,6 +289,7 @@ async function handlePayment(event: string, paymentId: string) {
   }
 
   await setPlan(uid, "junior", subscriptionId);
+  await logSubscriber(paymentId, name, email, "junior");
   await markProcessed(paymentId);
 }
 

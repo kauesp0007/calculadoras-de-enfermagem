@@ -510,10 +510,12 @@ function initializeAuthMenu() {
     }
   }
 
+  var _ADMIN_EMAILS = ["kauepg18@gmail.com", "kauesp07@hotmail.com"];
+
   function _isAdmin() {
     var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
     var email = u ? (u.email || "") : "";
-    return email.toLowerCase() === "kauepg18@gmail.com";
+    return _ADMIN_EMAILS.indexOf(email.toLowerCase()) !== -1;
   }
 
   /**
@@ -1214,6 +1216,16 @@ function ativarModoDislexia() {
 // Planos considerados premium (espelha plan-service.js PREMIUM_PLANS)
 var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
 
+// CSS de segurança: esconde anúncios (multiplex + auto-placed) para
+// assinantes premium, mesmo antes do JS de ocultação rodar.
+(function () {
+  if (document.getElementById("premium-no-ads-css")) return;
+  var style = document.createElement("style");
+  style.id = "premium-no-ads-css";
+  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .google-auto-placed,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}";
+  (document.head || document.documentElement).appendChild(style);
+})();
+
 /**
  * Verifica se o usuário atual é assinante premium.
  * Prioriza a camada Authorization (definitiva) e usa o cache síncrono
@@ -1238,16 +1250,41 @@ function isPremiumSubscriber() {
 
 /**
  * Oculta os anúncios (multiplex + auto-placed) para assinantes premium.
+ * Combina: classe CSS no <html> (fallback imediato), ocultação via JS dos
+ * nós já presentes e MutationObserver para anúncios inseridos depois.
  */
-function hideAdsForPremium() {
-  if (!isPremiumSubscriber()) return;
-  document.querySelectorAll("ins.adsbygoogle, .google-auto-placed").forEach(function (ad) {
+var _noAdsObserverInstalled = false;
+
+function hideAdNodes() {
+  var sel = "ins.adsbygoogle, .google-auto-placed, .ads-multiplex-container, #multiplex-ad-reserved, .multiplex-ad-reserved";
+  document.querySelectorAll(sel).forEach(function (ad) {
     ad.style.display = "none";
     ad.innerHTML = "";
   });
-  var reserved = document.getElementById("multiplex-ad-reserved");
-  if (reserved) reserved.style.display = "none";
 }
+
+function hideAdsForPremium() {
+  var isPremium = isPremiumSubscriber();
+  if (isPremium) {
+    document.documentElement.classList.add("premium-no-ads");
+  } else {
+    document.documentElement.classList.remove("premium-no-ads");
+  }
+  if (!isPremium) return;
+
+  hideAdNodes();
+
+  // Observa o DOM e esconde anúncios inseridos depois (auto-placed).
+  if (!_noAdsObserverInstalled && typeof MutationObserver !== "undefined" && document.body) {
+    _noAdsObserverInstalled = true;
+    new MutationObserver(function () {
+      if (isPremiumSubscriber()) hideAdNodes();
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+}
+
+// Aplica a proteção o mais cedo possível (defer), antes do AdSense carregar.
+hideAdsForPremium();
 
 /**
  * Aplica restrições de plano na interface.

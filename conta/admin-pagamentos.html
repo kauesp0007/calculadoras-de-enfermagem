@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Painel de Pagamentos Pix - Calculadoras de Enfermagem</title>
+<title>Registro de Assinantes - Calculadoras de Enfermagem</title>
 <meta content="noindex, nofollow" name="robots"/>
 <style id="critical-fonts">@font-face{font-family:"Inter";src:url("/fonts/inter/inter-regular.woff2") format("woff2");font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-600.woff2") format("woff2");font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-700.woff2") format("woff2");font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:'Inter';src:url('/fonts/inter/inter-900.woff2') format('woff2');font-weight:900;font-display:swap;size-adjust:98%;}</style>
 <link href="/public/output.css" rel="stylesheet">
@@ -25,13 +25,13 @@
 <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4 sm:px-8 py-6 md:py-8">
 <div class="w-full text-left">
 <p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">ADMIN</p>
-<h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Painel de Pagamentos Pix</h1>
-<h2 class="text-blue-100 text-base font-medium font-sans">Aprove os pagamentos e libere o acesso premium (sem anúncios).</h2>
+<h1 class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Registro de Assinantes</h1>
+<h2 class="text-blue-100 text-base font-medium font-sans">Assinantes do plano premium (sem anúncios), em ordem de assinatura.</h2>
 </div>
 </div>
 </section>
 <div id="admin-container" class="w-full">
-<p class="text-center text-slate-500">Carregando pedidos...</p>
+<p class="text-center text-slate-500">Carregando assinantes...</p>
 </div>
 </main>
 <div id="footer-placeholder"></div>
@@ -46,18 +46,29 @@ document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer
   var SUPABASE_FN_BASE = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1";
   var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
 
-  function callAdmin(action, extra){
+  function formatDate(iso){
+    if(!iso) return "";
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return iso;
+    var dia = ("0" + d.getDate()).slice(-2);
+    var mes = ("0" + (d.getMonth()+1)).slice(-2);
+    var ano = d.getFullYear();
+    var h = ("0" + d.getHours()).slice(-2);
+    var min = ("0" + d.getMinutes()).slice(-2);
+    return dia + "/" + mes + "/" + ano + " às " + h + ":" + min;
+  }
+
+  function loadSubscribers(){
     var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
     if(!u){ return Promise.reject(new Error("Não autenticado")); }
-    var body = Object.assign({ adminUid: u.uid, adminEmail: u.email || "", action: action }, extra || {});
-    return fetch(SUPABASE_FN_BASE + "/pix-admin", {
+    return fetch(SUPABASE_FN_BASE + "/asaas-admin", {
       method: "POST",
       headers: {
         "Authorization": "Bearer " + SUPABASE_ANON_KEY,
         "apikey": SUPABASE_ANON_KEY,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ adminEmail: u.email || "" })
     }).then(function(r){
       return r.json().then(function(d){
         if(!r.ok){ throw new Error(d && d.error ? d.error : "Erro " + r.status); }
@@ -66,107 +77,38 @@ document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer
     });
   }
 
-  function renderOrders(orders){
+  function renderSubscribers(list){
     var c = document.getElementById("admin-container");
-    if(!orders.length){
-      c.innerHTML = '<div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-slate-500">Nenhum pedido de pagamento ainda.</div>';
+    if(!list.length){
+      c.innerHTML = '<div class="rounded-2xl border border-gray-200 bg-white p-6 text-center text-slate-500">Nenhum assinante registrado ainda.</div>';
       return;
     }
-    var pending = orders.filter(function(o){ return o.status === "pending"; });
-    var approved = orders.filter(function(o){ return o.status === "approved"; });
-    var rejected = orders.filter(function(o){ return o.status === "rejected"; });
-    var html = '';
-
-    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Pendentes (' + pending.length + ')</h2>';
-    if(!pending.length){
-      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500 mb-6">Nenhum pedido pendente.</div>';
-    } else {
-      html += '<div class="space-y-3 mb-8">';
-      pending.forEach(function(o){
-        html += '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">';
-        html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
-        html += '<p class="text-sm text-slate-600">R$ ' + esc(o.amount || "10.00") + ' · Plano ' + esc(o.planId || "junior") + ' · <span class="text-slate-500">' + esc(o.createdAt || "") + '</span></p>';
-        html += '<div class="mt-3 flex flex-wrap gap-2">';
-        html += '<button type="button" class="approve-btn px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold" data-uid="' + esc(o.uid) + '" data-order="' + esc(o.id) + '">Aprovar e liberar acesso</button>';
-        html += '<button type="button" class="reject-btn px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold" data-order="' + esc(o.id) + '">Negar (não pago)</button>';
-        html += '</div>';
-        html += '</div>';
-      });
+    var html = '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Assinantes (' + list.length + ')</h2>';
+    html += '<div class="space-y-3">';
+    list.forEach(function(s, i){
+      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4">';
+      html += '<div class="flex items-start justify-between gap-3">';
+      html += '<div>';
+      html += '<p class="font-semibold">' + (i+1) + '. ' + esc(s.name || "Assinante") + '</p>';
+      html += '<p class="text-sm text-slate-500">' + esc(s.email || "sem email") + '</p>';
       html += '</div>';
-    }
-
-    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Já aprovados (' + approved.length + ')</h2>';
-    if(!approved.length){
-      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500 mb-6">Nenhum pedido aprovado.</div>';
-    } else {
-      html += '<div class="space-y-3 mb-8">';
-      approved.forEach(function(o){
-        html += '<div class="rounded-2xl border border-green-200 bg-green-50 p-4 opacity-90">';
-        html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
-        html += '<p class="text-sm text-slate-500">Aprovado · ' + esc(o.createdAt || "") + '</p>';
-        html += '</div>';
-      });
+      html += '<span class="text-sm text-slate-500 whitespace-nowrap">' + esc(formatDate(s.createdAt)) + '</span>';
       html += '</div>';
-    }
-
-    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Negados (' + rejected.length + ')</h2>';
-    if(!rejected.length){
-      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500">Nenhum pedido negado.</div>';
-    } else {
-      html += '<div class="space-y-3">';
-      rejected.forEach(function(o){
-        html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 opacity-70">';
-        html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
-        html += '<p class="text-sm text-slate-500">Negado · ' + esc(o.createdAt || "") + '</p>';
-        html += '</div>';
-      });
+      html += '<p class="text-xs text-green-600 font-semibold mt-1">Plano ' + esc(s.planId || "junior") + ' · ativo</p>';
       html += '</div>';
-    }
-
+    });
+    html += '</div>';
     c.innerHTML = html;
-    c.querySelectorAll(".approve-btn").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        var uid = btn.getAttribute("data-uid");
-        var orderId = btn.getAttribute("data-order");
-        if(confirm("Liberar acesso premium (sem anúncios) por 1 mês para este usuário?")){
-          btn.disabled = true; btn.textContent = "Liberando...";
-          callAdmin("release", { uid: uid, orderId: orderId }).then(function(){
-            loadOrders();
-          }).catch(function(e){
-            alert(e.message);
-            btn.disabled = false; btn.textContent = "Aprovar e liberar acesso";
-          });
-        }
-      });
-    });
-    c.querySelectorAll(".reject-btn").forEach(function(btn){
-      btn.addEventListener("click", function(){
-        var orderId = btn.getAttribute("data-order");
-        if(confirm("Marcar este pedido como NÃO PAGO (negar)?")){
-          btn.disabled = true; btn.textContent = "Negando...";
-          callAdmin("reject", { orderId: orderId }).then(function(){
-            loadOrders();
-          }).catch(function(e){
-            alert(e.message);
-            btn.disabled = false; btn.textContent = "Negar (não pago)";
-          });
-        }
-      });
-    });
-  }
-
-  function loadOrders(){
-    callAdmin("list").then(function(d){
-      renderOrders(d.orders || []);
-    }).catch(function(e){
-      document.getElementById("admin-container").innerHTML = '<div class="rounded-2xl border border-red-300 bg-red-50 p-6 text-red-700">Acesso negado ou erro: ' + esc(e.message) + '</div>';
-    });
   }
 
   function init(){
     window.Auth.init().then(function(){
       if(!window.Auth.isLoggedIn()){ window.location.href="/conta/login.html"; return; }
-      loadOrders();
+      loadSubscribers().then(function(d){
+        renderSubscribers(d.subscribers || []);
+      }).catch(function(e){
+        document.getElementById("admin-container").innerHTML = '<div class="rounded-2xl border border-red-300 bg-red-50 p-6 text-red-700">Acesso negado ou erro: ' + esc(e.message) + '</div>';
+      });
     }).catch(function(){ window.location.href="/conta/login.html"; });
   }
 

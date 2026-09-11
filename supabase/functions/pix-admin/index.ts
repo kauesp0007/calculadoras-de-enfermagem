@@ -23,7 +23,10 @@ function corsHeaders() {
   };
 }
 
-const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "kauepg18@gmail.com";
+const ADMIN_EMAILS = [
+  Deno.env.get("ADMIN_EMAIL") ?? "kauepg18@gmail.com",
+  Deno.env.get("ADMIN_EMAIL_2") ?? "kauesp07@hotmail.com",
+].filter(Boolean).map(function (e) { return e.toLowerCase(); });
 
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem
@@ -145,7 +148,7 @@ serve(async (req) => {
 
     // Verifica se o chamador é o administrador (por email, enviado pelo front).
     const adminEmail = body?.adminEmail || "";
-    if (adminEmail.toLowerCase() !== (ADMIN_EMAIL || "").toLowerCase()) {
+    if (ADMIN_EMAILS.indexOf(adminEmail.toLowerCase()) === -1) {
       return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
