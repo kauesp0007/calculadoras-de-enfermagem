@@ -18,6 +18,14 @@ const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 const ADMIN_EMAIL = Deno.env.get("ADMIN_EMAIL") ?? "";
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") ?? "";
 
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, apikey, Content-Type",
+  };
+}
+
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
@@ -100,11 +108,14 @@ async function firestorePatch(path: string, fields: Record<string, unknown>, tok
 }
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders() });
+  }
   if (req.method !== "POST") {
-    return new Response("method_not_allowed", { status: 405 });
+    return new Response("method_not_allowed", { status: 405, headers: corsHeaders() });
   }
   if (!FIREBASE_SERVICE_ACCOUNT) {
-    return new Response("not_configured", { status: 500 });
+    return new Response("not_configured", { status: 500, headers: corsHeaders() });
   }
 
   try {
@@ -113,7 +124,7 @@ serve(async (req) => {
     const email = body?.email || "";
     const name = body?.name || "";
     if (!uid) {
-      return new Response("missing_uid", { status: 400 });
+      return new Response("missing_uid", { status: 400, headers: corsHeaders() });
     }
 
     const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
@@ -166,13 +177,13 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ ok: true, orderId, emailSent }),
-      { status: 200, headers: { "Content-Type": "application/json" } },
+      { status: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" } },
     );
   } catch (err) {
     console.error("Erro no pix-order", err);
     return new Response(
       JSON.stringify({ error: String((err && (err as Error).message) || err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeaders(), "Content-Type": "application/json" } },
     );
   }
 });

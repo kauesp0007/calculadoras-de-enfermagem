@@ -15,6 +15,14 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 
+function corsHeaders() {
+  return {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, apikey, Content-Type",
+  };
+}
+
 function pemToArrayBuffer(pem: string): ArrayBuffer {
   const b64 = pem
     .replace(/-----BEGIN PRIVATE KEY-----/, "")
@@ -112,11 +120,14 @@ async function firestoreListCollection(path: string, token: string): Promise<any
 }
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders() });
+  }
   if (req.method !== "POST") {
-    return new Response("method_not_allowed", { status: 405 });
+    return new Response("method_not_allowed", { status: 405, headers: corsHeaders() });
   }
   if (!FIREBASE_SERVICE_ACCOUNT) {
-    return new Response("not_configured", { status: 500 });
+    return new Response("not_configured", { status: 500, headers: corsHeaders() });
   }
 
   try {
@@ -124,7 +135,7 @@ serve(async (req) => {
     const adminUid = body?.adminUid;
     const action = body?.action;
     if (!adminUid) {
-      return new Response(JSON.stringify({ error: "missing_adminUid" }), { status: 400, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "missing_adminUid" }), { status: 400, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
     const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
@@ -134,7 +145,7 @@ serve(async (req) => {
     const adminDoc = await firestoreGet(`users/${adminUid}`, token);
     const role = adminDoc?.fields?.role?.stringValue;
     if (role !== "administrator" && role !== "admin") {
-      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "unauthorized" }), { status: 403, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
     if (action === "list") {
@@ -152,7 +163,7 @@ serve(async (req) => {
           createdAt: f.createdAt?.timestampValue || "",
         };
       }).sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
-      return new Response(JSON.stringify({ orders }), { status: 200, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ orders }), { status: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
     if (action === "release") {
@@ -183,15 +194,32 @@ serve(async (req) => {
           token,
         );
       }
-      return new Response(JSON.stringify({ ok: true, uid, plan: "junior" }), { status: 200, headers: { "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ ok: true, uid, plan: "junior" }), { status: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
     }
 
-    return new Response(JSON.stringify({ error: "unknown_action" }), { status: 400, headers: { "Content-Type": "application/json" } });
+    if (action === "reject") {
+      const orderId = body?.orderId;
+      if (!orderId) {
+        return new Response(JSON.stringify({ error: "missing_orderId" }), { status: 400, headers: { "Content-Type": "application/json" } });
+      }
+      await firestorePatch(
+        `paymentRequests/${orderId}`,
+        {
+          status: stringValue("rejected"),
+          rejectedAt: timestampValue(new Date().toISOString()),
+          rejectedBy: stringValue(adminUid),
+        },
+        token,
+      );
+      return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
+    }
+
+    return new Response(JSON.stringify({ error: "unknown_action" }), { status: 400, headers: { ...corsHeaders(), "Content-Type": "application/json" } });
   } catch (err) {
     console.error("Erro no pix-admin", err);
     return new Response(
       JSON.stringify({ error: String((err && (err as Error).message) || err) }),
-      { status: 500, headers: { "Content-Type": "application/json" } },
+      { status: 500, headers: { ...corsHeaders(), "Content-Type": "application/json" } },
     );
   }
 });

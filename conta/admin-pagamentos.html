@@ -73,7 +73,8 @@ document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer
       return;
     }
     var pending = orders.filter(function(o){ return o.status === "pending"; });
-    var done = orders.filter(function(o){ return o.status !== "pending"; });
+    var approved = orders.filter(function(o){ return o.status === "approved"; });
+    var rejected = orders.filter(function(o){ return o.status === "rejected"; });
     var html = '';
 
     html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Pendentes (' + pending.length + ')</h2>';
@@ -85,21 +86,38 @@ document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer
         html += '<div class="rounded-2xl border-2 border-amber-300 bg-amber-50 p-4">';
         html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
         html += '<p class="text-sm text-slate-600">R$ ' + esc(o.amount || "10.00") + ' · Plano ' + esc(o.planId || "junior") + ' · <span class="text-slate-500">' + esc(o.createdAt || "") + '</span></p>';
-        html += '<button type="button" class="approve-btn mt-3 px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold" data-uid="' + esc(o.uid) + '" data-order="' + esc(o.id) + '">Aprovar e liberar acesso</button>';
+        html += '<div class="mt-3 flex flex-wrap gap-2">';
+        html += '<button type="button" class="approve-btn px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold" data-uid="' + esc(o.uid) + '" data-order="' + esc(o.id) + '">Aprovar e liberar acesso</button>';
+        html += '<button type="button" class="reject-btn px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white font-semibold" data-order="' + esc(o.id) + '">Negar (não pago)</button>';
+        html += '</div>';
         html += '</div>';
       });
       html += '</div>';
     }
 
-    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Já aprovados (' + done.length + ')</h2>';
-    if(!done.length){
-      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500">Nenhum pedido aprovado.</div>';
+    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Já aprovados (' + approved.length + ')</h2>';
+    if(!approved.length){
+      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500 mb-6">Nenhum pedido aprovado.</div>';
+    } else {
+      html += '<div class="space-y-3 mb-8">';
+      approved.forEach(function(o){
+        html += '<div class="rounded-2xl border border-green-200 bg-green-50 p-4 opacity-90">';
+        html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
+        html += '<p class="text-sm text-slate-500">Aprovado · ' + esc(o.createdAt || "") + '</p>';
+        html += '</div>';
+      });
+      html += '</div>';
+    }
+
+    html += '<h2 class="text-xl font-bold text-[#1A3E74] mb-3">Negados (' + rejected.length + ')</h2>';
+    if(!rejected.length){
+      html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 text-slate-500">Nenhum pedido negado.</div>';
     } else {
       html += '<div class="space-y-3">';
-      done.forEach(function(o){
+      rejected.forEach(function(o){
         html += '<div class="rounded-2xl border border-gray-200 bg-white p-4 opacity-70">';
         html += '<p class="font-semibold">' + esc(o.name || "Usuário") + ' <span class="text-slate-500 font-normal">(' + esc(o.email || "sem email") + ')</span></p>';
-        html += '<p class="text-sm text-slate-500">' + esc(o.status) + ' · ' + esc(o.createdAt || "") + '</p>';
+        html += '<p class="text-sm text-slate-500">Negado · ' + esc(o.createdAt || "") + '</p>';
         html += '</div>';
       });
       html += '</div>';
@@ -117,6 +135,20 @@ document.addEventListener("DOMContentLoaded",()=>{setTimeout(()=>{fetch("/footer
           }).catch(function(e){
             alert(e.message);
             btn.disabled = false; btn.textContent = "Aprovar e liberar acesso";
+          });
+        }
+      });
+    });
+    c.querySelectorAll(".reject-btn").forEach(function(btn){
+      btn.addEventListener("click", function(){
+        var orderId = btn.getAttribute("data-order");
+        if(confirm("Marcar este pedido como NÃO PAGO (negar)?")){
+          btn.disabled = true; btn.textContent = "Negando...";
+          callAdmin("reject", { orderId: orderId }).then(function(){
+            loadOrders();
+          }).catch(function(e){
+            alert(e.message);
+            btn.disabled = false; btn.textContent = "Negar (não pago)";
           });
         }
       });
