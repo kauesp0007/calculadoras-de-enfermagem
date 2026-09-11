@@ -61,13 +61,14 @@
     out += '<div class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full">';
     out += '<span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span>';
     out += '<h3 class="text-lg font-bold text-[#1A3E74]">Plano Júnior</h3>';
-    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 5,00</span><span class="text-sm text-[#1A3E74]"> /mês</span></div>';
+    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 10,00</span><span class="text-sm text-[#1A3E74]"> /mês</span></div>';
     out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
     out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Navegação sem anúncios</span></li>';
     out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Acesso ao conteúdo premium</span></li>';
     out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>Cancele quando quiser</span></li>';
     out += '</ul>';
-    out += '<span class="block mt-auto w-full text-center px-4 py-2.5 rounded-lg bg-gray-200 text-gray-500 font-semibold">Em construção</span>';
+    out += '<p class="text-xs text-slate-500 mb-3">Pagamento único de R$ 10,00 = uso total do site sem anúncios por 1 mês. O plano é ativado em até 12 horas após a análise do pagamento.</p>';
+    out += '<button type="button" id="js-pay-pix" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">Pagar via Pix</button>';
     out += '</div>';
 
     out += '<div class="flex flex-col rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 shadow-sm h-full">';
@@ -116,10 +117,38 @@
     var pause=document.getElementById("js-pause"); if(pause) pause.addEventListener("click",function(){ window.Subscription.pause().then(render).catch(function(e){alert(e.message);}); });
     var resume=document.getElementById("js-resume"); if(resume) resume.addEventListener("click",function(){ window.Subscription.resume().then(render).catch(function(e){alert(e.message);}); });
     var cancel=document.getElementById("js-cancel"); if(cancel) cancel.addEventListener("click",function(){ if(confirm("Cancelar assinatura?")){ window.Subscription.cancel().then(render).catch(function(e){alert(e.message);}); } });
+    var pay=document.getElementById("js-pay-pix"); if(pay) pay.addEventListener("click", handlePixPayment);
   }
 
   var PAYPAL_CLIENT_ID = "AY_l7-9s-x6hrY9gJUKICmssR7bzjcMypsTDH_-2t1KAO_31VAEIXz1mvUq1s1Hk53BM5pNfZHi9ZEYx";
   var PAYPAL_PLAN_ID = "P-5HK236923V929921LNKNGXWI";
+
+  var PIX_PAYMENT_LINK = "https://link.picpay.com/p/17733b5b-ffc5-4894-91d1-565be584b4de";
+  var SUPABASE_FN_BASE = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
+
+  function registerPixOrder(){
+    var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
+    if(!u){ return; }
+    var profile = window.Auth.profile ? window.Auth.profile() : null;
+    var email = (profile && profile.email) ? profile.email : (u.email || "");
+    var name = (profile && profile.name) ? profile.name : (u.displayName || "");
+    return fetch(SUPABASE_FN_BASE + "/pix-order", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ uid: u.uid, email: email, name: name })
+    }).catch(function(){ /* registra mesmo sem confirmar */ });
+  }
+
+  function handlePixPayment(){
+    window.open(PIX_PAYMENT_LINK, "_blank", "noopener");
+    registerPixOrder();
+    alert("Pagamento via Pix iniciado!\n\nApós pagar, seu plano será ativado em até 12 horas (após a análise do pagamento).");
+  }
 
   function initPayPal(){
     var el = document.getElementById("paypal-button-container");

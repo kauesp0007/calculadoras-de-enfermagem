@@ -25,7 +25,7 @@
 
     var PLANS = {
         free: { label: "Gratuito", level: 0, available: true, price: 0, priceLabel: "Grátis", permissions: [] },
-        junior: { label: "Júnior", level: 10, available: true, price: 5.00, priceLabel: "R$ 5,00", permissions: ["viewPremium"] },
+        junior: { label: "Júnior", level: 10, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium"] },
         pleno: { label: "Pleno", level: 20, available: true, price: 7.00, priceLabel: "R$ 7,00", permissions: ["viewPremium", "downloadPremium"] },
         senior: { label: "Sênior", level: 30, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium", "downloadPremium"] }
     };
