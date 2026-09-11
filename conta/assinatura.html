@@ -69,11 +69,17 @@
     out += '<button type="button" id="js-pay-pix" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">Pagar com PicPay (QR Code)</button>';
     out += '</div>';
 
-    out += '<div class="flex flex-col rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 p-6 shadow-sm h-full">';
-    out += '<span class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2">Em breve</span>';
-    out += '<h3 class="text-lg font-bold text-gray-700">Pagamento via Pix</h3>';
-    out += '<p class="mt-3 mb-4 text-sm text-slate-600 flex-1">Em breve você poderá assinar o Premium pagando com Pix, direto e sem taxa extra.</p>';
-    out += '<span class="block mt-auto w-full text-center px-4 py-2.5 rounded-lg bg-gray-200 text-gray-500 font-semibold">Em construção</span>';
+    out += '<div class="flex flex-col rounded-2xl border-2 border-emerald-500 bg-white p-6 shadow-md h-full">';
+    out += '<span class="text-xs font-bold uppercase tracking-wide text-emerald-600 mb-2">Cartão · Internacional</span>';
+    out += '<h3 class="text-lg font-bold text-[#1A3E74]">Pagamento com Cartão</h3>';
+    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">US$ 3,00</span><span class="text-sm text-[#1A3E74]"> /mês</span></div>';
+    out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+    out += '<li class="flex items-start gap-2"><span class="text-emerald-600 font-bold">✓</span><span>Navegação sem anúncios</span></li>';
+    out += '<li class="flex items-start gap-2"><span class="text-emerald-600 font-bold">✓</span><span>Ativação automática após o pagamento</span></li>';
+    out += '</ul>';
+    out += '<p class="text-xs text-slate-500 mb-3">Pagamento mensal de <strong>US$ 3,00</strong> (cobrança recorrente). Aceita cartão de crédito/débito <strong>Visa, Mastercard e American Express</strong>, além de <strong>Apple Pay, Google Pay e PayPal</strong>.</p>';
+    out += '<p class="text-xs text-slate-500 mb-3 flex items-start gap-1"><span>🔒</span><span>Pagamento seguro e profissional processado pelo <strong>Lemon Squeezy</strong> com criptografia SSL/TLS e certificação PCI-DSS. Os dados do seu cartão <strong>não são armazenados</strong> no nosso site.</span></p>';
+    out += '<button type="button" id="js-pay-card" class="mt-auto w-full px-4 py-3 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-colors">Pagar com Cartão (US$ 3/mês)</button>';
     out += '</div>';
 
     out += '</div>';
@@ -116,6 +122,7 @@
     var resume=document.getElementById("js-resume"); if(resume) resume.addEventListener("click",function(){ window.Subscription.resume().then(render).catch(function(e){alert(e.message);}); });
     var cancel=document.getElementById("js-cancel"); if(cancel) cancel.addEventListener("click",function(){ if(confirm("Cancelar assinatura?")){ window.Subscription.cancel().then(render).catch(function(e){alert(e.message);}); } });
     var pay=document.getElementById("js-pay-pix"); if(pay) pay.addEventListener("click", handlePixPayment);
+    var payCard=document.getElementById("js-pay-card"); if(payCard) payCard.addEventListener("click", handlePayCard);
   }
 
   var PAYPAL_CLIENT_ID = "AY_l7-9s-x6hrY9gJUKICmssR7bzjcMypsTDH_-2t1KAO_31VAEIXz1mvUq1s1Hk53BM5pNfZHi9ZEYx";
@@ -154,6 +161,16 @@
   function closePixModal(){
     var m = document.getElementById("pix-modal");
     if(m){ m.style.display = "none"; }
+  }
+
+  var LEMON_CHECKOUT_URL = "https://calculadoras-enfermagem.lemonsqueezy.com/checkout/buy/4763d803-b0a1-485a-a796-0dff1c5bb4a8";
+
+  function handlePayCard(){
+    var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
+    var uid = u ? u.uid : "";
+    var url = LEMON_CHECKOUT_URL;
+    if (uid) { url += "?checkout[custom][uid]=" + encodeURIComponent(uid); }
+    window.open(url, "_blank", "noopener");
   }
 
   function initPayPal(){
