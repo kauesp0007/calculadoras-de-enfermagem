@@ -1222,7 +1222,7 @@ var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
   if (document.getElementById("premium-no-ads-css")) return;
   var style = document.createElement("style");
   style.id = "premium-no-ads-css";
-  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .google-auto-placed,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}";
+  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .google-auto-placed,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}html:not(.premium-no-ads) [data-premium-only]{display:none !important;}";
   (document.head || document.documentElement).appendChild(style);
 })();
 

@@ -25,11 +25,13 @@
         ],
         junior: [
             { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
-            { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" }
+            { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" },
+            { id: "blank-forms", icon: "✓", label: "Acesso aos formulários em branco para imprimir das escalas" }
         ],
         pleno: [
             { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
             { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" },
+            { id: "blank-forms", icon: "✓", label: "Acesso aos formulários em branco para imprimir das escalas" },
             { id: "all-simulados", icon: "✓", label: "Todos os simulados" }
         ],
         senior: [
