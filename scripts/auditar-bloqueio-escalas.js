@@ -2,7 +2,7 @@
  * scripts/auditar-bloqueio-escalas.js
  *
  * Auditoria do bloqueio de acesso das escalas premium (Júnior+):
- * braden, morse, dimensionamento, fugulin, meem — raiz e 18 idiomas.
+ * braden, morse, dimensionamento, fugulin, meem — SOMENTE raiz (idiomas livres).
  *
  * Verifica:
  *  1. Se a regra do route-guard está presente e o regex corresponde.
@@ -22,7 +22,7 @@ const LANGS = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko",
 const PAGES = ["braden", "morse", "dimensionamento", "fugulin", "meem"];
 
 // Espelha a regra adicionada em js/auth/route-guard.js
-const PATTERN = /\/(braden|morse|dimensionamento|fugulin|meem)\.html$/i;
+const PATTERN = /^\/(braden|morse|dimensionamento|fugulin|meem)\.html$/i;
 
 // Espelha js/auth/plan-service.js
 const LEVELS = { free: 0, junior: 10, pleno: 20, senior: 30 };
@@ -54,23 +54,29 @@ if (hasRule) {
     ok(/junior/.test(rg), "requiredPlan = \"junior\"");
 }
 
-// 2) Existência dos arquivos + correspondência do regex
-console.log("\n[2] Arquivos existem + regex corresponde (raiz + idiomas)");
+// 2) Existência dos arquivos + correspondência do regex (raiz bloqueada, idiomas livres)
+console.log("\n[2] Arquivos existem + regex (raiz bloqueada, idiomas livres)");
 let count = 0;
+let raizCount = 0, idiomasCount = 0;
 for (const p of PAGES) {
     for (const l of [""].concat(LANGS)) {
         const rel = (l ? l + "/" : "") + p + ".html";
         const abs = path.join(ROOT, rel);
         const exists = fs.existsSync(abs);
-        if (exists) {
-            count++;
-            const pathname = "/" + rel;
-            const matches = PATTERN.test(pathname);
-            ok(matches, rel + " (regex " + (matches ? "bloqueia" : "NÃO bloqueia") + ")");
+        if (!exists) continue;
+        count++;
+        const pathname = "/" + rel;
+        const matches = PATTERN.test(pathname);
+        if (l === "") {
+            raizCount++;
+            ok(matches, rel + " (raiz → BLOQUEIA)");
+        } else {
+            idiomasCount++;
+            ok(!matches, rel + " (idioma → LIVRE, não bloqueia)");
         }
     }
 }
-console.log("  → " + count + " arquivos alvo encontrados.");
+console.log("  → " + count + " arquivos encontrados (" + raizCount + " raiz bloqueados, " + idiomasCount + " de idiomas livres).");
 
 // 3) Páginas que NÃO devem ser bloqueadas
 console.log("\n[3] Páginas que devem permanecer livres (regex NÃO deve casar)");
