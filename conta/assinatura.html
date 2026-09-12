@@ -54,7 +54,7 @@
 (function(){
   function esc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
 
-  function plansHtml(){
+  function asaasPlansHtml(){
     var out = '<h2 class="text-2xl font-black text-[#1A3E74] mb-6">Escolha seu plano</h2>';
     out += '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
 
@@ -86,6 +86,94 @@
 
     out += '</div>';
     return out;
+  }
+
+  // ── Stripe (pagamento internacional) ──
+  var SUPABASE_FN_BASE = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1";
+  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
+
+  var EUR_LANGS = { tr:1, nl:1, pl:1, ru:1, fr:1, es:1, de:1, it:1, uk:1, sv:1 };
+
+  var STRIPE_TEXT = {
+    en:{title:"Premium Plan",benefit:"Ad-free browsing",cta:"Subscribe",perMonth:"/month",note:"Recurring monthly. Cancel anytime."},
+    es:{title:"Plan Premium",benefit:"Navegación sin anuncios",cta:"Suscribirse",perMonth:"/mes",note:"Mensual y recurrente. Cancela cuando quieras."},
+    fr:{title:"Formule Premium",benefit:"Navigation sans publicité",cta:"S'abonner",perMonth:"/mois",note:"Renouvellement mensuel. Annulable à tout moment."},
+    de:{title:"Premium-Plan",benefit:"Werbefreies Surfen",cta:"Abonnieren",perMonth:"/Monat",note:"Monatlich verlängerbar. Jederzeit kündbar."},
+    it:{title:"Piano Premium",benefit:"Navigazione senza pubblicità",cta:"Abbonati",perMonth:"/mese",note:"Rinnovo mensile. Disdici quando vuoi."},
+    ja:{title:"プレミアムプラン",benefit:"広告なしで閲覧",cta:"登録する",perMonth:"/月",note:"毎月更新。いつでも解約できます。"},
+    zh:{title:"高级版计划",benefit:"无广告浏览",cta:"订阅",perMonth:"/月",note:"每月续费。可随时取消。"},
+    hi:{title:"प्रीमियम प्लान",benefit:"विज्ञापन-मुक्त ब्राउज़िंग",cta:"सदस्यता लें",perMonth:"/माह",note:"मासिक नवीनीकरण। कभी भी रद्द करें।"},
+    ar:{title:"الخطة المميزة",benefit:"تصفح بدون إعلانات",cta:"اشترك",perMonth:"/شهر",note:"تجديد شهري. يمكنك الإلغاء في أي وقت."},
+    ru:{title:"Премиум-план",benefit:"Просмотр без рекламы",cta:"Подписаться",perMonth:"/мес",note:"Ежемесячное продление. Отмена в любое время."},
+    tr:{title:"Premium Plan",benefit:"Reklamsız gezinme",cta:"Abone ol",perMonth:"/ay",note:"Aylık yenileme. İstediğiniz zaman iptal edin."},
+    ko:{title:"프리미엄 플랜",benefit:"광고 없는 탐색",cta:"구독하기",perMonth:"/월",note:"매월 갱신. 언제든지 취소할 수 있습니다."},
+    nl:{title:"Premium-abonnement",benefit:"Reclamevrij browsen",cta:"Abonneren",perMonth:"/maand",note:"Maandelijks verlengd. Altijd opzegbaar."},
+    pl:{title:"Plan Premium",benefit:"Przeglądanie bez reklam",cta:"Subskrybuj",perMonth:"/mies.",note:"Odnawiany co miesiąc. Anuluj w dowolnym momencie."},
+    sv:{title:"Premiumplan",benefit:"Reklamfri surfning",cta:"Prenumerera",perMonth:"/månad",note:"Förnyas månadsvis. Avsluta när som helst."},
+    id:{title:"Paket Premium",benefit:"Penjelajahan tanpa iklan",cta:"Berlangganan",perMonth:"/bulan",note:"Perpanjangan bulanan. Batalkan kapan saja."},
+    vi:{title:"Gói Premium",benefit:"Duyệt web không quảng cáo",cta:"Đăng ký",perMonth:"/tháng",note:"Gia hạn hàng tháng. Hủy bất cứ lúc nào."},
+    uk:{title:"Преміум-план",benefit:"Перегляд без реклами",cta:"Підписатися",perMonth:"/міс",note:"Щомісячне поновлення. Скасуйте будь-коли."}
+  };
+
+  function detectLang(){
+    var lang = "";
+    try { if (window.AccountI18n && window.AccountI18n.getLanguage) lang = window.AccountI18n.getLanguage(); } catch(e) {}
+    if (!lang) lang = window.__LANG || "pt";
+    lang = String(lang).toLowerCase();
+    if (lang === "pt-br") lang = "pt";
+    return lang;
+  }
+
+  function isInternational(lang){
+    return lang !== "pt";
+  }
+
+  function stripeCurrency(lang){
+    return EUR_LANGS[lang] ? "€ 5" : "US$ 5";
+  }
+
+  function plansHtml(){
+    var lang = detectLang();
+    if (isInternational(lang)) return stripePlansHtml(lang);
+    return asaasPlansHtml();
+  }
+
+  function stripePlansHtml(lang){
+    var t = STRIPE_TEXT[lang] || STRIPE_TEXT.en;
+    var price = stripeCurrency(lang);
+    var out = '<div class="grid grid-cols-1 gap-6 items-stretch max-w-xl">';
+    out += '<div class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full">';
+    out += '<span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span>';
+    out += '<h3 class="text-lg font-bold text-[#1A3E74]">' + esc(t.title) + '</h3>';
+    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">' + esc(price) + '</span><span class="text-sm text-[#1A3E74]"> ' + esc(t.perMonth) + '</span></div>';
+    out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+    out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold">✓</span><span>' + esc(t.benefit) + '</span></li>';
+    out += '</ul>';
+    out += '<p class="text-xs text-slate-500 mb-3">' + esc(t.note) + '</p>';
+    out += '<button type="button" id="js-pay-stripe" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">' + esc(t.cta) + '</button>';
+    out += '</div>';
+    out += '</div>';
+    return out;
+  }
+
+  function handleStripeCheckout(){
+    var u = window.Auth && window.Auth.currentUser ? window.Auth.currentUser() : null;
+    if(!u){ return; }
+    var lang = detectLang();
+    var btn = document.getElementById("js-pay-stripe");
+    if(btn){ btn.disabled = true; }
+    fetch(SUPABASE_FN_BASE + "/stripe-checkout", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "apikey": SUPABASE_ANON_KEY,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ uid: u.uid, lang: lang })
+    }).then(function(r){ return r.json(); }).then(function(d){
+      if(d && d.url){ window.open(d.url, "_blank", "noopener"); }
+      else { alert(d && d.error ? d.error : "Erro ao iniciar o pagamento."); }
+    }).catch(function(){ alert("Erro ao iniciar o pagamento."); }).then(function(){ if(btn){ btn.disabled = false; } });
   }
 
   function statusHtml(){
@@ -124,6 +212,7 @@
     var cancel=document.getElementById("js-cancel"); if(cancel) cancel.addEventListener("click",function(){ if(confirm("Cancelar assinatura?")){ window.Subscription.cancel().then(render).catch(function(e){alert(e.message);}); } });
     var pay=document.getElementById("js-pay-asaas"); if(pay) pay.addEventListener("click", handleAsaasCheckout);
     var payPix=document.getElementById("js-pay-pix-avulsa"); if(payPix) payPix.addEventListener("click", handleAsaasPix);
+    var payStripe=document.getElementById("js-pay-stripe"); if(payStripe) payStripe.addEventListener("click", handleStripeCheckout);
   }
 
   var ASAAS_CHECKOUT_URL = "https://www.asaas.com/c/vcnk68nigacrape5";
