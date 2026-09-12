@@ -280,7 +280,10 @@ async function logSubscriber(paymentId: string, name: string, email: string, pla
 // Ativa o plano quando o pagamento é confirmado/recebido.
 async function handlePayment(event: string, paymentId: string) {
   if (!paymentId) return;
-  if (await alreadyProcessed(paymentId)) return;
+  // NOTA: a checagem de idempotência (alreadyProcessed) foi REMOVIDA para
+  // não depender de LEITURA do Firestore (quota de leitura excedida, 429).
+  // setPlan é idempotente (grava o mesmo valor), então reenvios do Asaas
+  // são inofensivos.
 
   const payment = await asaasGet(`/payments/${paymentId}`);
   const billingType = String(payment.billingType || "");
