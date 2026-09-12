@@ -23,6 +23,7 @@
         { pattern: /^\/biblioteca-premium\//, req: { requiredPlan: "premium" } },
         { pattern: /^\/downloads\//, req: { requiredPlan: "premium" } },
         { pattern: /formulario|fotmulario/i, req: { requiredPlan: "junior" } },
+        { pattern: /\/(braden|morse|dimensionamento|fugulin|meem)\.html$/i, req: { requiredPlan: "junior" } },
         { pattern: /^\/forum\//, req: { requiredFeature: "forum" } },
         { pattern: /^\/admin\//, req: { requiredRole: "administrator" } }
     ];
