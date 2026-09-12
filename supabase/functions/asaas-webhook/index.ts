@@ -121,37 +121,69 @@ async function firestoreGet(path: string, token: string): Promise<Record<string,
   return await res.json();
 }
 
-// Localiza o UID do usuário pelo email (campo "email" no doc users/{uid}).
-async function findUidByEmail(email: string, token: string): Promise<string> {
+// Localiza o UID do usuário pelo email. Usa o Firebase Auth (Identity
+// Toolkit) em vez de runQuery no Firestore, para não depender da quota
+// de consultas estruturadas do plano gratuito.
+async function getUidByEmailAuth(email: string): Promise<string> {
+  const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT || "");
+  const now = Math.floor(Date.now() / 1000);
+  const header = { alg: "RS256", typ: "JWT" };
+  const claims = {
+    iss: sa.client_email,
+    scope: "https://www.googleapis.com/auth/identitytoolkit",
+    aud: sa.token_uri,
+    iat: now,
+    exp: now + 3600,
+  };
+  const signingInput = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claims))}`;
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    pemToArrayBuffer(sa.private_key),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    new TextEncoder().encode(signingInput),
+  );
+  const jwt = `${signingInput}.${b64url(sig)}`;
+  const tokenRes = await fetch(sa.token_uri, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+      assertion: jwt,
+    }),
+  });
+  const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) {
+    throw new Error("Falha ao obter token do Identity Toolkit: " + JSON.stringify(tokenData));
+  }
   const res = await fetch(
-    `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents:runQuery`,
+    `https://identitytoolkit.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/accounts:lookup`,
     {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        structuredQuery: {
-          from: [{ collectionId: "users" }],
-          where: {
-            fieldFilter: {
-              field: { fieldPath: "email" },
-              op: "EQUAL",
-              value: { stringValue: email },
-            },
-          },
-          limit: 1,
-        },
-      }),
+      headers: {
+        Authorization: `Bearer ${tokenData.access_token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: [email] }),
     },
   );
   if (!res.ok) {
-    throw new Error(`Firestore runQuery -> ${res.status}: ${await res.text()}`);
+    throw new Error(`Identity Toolkit lookup -> ${res.status}: ${await res.text()}`);
   }
   const data = await res.json();
-  const doc = Array.isArray(data) && data[0] && data[0].document;
-  if (!doc || !doc.name) return "";
-  // name = projects/.../documents/users/{uid}
-  const parts = String(doc.name).split("/");
-  return parts[parts.length - 1];
+  const users = (data.users || []) as Array<any>;
+  if (!users.length) return "";
+  return String(users[0].localId || "");
+}
+
+// Localiza o UID do usuário pelo email (campo "email" no doc users/{uid}).
+async function findUidByEmail(email: string, token: string): Promise<string> {
+  return await getUidByEmailAuth(email);
 }
 
 // ───────────────────────── Asaas (API) ──────────────────────────────
@@ -348,7 +380,9 @@ serve(async (req) => {
 
     return new Response("ok", { status: 200 });
   } catch (err) {
+    // Responde 200 mesmo em erro para NÃO disparar retry do Asaas
+    // (ex.: quota excedida no Firestore), evitando loop que esgota a quota.
     console.error("Erro no asaas-webhook", err);
-    return new Response("error", { status: 500 });
+    return new Response("ok", { status: 200 });
   }
 });
