@@ -21,7 +21,10 @@ Você NÃO edita arquivos — é a contra-prova independente do fluxo.
    acessibilidade (lang, skip-link, alt, headings), impressão/PDF, referências + governança,
    e **CWV/performance** (evidência automática em `relatorios/cwv-gate/`; status PASS/PASS_STABLE
    ou exceção documentada).
-3. Procure especificamente: erros, omissões, contradições, regressões, violações de regras,
+3. Consulte obrigatoriamente `CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`
+   e faça contra-prova específica de **dimensões, tipografia, espaçamento, compactação, hero,
+   gradiente, cores, bordas, sombras, acabamento visual e responsividade**.
+4. Procure especificamente: erros, omissões, contradições, regressões, violações de regras,
    duplicações e alterações indevidas.
 
 ## Veredito
