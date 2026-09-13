@@ -1,274 +1,131 @@
-# Catálogo do Sistema de Contas e Pagamentos
+# Sistema de Contas e Pagamentos — Arquitetura Atual
 
-> Documento-mãe que consolida **tudo o que foi implementado** no sistema de
-> contas, assinaturas e pagamentos do site "Calculadoras de Enfermagem".
-> Complementa os arquivos de auditoria por fase (`auditoria_fase2.txt` a
-> `auditoria_fase7.txt`), o `SISTEMA_CONTAS_COMPLETO.txt` (Fase 1) e o
-> `mapa_planos_conteudo.md`.
->
-> **Objetivo**: permitir que qualquer agente de IA (ou pessoa) leia este
-> arquivo e entenda a arquitetura completa, os serviços externos, o
-> armazenamento e as ligações entre as partes — sem precisar rastrear o código.
+Data: 2026-09-13
 
----
+## 1. Princípios
 
-## 1. Visão geral em uma frase
+O site usa GitHub Pages para o frontend estático, Firebase Authentication para identidade, Firestore como fonte de verdade do plano e Supabase Edge Functions como backend de pagamentos.
 
-O site é **estático (HTML/CSS/JS vanilla, Tailwind) hospedado no GitHub Pages**,
-com um sistema de **contas** (Firebase Authentication + Firestore) e de
-**assinatura premium** (pagamento real via **Asaas** para o Brasil e **Stripe**
-para o exterior), ativado de forma **100% automática** por **webhooks** que
-rodam em **Edge Functions do Supabase** e atualizam o plano do usuário no
-**Firestore**. Assinantes premium ficam **sem anúncios**.
+Existem somente dois planos efetivos:
 
----
+- `free` — acesso ao conteúdo gratuito, com anúncios.
+- `junior` — acesso aos conteúdos premium e navegação sem anúncios enquanto a licença estiver válida.
 
-## 2. Serviços externos usados
+Não existe mais uma muralha global que envie todo usuário gratuito para a página de assinatura. O bloqueio é por conteúdo/página conforme `js/access/content-policy.js` e `js/access/access-router.js`.
 
-| Serviço | Para que serve | Conta/identificador |
-|---|---|---|
-| **Firebase** (Authentication + Firestore) | Login (Google/Email), perfis, favoritos, histórico, assinaturas, registro de assinantes | Projeto `calculadoras-enfermagem` |
-| **Supabase** (Edge Functions, Deno/TS) | Lógica de backend (webhooks, checkout, painel admin) | Project ref `asjkftjfbkuuhilnqonx` |
-| **Asaas** | Pagamentos do Brasil (cartão, boleto, Pix) | Conta PJ (CNPJ) do dono |
-| **Stripe** | Pagamentos internacionais (cartão internacional, USD/EUR) | Conta do dono |
-| **Resend** | E-mail de notificação (usado no Pix manual — **aposentado**) | Domínio verificado |
+## 2. Fonte de verdade
 
-### Detalhes do Firebase
-- **apiKey**: `AIzaSyAbWwuA8pq6bTI9T8ht5f-X65yMbw6iQ_I`
-- **projectId**: `calculadoras-enfermagem`
-- **authDomain**: `calculadoras-enfermagem.firebaseapp.com`
-- Provedores: Google + Email/Senha.
-- Config fica em `js/firebase/firebase-init.js` (singleton + lazy loading).
+`users/{uid}` é a fonte de verdade para o estado de acesso. O cliente não pode alterar `plan`, `role`, `permissions` ou `status` pelas regras do Firestore.
 
-### Detalhes do Supabase
-- Project ref: `asjkftjfbkuuhilnqonx`.
-- Anon key pública (usada no front): ver `conta/assinatura.html` e `conta/admin-pagamentos.html`.
-- Edge Functions ativas (5): ver seção 5.
+Os registros operacionais de pagamento são privados:
 
----
+- `premiumOrders/{orderId}` — pedido criado antes do checkout.
+- `asaasCustomers/{customerId}` — associação estável Asaas customer ↔ Firebase UID.
+- `asaasSubscribers/{orderId}` — registro administrativo do assinante.
+- `asaasEvents/{eventId}` — idempotência e estado do processamento do webhook.
+- `users/{uid}/subscriptions/{subscriptionId}` — histórico controlado pelo backend.
 
-## 3. Onde os dados são armazenados
+## 3. Brasil — Asaas
 
-### Firestore (Firebase) — fonte oficial de verdade
+Preço oficial: **R$ 10,00**.
 
-| Coleção/documento | Conteúdo | Escrita por |
-|---|---|---|
-| `users/{uid}` | perfil + `plan` (`free`/`junior`/`pleno`/`senior`) + `planExpiresAt` + `role` + `permissions` | `auth-user-profile.js` (perfil) e webhooks (plano) |
-| `users/{uid}/subscriptions/{id}` | histórico de assinatura (`planId`, `status`, `provider`, `providerSubscriptionId`) | webhooks |
-| `users/{uid}/favorites/{pageId}` | favoritos | `js/favorites/` |
-| `users/{uid}/history/{id}` | histórico de navegação | `js/history/` |
-| `asaasSubscribers/{id}` | **registro de assinantes** (nome, e-mail, plano, `provider`, data/hora) — alimenta o painel admin | `asaas-webhook` e `stripe-webhook` |
-| `asaasEvents/{paymentId}` | idempotência do webhook Asaas (`processedAt`) | `asaas-webhook` |
+### Cartão de crédito
 
-> ⚠️ `asaasSubscribers` também recebe assinantes do Stripe (campo `provider`
-> diferencia: `"asaas"` ou `"stripe"`).
+É uma assinatura recorrente mensal.
 
-### localStorage (cache, não é fonte de verdade)
+Fluxo:
 
-| Chave | Conteúdo | TTL |
-|---|---|---|
-| `auth_user_profile_cache` | perfil (espelho do Firestore) | 5 min |
-| `auth_profile` | perfil resumido (nome, foto, plano) | sessão |
-| `sub_*` | assinaturas (cache) | 5 min |
-| `conta.language` | idioma do painel de conta | persistente |
+1. Usuário autenticado abre `/conta/assinatura.html`.
+2. Frontend obtém o Firebase ID token.
+3. `POST /asaas-checkout` recebe `kind=monthly_card`.
+4. A Edge Function valida o token, obtém `uid`, e-mail e nome e cria `premiumOrders/{orderId}`.
+5. A Edge Function cria `POST /v3/checkouts` no Asaas com `billingTypes=[CREDIT_CARD]`, `chargeTypes=[RECURRENT]`, valor R$10,00 e `externalReference=premium_junior_{orderId}`.
+6. O frontend redireciona para o checkout individual retornado pelo Asaas.
+7. O Asaas envia Webhooks.
+8. O backend reconcilia pelo `externalReference`; nunca depende de pesquisa de UID por e-mail.
 
----
+### Pix
 
-## 4. Arquitetura em camadas (front → back)
+Pagamento único com validade de 30 dias.
 
-```mermaid
-flowchart TD
-    subgraph Front["Frontend (páginas estáticas)"]
-        A["conta/assinatura.html<br/>(planos + botão assinar)"]
-        B["conta/admin-pagamentos.html<br/>(registro de assinantes)"]
-        C["global-scripts.js<br/>(menu, ads, auth lazy)"]
-        D["js/auth/* + js/subscriptions/* + js/access/*"]
-    end
+Fluxo igual ao anterior, mas `kind=pix_30d`, `billingTypes=[PIX]` e `chargeTypes=[DETACHED]`.
 
-    subgraph Auth["Firebase"]
-        F1["Firebase Auth<br/>(Google / Email)"]
-        F2["Firestore<br/>(users, subscriptions, asaasSubscribers)"]
-    end
+O Checkout oficial do Asaas aceita `CREDIT_CARD` e `PIX`; não deve ser anunciado como um único Checkout de cartão + boleto. Consulte a configuração vigente do produto antes de anunciar boleto.
 
-    subgraph Supa["Supabase Edge Functions"]
-        S1["stripe-checkout"]
-        S2["stripe-webhook"]
-        S3["asaas-webhook"]
-        S4["asaas-admin"]
-        S5["translate-forum-message"]
-    end
+## 4. Eventos Asaas
 
-    subgraph Pg["Gateways de pagamento"]
-        G1["Stripe<br/>(cartão internacional USD/EUR)"]
-        G2["Asaas<br/>(cartão/boleto/Pix Brasil)"]
-    end
+O webhook deve estar ativo em produção e autenticado pelo header `asaas-access-token`.
 
-    A -->|"POST {uid, lang}"| S1
-    S1 -->|"cria Checkout Session"| G1
-    G1 -->|"webhook checkout.session.completed"| S2
-    S2 -->|"grava users/{uid}.plan"| F2
-    S2 -->|"grava asaasSubscribers"| F2
+Eventos usados pelo backend:
 
-    A -->|"window.open link /c/..."| G2
-    G2 -->|"webhook PAYMENT_RECEIVED/CONFIRMED"| S3
-    S3 -->|"grava users/{uid}.plan"| F2
-    S3 -->|"grava asaasSubscribers"| F2
+- `CHECKOUT_CREATED`
+- `CHECKOUT_PAID`
+- `CHECKOUT_CANCELED`
+- `CHECKOUT_EXPIRED`
+- `SUBSCRIPTION_CREATED`
+- `SUBSCRIPTION_DELETED`
+- `SUBSCRIPTION_INACTIVATED`
+- `PAYMENT_CONFIRMED`
+- `PAYMENT_RECEIVED`
 
-    B -->|"POST {adminEmail}"| S4
-    S4 -->|"lê asaasSubscribers"| F2
+O evento é persistido por seu `id` para idempotência. O processamento ocorre após a aceitação do evento; falhas são registradas como `error` em `asaasEvents`.
 
-    C -->|"auth lazy load"| F1
-    D -->|"lê/grava perfil"| F2
-```
+## 5. Internacional — Stripe
 
----
+Preços ativos:
 
-## 5. Edge Functions do Supabase (ativas)
+- USD 5/mês: `price_1UEeJeAE0EBt2lxCFI56AWCx`
+- EUR 5/mês: `price_1UEf7uAE0EBt2lxCmfLGGmNH`
 
-Local: `supabase/functions/`. Deploy com `--no-verify-jwt` (o front chama com a anon key; os gateways chamam sem JWT).
+O frontend mantém as 18 localizações do site. A Edge Function `stripe-checkout` escolhe USD/EUR pelo idioma, valida o Firebase ID token e envia `client_reference_id=uid` e `subscription_data.metadata.uid=uid`.
 
-| Função | Gatilho | O que faz | Secrets (nomes) |
-|---|---|---|---|
-| `stripe-checkout` | `POST /stripe-checkout {uid, lang}` | Escolhe price (USD/EUR) pelo idioma e cria Checkout Session (`client_reference_id=uid`, `subscription_data.metadata.uid=uid`). Devolve `{url}`. | `STRIPE_SECRET_KEY`, `STRIPE_PRICE_USD`, `STRIPE_PRICE_EUR` |
-| `stripe-webhook` | Stripe → `POST /stripe-webhook` (header `stripe-signature`) | Verifica assinatura HMAC. `checkout.session.completed` → ativa `junior` (+30d) e grava assinante. `customer.subscription.deleted` → `free`. | `FIREBASE_SERVICE_ACCOUNT`, `STRIPE_WEBHOOK_SECRET` |
-| `asaas-webhook` | Asaas → `POST /asaas-webhook` (header `asaas-access-token`) | Verifica token. `PAYMENT_CONFIRMED` (cartão/boleto) e `PAYMENT_RECEIVED` (Pix) → busca pagamento/cliente na API Asaas, localiza UID por **e-mail** (`users` where `email == X`), ativa `junior` e grava assinante. `SUBSCRIPTION_DELETED/INACTIVATED` → `free`. | `FIREBASE_SERVICE_ACCOUNT`, `ASAAS_API_TOKEN`, `ASAAS_WEBHOOK_TOKEN` |
-| `asaas-admin` | `POST /asaas-admin {adminEmail}` | Verifica `adminEmail` (2 contas admin). Lista `asaasSubscribers` ordenado por `createdAt` desc. | `FIREBASE_SERVICE_ACCOUNT`, `ADMIN_EMAIL`, `ADMIN_EMAIL_2` |
-| `translate-forum-message` | Fórum (`forum-enfermagem.html`, todos os idiomas) | Traduz mensagens (Google Translation API, fallback DeepSeek). | `GOOGLE_TRANSLATION_API_KEY`, `DEEPSEEK_API_KEY`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `FORUM_ALLOWED_ORIGINS` |
+A criação do Checkout não lista manualmente `payment_method_types`; o Stripe Dashboard gerencia os métodos dinâmicos elegíveis. Isso evita o erro observado de `No valid payment method types for this Checkout Session`.
 
-> `FIREBASE_SERVICE_ACCOUNT` = JSON single-line da service account do Firebase
-> (usado para gerar JWT RS256 e autenticar no Firestore REST). `FIREBASE_PROJECT_ID`
-> tem fallback `"calculadoras-enfermagem"`.
+## 6. Edge Functions
 
----
+- `asaas-checkout` — cria checkout individual autenticado para o Brasil.
+- `asaas-webhook` — recebe, persiste e processa eventos Asaas.
+- `asaas-admin` — leitura administrativa de `asaasSubscribers`.
+- `stripe-checkout` — cria Checkout Session internacional autenticada.
+- `stripe-webhook` — ativa/renova/revoga o plano a partir dos eventos Stripe.
 
-## 6. Fluxo completo de assinatura (passo a passo)
+Os segredos ficam somente no ambiente do Supabase.
 
-### 6.1. Assinatura mensal (Brasil — Asaas)
+## 7. Acesso premium
 
-1. Usuário logado acessa `/conta/assinatura.html`.
-2. A página detecta o idioma: **pt-BR** → mostra os cards do **Asaas**.
-3. Botão "Assinar (cartão ou boleto)" → `window.open("https://www.asaas.com/c/vcnk68nigacrape5")` (assinatura mensal R$ 10, cartão + boleto).
-4. Botão "Pagar com Pix" → `window.open("https://www.asaas.com/c/z89jgzlk57nb354p")` (Pix avulsa R$ 10 = 30 dias, renova pagando de novo).
-5. Usuário paga. Asaas dispara o webhook.
-6. `asaas-webhook`:
-   - Busca o pagamento na API Asaas (`GET /v3/payments/{id}`) → `billingType` e `customer`.
-   - Busca o cliente (`GET /v3/customers/{id}`) → `email` e `name`.
-   - Localiza o UID: query Firestore `users` where `email == X`.
-   - Grava `users/{uid}.plan = "junior"`, `planExpiresAt` (+30 dias) e `asaasSubscribers/{paymentId}`.
-   - Idempotência: `asaasEvents/{paymentId}`.
+`js/auth/auth-core.js` administra autenticação e perfil, mas não redireciona automaticamente usuários gratuitos para a assinatura.
 
-### 6.2. Assinatura mensal (internacional — Stripe)
+`js/auth/authorization.js` considera `lifetime=true` ou um `junior` ainda dentro de `planExpiresAt` como acesso premium efetivo.
 
-1. Usuário logado acessa `/conta/assinatura.html?lang=xx` (ou o idioma é detectado).
-2. A página detecta idioma **não-pt-BR** → mostra o card do **Stripe** (US$ 5 ou € 5).
-3. Botão "Assinar" → chama `stripe-checkout` (`POST {uid, lang}`).
-4. `stripe-checkout` escolhe o price (USD para `en,id,hi,ja,zh,ko,vi,ar`; EUR para `tr,nl,pl,ru,fr,es,de,it,uk,sv`) e cria a Checkout Session, devolvendo a URL.
-5. Front redireciona (`window.open`) para o checkout da Stripe.
-6. Usuário paga (cartão internacional). Stripe dispara o webhook.
-7. `stripe-webhook` (evento `checkout.session.completed`):
-   - Lê `client_reference_id` (o UID).
-   - Grava `users/{uid}.plan = "junior"` + `asaasSubscribers/stripe_{sessionId}` (provider `"stripe"`).
+`js/access/content-policy.js` define quais conteúdos exigem `junior`.
 
-### 6.3. Ativação do benefício (sem anúncios)
+`global-scripts.js` usa `Authorization.hasPlan("premium")` para remover anúncios do assinante.
 
-Depois que o webhook grava `plan = "junior"`, o `global-scripts.js`:
-- `isPremiumSubscriber()` → `Authorization.hasPlan("premium")` (true para junior/pleno/senior) ou cache.
-- `hideAdsForPremium()` → adiciona classe `premium-no-ads` no `<html>`, esconde anúncios (multiplex + auto-placed) e instala um `MutationObserver` para pegar anúncios inseridos depois.
+## 8. Página de assinatura
 
----
+`conta/assinatura.html` carrega explicitamente `auth-user-profile.js` e seus módulos necessários. Não utiliza mais a antiga cadeia `js/subscriptions/*`.
 
-## 7. Bloqueio de anúncios (resumo)
+A página registra eventos de funil em GA4:
 
-- `global-scripts.js` controla os anúncios:
-  - **Anúncios automáticos** (AdSense) carregados em `loadAdSenseOnce()`, **gateado** por `isPremiumSubscriber()`.
-  - **Anúncio multiplex** (`ins.adsbygoogle` antes do rodapé) inicializado em `initializeMultiplexAds()`, também gateado.
-  - **CSS de segurança** `html.premium-no-ads` esconde tudo com `!important` (fallback).
-  - `MutationObserver` re-oculta anúncios inseridos depois (auto-placed).
-- Idiomas com AdSense fora do `global-scripts.js` (blog, concurso, downloads) usam `isPremiumLocal()` (checa cache).
-- Assinante premium → zero anúncios. Usuário gratuito → anúncios normais.
+- `subscription_view`
+- `subscription_checkout_click`
+- `subscription_checkout_created`
+- `subscription_checkout_error`
 
----
+## 9. Regras de segurança
 
-## 8. Painel admin (registro de assinantes)
+- Nunca coloque `ASAAS_API_TOKEN`, `ASAAS_WEBHOOK_TOKEN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` ou service account no frontend.
+- O frontend envia somente o Firebase ID token e a anon key pública do Supabase.
+- O plano não é concedido por escrita direta do cliente no Firestore.
+- Webhooks são a autoridade para confirmação financeira; callbacks do navegador não concedem acesso.
 
-- Página: `conta/admin-pagamentos.html` (noindex).
-- Consome `asaas-admin` (somente leitura).
-- Lista `asaasSubscribers` em ordem cronológica (mais recente primeiro): nome, e-mail, plano, data/hora.
-- **Não há mais aprovação manual** (ativação é automática). O painel é só um **registro**.
-- Admin (2 contas): `kauepg18@gmail.com` e `kauesp07@hotmail.com` (em `_isAdmin()` no `global-scripts.js`, `asaas-admin` e `pix-admin`).
+## 10. Operação
 
----
+Antes de ativar uma mudança de pagamento em produção:
 
-## 9. Preços ativos
-
-| Gateway | Produto/Plano | Valor | Moeda | Link / ID |
-|---|---|---|---|---|
-| Asaas | Assinatura mensal (cartão + boleto) | R$ 10,00 | BRL | `https://www.asaas.com/c/vcnk68nigacrape5` |
-| Asaas | Pix avulsa (30 dias) | R$ 10,00 | BRL | `https://www.asaas.com/c/z89jgzlk57nb354p` |
-| Stripe | "Premium Plan" (mensal) | US$ 5,00 | USD | `price_1UEeJeAE0EBt2lxCFI56AWCx` |
-| Stripe | "Premium Plan" (mensal) | € 5,00 | EUR | `price_1UEf7uAE0EBt2lxCmfLGGmNH` |
-
-### Mapeamento idioma → moeda (Stripe)
-
-- **US$ 5**: `en, id, hi, ja, zh, ko, vi, ar` (inglês + Ásia).
-- **€ 5**: `tr, nl, pl, ru, fr, es, de, it, uk, sv` (Europa).
-- **pt-BR** (raiz): usa **Asaas** (R$ 10).
-
----
-
-## 10. Estado atual (ativo vs aposentado)
-
-### ✅ Ativo
-- Auth: Firebase (Google + Email).
-- Perfil/Favoritos/Histórico no Firestore.
-- RBAC (`Authorization`) + Content Access (`Access`).
-- Assinaturas (`Subscription`).
-- Pagamentos: **Asaas** (BR) + **Stripe** (internacional).
-- Painel admin (registro de assinantes).
-- Bloqueio de anúncios p/ premium.
-- `translate-forum-message` (fórum).
-
-### 🗑️ Aposentado / removido (para não confundir um agente futuro)
-
-| Item | Motivo |
-|---|---|
-| PayPal (paypal-*) | exige CNPJ; descartado |
-| Lemon Squeezy (lemon-webhook) | bloqueado (payout Stripe) |
-| Mercado Pago (mercadopago-*) | rejeitado pelo dono |
-| Pix manual PicPay (pix-order, pix-admin) | substituído pelo Asaas |
-| `conta/cobranca.html` | página órfã do Mercado Pago (deletada) |
-
-> Essas funções foram **deletadas do Supabase** e do repositório. Backup em
-> `backups-temporarios/fn-backup-20260911/`.
-
----
-
-## 11. Como um agente de IA deve ler este sistema
-
-1. **Comece por aqui** (este catálogo) para o panorama geral.
-2. Para detalhes de cada fase, leia `SISTEMA_CONTAS_COMPLETO.txt` (Fase 1) e
-   `auditoria_fase2.txt` … `auditoria_fase7.txt` (Fases 2–7).
-3. **Camadas de código** (fonte de verdade):
-   - Front de conta: `conta/*.html`.
-   - Auth: `js/auth/auth-core.js` (facade `window.Auth`).
-   - Autorização: `js/auth/authorization.js` (facade `window.Authorization`).
-   - Planos: `js/auth/plan-service.js` (preços/rótulos).
-   - Assinaturas: `js/subscriptions/subscription-manager.js` (facade `window.Subscription`).
-   - Acesso a conteúdo: `js/access/` (facade `window.Access`).
-   - Anúncios + menu: `global-scripts.js`.
-   - Backend: `supabase/functions/*/index.ts`.
-4. **Comandos úteis**:
-   - Deploy de função: `supabase functions deploy <nome> --no-verify-jwt --project-ref asjkftjfbkuuhilnqonx`
-   - Segredos: `supabase secrets set <CHAVE>='<valor>' --project-ref asjkftjfbkuuhilnqonx`
-   - Build do site: `.\node_modules\.bin\tailwindcss -i ./src/input.css -o ./public/output.css --minify ; node gerar-sw.js`
-
----
-
-## 12. Armadilhas conhecidas (para evitar repetir erros)
-
-- Service account do Firebase deve ser **JSON single-line** (sem quebras de linha).
-- Testar webhook no PowerShell 5.1 com `curl -d` remove aspas → usar `node fetch`.
-- Firestore REST v1: **PATCH** (não POST) para criar doc com documentId.
-- `supabase functions logs` e `invoke` **não existem** no CLI v2.116.
-- Firestore no plano **Spark (grátis)** tem cota diária (50k leituras) → erro `429 Quota exceeded`. Solução: plano **Blaze**.
-- E-mail de e-mail do Firebase Auth é sempre **minúsculas** (normalizar antes de comparar).
+1. Faça o deploy das Edge Functions.
+2. Atualize os Secrets do Supabase.
+3. Configure no Asaas os eventos de Checkout, assinatura e cobrança usados pelo backend.
+4. Faça um pagamento de teste controlado.
+5. Confirme a cadeia `premiumOrders → webhook → users/{uid}.plan → acesso premium`.
+6. Só depois desative os links públicos antigos do Asaas e remova referências administrativas antigas.

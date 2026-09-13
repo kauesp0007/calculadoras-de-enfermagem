@@ -1,91 +1,83 @@
 ================================================================================
   MAPA DE PLANOS × CONTEÚDO — CALCULADORAS DE ENFERMAGEM
-  Fonte canônica do que é pago e do que é gratuito.
-  Atualizado: 02/09/2026
+  Fonte canônica de acesso.
+  Atualizado: 13/09/2026
 ================================================================================
 
-Este documento registra, de forma centralizada, quais conteúdos pertencem a
-cada plano. É a referência usada por agentes/desenvolvedores ao criar novas
-páginas. O registro técnico (que efetivamente bloqueia o acesso) fica em:
+A decisão técnica de acesso fica em:
+  js/access/content-policy.js -> RESTRICTED_CONTENT
 
-  js/access/content-policy.js  -> objeto RESTRICTED_CONTENT
+A regra fundamental é simples: usuários gratuitos continuam navegando normalmente
+no conteúdo público. Somente conteúdos marcados como premium exigem o plano Júnior.
 
 -------------------------------------------------------------------------------
 1. PLANOS
 -------------------------------------------------------------------------------
-| ID      | Nome    | Anúncios | Disponibilidade |
-|---------|---------|----------|-----------------|
-| free    | Gratuito| Sim      | Ativo           |
-| junior  | Júnior  | Não      | Ativo           |
-| pleno   | Pleno   | Não      | Ativo           |
-| senior  | Sênior  | Não      | Ativo           |
+| ID      | Nome     | Anúncios | Disponibilidade |
+|---------|----------|----------|-----------------|
+| free    | Gratuito | Sim      | Ativo           |
+| junior  | Júnior   | Não      | Ativo           |
 
-Hierarquia: free < junior < pleno < senior (plano maior libera o menor).
+Não existem mais planos `pleno` ou `senior`.
 
 -------------------------------------------------------------------------------
-2. REGRAS DE ACESSO POR PLANO
+2. REGRAS DE ACESSO
 -------------------------------------------------------------------------------
 free (Gratuito):
+  - Acesso normal ao conteúdo público/gratuito.
   - Exibe anúncios.
-  - NÃO acessa as escalas premium (braden, fugulin, morse, dimensionamento,
-    perroca, capurro, balancohidrico, meem, moca).
-  - NÃO acessa os simulados de enfermagem.
-  - NÃO acessa os formulários em branco.
-  - NÃO imprime nem gera PDF de escalas e calculadoras.
+  - Ao tentar abrir conteúdo premium, recebe a tela/banner de acesso premium.
 
 junior (Júnior):
-  - Sem anúncios.
-  - Acessa todas as escalas e calculadoras.
-  - NÃO acessa simulados nem formulários em branco.
+  - Acesso ao conteúdo gratuito e a todo conteúdo marcado com `junior`.
+  - Sem anúncios enquanto `planExpiresAt` estiver válido ou `lifetime=true`.
 
-pleno (Pleno):
-  - Sem anúncios.
-  - Todas as escalas e calculadoras.
-  - Todos os simulados.
-  - NÃO acessa formulários em branco.
-
-senior (Sênior):
-  - Sem anúncios.
-  - Acesso total (tudo do Pleno).
-  - Formulários de escalas em branco para imprimir e preencher.
-  - Escalas de folga e férias semiautomáticas em Excel.
-  - Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel.
-  - Apostilas e mapa cirúrgico.
-  - Aplicativos APK para assistência.
+Não existe redirecionamento global de todo usuário gratuito para a página de
+assinatura.
 
 -------------------------------------------------------------------------------
-3. CONTEÚDO RESTRITO (mapa canônico)
+3. CONTEÚDO RESTRITO
 -------------------------------------------------------------------------------
-Escalas premium (exigem plano "junior" ou superior):
-  braden, fugulin, morse, dimensionamento, perroca, capurro, balancohidrico,
-  meem, moca
+A lista efetiva é mantida exclusivamente por `js/access/content-policy.js`.
 
-Simulados (todos exigem plano "pleno" ou superior):
-  simulado-de-enfermagem, simulado-de-enfermagem4, simulado-de-enfermagem2,
-  simulado-de-enfermagem3, simulado-de-enfermagem-nucleo-de-seguranca-do-paciente,
-  simulado-de-enfermagem-doencas-de-notificacao-compulsoria, simulado_vacinacao,
-  simulado_pcr, simulado_bloco-operatorio, flashcards_quiz,
-  simulado_ibam_bebedouro_enfermeiro_2024, simulado_ibam_guarulhos_enfermeiro_2024,
-  simulado_ibam_guarulhos_enfermeiro_esf_2024, simulado_ibam_japaratuba_sergipe_enfermeiro_2014,
-  simulado_lei_organica_do_sus_8080-90, simulado_codigo_de_etica_enfermagem
+Exemplos atualmente marcados para `junior`:
+  morse, braden, fugulin, dimensionamento, meem, balancohidrico,
+  medicamentos, glasgow e formulários identificados pela regra canônica.
 
-Formulários em branco (exigem plano "senior"):
-  formularios-em-branco-de-escalas, fotmulario_escala_de_perroca,
-  formulario_de_fugulin, formulario_meem, formulario_impresso_sbar,
-  formulario_impresso_saep, formulario_bishop, formulario_bps,
-  formulario_cam, formulario_capurro, formulario_escala_cincinnati,
-  formulario_escala_curb65, formulario_morse
+Para adicionar um conteúdo premium:
+  "nome-do-arquivo": "junior"
+
+Não criar novas categorias de plano sem alterar primeiro a arquitetura de
+autorização e a documentação central.
 
 -------------------------------------------------------------------------------
-4. ONDE FICA CADA COISA (implementação)
+4. PAGAMENTOS E ACESSO
 -------------------------------------------------------------------------------
-- Planos (IDs, rótulos, hierarquia): js/auth/plan-service.js
-- Verificação hierárquica de plano: js/auth/authorization.js (hasPlan)
-- Benefícios por plano (labels pt-BR): js/access/benefit-engine.js
-- Bloqueio de conteúdo (RESTRICTED_CONTENT): js/access/content-policy.js
-- Sem anúncios (junior/pleno/senior): global-scripts.js (PREMIUM_AD_FREE_PLANS)
-- Bloquear impressão/PDF no gratuito: global-scripts.js (applyPlanRestrictions)
-- Regra para agentes (perguntar plano em página nova):
-  .github/instructions/planos-de-acesso.instructions.md
+Brasil — Asaas:
+  - Cartão: R$ 10,00/mês, assinatura recorrente.
+  - Pix: R$ 10,00 por 30 dias, pagamento avulso.
+  - Checkout individualizado, vinculado ao pedido por `externalReference`.
+
+Internacional — Stripe:
+  - US$ 5/mês ou € 5/mês conforme o idioma.
+  - UID enviado em `client_reference_id` e `subscription_data.metadata.uid`.
+  - Métodos de pagamento gerenciados dinamicamente pelo Dashboard.
+
+O plano somente é concedido por webhook/serviço de backend.
+
+-------------------------------------------------------------------------------
+5. ONDE FICA CADA RESPONSABILIDADE
+-------------------------------------------------------------------------------
+- Autenticação/perfil: `js/auth/auth-core.js` + `js/auth/auth-user-profile.js`
+- Planos: `js/auth/plan-service.js`
+- Plano efetivo/expiração: `js/auth/authorization.js`
+- Política do conteúdo: `js/access/content-policy.js`
+- Roteamento de acesso: `js/access/access-router.js`
+- Remoção de anúncios: `global-scripts.js`
+- Página de assinatura: `conta/assinatura.html`
+- Checkout Asaas: `supabase/functions/asaas-checkout/index.ts`
+- Webhook Asaas: `supabase/functions/asaas-webhook/index.ts`
+- Checkout Stripe: `supabase/functions/stripe-checkout/index.ts`
+- Webhook Stripe: `supabase/functions/stripe-webhook/index.ts`
 
 ================================================================================
