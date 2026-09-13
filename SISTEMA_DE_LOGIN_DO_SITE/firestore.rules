@@ -2,7 +2,6 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ─── Helpers ─────────────────────────────────────────────────
     function signedIn() {
       return request.auth != null;
     }
@@ -11,36 +10,22 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == uid;
     }
 
-    // ─── Coleção "users" ─────────────────────────────────────────
-    // Cada usuário acessa EXCLUSIVAMENTE o próprio documento.
-    // A fonte de verdade do perfil é o Firestore; o Firebase Auth
-    // é usado apenas para autenticação/UID.
     match /users/{uid} {
-
-      // Leitura: somente o dono do documento.
       allow read: if isOwner(uid);
 
-      // Criação: somente o próprio usuário, com valores iniciais seguros.
-      // Impede que o cliente crie contas já como admin/premium/status privilegiado.
       allow create: if isOwner(uid)
         && request.resource.data.uid == uid
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
         && (!('plan' in request.resource.data) || request.resource.data.plan == 'free')
         && (!('status' in request.resource.data) || request.resource.data.status == 'active');
 
-      // Atualização: somente o próprio usuário, SEM escalar privilégios.
-      // Usa diff() para bloquear qualquer mudança em campos sensíveis.
       allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['uid', 'role', 'plan', 'status', 'createdAt', 'permissions']);
 
-      // Exclusão: somente o próprio usuário (uso futuro — exclusão de conta).
       allow delete: if isOwner(uid);
     }
 
-    // ─── Subcoleção "favorites" (Fase 3 — Sistema de Favoritos) ──
-    // Cada usuário gerencia apenas seus próprios favoritos.
-    // O ID de cada documento é o pageId (garante unicidade por página).
     match /users/{uid}/favorites/{favId} {
       allow read: if isOwner(uid);
       allow create: if isOwner(uid) && request.resource.data.pageId == favId;
@@ -48,9 +33,6 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // ─── Subcoleção "history" (Fase 4 — Sistema de Histórico) ────
-    // Cada usuário gerencia apenas seus próprios registros de navegação.
-    // Cada visita tem ID automático (permite múltiplas visitas à mesma página).
     match /users/{uid}/history/{historyId} {
       allow read: if isOwner(uid);
       allow create: if isOwner(uid);
@@ -58,9 +40,6 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // ─── Catálogos públicos (Fase 6 — Content Access Engine) ─────
-    // Planos e benefícios são catálogos de leitura pública. A escrita
-    // (criação/edição) ficará a cargo de Cloud Functions/admin no futuro.
     match /plans/{planId} {
       allow read: if true;
       allow write: if false;
@@ -71,29 +50,33 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // ─── Licenças por usuário (Fase 6 — licenças independentes de plano) ──
-    // O dono pode LER suas licenças; a concessão é feita exclusivamente
-    // por Cloud Functions (pagamentos), nunca pelo cliente.
     match /users/{uid}/licenses/{licenseId} {
       allow read: if isOwner(uid);
       allow write: if false;
     }
 
-    // ─── Assinaturas (Fase 7 — Sistema de Assinaturas) ───────────
-    // O dono gerencia apenas suas próprias assinaturas. Nesta fase (sem
-    // gateway de pagamento) a criação/edição fica aberta ao dono para
-    // teste; na Fase 8 a ativação pós-pagamento passará a Cloud Functions
-    // e estas regras serão endurecidas (status/planId via servidor).
+    // Histórico de assinatura: o cliente somente lê o próprio histórico.
+    // Ativação, renovação e cancelamento são exclusivos do backend de pagamentos.
     match /users/{uid}/subscriptions/{subscriptionId} {
       allow read: if isOwner(uid);
-      allow create: if isOwner(uid);
-      allow update: if isOwner(uid);
-      allow delete: if isOwner(uid);
+      allow write: if false;
     }
 
-    // ─── Demais coleções ─────────────────────────────────────────
-    // Bloqueadas por padrão. Novas coleções devem receber regras
-    // específicas quando forem implementadas.
+    // Dados operacionais de checkout, clientes, eventos e assinantes são
+    // privados e escritos exclusivamente por Edge Functions com credencial de servidor.
+    match /premiumOrders/{orderId} {
+      allow read, write: if false;
+    }
+    match /asaasCustomers/{customerId} {
+      allow read, write: if false;
+    }
+    match /asaasSubscribers/{subscriberId} {
+      allow read, write: if false;
+    }
+    match /asaasEvents/{eventId} {
+      allow read, write: if false;
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
