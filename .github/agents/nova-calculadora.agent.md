@@ -11,12 +11,15 @@ reproduzindo exatamente o padrão do projeto.
 1. Leia `AI_RULES.md`, `HTML_RULES.md` e `HTML_PAGE_TEMPLATE_RULES.md`.
 2. Leia `.github/instructions/html.instructions.md`, `.github/instructions/js.instructions.md`
    e `.github/instructions/css.instructions.md`.
-3. Use como referência arquitetural `fugulin.html` (estrutura/ordem dos blocos) e
+3. Leia obrigatoriamente `CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`.
+4. Use como referência arquitetural `fugulin.html` (estrutura/ordem dos blocos) e
    `mapa-do-site.html` (design). Modelos: `perroca.html`, `meem.html`, `dimensionamento.html`.
 
 ## Obrigatório na página
 - `<main>` com classe `flex-grow p-4 sm:p-8`; largura total da viewport (sem container/max-w/mx-auto).
-- Hero card: width 100%, alinhado à esquerda, gradiente azul institucional, Eyebrow → H1 → H2.
+- Hero card: width 100%, alinhado à esquerda, gradiente azul institucional, Eyebrow → H1 → H2,
+  com altura compacta e acabamento conforme o padrão visual canônico.
+- Dimensões, tipografia, espaçamento, compactação, cores, bordas e sombras DEVEM seguir o padrão canônico.
 - Ordem completa do `<head>` (charset → ... → anti-CLS acessibilidade).
 - Canonical, hreflang (cluster completo com x-default), Schema.org, anti-CLS placeholders.
 - Cards de dados do paciente, formulário por card, barra de progresso, badges por JavaScript,
