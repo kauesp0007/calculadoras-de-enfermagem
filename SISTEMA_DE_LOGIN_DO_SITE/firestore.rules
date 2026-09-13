@@ -17,11 +17,17 @@ service cloud.firestore {
         && request.resource.data.uid == uid
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
         && (!('plan' in request.resource.data) || request.resource.data.plan == 'free')
-        && (!('status' in request.resource.data) || request.resource.data.status == 'active');
+        && (!('status' in request.resource.data) || request.resource.data.status == 'active')
+        && (!('lifetime' in request.resource.data) || request.resource.data.lifetime == false);
 
+      // Campos de acesso e auditoria financeira são exclusivamente do backend.
       allow update: if isOwner(uid)
         && !request.resource.data.diff(resource.data).affectedKeys()
-             .hasAny(['uid', 'role', 'plan', 'status', 'createdAt', 'permissions']);
+             .hasAny([
+               'uid', 'role', 'plan', 'planExpiresAt', 'planUpdatedAt',
+               'status', 'createdAt', 'permissions', 'lifetime',
+               'lastAsaasActivationAt', 'lastAsaasSubscriptionId'
+             ]);
 
       allow delete: if isOwner(uid);
     }
@@ -55,15 +61,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
-    // Histórico de assinatura: o cliente somente lê o próprio histórico.
-    // Ativação, renovação e cancelamento são exclusivos do backend de pagamentos.
+    // Histórico de assinatura: leitura do proprietário; escrita exclusivamente por backend.
     match /users/{uid}/subscriptions/{subscriptionId} {
       allow read: if isOwner(uid);
       allow write: if false;
     }
 
-    // Dados operacionais de checkout, clientes, eventos e assinantes são
-    // privados e escritos exclusivamente por Edge Functions com credencial de servidor.
     match /premiumOrders/{orderId} {
       allow read, write: if false;
     }
