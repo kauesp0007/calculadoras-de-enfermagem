@@ -1,4 +1,6 @@
 ﻿# PostToolUse: aplica governança a HTMLs públicos novos e reporta pendências do acervo.
+# Para escopo clínico, esta automação apenas aponta evidências técnicas; as aprovações humanas
+# obrigatórias são definidas em AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md.
 $ErrorActionPreference = 'SilentlyContinue'
 
 $inputJson = [Console]::In.ReadToEnd()

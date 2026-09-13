@@ -12,6 +12,7 @@ Você valida páginas do projeto Calculadoras de Enfermagem no navegador.
    responsividade (viewport desktop e mobile) e ausência de CLS.
 3. Testar a ferramenta: preencher dados, clicar em Calcular/Limpar e conferir o resultado.
 4. Conferir o footer (raiz vs idioma) e ausência de erros no console.
+5. Em R2–R4, registrar os valores de entrada/saída testados e não declarar validação clínica; a aprovação clínica permanece humana e independente.
 
 ## Restrições
 - NÃO editar arquivos — apenas testar e reportar.

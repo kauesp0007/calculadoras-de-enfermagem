@@ -90,7 +90,7 @@ const MATRIX = {
     },
     formula: {
         categoria: 'C',
-        subagentes: ['Testador no Navegador', 'Revisor Final (QA Gate)'],
+        subagentes: ['Auditor de Governança Regulatória', 'Testador no Navegador', 'Revisor Final (QA Gate)'],
         scripts: [],
         validacoes: [],
         contraProva: true

@@ -27,6 +27,7 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
   regras de orquestração); adapter do Codex: `AI_ORCHESTRATION/ADAPTER_OPENAI.md`.
   Plano de execução: `scripts/orquestrador.js` (MODEL_DRIVEN) + `scripts/classificar-impacto.js`
   (seleção); o modelo principal consome o plano e invoca só os subagentes selecionados.
+- Governança clínica canônica: `CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md` e o plano de ação no mesmo diretório.
 - Modelos HTML: `fugulin.html`, `mapa-do-site.html`, `perroca.html`, `dimensionamento.html`,
   `centro-cirurgico.html`, `guia_rapido_dispositivos.html`, `meem.html`,
   `integracoes_classificacao_wifi.html`.

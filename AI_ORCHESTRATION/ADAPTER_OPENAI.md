@@ -18,6 +18,9 @@ consiste em referenciar o Core a partir de `AGENTS.md`, sem copiar o conteúdo.
 3. Para tarefas de orquestração, o Codex lê o Core e aplica as regras universais.
 4. Subagentes do Codex (`.codex/agents/*.toml`) permanecem os executores especializados;
    o Core apenas orienta a seleção, o paralelismo e o contexto mínimo.
+5. Em escopo clínico, de fórmula ou escala, o Codex também lê a política canônica em
+   `CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md`;
+   nenhum resultado automatizado substitui as aprovações humanas ali definidas.
 
 ## Nota de ambiente
 Este repositório hoje **não materializa** a pasta `.codex/`; o único ponto de entrada do

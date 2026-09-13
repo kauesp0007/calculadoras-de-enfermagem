@@ -106,6 +106,12 @@ Antes de editar: leia as regras aplicáveis; identifique arquivos protegidos; fa
 conforme as regras; determine impacto. Não altere lógica clínica, cálculo, regra de
 negócio ou conteúdo regulatório por uma otimização puramente técnica sem validação.
 
+Para alteração clínica, de fórmula, unidade, classificação, interpretação ou tradução
+equivalente, leia `GOVERNANCA_CLINICA_CANONICA.md` e o plano de ação correspondente. O
+orquestrador deve selecionar Auditor de Governança Regulatória e Revisor Final; registre que
+as aprovações clínica e técnica independentes são humanas e não podem ser inferidas de IA,
+hooks ou testes automatizados. Para risco S1, a contenção precede qualquer otimização.
+
 ## 10. CICLO
 Use: DESCUBRIR → PLANEJAR → EXECUTAR → VALIDAR → AUDITAR → CORRIGIR → CONTRA-PROVAR →
 CONCLUIR. Evite reexecuções redundantes.

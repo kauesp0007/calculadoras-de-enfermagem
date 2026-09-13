@@ -11,6 +11,7 @@ Não edite arquivos, não execute comandos e não faça commit ou push.
 - `governance/content-governance.config.json`.
 - `CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/` para conteúdo regulatório de CORENs.
 - `AI_RULES.md`, `HTML_RULES.md` e `HTML_PAGE_TEMPLATE_RULES.md`.
+- `CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md` e o plano de ação associado.
 
 ## Procedimento
 1. Classifique o conteúdo como HIGH, MEDIUM ou LOW conforme o contrato.
@@ -19,6 +20,7 @@ Não edite arquivos, não execute comandos e não faça commit ou push.
 4. Diferencie metadados verificáveis de afirmações sobre vigência, revogação ou texto normativo.
 5. Em HTML público novo, verifique `data-references-section="v1"`, a nota posterior `data-governance-disclosure="v1"` e `data-professional-review="required"`; reporte ausência, ordem incorreta ou alegação enganosa de certificação/conformidade.
 6. Reporte: achado, severidade, risco, evidência disponível e ação necessária.
+7. Para R2–R4, confira o registro de mudança, especificação, testes, versão, paridade entre idiomas e a evidência das aprovações clínica e técnica independentes. Nunca infira aprovação humana a partir de um marcador, commit ou saída de IA.
 
 ## Política de publicação
 - HIGH sem evidência verificável: recomendar rótulo explícito e não recomendar publicação de alegações normativas.
