@@ -58,13 +58,13 @@ async function firestoreToken(): Promise<string> {
   const jwt = `${input}.${b64url(sig)}`;
   const res = await fetch(sa.token_uri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }) });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.access_token) throw new Error("falha_token_firestore");
+  if (!res.ok || !data.access_token) throw new Error(`falha_token_firestore_${res.status}`);
   return data.access_token;
 }
 
 function firestoreUrl(path: string, fields?: string[]): string {
   let url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${path}`;
-  if (fields && fields.length) url += "?" + fields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join("&");
+  if (fields?.length) url += "?" + fields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join("&");
   return url;
 }
 
@@ -92,7 +92,7 @@ serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization") || "";
-    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
     const user = await verifyFirebaseToken(idToken);
     const body = await req.json().catch(() => ({}));
     const kind = String(body?.kind || "");
@@ -117,7 +117,7 @@ serve(async (req) => {
       minutesToExpire: 60,
       externalReference,
       callback: { cancelUrl: `${callbackBase}?asaas=cancel`, expiredUrl: `${callbackBase}?asaas=expired`, successUrl: `${callbackBase}?asaas=success` },
-      items: [{ name: "Plano Júnior Premium", description: isRecurring ? "Assinatura mensal sem anúncios" : "Acesso premium por 30 dias sem anúncios", quantity: 1, value: PRICE_BRL }],
+      items: [{ externalReference, name: "Plano Júnior Premium", description: isRecurring ? "Assinatura mensal sem anúncios" : "Acesso premium por 30 dias sem anúncios", quantity: 1, value: PRICE_BRL }],
       customerData: { name: user.name || user.email, email: user.email },
     };
 
@@ -127,7 +127,6 @@ serve(async (req) => {
       checkoutPayload.subscription = {
         cycle: "MONTHLY",
         nextDueDate: `${nextDue.getFullYear()}-${pad(nextDue.getMonth() + 1)}-${pad(nextDue.getDate())} ${pad(nextDue.getHours())}:${pad(nextDue.getMinutes())}:${pad(nextDue.getSeconds())}`,
-        externalReference,
       };
     }
 
