@@ -22,16 +22,41 @@ classificada como concluída.**
 - Arquitetura: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`.
 - Estrutura física e dependências: `CATALOGO_DE_ESTRUTURA_FISICA/`.
 - Identidade visual / Design System: `CATALOGO_DE_IDENTIDADE_VISUAL/`.
+- **Padrão visual canônico de páginas HTML:** `CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`.
 - SEO e metas do head: `CATALOGO_SEO_METAS_HEAD/`.
 - Camada de IA (agentes, hooks, skills, prompts): `CATALOGO_DOS_AGENTES_E_HOOKS/`.
 - Modelos HTML de referência: `fugulin.html`, `mapa-do-site.html`, `perroca.html`,
   `dimensionamento.html`, `centro-cirurgico.html`, `guia_rapido_dispositivos.html`,
   `meem.html`, `integracoes_classificacao_wifi.html`.
-- Largura das páginas: ocupar toda a viewport mantendo apenas os paddings laterais;
-  NUNCA usar `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` no container principal.
-- Hero card: largura 100%, altura compacta, alinhado à esquerda, gradiente azul
-  institucional, glassmorphism discreto, hierarquia Eyebrow → H1 → H2 (nunca
-  inverter). NUNCA aplicar `max-w-*`/`mx-auto` no hero.
+
+## Padrão visual canônico de páginas HTML (IMPOSITIVO)
+
+Antes de criar ou modernizar qualquer HTML, consultar
+`CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`.
+
+O padrão governa **dimensões, tipografia, espaçamento, compactação, hero, gradiente,
+cores, bordas, sombras, acabamento visual, responsividade e estabilidade visual**.
+
+A página deve ocupar a largura útil; o hero deve ser 100% e compacto, alinhado à
+esquerda, com hierarquia Eyebrow → H1 → H2 e gradiente institucional navy.
+Inter é a fonte principal do corpo e Nunito Sans é a fonte de títulos quando disponível.
+A referência de corpo é 16px; H1 do hero aproximadamente 24–34px; seções compactas
+com raio aproximadamente 14–16px; bordas de 1px; sombras suaves; paleta institucional
+baseada em `#1A3E74`, `#1E4D8C`, `#163269`, `#2563EB` e `#4A90E2`.
+
+Cores temáticas podem existir como acentos secundários. Não descaracterizar a família
+visual por excesso de espaçamento, hero alto, cores incompatíveis, sombras pesadas ou
+tipografia desproporcional.
+
+## Largura (regra 60)
+- Página: ocupar toda a LARGURA ÚTIL da viewport mantendo apenas paddings laterais.
+- NUNCA usar `container`, `max-w-5xl/6xl/7xl` nem `mx-auto` no container principal.
+
+## Hero card
+- Largura 100%, altura compacta, alinhado à esquerda.
+- Gradiente azul institucional e glassmorphism discreto.
+- Hierarquia Eyebrow → H1 → H2.
+- NUNCA aplicar `max-w-*`/`mx-auto` no hero.
 
 ## Proteção de arquivos e pastas (IMPOSITIVA + EXCEÇÃO CONTROLADA)
 
@@ -122,8 +147,8 @@ conformidade é o registro em `CATALOGO_DOS_AGENTES_E_HOOKS/registro-conformidad
   centenas/milhares de linhas.
 - **Página nova**: incluí-la em `relatorio_paginas.txt` (fonte canônica — o `mapa-do-site.html`
   é gerado dinamicamente a partir dele; NUNCA editar o mapa manualmente) e PERGUNTAR ao
-  desenvolvedor em qual caminho do `menu-global.html` incluir a nova página; depois incluir
-  no menu global (desktop) e no menu off-canvas (mobile).
+  desenvolvedor em qual caminho do `menu-global.html` incluir a nova página; depois incluir no
+  menu global (desktop) e no menu off-canvas (mobile).
 - **Menu por idioma**: cada pasta de idioma (`en/`, `es/`, ...) tem o seu próprio
   `menu-global.html`. Ao criar/registrar página nova, o submenu deve ser adicionado ao
   `menu-global.html` da raiz (pt-BR, caminhos absolutos `/...`) E ao `menu-global.html` de
