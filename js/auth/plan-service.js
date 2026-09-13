@@ -1,112 +1,39 @@
 /**
  * js/auth/plan-service.js
- *
- * RESPONSABILIDADE: Definição dos planos e seus benefícios (permissões).
- *
- * O plano NÃO substitui o papel: ambos coexistem e suas permissões são
- * somadas na camada de autorização.
+ * Fonte única dos planos contratáveis do projeto.
+ * Apenas free e junior existem. Junior custa R$ 10,00/mês.
  */
-
 (function (window) {
-    "use strict";
+  "use strict";
+  window.AuthorizationModules = window.AuthorizationModules || {};
 
-    window.AuthorizationModules = window.AuthorizationModules || {};
+  var LEVELS = { free: 0, junior: 10 };
+  var PREMIUM_PLANS = ["junior"];
+  var PLANS = {
+    free: { label: "Gratuito", level: 0, available: true, price: 0, priceLabel: "Grátis", permissions: [] },
+    junior: { label: "Júnior", level: 10, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium", "downloadPremium"] }
+  };
 
-    // Níveis dos planos (maior = mais benefícios). Usado na hierarquia.
-    var LEVELS = {
-        free: 0,
-        junior: 10
-    };
+  function levelOf(plan) { return LEVELS[plan] !== undefined ? LEVELS[plan] : -1; }
+  function hasPlan(userPlan, required) {
+    if (!required || required === "free") return true;
+    return levelOf(userPlan) >= levelOf(required);
+  }
+  function permissionsFor(plan) { return (PLANS[plan] || PLANS.free).permissions.slice(); }
+  function isPremium(plan) { return PREMIUM_PLANS.indexOf(plan) !== -1; }
+  function isAvailable(plan) { return !!(PLANS[plan] && PLANS[plan].available); }
+  function list() { return Object.keys(PLANS); }
+  function label(plan) { return (PLANS[plan] || {}).label || plan; }
 
-    // Planos considerados "sem anúncios" (qualquer plano pago).
-    var PREMIUM_PLANS = ["junior"];
+  window.AuthorizationModules.planService = {
+    LEVELS: LEVELS, PLANS: PLANS, PREMIUM_PLANS: PREMIUM_PLANS,
+    levelOf: levelOf, hasPlan: hasPlan, permissionsFor: permissionsFor,
+    isPremium: isPremium, isAvailable: isAvailable, list: list, label: label
+  };
 
-    var PLANS = {
-        free: { label: "Gratuito", level: 0, available: true, price: 0, priceLabel: "Grátis", permissions: [] },
-        junior: { label: "Júnior", level: 10, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium", "downloadPremium"] }
-    };
+  // Compatibilidade temporária com o código global de anúncios.
+  // O único plano premium válido é junior.
+  window.PREMIUM_AD_FREE_PLANS = ["junior"];
 
-    /**
-     * Retorna o nível de um plano.
-     * @param {string} plan
-     * @returns {number}
-     */
-    function levelOf(plan) {
-        return LEVELS[plan] !== undefined ? LEVELS[plan] : -1;
-    }
-
-    /**
-     * Verifica se o plano do usuário atende a um plano requerido (hierárquico).
-     * Ex.: hasPlan("junior", "junior") === true.
-     * @param {string} userPlan
-     * @param {string} required
-     * @returns {boolean}
-     */
-    function hasPlan(userPlan, required) {
-        if (!required || required === "free") {
-            return true;
-        }
-        return levelOf(userPlan) >= levelOf(required);
-    }
-
-    /**
-     * Retorna as permissões implícitas de um plano.
-     * @param {string} plan
-     * @returns {string[]}
-     */
-    function permissionsFor(plan) {
-        var p = PLANS[plan] || PLANS.free;
-        return (p.permissions || []).slice();
-    }
-
-    /**
-     * Verifica se um plano é pago (sem anúncios).
-     * @param {string} plan
-     * @returns {boolean}
-     */
-    function isPremium(plan) {
-        return PREMIUM_PLANS.indexOf(plan) !== -1;
-    }
-
-    /**
-     * Verifica se um plano está disponível para contratação.
-     * @param {string} plan
-     * @returns {boolean}
-     */
-    function isAvailable(plan) {
-        return (PLANS[plan] || {}).available === true;
-    }
-
-    /**
-     * Lista todos os planos cadastrados.
-     * @returns {string[]}
-     */
-    function list() {
-        return Object.keys(PLANS);
-    }
-
-    /**
-     * Retorna o rótulo amigável de um plano.
-     * @param {string} plan
-     * @returns {string}
-     */
-    function label(plan) {
-        return (PLANS[plan] || {}).label || plan;
-    }
-
-    window.AuthorizationModules.planService = {
-        LEVELS: LEVELS,
-        PLANS: PLANS,
-        PREMIUM_PLANS: PREMIUM_PLANS,
-        levelOf: levelOf,
-        hasPlan: hasPlan,
-        permissionsFor: permissionsFor,
-        isPremium: isPremium,
-        isAvailable: isAvailable,
-        list: list,
-        label: label
-    };
-
-    console.log("[Auth] Módulo plan-service.js carregado.");
-
+  console.log("[Auth] Módulo plan-service.js carregado.");
 })(window);

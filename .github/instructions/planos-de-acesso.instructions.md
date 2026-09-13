@@ -1,62 +1,55 @@
 ---
-description: "Use when: criar ou editar páginas HTML — REGRA OBRIGATÓRIA de plano de acesso. Ao final de cada página nova, PERGUNTAR qual o plano da página (gratuito/júnior/pleno/sênior) e suas limitações/opções, e registrar no mapa de conteúdo restrito quando for paga."
+description: "Use when creating or editing HTML pages. Classify access using the single canonical content policy; never create a global paywall."
 applyTo: "**/*.html"
 ---
-# Planos de Acesso — Regra Obrigatória para Páginas
+# Planos de Acesso — Regra Canônica
 
-## REGRA ABSOLUTA (nunca esquecer)
+## Regra principal
 
-Ao criar ou finalizar uma página HTML nova, é OBRIGATÓRIO, antes de dar a
-tarefa como concluída:
+Toda página nova deve ter seu acesso definido pela política de conteúdo. O padrão é `public`.
 
-> **PERGUNTAR ao usuário: qual o plano de acesso desta página e quais as
-> limitações/opções de cada plano?**
+Quando uma página ou recurso for premium, registre o identificador em `js/access/content-policy.js` no objeto `RESTRICTED_CONTENT` com o requisito `junior`.
 
-A resposta DEVE ser registrada:
+Não implementar redirecionamento global de usuários gratuitos para a página de assinatura.
 
-- Se a página for **gratuita**: nenhuma ação extra (padrão `public`).
-- Se a página for **paga/restrita**: adicionar a chave no objeto
-  `RESTRICTED_CONTENT` de `js/access/content-policy.js`.
-
-**Sem essa pergunta + registro, a página NÃO PODE ser classificada como concluída.**
-
-## Planos do site
+## Planos atuais
 
 | ID | Nome | Anúncios | Acesso |
 |---|---|---|---|
-| `free` | Gratuito | Sim | Calculadoras/escalas gratuitas; **não acessa** escalas premium, simulados e formulários; **não imprime/PDF** |
-| `junior` | Júnior | Não | Sem anúncios + todas as escalas e calculadoras |
-| `pleno` | Pleno | Não | Tudo do Júnior + todos os simulados |
-| `senior` | Sênior | Não | Tudo do Pleno + formulários de escalas em branco + Excel/apostilas/APK |
+| `free` | Gratuito | Sim | Conteúdo público/gratuito e recursos permitidos |
+| `junior` | Júnior | Não | Conteúdo gratuito + conteúdo marcado como premium |
 
-Hierarquia: `free < junior < pleno < senior` (plano maior libera o menor).
+Não existem mais `pleno` ou `senior`.
 
-## Conteúdo restrito atual (canônico — em `js/access/content-policy.js`)
+## Conteúdo premium
 
-- **Escalas premium (exigem `junior`):** `braden`, `fugulin`, `morse`,
-  `dimensionamento`, `perroca`, `capurro`, `balancohidrico`, `meem`, `moca`.
-- **Simulados (exigem `pleno`):** todos os `simulado_*`, `simulado-de-*` e
-  `flashcards_quiz`.
-- **Formulários em branco (exigem `senior`):** `formularios-em-branco-de-escalas`
-  e demais `formulario_*`.
+A lista efetiva está em `js/access/content-policy.js`. O identificador da política corresponde ao nome do conteúdo sem extensão quando a página é derivada do caminho.
 
-## Como registrar uma página restrita
-
-Adicionar a chave no objeto `RESTRICTED_CONTENT` de `js/access/content-policy.js`:
+Exemplo:
 
 ```js
-"nome-do-arquivo": "junior"   // ou "pleno" / "senior"
+"braden": "junior"
 ```
 
-A chave é o nome do arquivo **sem extensão** (ex.: `braden.html` → `"braden"`),
-funcionando automaticamente em todos os idiomas.
+## Regras de implementação
 
-## Impressão e PDF
+- `Auth` cuida de autenticação e carregamento do perfil.
+- `Authorization` decide o plano efetivo, considerando `planExpiresAt` e `lifetime`.
+- `Access` decide se o conteúdo atual exige autenticação ou `junior`.
+- O gateway de pagamento e o webhook são as únicas autoridades capazes de conceder o plano pago.
+- Nunca permitir que o frontend escreva `plan = junior` diretamente.
+- Nunca usar preço diferente da fonte comercial oficial: **R$ 10,00/mês** no Brasil.
 
-O plano `free` **não imprime nem gera PDF** de escalas/calculadoras. Os botões
-`btnImprimir` e `btnGerarPDF` são ocultados automaticamente via
-`global-scripts.js` → `applyPlanRestrictions()`.
+## Assinatura
 
-## Mapa de referência
+A página `/conta/assinatura.html` deve:
 
-Documentação completa: `SISTEMA_DE_LOGIN_DO_SITE/mapa_planos_conteudo.md`.
+1. exigir somente login para contratar;
+2. usar checkout individualizado;
+3. enviar o Firebase ID token ao backend;
+4. nunca confiar em callback do navegador como confirmação financeira;
+5. manter a configuração de idioma do site sem duplicar a lógica de pagamento.
+
+## Referência
+
+Use `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_SISTEMA_CONTAS_PAGAMENTOS.md` como documentação operacional da arquitetura atual.
