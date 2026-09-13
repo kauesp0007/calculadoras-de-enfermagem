@@ -1,5 +1,6 @@
-﻿# PostToolUse: verifica regras de largura/hero/espaçamento em HTML editado (não bloqueia, apenas reporta).
-# Regras 60/61: NUNCA container/max-w-*/mx-auto; evitar grandes margens laterais; alta densidade (reduzir p/m/gap).
+﻿# PostToolUse: verifica regras canônicas de largura, hero, espaçamento e acabamento visual.
+# Fonte canônica: CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md
+# Regras 60/61: NUNCA container/max-w-*/mx-auto; alta densidade; hero institucional compacto.
 $ErrorActionPreference = 'SilentlyContinue'
 try { [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding($false) } catch {}
 
@@ -32,9 +33,8 @@ foreach ($fp in $filePaths) {
 
     try { $content = [System.IO.File]::ReadAllText($p, [System.Text.Encoding]::UTF8) } catch { continue }
 
-    # Remove blocos <script> (evita falso positivo do template de impressão; preserva <style> p/ hero)
+    # Remove scripts (evita falsos positivos); preserva styles para auditar o layout.
     $scan = $content -replace '(?is)<script\b.*?</script>', ''
-
     $name = Split-Path $p -Leaf
 
     if ($scan -match 'class\s*=\s*["''][^"'']*\bcontainer\b') {
@@ -57,6 +57,16 @@ foreach ($fp in $filePaths) {
     }
     if ($scan -match '\b(?:p|py|pt|pb|pl|pr|m|my|mt|mb|ml|mr|gap)-(?:16|20|24|28|32|40|48|56|64|72|80|96)\b') {
         $findings += "${name}: espaçamento grande (p/m/gap >= 4rem) — regra 61: alta densidade"
+    }
+
+    # Verificações objetivas do padrão visual canônico quando a página possui hero.
+    if ($scan -match '(?is)(?:class=["''][^"'']*\bhero\b[^"'']*["'']|\.hero\s*\{)') {
+        if ($scan -notmatch '(?is)#1A3E74|#1a3e74') {
+            $findings += "${name}: hero detectado sem referência evidente ao navy institucional #1A3E74"
+        }
+        if ($scan -notmatch '(?is)linear-gradient\s*\([^)]*#1A3E74|linear-gradient\s*\([^)]*#1a3e74') {
+            $findings += "${name}: hero detectado sem gradiente institucional evidente"
+        }
     }
 }
 
