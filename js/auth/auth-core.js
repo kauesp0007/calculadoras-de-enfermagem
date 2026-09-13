@@ -3,6 +3,12 @@
  *
  * FACADE centralizada de autenticação. Acesso ao conteúdo é decidido por
  * Authorization/Access; este módulo NÃO redireciona usuários free para planos.
+ *
+ * Controle de anúncios:
+ * - Enquanto o estado de autenticação/plano não foi resolvido, anúncios ficam
+ *   visualmente retidos para evitar qualquer exposição prematura a assinantes.
+ * - Usuário free/sem assinatura: anúncios automáticos e multiplex são liberados.
+ * - Usuário junior válido: anúncios permanecem ocultos.
  */
 (function (window) {
   "use strict";
@@ -15,9 +21,94 @@
   var _currentPlan = null;
   var _listeners = [];
   var _profileListeners = [];
+  var _adState = "pending";
+
+  function _installAdGate() {
+    if (document.getElementById("auth-premium-ad-gate")) return;
+    var style = document.createElement("style");
+    style.id = "auth-premium-ad-gate";
+    style.textContent = [
+      "html.auth-ad-pending ins.adsbygoogle,",
+      "html.auth-ad-pending .google-auto-placed,",
+      "html.auth-ad-pending .ads-multiplex-container,",
+      "html.auth-ad-pending #multiplex-ad-reserved,",
+      "html.auth-ad-pending .multiplex-ad-reserved,",
+      "html.auth-premium-no-ads ins.adsbygoogle,",
+      "html.auth-premium-no-ads .google-auto-placed,",
+      "html.auth-premium-no-ads .ads-multiplex-container,",
+      "html.auth-premium-no-ads #multiplex-ad-reserved,",
+      "html.auth-premium-no-ads .multiplex-ad-reserved",
+      "{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;visibility:hidden !important;}"
+    ].join("");
+    (document.head || document.documentElement).appendChild(style);
+    document.documentElement.classList.add("auth-ad-pending");
+  }
+
+  function _clearExistingAdMarkup() {
+    var selectors = [
+      "ins.adsbygoogle",
+      ".google-auto-placed",
+      ".ads-multiplex-container",
+      "#multiplex-ad-reserved",
+      ".multiplex-ad-reserved"
+    ];
+    document.querySelectorAll(selectors.join(",")).forEach(function (el) {
+      el.style.setProperty("display", "none", "important");
+      el.style.setProperty("visibility", "hidden", "important");
+      el.setAttribute("data-auth-ad-hidden", "true");
+    });
+  }
+
+  function _setAdState(state) {
+    _installAdGate();
+    _adState = state;
+    var root = document.documentElement;
+    root.classList.remove("auth-ad-pending", "auth-premium-no-ads");
+
+    if (state === "premium") {
+      root.classList.add("auth-premium-no-ads");
+      _clearExistingAdMarkup();
+    } else if (state === "pending") {
+      root.classList.add("auth-ad-pending");
+    } else {
+      document.querySelectorAll("[data-auth-ad-hidden=\"true\"]").forEach(function (el) {
+        el.style.removeProperty("display");
+        el.style.removeProperty("visibility");
+        el.removeAttribute("data-auth-ad-hidden");
+      });
+    }
+  }
+
+  function _syncAdStateFromProfile(profile) {
+    if (!profile) {
+      _setAdState(_currentUser ? "free" : "free");
+      return;
+    }
+
+    var isLifetime = profile.lifetime === true;
+    var hasJunior = profile.plan === "junior";
+    var expiresOk = true;
+
+    if (hasJunior && profile.planExpiresAt) {
+      try {
+        var expires = profile.planExpiresAt instanceof Date
+          ? profile.planExpiresAt
+          : (typeof profile.planExpiresAt.toDate === "function"
+              ? profile.planExpiresAt.toDate()
+              : new Date(profile.planExpiresAt));
+        expiresOk = !Number.isNaN(expires.getTime()) && expires.getTime() > Date.now();
+      } catch (_) {
+        expiresOk = false;
+      }
+    }
+
+    _setAdState(isLifetime || (hasJunior && expiresOk) ? "premium" : "free");
+  }
 
   async function init() {
     if (_initialized) return;
+    _setAdState("pending");
+
     var fb = await window.FirebaseInit.init();
     var auth = fb.auth;
 
@@ -44,10 +135,13 @@
 
   function _handleAuthState(user) {
     _currentUser = user || null;
+    _setAdState(user ? "pending" : "free");
+
     if (!user) {
       _userProfile = null;
       _currentPlan = null;
       _clearLocalCache();
+      _syncAdStateFromProfile(null);
       _notifyListeners(null);
       return;
     }
@@ -56,14 +150,17 @@
       window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
         _userProfile = profile;
         _currentPlan = profile && profile.plan ? profile.plan : "free";
+        _syncAdStateFromProfile(profile);
         _notifyProfileListeners(profile);
       }).catch(function (error) {
         console.warn("[Auth] Perfil indisponível; usando free:", error && error.message ? error.message : error);
         _userProfile = null;
         _currentPlan = "free";
+        _setAdState("free");
       });
     } else {
       _currentPlan = "free";
+      _setAdState("free");
     }
 
     _notifyListeners(user);
@@ -128,6 +225,7 @@
     _currentUser = null;
     _userProfile = null;
     _currentPlan = null;
+    _setAdState("free");
     _clearLocalCache();
   }
 
@@ -153,14 +251,17 @@
     if (window.AuthorizationModules && window.AuthorizationModules.permissionCache && window.AuthorizationModules.permissionCache.invalidate) {
       window.AuthorizationModules.permissionCache.invalidate();
     }
+    _setAdState("pending");
     if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
       return window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
         _userProfile = profile;
         _currentPlan = profile && profile.plan ? profile.plan : "free";
+        _syncAdStateFromProfile(profile);
         _notifyProfileListeners(profile);
         return profile;
       });
     }
+    _setAdState("free");
     return Promise.resolve(null);
   }
 
