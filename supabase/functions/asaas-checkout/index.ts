@@ -91,29 +91,21 @@ async function firestoreToken(): Promise<string> {
   const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
-  const claims = {
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/datastore",
-    aud: sa.token_uri,
-    iat: now,
-    exp: now + 3600,
-  };
+  const claims = { iss: sa.client_email, scope: "https://www.googleapis.com/auth/datastore", aud: sa.token_uri, iat: now, exp: now + 3600 };
   const input = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claims))}`;
   const key = await crypto.subtle.importKey("pkcs8", pemToArrayBuffer(sa.private_key), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(input));
   const jwt = `${input}.${b64url(sig)}`;
-  const res = await fetch(sa.token_uri, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }),
-  });
+  const res = await fetch(sa.token_uri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }) });
   const data = await res.json();
   if (!res.ok || !data.access_token) throw new Error("falha_token_firestore");
   return data.access_token;
 }
 
-function firestoreUrl(path: string): string {
-  return `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${path}`;
+function firestoreUrl(path: string, fields?: string[]): string {
+  let url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${path}`;
+  if (fields && fields.length) url += "?" + fields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join("&");
+  return url;
 }
 
 function stringValue(v: string) { return { stringValue: v }; }
@@ -121,21 +113,14 @@ function doubleValue(v: number) { return { doubleValue: v }; }
 function timestampValue(v: string) { return { timestampValue: v }; }
 
 async function firestorePatch(path: string, fields: Record<string, unknown>, token: string): Promise<void> {
-  const res = await fetch(firestoreUrl(path), {
-    method: "PATCH",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ fields }),
-  });
+  const names = Object.keys(fields);
+  const res = await fetch(firestoreUrl(path, names), { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields }) });
   if (!res.ok) throw new Error(`Firestore PATCH ${path} -> ${res.status}: ${await res.text()}`);
 }
 
 async function asaasPost(path: string, body: Record<string, unknown>): Promise<any> {
   if (!ASAAS_API_TOKEN) throw new Error("ASAAS_API_TOKEN_nao_configurado");
-  const res = await fetch(`${ASAAS_API_BASE}${path}`, {
-    method: "POST",
-    headers: { access_token: ASAAS_API_TOKEN, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
+  const res = await fetch(`${ASAAS_API_BASE}${path}`, { method: "POST", headers: { access_token: ASAAS_API_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify(body) });
   const data = await res.json();
   if (!res.ok) throw new Error(`Asaas POST ${path} -> ${res.status}: ${JSON.stringify(data)}`);
   return data;
@@ -161,15 +146,9 @@ serve(async (req) => {
     const externalReference = `premium_junior_${orderId}`;
 
     await firestorePatch(`premiumOrders/${orderId}`, {
-      uid: stringValue(user.uid),
-      email: stringValue(user.email),
-      provider: stringValue("asaas"),
-      kind: stringValue(kind),
-      amount: doubleValue(PRICE_BRL),
-      currency: stringValue("BRL"),
-      externalReference: stringValue(externalReference),
-      status: stringValue("creating"),
-      createdAt: timestampValue(now),
+      uid: stringValue(user.uid), email: stringValue(user.email), provider: stringValue("asaas"), kind: stringValue(kind),
+      amount: doubleValue(PRICE_BRL), currency: stringValue("BRL"), externalReference: stringValue(externalReference),
+      status: stringValue("creating"), createdAt: timestampValue(now),
     }, fsToken);
 
     const callbackBase = `${SITE_URL}/conta/assinatura.html`;
@@ -179,17 +158,8 @@ serve(async (req) => {
       chargeTypes: isRecurring ? ["RECURRENT"] : ["DETACHED"],
       minutesToExpire: 60,
       externalReference,
-      callback: {
-        cancelUrl: `${callbackBase}?asaas=cancel`,
-        expiredUrl: `${callbackBase}?asaas=expired`,
-        successUrl: `${callbackBase}?asaas=success`,
-      },
-      items: [{
-        name: "Plano Júnior Premium",
-        description: isRecurring ? "Assinatura mensal sem anúncios" : "Acesso premium por 30 dias sem anúncios",
-        quantity: 1,
-        value: PRICE_BRL,
-      }],
+      callback: { cancelUrl: `${callbackBase}?asaas=cancel`, expiredUrl: `${callbackBase}?asaas=expired`, successUrl: `${callbackBase}?asaas=success` },
+      items: [{ name: "Plano Júnior Premium", description: isRecurring ? "Assinatura mensal sem anúncios" : "Acesso premium por 30 dias sem anúncios", quantity: 1, value: PRICE_BRL }],
       customerData: { name: user.name || user.email, email: user.email },
     };
 
@@ -199,6 +169,7 @@ serve(async (req) => {
       checkoutPayload.subscription = {
         cycle: "MONTHLY",
         nextDueDate: `${nextDue.getFullYear()}-${pad(nextDue.getMonth() + 1)}-${pad(nextDue.getDate())} ${pad(nextDue.getHours())}:${pad(nextDue.getMinutes())}:${pad(nextDue.getSeconds())}`,
+        externalReference,
       };
     }
 
@@ -208,9 +179,7 @@ serve(async (req) => {
 
     const checkoutUrl = String(checkout?.link || `https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`);
     await firestorePatch(`premiumOrders/${orderId}`, {
-      checkoutId: stringValue(checkoutId),
-      checkoutUrl: stringValue(checkoutUrl),
-      status: stringValue("created"),
+      checkoutId: stringValue(checkoutId), checkoutUrl: stringValue(checkoutUrl), status: stringValue("created"),
       updatedAt: timestampValue(new Date().toISOString()),
     }, fsToken);
 
