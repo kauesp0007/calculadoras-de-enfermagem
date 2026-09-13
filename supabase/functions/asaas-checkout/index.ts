@@ -1,8 +1,9 @@
 // Checkout individualizado do Premium Júnior (Brasil).
-// O UID do Firebase é validado no servidor e ligado a um pedido interno.
-// Nenhum pagamento depende de e-mail para descobrir o usuário.
+// O ID token do Firebase é validado no backend via Google JWKS antes
+// de qualquer criação de pedido ou chamada ao Asaas.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
 
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT") ?? "";
@@ -10,6 +11,7 @@ const ASAAS_API_TOKEN = Deno.env.get("ASAAS_API_TOKEN") ?? "";
 const ASAAS_API_BASE = "https://api.asaas.com/v3";
 const SITE_URL = "https://www.calculadorasdeenfermagem.com.br";
 const PRICE_BRL = 10.00;
+const FIREBASE_JWKS = createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 
 function corsHeaders() {
   return {
@@ -20,65 +22,13 @@ function corsHeaders() {
   };
 }
 
-function pemToArrayBuffer(pem: string): ArrayBuffer {
-  const b64 = pem.replace(/-----BEGIN PRIVATE KEY-----/, "").replace(/-----END PRIVATE KEY-----/, "").replace(/\s+/g, "");
-  const bin = atob(b64);
-  const buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return buf.buffer;
-}
-
-function b64url(input: string | ArrayBuffer): string {
-  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
-  let bin = "";
-  bytes.forEach((b) => bin += String.fromCharCode(b));
-  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-}
-
-function b64urlDecode(input: string): Uint8Array {
-  const b64 = input.replace(/-/g, "+").replace(/_/g, "/");
-  const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
-  const bin = atob(padded);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return bytes;
-}
-
-function certToArrayBuffer(pem: string): ArrayBuffer {
-  const b64 = pem.replace(/-----BEGIN CERTIFICATE-----/, "").replace(/-----END CERTIFICATE-----/, "").replace(/\s+/g, "");
-  const bin = atob(b64);
-  const buf = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return buf.buffer;
-}
-
 async function verifyFirebaseToken(token: string): Promise<{ uid: string; email: string; name: string }> {
-  const parts = token.split(".");
-  if (parts.length !== 3) throw new Error("token_invalido");
-  const [h, p, s] = parts;
-  let header: any;
-  let payload: any;
-  try {
-    header = JSON.parse(new TextDecoder().decode(b64urlDecode(h)));
-    payload = JSON.parse(new TextDecoder().decode(b64urlDecode(p)));
-  } catch {
-    throw new Error("token_invalido");
-  }
-  if (header.alg !== "RS256" || !header.kid) throw new Error("token_invalido");
-  if (Number(payload.exp || 0) * 1000 < Date.now()) throw new Error("token_expirado");
-  if (payload.aud !== FIREBASE_PROJECT_ID) throw new Error("aud_invalida");
-  if (payload.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) throw new Error("iss_invalido");
-
-  const certsRes = await fetch("https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com");
-  if (!certsRes.ok) throw new Error("chaves_google_indisponiveis");
-  const certs = await certsRes.json();
-  const cert = certs[header.kid];
-  if (!cert) throw new Error("kid_invalido");
-
-  const key = await crypto.subtle.importKey("spki", certToArrayBuffer(cert), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["verify"]);
-  const valid = await crypto.subtle.verify("RSASSA-PKCS1-v1_5", key, b64urlDecode(s), new TextEncoder().encode(`${h}.${p}`));
-  if (!valid) throw new Error("assinatura_invalida");
-
+  if (!token) throw new Error("nao_autenticado");
+  const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
+    algorithms: ["RS256"],
+    issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+    audience: FIREBASE_PROJECT_ID,
+  });
   const uid = String(payload.sub || "");
   const email = String(payload.email || "").trim().toLowerCase();
   const name = String(payload.name || "").trim();
@@ -92,12 +42,22 @@ async function firestoreToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
   const claims = { iss: sa.client_email, scope: "https://www.googleapis.com/auth/datastore", aud: sa.token_uri, iat: now, exp: now + 3600 };
+  const b64url = (input: string | ArrayBuffer) => {
+    const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
+    let bin = "";
+    bytes.forEach((b) => bin += String.fromCharCode(b));
+    return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+  };
+  const pem = sa.private_key.replace(/-----BEGIN PRIVATE KEY-----/, "").replace(/-----END PRIVATE KEY-----/, "").replace(/\s+/g, "");
+  const bin = atob(pem);
+  const keyBytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) keyBytes[i] = bin.charCodeAt(i);
+  const key = await crypto.subtle.importKey("pkcs8", keyBytes.buffer, { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
   const input = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claims))}`;
-  const key = await crypto.subtle.importKey("pkcs8", pemToArrayBuffer(sa.private_key), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]);
   const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(input));
   const jwt = `${input}.${b64url(sig)}`;
   const res = await fetch(sa.token_uri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: jwt }) });
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.access_token) throw new Error("falha_token_firestore");
   return data.access_token;
 }
@@ -121,7 +81,7 @@ async function firestorePatch(path: string, fields: Record<string, unknown>, tok
 async function asaasPost(path: string, body: Record<string, unknown>): Promise<any> {
   if (!ASAAS_API_TOKEN) throw new Error("ASAAS_API_TOKEN_nao_configurado");
   const res = await fetch(`${ASAAS_API_BASE}${path}`, { method: "POST", headers: { access_token: ASAAS_API_TOKEN, "Content-Type": "application/json" }, body: JSON.stringify(body) });
-  const data = await res.json();
+  const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Asaas POST ${path} -> ${res.status}: ${JSON.stringify(data)}`);
   return data;
 }
@@ -133,8 +93,6 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization") || "";
     const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
-    if (!idToken) throw new Error("nao_autenticado");
-
     const user = await verifyFirebaseToken(idToken);
     const body = await req.json().catch(() => ({}));
     const kind = String(body?.kind || "");
