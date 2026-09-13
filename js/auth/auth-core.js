@@ -9,6 +9,8 @@
  *   visualmente retidos para evitar qualquer exposição prematura a assinantes.
  * - Usuário free/sem assinatura: anúncios automáticos e multiplex são liberados.
  * - Usuário junior válido: anúncios permanecem ocultos.
+ * - Se o perfil de um usuário autenticado não puder ser lido, o estado fica
+ *   retido (fail-closed) para nunca liberar anúncio por engano a um assinante.
  */
 (function (window) {
   "use strict";
@@ -81,7 +83,6 @@
 
   function _syncAdStateFromProfile(profile) {
     if (!profile) {
-      _setAdState(_currentUser ? "free" : "free");
       return;
     }
 
@@ -141,7 +142,6 @@
       _userProfile = null;
       _currentPlan = null;
       _clearLocalCache();
-      _syncAdStateFromProfile(null);
       _notifyListeners(null);
       return;
     }
@@ -150,17 +150,18 @@
       window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
         _userProfile = profile;
         _currentPlan = profile && profile.plan ? profile.plan : "free";
-        _syncAdStateFromProfile(profile);
+        _syncAdStateFromProfile(profile || { plan: "free" });
         _notifyProfileListeners(profile);
       }).catch(function (error) {
-        console.warn("[Auth] Perfil indisponível; usando free:", error && error.message ? error.message : error);
+        console.warn("[Auth] Perfil indisponível; anúncios mantidos retidos por segurança:", error && error.message ? error.message : error);
         _userProfile = null;
-        _currentPlan = "free";
-        _setAdState("free");
+        _currentPlan = null;
+        _setAdState("pending");
       });
     } else {
-      _currentPlan = "free";
-      _setAdState("free");
+      console.warn("[Auth] Módulo de perfil indisponível; anúncios mantidos retidos por segurança.");
+      _currentPlan = null;
+      _setAdState("pending");
     }
 
     _notifyListeners(user);
@@ -256,12 +257,16 @@
       return window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
         _userProfile = profile;
         _currentPlan = profile && profile.plan ? profile.plan : "free";
-        _syncAdStateFromProfile(profile);
+        _syncAdStateFromProfile(profile || { plan: "free" });
         _notifyProfileListeners(profile);
         return profile;
+      }).catch(function (error) {
+        console.warn("[Auth] Falha ao atualizar perfil; anúncios mantidos retidos por segurança:", error && error.message ? error.message : error);
+        _setAdState("pending");
+        throw error;
       });
     }
-    _setAdState("free");
+    _setAdState("pending");
     return Promise.resolve(null);
   }
 
