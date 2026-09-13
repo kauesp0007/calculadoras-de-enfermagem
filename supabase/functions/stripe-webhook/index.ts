@@ -19,6 +19,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT");
 const STRIPE_WEBHOOK_SECRET = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
+const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+const STRIPE_API = "https://api.stripe.com/v1";
 
 // ───────────────────────── Firestore (REST) ─────────────────────────
 
@@ -131,19 +133,19 @@ async function verifyStripeSignature(rawBody: string, signature: string, secret:
 
 // ───────────────────────── Ativação / desativação ───────────────────
 
-async function setPlan(uid: string, planId: string, subId: string) {
+async function setPlan(uid: string, planId: string, subId: string, expiresAt?: string) {
   const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT || "");
   const token = await firestoreAccessToken(sa);
   const now = new Date().toISOString();
   const isPremium = planId !== "free";
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const effectiveExpiresAt = expiresAt || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
   await firestorePatch(
     `users/${uid}`,
     {
       plan: stringValue(planId),
       planUpdatedAt: timestampValue(now),
-      planExpiresAt: timestampValue(isPremium ? expiresAt : now),
+      planExpiresAt: timestampValue(isPremium ? effectiveExpiresAt : now),
     },
     token,
   );
@@ -202,6 +204,39 @@ async function handleSubscriptionDeleted(sub: any) {
   await setPlan(uid, "free", String(sub?.id || ""));
 }
 
+/**
+ * Busca o UID e o fim do período da assinatura no Stripe (para renovação).
+ */
+async function getSubscriptionMeta(subId: string): Promise<{ uid: string; periodEnd?: string }> {
+  if (!subId || !STRIPE_SECRET_KEY) return { uid: "" };
+  const res = await fetch(`${STRIPE_API}/subscriptions/${subId}`, {
+    headers: { Authorization: `Bearer ${STRIPE_SECRET_KEY}` },
+  });
+  if (!res.ok) return { uid: "" };
+  const sub = await res.json();
+  const uid = String(sub?.metadata?.uid || "");
+  const periodEnd = sub?.current_period_end
+    ? new Date(Number(sub.current_period_end) * 1000).toISOString()
+    : undefined;
+  return { uid, periodEnd };
+}
+
+// Renovação mensal bem-sucedida -> estende o premium até o fim do novo período.
+async function handleInvoicePaid(invoice: any) {
+  const subId = String(invoice?.subscription || "");
+  const meta = await getSubscriptionMeta(subId);
+  if (!meta.uid) return;
+  await setPlan(meta.uid, "junior", subId, meta.periodEnd);
+}
+
+// Falha de pagamento -> revoga o acesso (usuário volta a free).
+async function handleInvoicePaymentFailed(invoice: any) {
+  const subId = String(invoice?.subscription || "");
+  const meta = await getSubscriptionMeta(subId);
+  if (!meta.uid) return;
+  await setPlan(meta.uid, "free", subId);
+}
+
 // ───────────────────────── Serve ────────────────────────────────────
 
 serve(async (req) => {
@@ -215,11 +250,13 @@ serve(async (req) => {
   const rawBody = await req.text();
   const signature = req.headers.get("stripe-signature") || "";
 
-  if (STRIPE_WEBHOOK_SECRET) {
-    const ok = await verifyStripeSignature(rawBody, signature, STRIPE_WEBHOOK_SECRET);
-    if (!ok) {
-      return new Response("invalid_signature", { status: 400 });
-    }
+  // Webhook secret é obrigatório em produção: sem ele, NÃO processamos nada.
+  if (!STRIPE_WEBHOOK_SECRET) {
+    return new Response("webhook_secret_not_configured", { status: 500 });
+  }
+  const ok = await verifyStripeSignature(rawBody, signature, STRIPE_WEBHOOK_SECRET);
+  if (!ok) {
+    return new Response("invalid_signature", { status: 400 });
   }
 
   try {
@@ -228,6 +265,10 @@ serve(async (req) => {
       await handleCheckoutCompleted(event?.data?.object || {});
     } else if (event?.type === "customer.subscription.deleted") {
       await handleSubscriptionDeleted(event?.data?.object || {});
+    } else if (event?.type === "invoice.paid") {
+      await handleInvoicePaid(event?.data?.object || {});
+    } else if (event?.type === "invoice.payment_failed") {
+      await handleInvoicePaymentFailed(event?.data?.object || {});
     }
     return new Response("ok", { status: 200 });
   } catch (err) {

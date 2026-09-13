@@ -4,7 +4,7 @@
  * RESPONSABILIDADE: Verificação de permissões e nível de acesso.
  * 
  * Este módulo implementa a lógica de controle de acesso baseada em:
- *   - Plano do usuário (free, premium_monthly, premium_annual)
+ *   - Plano do usuário (free, junior)
  *   - Status da conta (active, suspended)
  *   - Papel (user, admin)
  * 
@@ -15,7 +15,7 @@
  *     canDownload: false (downloads premium)
  *     canViewCertificates: false
  * 
- *   Plano "premium_monthly" / "premium_annual":
+ *   Plano "junior":
  *     canAccessPremium: true
  *     canDownload: true
  *     canViewCertificates: true
@@ -51,14 +51,7 @@
       canSaveFavorites: true,
       canViewHistory: true
     },
-    premium_monthly: {
-      canAccessPremium: true,
-      canDownload: true,
-      canViewCertificates: true,
-      canSaveFavorites: true,
-      canViewHistory: true
-    },
-    premium_annual: {
+    junior: {
       canAccessPremium: true,
       canDownload: true,
       canViewCertificates: true,
@@ -131,7 +124,7 @@
 
   /**
    * Retorna o plano atual do usuário.
-   * @returns {string} "free" | "premium_monthly" | "premium_annual" | "unknown"
+   * @returns {string} "free" | "junior" | "unknown"
    */
   function getCurrentPlan() {
     var profile = window.Auth ? window.Auth.profile() : null;

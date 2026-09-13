@@ -40,11 +40,19 @@
 
     // ─── Registro central de conteúdo restrito por plano ─────────
     // Chave = contentId (derivado do nome do arquivo, sem extensão);
-    // valor = plano mínimo para acesso (hierarquia: junior < pleno < senior).
+    // valor = plano mínimo para acesso (único plano pago: junior).
     // Este é o mapa canônico "o que é pago" — atualize AQUI ao criar novas
     // páginas restritas (ver .github/instructions/planos-de-acesso.instructions.md).
     var RESTRICTED_CONTENT = {
-        // DESATIVADO: nenhuma página é bloqueada. Todas ficam públicas.
+        // Bloqueio para o plano free. O plano pago (junior) libera.
+        morse: "junior",
+        braden: "junior",
+        fugulin: "junior",
+        dimensionamento: "junior",
+        meem: "junior",
+        balancohidrico: "junior",
+        medicamentos: "junior",
+        glasgow: "junior"
     };
 
     /**
@@ -108,6 +116,10 @@
         // Plano mínimo exigido por este conteúdo (registro central),
         // a menos que a página declare explicitamente uma política.
         var restrictedPlan = RESTRICTED_CONTENT[contentId] || null;
+        // Formulários em branco de escalas: todos bloqueados para o plano free.
+        if (!restrictedPlan && /^(formulario|fotmulario)/i.test(contentId)) {
+            restrictedPlan = "junior";
+        }
         var explicitPlan = context.requiredPlan || _meta("required-plan") || base.requiredPlan || null;
         var requiredPlan = explicitPlan || restrictedPlan || null;
 

@@ -56,7 +56,7 @@
                 // Plano insuficiente: monta banner premium e aponta para assinatura.
                 if (window.AccessModules.bannerManager) {
                     window.AccessModules.bannerManager.mount({
-                        plan: result.requiredPlan || "premium_monthly",
+                        plan: result.requiredPlan || "junior",
                         title: "Conteúdo Premium",
                         message: "Assine para acessar este conteúdo."
                     });

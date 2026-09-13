@@ -129,9 +129,11 @@
           _userProfile = profile;
           _currentPlan = profile ? profile.plan : "free";
           _notifyProfileListeners(profile);
+          _enforcePaidGate();
         }).catch(function () {
           // Perfil ainda não existe (usuário novo)
           _currentPlan = "free";
+          _enforcePaidGate();
         });
       }
     } else {
@@ -231,11 +233,11 @@
   /**
    * Verifica se o usuário possui um plano específico.
    * 
-   * @param {string} planName - Nome do plano ("free", "premium_monthly", "premium_annual").
+   * @param {string} planName - Nome do plano ("free", "junior") ou o alias "premium".
    * @returns {boolean}
    * 
-   * USO FUTURO:
-   *   if (Auth.hasPlan("premium_monthly") || Auth.hasPlan("premium_annual")) {
+   * USO:
+   *   if (Auth.hasPlan("junior")) {
    *     // Mostra conteúdo premium
    *   }
    */
@@ -243,9 +245,9 @@
     if (!_currentPlan) {
       return false;
     }
-    // Planos premium (mensal e anual) são considerados "premium"
+    // "premium" é um alias para o único plano pago (junior).
     if (planName === "premium") {
-      return _currentPlan === "premium_monthly" || _currentPlan === "premium_annual";
+      return _currentPlan === "junior";
     }
     return _currentPlan === planName;
   }
@@ -346,6 +348,51 @@
     return _initialized;
   }
 
+  /**
+   * Força o recarregamento do perfil a partir do Firestore (ignora o cache),
+   * usado após pagamento para refletir o novo plano imediatamente.
+   * @returns {Promise<object|null>}
+   */
+  function refreshProfile() {
+    var user = _currentUser;
+    if (!user || !user.uid) {
+      return Promise.resolve(null);
+    }
+    if (window.AuthModules.userCache && window.AuthModules.userCache.clear) {
+      window.AuthModules.userCache.clear();
+    }
+    if (window.AuthorizationModules && window.AuthorizationModules.permissionCache && window.AuthorizationModules.permissionCache.invalidate) {
+      window.AuthorizationModules.permissionCache.invalidate();
+    }
+    if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
+      return window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
+        _userProfile = profile;
+        _currentPlan = profile ? profile.plan : "free";
+        _notifyProfileListeners(profile);
+        return profile;
+      }).catch(function () {
+        return null;
+      });
+    }
+    return Promise.resolve(null);
+  }
+
+  /**
+   * Gate de assinatura: usuário free logado só pode ficar na página de
+   * assinatura (e páginas de login/legais). Em qualquer outra página,
+   * é redirecionado para assinar — sem assinar, não acessa o site.
+   */
+  function _enforcePaidGate() {
+    if (!_currentUser) return;
+    var plan = _currentPlan;
+    if (plan && plan !== "free") return; // premium: acesso total
+    var path = window.location.pathname || "/";
+    var allowed = /^\/(conta\/(assinatura|login)|reembolso|termos|politica|fale|politicadeacessibilidade)(\.html)?$/i.test(path);
+    if (!allowed) {
+      window.location.href = "/conta/assinatura.html?gate=1";
+    }
+  }
+
   // ─── Exportação ─────────────────────────────────────────────────
   /** @namespace Auth */
   window.Auth = {
@@ -359,7 +406,8 @@
     signOut: signOut,
     onAuthChange: onAuthChange,
     onProfileChange: onProfileChange,
-    isInitialized: isInitialized
+    isInitialized: isInitialized,
+    refreshProfile: refreshProfile
   };
 
   // Registra este módulo no namespace

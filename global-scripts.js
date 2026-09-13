@@ -445,14 +445,12 @@ function initializeAuthMenu() {
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
-    applyPlanRestrictions();
     if (window.Authorization.onChange) {
       window.Authorization.onChange(function () {
         if (window.Auth) {
           safeUpdateUI(window.Auth.currentUser());
         }
         hideAdsForPremium();
-        applyPlanRestrictions();
       });
     }
     bindAccess();
@@ -1286,16 +1284,6 @@ function hideAdsForPremium() {
 // Aplica a proteção o mais cedo possível (defer), antes do AdSense carregar.
 hideAdsForPremium();
 
-/**
- * Aplica restrições de plano na interface.
- *
- * DESATIVADO: todas as páginas e botões (imprimir/PDF) ficam liberados para
- * todos os usuários. O sistema de conta permanece, mas sem bloqueios.
- */
-function applyPlanRestrictions() {
-  return;
-}
-
 /* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
    ========================= */
@@ -1320,7 +1308,6 @@ function initializeMultiplexAds() {
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
   hideAdsForPremium();
-  applyPlanRestrictions();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
     new URLSearchParams(window.location.search).get('admin') === '1'

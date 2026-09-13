@@ -15,19 +15,15 @@
     // Níveis dos planos (maior = mais benefícios). Usado na hierarquia.
     var LEVELS = {
         free: 0,
-        junior: 10,
-        pleno: 20,
-        senior: 30
+        junior: 10
     };
 
     // Planos considerados "sem anúncios" (qualquer plano pago).
-    var PREMIUM_PLANS = ["junior", "pleno", "senior"];
+    var PREMIUM_PLANS = ["junior"];
 
     var PLANS = {
         free: { label: "Gratuito", level: 0, available: true, price: 0, priceLabel: "Grátis", permissions: [] },
-        junior: { label: "Júnior", level: 10, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium"] },
-        pleno: { label: "Pleno", level: 20, available: true, price: 7.00, priceLabel: "R$ 7,00", permissions: ["viewPremium", "downloadPremium"] },
-        senior: { label: "Sênior", level: 30, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium", "downloadPremium"] }
+        junior: { label: "Júnior", level: 10, available: true, price: 10.00, priceLabel: "R$ 10,00", permissions: ["viewPremium", "downloadPremium"] }
     };
 
     /**
@@ -41,16 +37,13 @@
 
     /**
      * Verifica se o plano do usuário atende a um plano requerido (hierárquico).
-     * Ex.: hasPlan("pleno", "junior") === true (pleno >= junior).
+     * Ex.: hasPlan("junior", "junior") === true.
      * @param {string} userPlan
      * @param {string} required
      * @returns {boolean}
      */
     function hasPlan(userPlan, required) {
         if (!required || required === "free") {
-            return true;
-        }
-        if (userPlan === "senior") {
             return true;
         }
         return levelOf(userPlan) >= levelOf(required);

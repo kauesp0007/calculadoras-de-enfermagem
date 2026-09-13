@@ -19,10 +19,10 @@ const path = require("path");
 
 const ROOT = path.resolve(__dirname, "..");
 const LANGS = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
-const PAGES = ["braden", "morse", "dimensionamento", "fugulin", "meem"];
+const PAGES = ["morse", "braden", "fugulin", "dimensionamento", "meem", "balancohidrico", "medicamentos", "glasgow"];
 
-// Espelha a regra adicionada em js/auth/route-guard.js
-const PATTERN = /^\/(braden|morse|dimensionamento|fugulin|meem)\.html$/i;
+// Regra canônica agora em js/access/content-policy.js (RESTRICTED_CONTENT).
+const PATTERN = /^\/(morse|braden|fugulin|dimensionamento|meem|balancohidrico|medicamentos|glasgow)\.html$/i;
 
 // Espelha js/auth/plan-service.js
 const LEVELS = { free: 0, junior: 10, pleno: 20, senior: 30 };
@@ -44,39 +44,25 @@ console.log("============================================================");
 console.log("AUDITORIA — Bloqueio de acesso das escalas premium (Júnior+)");
 console.log("============================================================\n");
 
-// 1) Regra presente no route-guard
-console.log("[1] Regra no js/auth/route-guard.js");
-const rg = fs.readFileSync(path.join(ROOT, "js", "auth", "route-guard.js"), "utf8");
-const hasRule = /\(braden\|morse\|dimensionamento\|fugulin\|meem\)\\\.html\$/i.test(rg) || /braden\|morse\|dimensionamento\|fugulin\|meem/.test(rg);
-ok(hasRule, "Regra das 5 escalas presente no POLICIES");
-if (hasRule) {
-    const m = rg.match(/\{\s*pattern:\s*(\/\^?.*?\$\/i)[^}]*requiredPlan:\s*"junior"/);
-    ok(/junior/.test(rg), "requiredPlan = \"junior\"");
+// 1) Regra presente no content-policy.js (RESTRICTED_CONTENT)
+console.log("[1] Regra em js/access/content-policy.js (RESTRICTED_CONTENT)");
+const cp = fs.readFileSync(path.join(ROOT, "js", "access", "content-policy.js"), "utf8");
+for (const p of PAGES) {
+    ok(new RegExp("\\b" + p + '\\s*:\\s*"junior"').test(cp), p + ' → "junior" em RESTRICTED_CONTENT');
 }
+ok(/\(formulario\|fotmulario\)/i.test(cp), "padrão formulario|fotmulario presente no resolve()");
 
-// 2) Existência dos arquivos + correspondência do regex (raiz bloqueada, idiomas livres)
-console.log("\n[2] Arquivos existem + regex (raiz bloqueada, idiomas livres)");
+// 2) Existência dos arquivos (raiz + idiomas)
+console.log("\n[2] Arquivos existem fisicamente (raiz + idiomas)");
 let count = 0;
-let raizCount = 0, idiomasCount = 0;
 for (const p of PAGES) {
     for (const l of [""].concat(LANGS)) {
         const rel = (l ? l + "/" : "") + p + ".html";
-        const abs = path.join(ROOT, rel);
-        const exists = fs.existsSync(abs);
-        if (!exists) continue;
-        count++;
-        const pathname = "/" + rel;
-        const matches = PATTERN.test(pathname);
-        if (l === "") {
-            raizCount++;
-            ok(matches, rel + " (raiz → BLOQUEIA)");
-        } else {
-            idiomasCount++;
-            ok(!matches, rel + " (idioma → LIVRE, não bloqueia)");
-        }
+        if (fs.existsSync(path.join(ROOT, rel))) count++;
     }
 }
-console.log("  → " + count + " arquivos encontrados (" + raizCount + " raiz bloqueados, " + idiomasCount + " de idiomas livres).");
+console.log("  → " + count + " arquivos encontrados.");
+ok(count > 0, "páginas existem fisicamente");
 
 // 3) Páginas que NÃO devem ser bloqueadas
 console.log("\n[3] Páginas que devem permanecer livres (regex NÃO deve casar)");
@@ -103,9 +89,10 @@ for (const p of plans) {
     ok(allowed === (p !== "free"), "plano " + p + " → " + (allowed ? "ACESSO LIBERADO" : "BLOQUEADO (redireciona p/ assinatura)"));
 }
 
-// 5) Formulários (regra anterior) ainda intacta
-console.log("\n[5] Regra de formulários (anterior) intacta");
-ok(/formulario\|fotmulario/i.test(rg), "Regra /formulario|fotmulario/ presente");
+// 5) route-guard.js limpo (sem a regra antiga duplicada)
+console.log("\n[5] route-guard.js sem a regra antiga duplicada");
+const rg = fs.readFileSync(path.join(ROOT, "js", "auth", "route-guard.js"), "utf8");
+ok(!/braden\|morse\|dimensionamento\|fugulin\|meem/.test(rg), "route-guard.js não contém a regra antiga das escalas");
 
 console.log("\n============================================================");
 console.log("RESULTADO: " + pass + " passou, " + fail + " falhou.");

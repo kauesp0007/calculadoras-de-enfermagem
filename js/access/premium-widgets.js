@@ -93,7 +93,7 @@
      */
     function premiumCard(opts) {
         opts = opts || {};
-        var plan = opts.plan || "premium_monthly";
+        var plan = opts.plan || "junior";
         var title = _escape(opts.title || "Desbloqueie este conteúdo");
         var message = _escape(opts.message || "Assine para acessar este e todos os conteúdos premium.");
         return (

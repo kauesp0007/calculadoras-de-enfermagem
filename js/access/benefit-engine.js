@@ -26,17 +26,7 @@
         junior: [
             { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
             { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" },
-            { id: "blank-forms", icon: "✓", label: "Acesso aos formulários em branco para imprimir das escalas" }
-        ],
-        pleno: [
-            { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
-            { id: "all-scales", icon: "✓", label: "Todas as escalas e calculadoras" },
-            { id: "blank-forms", icon: "✓", label: "Acesso aos formulários em branco para imprimir das escalas" },
-            { id: "all-simulados", icon: "✓", label: "Todos os simulados" }
-        ],
-        senior: [
-            { id: "no-ads", icon: "✓", label: "Navegação sem anúncios" },
-            { id: "all-pleno", icon: "✓", label: "Tudo do plano Pleno" },
+            { id: "all-simulados", icon: "✓", label: "Todos os simulados" },
             { id: "blank-forms", icon: "✓", label: "Formulários de escalas em branco para imprimir e preencher" },
             { id: "excel-schedules", icon: "✓", label: "Escalas de folga e férias semiautomáticas em Excel" },
             { id: "excel-scales", icon: "✓", label: "Fugulin, Braden, Morse e Dimensionamento semiautomáticas em Excel" },

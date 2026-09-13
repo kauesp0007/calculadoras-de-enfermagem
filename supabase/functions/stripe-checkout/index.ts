@@ -16,6 +16,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
 const STRIPE_API = "https://api.stripe.com/v1";
 const SITE_URL = "https://www.calculadorasdeenfermagem.com.br";
+const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
+const JWKS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 
 // Idiomas do site -> price ID do Stripe.
 const EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
@@ -30,6 +32,74 @@ function corsHeaders() {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Headers": "Authorization, apikey, Content-Type",
   };
+}
+
+// ───────────── Verificação do token Firebase (validação do UID) ─────────────
+
+function b64urlDecode(input: string): Uint8Array {
+  const b64 = input.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+  const bin = atob(padded);
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
+function pemCertToArrayBuffer(pem: string): ArrayBuffer {
+  const b64 = pem
+    .replace(/-----BEGIN CERTIFICATE-----/, "")
+    .replace(/-----END CERTIFICATE-----/, "")
+    .replace(/\s+/g, "");
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return buf.buffer;
+}
+
+/**
+ * Verifica um ID token do Firebase Auth e retorna o uid (sub) se válido.
+ * Valida assinatura RS256 contra as chaves públicas do Google,
+ * além de `aud`, `iss` e `exp`. Retorna "" se inválido.
+ */
+async function verifyFirebaseToken(idToken: string): Promise<string> {
+  const parts = idToken.split(".");
+  if (parts.length !== 3) return "";
+  const [h, p, s] = parts;
+
+  let header: any, payload: any;
+  try {
+    header = JSON.parse(new TextDecoder().decode(b64urlDecode(h)));
+    payload = JSON.parse(new TextDecoder().decode(b64urlDecode(p)));
+  } catch {
+    return "";
+  }
+
+  if (header.alg !== "RS256" || !header.kid) return "";
+  if ((payload.exp || 0) * 1000 < Date.now()) return "";
+  if (payload.aud !== FIREBASE_PROJECT_ID) return "";
+  if (payload.iss !== `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`) return "";
+
+  const certsRes = await fetch(JWKS_URL);
+  if (!certsRes.ok) return "";
+  const certs = await certsRes.json();
+  const cert = certs[header.kid];
+  if (!cert) return "";
+
+  const key = await crypto.subtle.importKey(
+    "spki",
+    pemCertToArrayBuffer(cert),
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["verify"],
+  );
+  const valid = await crypto.subtle.verify(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    b64urlDecode(s),
+    new TextEncoder().encode(`${h}.${p}`),
+  );
+  if (!valid) return "";
+  return String(payload.sub || "");
 }
 
 serve(async (req) => {
@@ -54,6 +124,17 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: "missing_uid" }),
         { status: 400, headers: { ...corsHeaders(), "Content-Type": "application/json" } },
+      );
+    }
+
+    // Valida o token Firebase e garante que o uid pertence ao usuário autenticado.
+    const authHeader = req.headers.get("Authorization") || "";
+    const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+    const authUid = idToken ? await verifyFirebaseToken(idToken) : "";
+    if (!authUid || authUid !== uid) {
+      return new Response(
+        JSON.stringify({ error: "unauthorized" }),
+        { status: 401, headers: { ...corsHeaders(), "Content-Type": "application/json" } },
       );
     }
 
