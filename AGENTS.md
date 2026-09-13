@@ -21,6 +21,7 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 - Arquitetura: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`.
 - Estrutura física e dependências: `CATALOGO_DE_ESTRUTURA_FISICA/`.
 - Identidade visual / Design System: `CATALOGO_DE_IDENTIDADE_VISUAL/`.
+- **Padrão visual canônico de páginas HTML:** `CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`.
 - SEO e metas do head: `CATALOGO_SEO_METAS_HEAD/`.
 - Camada de IA (agentes, hooks, catálogos): `CATALOGO_DOS_AGENTES_E_HOOKS/`.
 - Orquestração (Prompt Core + adapters): `AI_ORCHESTRATION/PROMPT_CORE.md` (fonte única das
@@ -30,6 +31,25 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 - Modelos HTML: `fugulin.html`, `mapa-do-site.html`, `perroca.html`, `dimensionamento.html`,
   `centro-cirurgico.html`, `guia_rapido_dispositivos.html`, `meem.html`,
   `integracoes_classificacao_wifi.html`.
+
+## Padrão visual canônico para HTML (IMPOSITIVO)
+
+Toda criação ou modernização de página HTML DEVE consultar
+`CATALOGO_DE_IDENTIDADE_VISUAL/PADRAO_CANONICO_PAGINAS_HTML.md`.
+
+O padrão estabelece dimensões, tipografia, espaçamento, compactação, hero, gradiente,
+cores, bordas, sombras, acabamento visual, responsividade e estabilidade visual.
+
+Regras mínimas: página em toda a largura útil; hero 100% e compacto; alinhamento à
+esquerda; hierarquia Eyebrow → H1 → H2; gradiente institucional navy;
+Inter para corpo e Nunito Sans para títulos quando disponível; corpo em torno de 16px;
+H1 responsivo em torno de 24–34px; seções compactas com raio em torno de 14–16px;
+bordas de 1px; sombras suaves; paleta institucional `#1A3E74`, `#1E4D8C`, `#163269`,
+`#2563EB` e `#4A90E2`.
+
+É PROIBIDO descaracterizar a família visual por excesso de espaçamento, hero alto,
+cores incompatíveis, sombras pesadas ou tipografia desproporcional. Cores temáticas
+podem existir somente como acentos secundários.
 
 ## Largura e hero card (IMPOSITIVA)
 
@@ -63,9 +83,6 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
   `del/rd /s`, `gsutil/gcloud storage rm`, `gcloud projects delete`.
 - Instalação de dependências (`npm install`, `pip install`) exige autorização explícita.
 
-Essas regras são aplicadas pelo engine de rules do Codex (`forbidden`/`prompt`).
-Não tente contorná-las envolvendo o comando em `bash -c`/`sh -c`.
-
 ## Antes de alterar qualquer arquivo (BLOQUEIO)
 
 1. É OBRIGATÓRIO ler `AI_RULES.md` e as regras relacionadas à tarefa.
@@ -81,6 +98,9 @@ Definidos em `.codex/agents/*.toml` — equivalentes aos agentes do Copilot
 `auditor_governanca` · `auditor_performance` · `auditor_seo` · `build` ·
 `descoberta_conhecimento` · `gerador_imagens` · `nova_calculadora` · `revisor_final` ·
 `revisor_integridade` · `testador_browser` · `tradutor_pagina` · `verificador_hreflang`.
+
+**Ao criar ou modernizar HTML, os subagentes de criação, build, auditoria e revisão
+DEVEM consultar o padrão visual canônico antes de aprovar o resultado.**
 
 Acione subagentes para trabalho independente e paralelo (exploração, auditoria,
 tradução, testes). Subagentes somente-leitura têm `sandbox_mode = "read-only"`.
@@ -132,7 +152,7 @@ Os scripts determinísticos continuam válidos — rode-os manualmente no Codex:
   `mapa-do-site.html` é gerado dinamicamente; NUNCA editar manualmente) e PERGUNTAR ao
   desenvolvedor em qual caminho do `menu-global.html` incluir; depois incluir no menu
   global (desktop) e no off-canvas (mobile).
-- **Menu por idioma**: cada pasta de idioma (`en/`, `es/`, ...) tem seu `menu-global.html`
+- **Menu por idioma**: cada pasta de idioma (`en/`, `es/`, ...) tem `menu-global.html`
   próprio (rótulos traduzidos, caminhos RELATIVOS, ex.: `pagina.html` sem `/`).
 
 ## Auditoria obrigatória (BLOQUEIO)
