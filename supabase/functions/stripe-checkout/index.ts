@@ -63,6 +63,7 @@ serve(async (req) => {
       mode: "subscription",
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
+      "payment_method_types[0]": "card",
       client_reference_id: uid,
       "subscription_data[metadata][uid]": uid,
       success_url: `${SITE_URL}/conta/assinatura.html?stripe=success`,
