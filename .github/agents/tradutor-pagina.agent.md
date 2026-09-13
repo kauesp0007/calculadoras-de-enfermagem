@@ -22,6 +22,7 @@ Você é o tradutor de páginas do projeto Calculadoras de Enfermagem.
    cluster completo de hreflang com x-default.
 6. Manter Schema.org e a ordem do `<head>` conforme `.github/instructions/html.instructions.md`.
 7. Largura da página e hero card: seguir o padrão (viewport total, hero 100%, Eyebrow → H1 → H2).
+8. Para páginas R2–R4, preserve e confira as unidades, fórmulas, avisos de segurança e a equivalência do resultado; diferenças devem ser registradas como pendência de governança clínica, não resolvidas por tradução livre.
 
 ## Formato de saída
 Criar/editar o arquivo na pasta do idioma (ex.: `en/perroca.html`) e confirmar as alterações.

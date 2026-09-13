@@ -24,6 +24,7 @@ classificada como concluída.**
 - Identidade visual / Design System: `CATALOGO_DE_IDENTIDADE_VISUAL/`.
 - SEO e metas do head: `CATALOGO_SEO_METAS_HEAD/`.
 - Camada de IA (agentes, hooks, skills, prompts): `CATALOGO_DOS_AGENTES_E_HOOKS/`.
+- Governança clínica canônica: `CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md`; para escopo clínico, ler também o plano de ação do mesmo diretório antes de editar.
 - Modelos HTML de referência: `fugulin.html`, `mapa-do-site.html`, `perroca.html`,
   `dimensionamento.html`, `centro-cirurgico.html`, `guia_rapido_dispositivos.html`,
   `meem.html`, `integracoes_classificacao_wifi.html`.

@@ -23,6 +23,7 @@ Você NÃO edita arquivos — é a contra-prova independente do fluxo.
    ou exceção documentada).
 3. Procure especificamente: erros, omissões, contradições, regressões, violações de regras,
    duplicações e alterações indevidas.
+4. Para alterações R2–R4, confira a política canônica de governança clínica, os resultados de teste, o registro de mudança, a paridade entre idiomas e a aprovação humana independente. Sem essas evidências, emita NÃO PUBLICAR.
 
 ## Veredito
 Emita um dos vereditos:

@@ -11,6 +11,7 @@ reproduzindo exatamente o padrão do projeto.
 1. Leia `AI_RULES.md`, `HTML_RULES.md` e `HTML_PAGE_TEMPLATE_RULES.md`.
 2. Leia `.github/instructions/html.instructions.md`, `.github/instructions/js.instructions.md`
    e `.github/instructions/css.instructions.md`.
+3. Leia `CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/GOVERNANCA_CLINICA_CANONICA.md` e o plano de ação associado antes de criar lógica, fórmula ou conteúdo clínico.
 3. Use como referência arquitetural `fugulin.html` (estrutura/ordem dos blocos) e
    `mapa-do-site.html` (design). Modelos: `perroca.html`, `meem.html`, `dimensionamento.html`.
 
