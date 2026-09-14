@@ -1,12 +1,17 @@
 /**
  * lang-selector.js
  * Responsável por injetar e gerir o seletor de idiomas dinâmico.
- * Também mantém a área de conta traduzida após componentes dinâmicos.
+ * Também mantém a área de conta e a moderação administrativa autenticadas
+ * após componentes dinâmicos.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("language-selector-placeholder");
-  if (!container) return;
+  if (!container) {
+    loadAccountMenuLocalizer();
+    loadForumModerationBridge();
+    return;
+  }
 
   fetch("/_language_selector.html")
     .then(response => {
@@ -17,8 +22,14 @@ document.addEventListener("DOMContentLoaded", () => {
       container.innerHTML = data;
       langSelectorInit();
       accountLanguageSync();
+      loadAccountMenuLocalizer();
+      loadForumModerationBridge();
     })
-    .catch(err => console.error("Erro ao carregar seletor de idiomas:", err));
+    .catch(err => {
+      console.error("Erro ao carregar seletor de idiomas:", err);
+      loadAccountMenuLocalizer();
+      loadForumModerationBridge();
+    });
 });
 
 function langSelectorInit() {
@@ -110,7 +121,7 @@ function langSelectorInit() {
 }
 
 const ACCOUNT_EXTRA_I18N = {
-  en: {"MINHA CONTA":"MY ACCOUNT","Início":"Home","Idioma":"Language","País":"Country","Método de login":"Login method","Data de cadastro":"Registration date","Último acesso":"Last access","Editar nome":"Edit name","Conta":"Account","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Enter a valid name (at least 2 characters).","Nome atualizado com sucesso!":"Name updated successfully!","Tema":"Theme","Receber novidades":"Receive updates","Enviaremos atualizações e novos recursos por e-mail (opcional).":"We will send updates and new features by email (optional).","Padrão":"Default","Grande":"Large","Muito grande":"Very large","Extra grande":"Extra large","Máximo":"Maximum","Mais recentes":"Newest","Mais antigos":"Oldest","Ordem alfabética":"Alphabetical order","Visitas":"Visits","Páginas únicas":"Unique pages","Tempo total":"Total time","Registro automático das páginas que você visita.":"Automatic record of pages you visit.","Admin":"Admin","Usuário":"User","Calculadora":"Calculator","Escala":"Scale","Artigo":"Article","Protocolo":"Protocol","Download":"Download","Curso":"Course","Simulado":"Simulation","Biblioteca":"Library","Página":"Page","Inglês":"English","Espanhol":"Spanish","Alemão":"German","Italiano":"Italian","Francês":"French","Hindi":"Hindi","Chinês":"Chinese","Árabe":"Arabic","Japonês":"Japanese","Russo":"Russian","Coreano":"Korean","Turco":"Turkish","Holandês":"Dutch","Polonês":"Polish","Sueco":"Swedish","Indonésio":"Indonesian","Vietnamita":"Vietnamese","Ucraniano":"Ukrainian"},
+  en: {"MINHA CONTA":"MY ACCOUNT","Início":"Home","Idioma":"Language","País":"Country","Método de login":"Login method","Data de cadastro":"Registration date","Último acesso":"Last access","Editar nome":"Edit name","Conta":"Account","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Enter a valid name (at least 2 characters).","Nome atualizado com sucesso!":"Name updated successfully!","Tema":"Theme","Receber novidades":"Receive updates","Enviaremos atualizações e novos recursos por e-mail (opcional).":"We will send updates and new features by email (optional).","Padrão":"Default","Grande":"Large","Muito grande":"Very large","Extra grande":"Extra large","Máximo":"Maximum","Mais recentes":"Newest","Mais antigos":"Oldest","Ordem alfabética":"Alphabetical order","Visitas":"Visits","Páginas únicas":"Unique pages","Tempo total":"Total time","Registro automático das páginas que você visita.":"Automatic record of pages you visit.","Admin":"Admin","Usuário":"User","Calculadora":"Calculator","Escala":"Scale","Artigo":"Article","Protocolo":"Protocol","Download":"Download","Curso":"Course","Simulado":"Simulation","Biblioteca":"Library","Página":"Page","Inglês":"English","Espanhol":"Spanish","Alemão":"German","Italianiano":"Italian","Italiano":"Italian","Francês":"French","Hindi":"Hindi","Chinês":"Chinese","Árabe":"Arabic","Japonês":"Japanese","Russo":"Russian","Coreano":"Korean","Turco":"Turkish","Holandês":"Dutch","Polonês":"Polish","Sueco":"Swedish","Indonésio":"Indonesian","Vietnamita":"Vietnamese","Ucraniano":"Ukrainian"},
   es: {"MINHA CONTA":"MI CUENTA","Início":"Inicio","Idioma":"Idioma","País":"País","Método de login":"Método de acceso","Data de cadastro":"Fecha de registro","Último acesso":"Último acceso","Editar nome":"Editar nombre","Conta":"Cuenta","Premium (Júnior)":"Premium (Júnior)","Digite um nome válido (mínimo 2 caracteres).":"Introduce un nombre válido (mínimo 2 caracteres).","Nome atualizado com sucesso!":"¡Nombre actualizado correctamente!","Tema":"Tema","Receber novidades":"Recibir novedades","Enviaremos atualizações e novos recursos por e-mail (opcional).":"Enviaremos actualizaciones y nuevas funciones por correo electrónico (opcional).","Padrão":"Predeterminado","Grande":"Grande","Muito grande":"Muy grande","Extra grande":"Extra grande","Máximo":"Máximo","Mais recentes":"Más recientes","Mais antigos":"Más antiguos","Ordem alfabética":"Orden alfabético","Visitas":"Visitas","Páginas únicas":"Páginas únicas","Tempo total":"Tiempo total","Registro automático das páginas que você visita.":"Registro automático de las páginas que visitas.","Admin":"Admin","Usuário":"Usuario","Calculadora":"Calculadora","Escala":"Escala","Artigo":"Artículo","Protocolo":"Protocolo","Download":"Descarga","Curso":"Curso","Simulado":"Simulación","Biblioteca":"Biblioteca","Página":"Página","Inglês":"Inglés","Espanhol":"Español","Alemão":"Alemán","Italiano":"Italiano","Francês":"Francés","Hindi":"Hindi","Chinês":"Chino","Árabe":"Árabe","Japonês":"Japonés","Russo":"Ruso","Coreano":"Coreano","Turco":"Turco","Holandês":"Neerlandés","Polonês":"Polaco","Sueco":"Sueco","Indonésio":"Indonesio","Vietnamita":"Vietnamita","Ucraniano":"Ucraniano"},
   fr: {"MINHA CONTA":"MON COMPTE","Início":"Accueil","Idioma":"Langue","País":"Pays","Método de login":"Méthode de connexion","Data de cadastro":"Date d’inscription","Último acesso":"Dernier accès","Editar nome":"Modifier le nom","Conta":"Compte","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Saisissez un nom valide (au moins 2 caractères).","Nome atualizado com sucesso!":"Nom mis à jour avec succès !","Tema":"Thème","Receber novidades":"Recevoir les nouveautés","Enviaremos atualizações e novos recursos por e-mail (opcional).":"Nous enverrons les mises à jour et nouvelles fonctionnalités par e-mail (facultatif).","Padrão":"Par défaut","Grande":"Grand","Muito grande":"Très grand","Extra grande":"Extra grand","Máximo":"Maximum","Mais recentes":"Plus récents","Mais antigos":"Plus anciens","Ordem alfabética":"Ordre alphabétique","Visitas":"Visites","Páginas únicas":"Pages uniques","Tempo total":"Temps total","Registro automático das páginas que você visita.":"Enregistrement automatique des pages que vous consultez.","Admin":"Admin","Usuário":"Utilisateur","Calculadora":"Calculateur","Escala":"Échelle","Artigo":"Article","Protocolo":"Protocole","Download":"Téléchargement","Curso":"Cours","Simulado":"Simulation","Biblioteca":"Bibliothèque","Página":"Page","Inglês":"Anglais","Espanhol":"Espagnol","Alemão":"Allemand","Italiano":"Italien","Francês":"Français","Hindi":"Hindi","Chinês":"Chinois","Árabe":"Arabe","Japonês":"Japonais","Russo":"Russe","Coreano":"Coréen","Turco":"Turc","Holandês":"Néerlandais","Polonês":"Polonais","Sueco":"Suédois","Indonésio":"Indonésien","Vietnamita":"Vietnamien","Ucraniano":"Ukrainien"},
   de: {"MINHA CONTA":"MEIN KONTO","Início":"Startseite","Idioma":"Sprache","País":"Land","Método de login":"Anmeldemethode","Data de cadastro":"Registrierungsdatum","Último acesso":"Letzter Zugriff","Editar nome":"Namen bearbeiten","Conta":"Konto","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Geben Sie einen gültigen Namen ein (mindestens 2 Zeichen).","Nome atualizado com sucesso!":"Name erfolgreich aktualisiert!","Tema":"Design","Receber novidades":"Neuigkeiten erhalten","Enviaremos atualizações e novos recursos por e-mail (opcional).":"Wir senden Updates und neue Funktionen per E-Mail (optional).","Padrão":"Standard","Grande":"Groß","Muito grande":"Sehr groß","Extra grande":"Extra groß","Máximo":"Maximum","Mais recentes":"Neueste","Mais antigos":"Älteste","Ordem alfabética":"Alphabetische Reihenfolge","Visitas":"Besuche","Páginas únicas":"Eindeutige Seiten","Tempo total":"Gesamtzeit","Registro automático das páginas que você visita.":"Automatische Erfassung der von Ihnen besuchten Seiten.","Admin":"Admin","Usuário":"Benutzer","Calculadora":"Rechner","Escala":"Skala","Artigo":"Artikel","Protocolo":"Protokoll","Download":"Download","Curso":"Kurs","Simulado":"Simulation","Biblioteca":"Bibliothek","Página":"Seite","Inglês":"Englisch","Espanhol":"Spanisch","Alemão":"Deutsch","Italiano":"Italienisch","Francês":"Französisch","Hindi":"Hindi","Chinês":"Chinesisch","Árabe":"Arabisch","Japonês":"Japanisch","Russo":"Russisch","Coreano":"Koreanisch","Turco":"Türkisch","Holandês":"Niederländisch","Polonês":"Polnisch","Sueco":"Schwedisch","Indonésio":"Indonesisch","Vietnamita":"Vietnamesisch","Ucraniano":"Ukrainisch"},
@@ -125,7 +136,7 @@ const ACCOUNT_EXTRA_I18N = {
   pl: {"MINHA CONTA":"MOJE KONTO","Início":"Strona główna","Idioma":"Język","País":"Kraj","Método de login":"Metoda logowania","Data de cadastro":"Data rejestracji","Último acesso":"Ostatni dostęp","Editar nome":"Edytuj nazwę","Conta":"Konto","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Wprowadź prawidłową nazwę (co najmniej 2 znaki).","Nome atualizado com sucesso!":"Nazwa została zaktualizowana!","Tema":"Motyw","Receber novidades":"Otrzymuj aktualizacje","Padrão":"Domyślny","Grande":"Duży","Muito grande":"Bardzo duży","Extra grande":"Ekstra duży","Máximo":"Maksymalny","Mais recentes":"Najnowsze","Mais antigos":"Najstarsze","Ordem alfabética":"Alfabetycznie","Visitas":"Wizyty","Páginas únicas":"Unikalne strony","Tempo total":"Łączny czas","Admin":"Administrator","Usuário":"Użytkownik"},
   sv: {"MINHA CONTA":"MITT KONTO","Início":"Start","Idioma":"Språk","País":"Land","Método de login":"Inloggningsmetod","Data de cadastro":"Registreringsdatum","Último acesso":"Senaste åtkomst","Editar nome":"Redigera namn","Conta":"Konto","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Ange ett giltigt namn (minst 2 tecken).","Nome atualizado com sucesso!":"Namnet uppdaterades!","Tema":"Tema","Receber novidades":"Få uppdateringar","Padrão":"Standard","Grande":"Stor","Muito grande":"Mycket stor","Extra grande":"Extra stor","Máximo":"Maximal","Mais recentes":"Senaste","Mais antigos":"Äldsta","Ordem alfabética":"Alfabetisk ordning","Visitas":"Besök","Páginas únicas":"Unika sidor","Tempo total":"Total tid","Admin":"Admin","Usuário":"Användare"},
   id: {"MINHA CONTA":"AKUN SAYA","Início":"Beranda","Idioma":"Bahasa","País":"Negara","Método de login":"Metode masuk","Data de cadastro":"Tanggal pendaftaran","Último acesso":"Akses terakhir","Editar nome":"Edit nama","Conta":"Akun","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Masukkan nama yang valid (minimal 2 karakter).","Nome atualizado com sucesso!":"Nama berhasil diperbarui!","Tema":"Tema","Receber novidades":"Terima pembaruan","Padrão":"Bawaan","Grande":"Besar","Muito grande":"Sangat besar","Extra grande":"Ekstra besar","Máximo":"Maksimal","Mais recentes":"Terbaru","Mais antigos":"Terlama","Ordem alfabética":"Urutan alfabetis","Visitas":"Kunjungan","Páginas únicas":"Halaman unik","Tempo total":"Total waktu","Admin":"Admin","Usuário":"Pengguna"},
-  vi: {"MINHA CONTA":"TÀI KHOẢN CỦA TÔI","Início":"Trang chủ","Idioma":"Ngôn ngữ","País":"Quốc gia","Método de login":"Phương thức đăng nhập","Data de cadastro":"Ngày đăng ký","Último acesso":"Truy cập gần nhất","Editar nome":"Chỉnh sửa tên","Conta":"Tài khoản","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Nhập tên hợp lệ (ít nhất 2 ký tự).","Nome atualizado com sucesso!":"Đã cập nhật tên thành công!","Tema":"Giao diện","Receber novidades":"Nhận cập nhật","Padrão":"Mặc định","Grande":"Lớn","Muito grande":"Rất lớn","Extra grande":"Cực lớn","Máximo":"Tối đa","Mais recentes":"Mới nhất","Mais antigos":"Cũ nhất","Ordem alfabética":"Theo thứ tự chữ cái","Visitas":"Lượt truy cập","Páginas únicas":"Trang duy nhất","Tempo total":"Tổng thời gian","Admin":"Quản trị viên","Usuário":"Người dùng"},
+  vi: {"MINHA CONTA":"TÀI KHOẢN CỦA TÔI","Início":"Trang chủ","Idioma":"Ngôn ngữ","País":"Quốc gia","Método de login":"Phương thức đăng nhập","Data de cadastro":"Ngày đăng ký","Último acesso":"Truy cập gần nhất","Editar nome":"Chỉnh sửa tên","Conta":"Tài khoản","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Nhập tên hợp lệ (ít nhất 2 ký tự).","Nome atualizado com sucesso!":"Đã cập nhật tên thành công!","Tema":"Giao diện","Receber novidades":"Nhận cập nhật","Padrão":"Mặc định","Grande":"Lớn","Muito grande":"Rất lớn","Extra grande":"Cực lớn","Máximo":"Tối đa","Mais recenters":"Mới nhất","Mais recentes":"Mới nhất","Mais antigos":"Cũ nhất","Ordem alfabética":"Theo thứ tự chữ cái","Visitas":"Lượt truy cập","Páginas únicas":"Trang duy nhất","Tempo total":"Tổng thời gian","Admin":"Quản trị viên","Usuário":"Người dùng"},
   uk: {"MINHA CONTA":"МІЙ ОБЛІКОВИЙ ЗАПИС","Início":"Головна","Idioma":"Мова","País":"Країна","Método de login":"Спосіб входу","Data de cadastro":"Дата реєстрації","Último acesso":"Останній доступ","Editar nome":"Змінити ім'я","Conta":"Обліковий запис","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"Введіть дійсне ім’я (не менше 2 символів).","Nome atualizado com sucesso!":"Ім’я успішно оновлено!","Tema":"Тема","Receber novidades":"Отримувати оновлення","Padrão":"За замовчуванням","Grande":"Великий","Muito grande":"Дуже великий","Extra grande":"Дуже великий","Máximo":"Максимальний","Mais recentes":"Найновіші","Mais antigos":"Найстаріші","Ordem alfabética":"За алфавітом","Visitas":"Відвідування","Páginas únicas":"Унікальні сторінки","Tempo total":"Загальний час","Admin":"Адміністратор","Usuário":"Користувач"},
   ar: {"MINHA CONTA":"حسابي","Início":"الرئيسية","Idioma":"اللغة","País":"البلد","Método de login":"طريقة تسجيل الدخول","Data de cadastro":"تاريخ التسجيل","Último acesso":"آخر دخول","Editar nome":"تعديل الاسم","Conta":"الحساب","Premium (Júnior)":"Premium (Junior)","Digite um nome válido (mínimo 2 caracteres).":"أدخل اسمًا صالحًا (حرفان على الأقل).","Nome atualizado com sucesso!":"تم تحديث الاسم بنجاح!","Tema":"السمة","Receber novidades":"تلقي التحديثات","Padrão":"افتراضي","Grande":"كبير","Muito grande":"كبير جدًا","Extra grande":"كبير للغاية","Máximo":"الحد الأقصى","Mais recentes":"الأحدث","Mais antigos":"الأقدم","Ordem alfabética":"ترتيب أبجدي","Visitas":"الزيارات","Páginas únicas":"الصفحات الفريدة","Tempo total":"الوقت الإجمالي","Admin":"المشرف","Usuário":"المستخدم"}
 };
@@ -166,20 +177,32 @@ function loadAccountMenuLocalizer() {
   document.head.appendChild(script);
 }
 
+function loadForumModerationBridge() {
+  if (window.ForumModerationBridge) { window.ForumModerationBridge.init(); return; }
+  if (document.getElementById("forum-moderation-bridge-loader")) return;
+  const script = document.createElement("script");
+  script.id = "forum-moderation-bridge-loader";
+  script.src = "/js/forum-moderation-bridge.js";
+  script.async = true;
+  script.onload = function () { if (window.ForumModerationBridge && window.ForumModerationBridge.init) window.ForumModerationBridge.init(); };
+  script.onerror = function () { console.warn("Não foi possível carregar o bridge de autenticação da moderação."); };
+  document.head.appendChild(script);
+}
+
 function accountLanguageSync() {
   const isAccountPage = (window.location.pathname || "").indexOf("/conta/") === 0;
   if (!isAccountPage) {
     loadAccountMenuLocalizer();
+    loadForumModerationBridge();
     return;
   }
   const lang = currentAccountLanguage();
   try { if (window.AccountI18n && window.AccountI18n.setLanguage) window.AccountI18n.setLanguage(lang, { preserveUrl:false }); } catch (e) {}
   try { if (window.AccountI18n && window.AccountI18n.translateDom) window.AccountI18n.translateDom(); } catch (e) {}
-
   const dictionary = ACCOUNT_EXTRA_I18N[lang];
   if (dictionary) translateNodeText(document.body, dictionary);
   loadAccountMenuLocalizer();
-
+  loadForumModerationBridge();
   if (window.MutationObserver && document.body) {
     if (window.__accountLanguageObserver) window.__accountLanguageObserver.disconnect();
     window.__accountLanguageObserver = new MutationObserver(function (mutations) {
