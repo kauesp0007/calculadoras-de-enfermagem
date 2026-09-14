@@ -21,17 +21,16 @@ service cloud.firestore {
         && (!('lifetime' in request.resource.data) || request.resource.data.lifetime == false);
 
       // Campos de acesso e auditoria financeira são exclusivamente do backend.
-      // Campos de identidade e cadastro não podem ser reescritos pelo cliente
-      // para manter o perfil do Firestore coerente com o Firebase Auth.
+      // Campos de identidade (uid/email/provider) são imutáveis após a criação.
       allow update: if isOwner(uid)
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly([
-               'displayName', 'photoURL', 'language', 'country', 'provider',
-               'email', 'preferences', 'metadata', 'lastLoginAt'
+               'displayName', 'photoURL', 'language', 'country',
+               'preferences', 'metadata', 'lastLoginAt'
              ])
+        && request.resource.data.uid == resource.data.uid
         && request.resource.data.email == resource.data.email
-        && request.resource.data.provider == resource.data.provider
-        && request.resource.data.uid == resource.data.uid;
+        && request.resource.data.provider == resource.data.provider;
 
       // A exclusão do perfil não é permitida diretamente pelo cliente.
       // Exclusão de conta, quando implementada, deverá ocorrer por fluxo
