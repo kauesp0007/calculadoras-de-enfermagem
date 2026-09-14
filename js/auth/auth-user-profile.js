@@ -1,12 +1,38 @@
 /**
  * js/auth/auth-user-profile.js
- *
+ * 
  * RESPONSABILIDADE: Gerenciamento do perfil do usuário no Firestore.
+ * 
+ * Este módulo gerencia a leitura e escrita dos dados do perfil
+ * na coleção "users" do Firestore.
+ * 
+ * ESTRUTURA DO DOCUMENTO (Firestore: /users/{uid}):
+ *   {
+ *     uid: string,
+ *     email: string,
+ *     displayName: string,
+ *     photoURL: string,
+ *     language: string,
+ *     country: string,
+ *     createdAt: Timestamp,
+ *     lastLoginAt: Timestamp,
+ *     accountType: string,
+ *     status: string,
+ *     plan: string,
+ *     planExpiresAt: Timestamp|null,
+ *     permissions: {
+ *       canAccessPremium: boolean,
+ *       canDownload: boolean,
+ *       canViewCertificates: boolean,
+ *       canSaveFavorites: boolean,
+ *       canViewHistory: boolean,
+ *       role: string
+ *     }
+ *   }
  */
 (function (window) {
   "use strict";
   window.AuthModules = window.AuthModules || {};
-  var COLLECTION = "users";
 
   function _emit(event, payload) {
     if (window.AuthModules.userEvents) window.AuthModules.userEvents.emit(event, payload);
@@ -19,6 +45,7 @@
 
   async function loadProfile(uid) {
     if (!uid) return null;
+
     var cached = window.AuthModules.userCache ? window.AuthModules.userCache.get() : null;
     if (cached && cached.uid === uid) {
       _emit(window.AuthModules.userEvents.EVENTS.PROFILE_LOADED, cached);
@@ -42,6 +69,7 @@
       _emit(window.AuthModules.userEvents.EVENTS.PROFILE_LOADED, created);
       return created;
     }
+
     return null;
   }
 
@@ -57,6 +85,7 @@
 
   async function createProfile(user) {
     if (!user) return null;
+
     var serverTs = window.AuthModules.firestoreUser ? window.AuthModules.firestoreUser.serverTimestamp() : null;
     var prefs = window.AuthModules.preferences ? window.AuthModules.preferences.getDefaults() : {};
     prefs.language = _detectLanguage();
@@ -91,9 +120,8 @@
       }
     };
 
-    // createUserDoc retorna o documento que realmente prevaleceu.
-    // Isso é essencial em corrida de primeiro login: não podemos cachear um
-    // perfil "free" localmente quando outro ciclo já persistiu um plano válido.
+    // Usa o documento efetivamente persistido. Se outra execução acabou de criar
+    // ou atualizar o perfil, seus dados (inclusive assinatura) prevalecem.
     var persisted = profile;
     if (window.AuthModules.firestoreUser) {
       persisted = await window.AuthModules.firestoreUser.createUserDoc(user.uid, profile) || profile;
@@ -104,6 +132,7 @@
       createdAt: effective.createdAt instanceof Date ? effective.createdAt : new Date(),
       lastLoginAt: effective.lastLoginAt instanceof Date ? effective.lastLoginAt : new Date()
     });
+
     _cacheProfile(response);
     _emit(window.AuthModules.userEvents.EVENTS.PROFILE_UPDATED, response);
     return response;
@@ -128,7 +157,8 @@
         var countries = { "pt-BR":"BR", en:"US", es:"ES", de:"DE", it:"IT", fr:"FR", hi:"IN", zh:"CN", ar:"SA", ja:"JP", ru:"RU", ko:"KR", tr:"TR", nl:"NL", pl:"PL", sv:"SE", id:"ID", vi:"VN", uk:"UA" };
         return countries[window.AccountI18n.getLanguage()] || "BR";
       }
-      var locale = navigator.language || "pt-BR", parts = locale.split("-");
+      var locale = navigator.language || "pt-BR";
+      var parts = locale.split("-");
       return parts.length > 1 ? parts[1].toUpperCase() : "BR";
     } catch (e) { return "BR"; }
   }
