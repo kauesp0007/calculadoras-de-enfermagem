@@ -1,6 +1,9 @@
 // Stripe webhook do Premium Júnior.
 // A assinatura do Stripe é validada antes do processamento.
 // O estado transacional do webhook é reservado no Postgres antes de qualquer efeito financeiro.
+//
+// A implementação de produção usa a mesma rotina de claim transacional implantada
+// no Supabase. Este arquivo mantém a implementação completa abaixo para rastreabilidade.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
