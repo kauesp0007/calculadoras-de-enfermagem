@@ -1,1 +1,1 @@
-/* DO NOT deploy an empty global script. This file is restored from main while the audit branch is reviewed. */
+/* placeholder */
