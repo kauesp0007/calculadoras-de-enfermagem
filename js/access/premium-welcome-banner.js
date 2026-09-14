@@ -1,8 +1,9 @@
-/* Banner global de boas-vindas/upgrade. Inicializa de forma independente do Access para não desaparecer por ordem de carregamento. */
+/* Banner global de boas-vindas/upgrade. Inicializa somente após o estado de autenticação/perfil estar resolvido. */
 (function (window, document) {
   "use strict";
   var ROOT_ID = "premium-welcome-banner-root";
   var STORAGE_KEY = "premiumWelcomeBannerDismissed_v2";
+  var listenersBound = false;
   var I18N = {
     pt:["Seja bem-vindo ao Calculadoras de Enfermagem","Conheça o plano Júnior e tenha acesso à plataforma e aos conteúdos premium sem anúncios.","R$ 10,00/mês","Conhecer o plano Júnior","Fechar"],
     en:["Welcome to Nursing Calculators","Discover the Junior plan for access to the platform and premium content without ads.","R$ 10.00/month","View Junior plan","Close"],
@@ -25,10 +26,61 @@
     ar:["مرحبًا بكم في حاسبات التمريض","تعرّف على خطة Júnior للوصول إلى المنصة والمحتوى المميز دون إعلانات.","R$ 10,00/شهريًا","عرض خطة Júnior","إغلاق"]
   };
   function account(){return (location.pathname||"").indexOf("/conta/")===0;}
-  function premium(){try{var p=window.Auth&&window.Auth.profile?window.Auth.profile():null;if(p&&p.lifetime===true)return true;if(p&&p.plan==="junior"){if(!p.planExpiresAt)return true;var d=typeof p.planExpiresAt.toDate==="function"?p.planExpiresAt.toDate():new Date(p.planExpiresAt);return !isNaN(d.getTime())&&d.getTime()>Date.now();}return !!(window.Authorization&&window.Authorization.hasPlan&&window.Authorization.hasPlan("premium"));}catch(e){return false;}}
+  function isPremiumProfile(p){
+    try{
+      if(!p)return false;
+      if(p.lifetime===true)return true;
+      if(p.plan!=="junior")return false;
+      if(!p.planExpiresAt)return true;
+      var d=typeof p.planExpiresAt.toDate==="function"?p.planExpiresAt.toDate():new Date(p.planExpiresAt);
+      return !isNaN(d.getTime())&&d.getTime()>Date.now();
+    }catch(e){return true;}
+  }
   function dismissed(){try{return localStorage.getItem(STORAGE_KEY)==="1";}catch(e){return false;}}
-  function close(){try{localStorage.setItem(STORAGE_KEY,"1");}catch(e){}var x=document.getElementById(ROOT_ID);if(x)x.remove();}
-  function show(){if(!document.body||account()||premium()||dismissed()||document.getElementById(ROOT_ID))return;var lang=(window.__LANG||"pt").toLowerCase(),t=I18N[lang]||I18N.pt,r=lang==="ar",root=document.createElement("div");root.id=ROOT_ID;root.dir=r?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-label",t[0]);root.innerHTML='<style>#premium-welcome-banner-root{position:fixed;top:18px;right:18px;z-index:2147483000;width:min(390px,calc(100vw - 36px));font-family:inherit}#premium-welcome-banner-root .pwb-card{position:relative;border:1px solid #d9e5f3;border-radius:16px;background:#fff;box-shadow:0 14px 38px rgba(20,53,89,.18);padding:18px;color:#1f2937}#premium-welcome-banner-root h2{margin:0 32px 9px 0;color:#1A3E74;font-size:17px;line-height:1.3;font-weight:700}#premium-welcome-banner-root p{margin:0 0 12px;font-size:14px;line-height:1.5}#premium-welcome-banner-root .pwb-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwb-price{font-weight:700;color:#1A3E74;white-space:nowrap}.pwb-button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:10px;background:#1A3E74;color:#fff;padding:10px 13px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.pwb-close{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:#64748b;display:grid;place-items:center;cursor:pointer}@media(max-width:520px){#premium-welcome-banner-root{top:10px;right:10px;left:10px;width:auto}#premium-welcome-banner-root .pwb-row{align-items:stretch;flex-direction:column}.pwb-price{white-space:normal}}</style><div class="pwb-card"><button type="button" class="pwb-close" aria-label="'+t[4]+'" title="'+t[4]+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="15" height="20" aria-hidden="true" fill="currentColor"><path d="M342.6 182.6 236.3 288l106.3 105.4c9.4 9.4 9.4 24.6 0 34s-24.6 9.4-34 0L202.3 322l-106.3 105.4c-9.4 9.4-24.6 9.4-34 0s-9.4-24.6 0-34L168.3 288 62 182.6c-9.4-9.4-9.4-24.6 0-34s24.6-9.4 34 0L202.3 254l106.3-105.4c9.4-9.4 9.4-9.4 34 0s9.4 24.6 0 34z"/></svg></button><h2>'+t[0]+'</h2><p>'+t[1]+'</p><div class="pwb-row"><span class="pwb-price">'+t[2]+'</span><a class="pwb-button" href="/conta/assinatura.html?lang='+encodeURIComponent(lang)+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="13" height="15" aria-hidden="true" fill="currentColor"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 0 0 0 256zm89.6 32h-11.2A174.2 174.2 0 0 1 224 320a174.2 174.2 0 0 1-78.4-32h-11.2C60.1 288 0 348.1 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6C448 348.1 387.9 288 313.6 288z"/></svg>'+t[3]+'</a></div></div>';document.body.appendChild(root);root.querySelector(".pwb-close").addEventListener("click",close);}
-  function init(){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",show,{once:true});else show();setTimeout(show,1200);}
-  window.AccessModules=window.AccessModules||{};window.AccessModules.premiumWelcomeBanner={init:init,show:show};init();
+  function remove(){var x=document.getElementById(ROOT_ID);if(x)x.remove();}
+  function close(){try{localStorage.setItem(STORAGE_KEY,"1");}catch(e){}remove();}
+  function resolvedForDisplay(){
+    var auth=window.Auth;
+    if(!auth||!auth.isInitialized||!auth.isInitialized())return false;
+    var user=auth.currentUser?auth.currentUser():null;
+    if(!user)return true;
+    return !!(auth.profile&&auth.profile());
+  }
+  function show(){
+    if(!document.body||account()||!resolvedForDisplay()||dismissed())return;
+    var auth=window.Auth;
+    var user=auth&&auth.currentUser?auth.currentUser():null;
+    var profile=auth&&auth.profile?auth.profile():null;
+    if(user&&(!profile||isPremiumProfile(profile))){remove();return;}
+    if(document.getElementById(ROOT_ID))return;
+    var lang=(window.__LANG||"pt").toLowerCase(),t=I18N[lang]||I18N.pt,r=lang==="ar",root=document.createElement("div");
+    root.id=ROOT_ID;root.dir=r?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-label",t[0]);
+    root.innerHTML='<style>#premium-welcome-banner-root{position:fixed;top:18px;right:18px;z-index:2147483000;width:min(390px,calc(100vw - 36px));font-family:inherit}#premium-welcome-banner-root .pwb-card{position:relative;border:1px solid #d9e5f3;border-radius:16px;background:#fff;box-shadow:0 14px 38px rgba(20,53,89,.18);padding:18px;color:#1f2937}#premium-welcome-banner-root h2{margin:0 32px 9px 0;color:#1A3E74;font-size:17px;line-height:1.3;font-weight:700}#premium-welcome-banner-root p{margin:0 0 12px;font-size:14px;line-height:1.5}#premium-welcome-banner-root .pwb-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwb-price{font-weight:700;color:#1A3E74;white-space:nowrap}.pwb-button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:10px;background:#1A3E74;color:#fff;padding:10px 13px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.pwb-close{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:#64748b;display:grid;place-items:center;cursor:pointer}@media(max-width:520px){#premium-welcome-banner-root{top:10px;right:10px;left:10px;width:auto}#premium-welcome-banner-root .pwb-row{align-items:stretch;flex-direction:column}.pwb-price{white-space:normal}}</style><div class="pwb-card"><button type="button" class="pwb-close" aria-label="'+t[4]+'" title="'+t[4]+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="15" height="20" aria-hidden="true" fill="currentColor"><path d="M342.6 182.6 236.3 288l106.3 105.4c9.4 9.4 9.4 24.6 0 34s-24.6 9.4-34 0L202.3 322l-106.3 105.4c-9.4 9.4-24.6 9.4-34 0s-9.4-24.6 0-34L168.3 288 62 182.6c-9.4-9.4-9.4-24.6 0-34s24.6-9.4 34 0L202.3 254l106.3-105.4c9.4-9.4 24.6-9.4 34 0s9.4 24.6 0 34z"/></svg></button><h2>'+t[0]+'</h2><p>'+t[1]+'</p><div class="pwb-row"><span class="pwb-price">'+t[2]+'</span><a class="pwb-button" href="/conta/assinatura.html?lang='+encodeURIComponent(lang)+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="13" height="15" aria-hidden="true" fill="currentColor"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 0 0 0 256zm89.6 32h-11.2A174.2 174.2 0 0 1 224 320a174.2 174.2 0 0 1-78.4-32h-11.2C60.1 288 0 348.1 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6C448 348.1 387.9 288 313.6 288z"/></svg>'+t[3]+'</a></div></div>';
+    document.body.appendChild(root);root.querySelector(".pwb-close").addEventListener("click",close);
+  }
+  function sync(){
+    if(account()||!resolvedForDisplay())return;
+    var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null,profile=auth&&auth.profile?auth.profile():null;
+    if(user&&(!profile||isPremiumProfile(profile))){remove();return;}
+    show();
+  }
+  function bindAuth(){
+    if(listenersBound)return true;
+    var auth=window.Auth;if(!auth)return false;
+    listenersBound=true;
+    if(auth.onAuthChange)auth.onAuthChange(function(){sync();});
+    if(auth.onProfileChange)auth.onProfileChange(function(){sync();});
+    sync();return true;
+  }
+  function init(){
+    if(account())return;
+    if(!bindAuth()){
+      var attempts=0;
+      var retry=setInterval(function(){if(bindAuth()||++attempts>=50)clearInterval(retry);},100);
+    }
+    setTimeout(sync,1200);
+  }
+  window.AccessModules=window.AccessModules||{};
+  window.AccessModules.premiumWelcomeBanner={init:init,show:show,remove:remove};
+  init();
 })(window,document);
