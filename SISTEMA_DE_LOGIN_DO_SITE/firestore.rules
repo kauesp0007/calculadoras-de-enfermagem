@@ -1,35 +1,23 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function signedIn() {
-      return request.auth != null;
-    }
-
-    function isOwner(uid) {
-      return signedIn() && request.auth.uid == uid;
-    }
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
 
     match /users/{uid} {
       allow read: if isOwner(uid);
-
       allow create: if isOwner(uid)
         && request.resource.data.uid == uid
         && (!('role' in request.resource.data) || request.resource.data.role == 'user')
         && (!('plan' in request.resource.data) || request.resource.data.plan == 'free')
         && (!('status' in request.resource.data) || request.resource.data.status == 'active')
         && (!('lifetime' in request.resource.data) || request.resource.data.lifetime == false);
-
-      // Campos de acesso e auditoria financeira são exclusivamente do backend.
       allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data).affectedKeys()
-             .hasAny([
-               'uid', 'role', 'plan', 'planExpiresAt', 'planUpdatedAt',
-               'status', 'createdAt', 'permissions', 'lifetime',
-               'lastAsaasActivationAt', 'lastAsaasSubscriptionId'
-             ]);
-
-      allow delete: if isOwner(uid);
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['displayName', 'photoURL', 'language', 'country', 'provider', 'preferences', 'metadata', 'lastLoginAt'])
+        && request.resource.data.provider == resource.data.provider
+        && request.resource.data.uid == resource.data.uid;
+      allow delete: if false;
     }
 
     match /users/{uid}/favorites/{favId} {
@@ -38,50 +26,21 @@ service cloud.firestore {
       allow update: if isOwner(uid) && request.resource.data.pageId == resource.data.pageId;
       allow delete: if isOwner(uid);
     }
-
     match /users/{uid}/history/{historyId} {
-      allow read: if isOwner(uid);
-      allow create: if isOwner(uid);
-      allow update: if isOwner(uid);
-      allow delete: if isOwner(uid);
+      allow read, write: if isOwner(uid);
     }
+    match /plans/{planId} { allow read: if true; allow write: if false; }
+    match /benefits/{benefitId} { allow read: if true; allow write: if false; }
+    match /users/{uid}/licenses/{licenseId} { allow read: if isOwner(uid); allow write: if false; }
+    match /users/{uid}/subscriptions/{subscriptionId} { allow read: if isOwner(uid); allow write: if false; }
+    match /premiumOrders/{orderId} { allow read, write: if false; }
+    match /asaasCustomers/{customerId} { allow read, write: if false; }
+    match /asaasSubscribers/{subscriberId} { allow read, write: if false; }
+    match /stripeSubscribers/{subscriberId} { allow read, write: if false; }
+    match /asaasEvents/{eventId} { allow read, write: if false; }
+    match /stripeEvents/{eventId} { allow read, write: if false; }
+    match /asaasPayments/{paymentId} { allow read, write: if false; }
 
-    match /plans/{planId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /benefits/{benefitId} {
-      allow read: if true;
-      allow write: if false;
-    }
-
-    match /users/{uid}/licenses/{licenseId} {
-      allow read: if isOwner(uid);
-      allow write: if false;
-    }
-
-    // Histórico de assinatura: leitura do proprietário; escrita exclusivamente por backend.
-    match /users/{uid}/subscriptions/{subscriptionId} {
-      allow read: if isOwner(uid);
-      allow write: if false;
-    }
-
-    match /premiumOrders/{orderId} {
-      allow read, write: if false;
-    }
-    match /asaasCustomers/{customerId} {
-      allow read, write: if false;
-    }
-    match /asaasSubscribers/{subscriberId} {
-      allow read, write: if false;
-    }
-    match /asaasEvents/{eventId} {
-      allow read, write: if false;
-    }
-
-    match /{document=**} {
-      allow read, write: if false;
-    }
+    match /{document=**} { allow read, write: if false; }
   }
 }
