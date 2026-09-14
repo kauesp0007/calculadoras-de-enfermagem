@@ -8,7 +8,7 @@
 //      lifetime) e a lista de cobranças registradas em asaasSubscribers.
 //
 //   grant   -> { adminEmail, targetEmail, planId? }
-//      Concede o plano (padrão "senior") de forma VITALÍCIA
+//      Concede o plano (padrão "junior") de forma VITALÍCIA
 //      (lifetime=true, planExpiresAt distante). Se o usuário não tiver
 //      conta ainda, retorna "user_not_found" (é preciso criar a conta
 //      no site com este e-mail antes).
@@ -310,7 +310,7 @@ serve(async (req) => {
           { status: 404, headers: corsHeaders() },
         );
       }
-      const planId = String(body?.planId || "senior");
+      const planId = String(body?.planId || "junior");
       const now = new Date().toISOString();
       await firestorePatch(
         `users/${uid}`,
