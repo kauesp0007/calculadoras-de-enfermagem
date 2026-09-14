@@ -3,10 +3,11 @@
  *
  * RESPONSABILIDADE: Camada exclusiva de comunicação com o Firestore.
  *
- * Nenhuma outra parte do sistema deve acessar o Firestore diretamente.
- * Toda leitura/escrita do perfil do usuário passa por este serviço.
- *
  * COLEÇÃO: users/{uid}
+ *
+ * Perfis de usuário não são apagados pelo cliente. Exclusão de conta/retensão
+ * deve ser tratada por um fluxo administrativo/servidor separado, preservando
+ * histórico financeiro e registros necessários.
  */
 (function (window) {
     "use strict";
@@ -39,13 +40,12 @@
     async function getUserDoc(uid) {
         if (!uid) return null;
         var db = await _getDb();
-        var snapshot = await _docRef(db, uid).get();
-        return _normalizeDoc(snapshot);
+        return _normalizeDoc(await _docRef(db, uid).get());
     }
 
     // Criação defensiva: não substitui um documento existente.
     // Se dois ciclos de login concorrerem, uma criação pode vencer primeiro;
-    // o segundo ciclo deve apenas reler o documento vencedor, nunca falhar nem sobrescrevê-lo.
+    // o segundo ciclo apenas relê o documento vencedor.
     async function createUserDoc(uid, data) {
         if (!uid) throw new Error("[FirestoreUser] UID é obrigatório.");
         var db = await _getDb();
@@ -56,8 +56,6 @@
             await ref.create(data);
             return data;
         } catch (error) {
-            // Firestore retorna ALREADY_EXISTS quando outro ciclo criou o documento
-            // entre o GET e o CREATE. Nesse caso, preserve e devolva o documento atual.
             var code = error && (error.code !== undefined ? error.code : error.status);
             if (code === 6 || String(code).toUpperCase() === "ALREADY_EXISTS") {
                 var existing = await ref.get();
@@ -79,12 +77,6 @@
         await _docRef(db, uid).set(data, { merge: true });
     }
 
-    async function deleteUserDoc(uid) {
-        if (!uid) return;
-        var db = await _getDb();
-        await _docRef(db, uid).delete();
-    }
-
     function serverTimestamp() {
         if (window.firebase && window.firebase.firestore && window.firebase.firestore.FieldValue) {
             return window.firebase.firestore.FieldValue.serverTimestamp();
@@ -98,7 +90,6 @@
         createUserDoc: createUserDoc,
         updateUserDoc: updateUserDoc,
         mergeUserDoc: mergeUserDoc,
-        deleteUserDoc: deleteUserDoc,
         serverTimestamp: serverTimestamp
     };
 
