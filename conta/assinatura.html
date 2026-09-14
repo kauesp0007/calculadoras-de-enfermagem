@@ -7,6 +7,7 @@
 <meta name="robots" content="noindex, follow"/>
 <link rel="stylesheet" href="/public/output.css"/>
 <link rel="stylesheet" href="/global-styles.css"/>
+<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/js/firebase/firebase-init.js"></script>
 <script src="/js/auth/auth-session.js"></script>
 <script src="/js/auth/auth-permissions.js"></script>
@@ -18,6 +19,7 @@
 <script src="/js/auth/auth-core.js"></script>
 <script src="/js/auth/plan-service.js"></script>
 <script src="/js/conta-i18n.js" defer></script>
+<script src="/js/billing/payment-router.js" defer></script>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
 </head>
@@ -29,7 +31,7 @@
 <div class="absolute inset-0 bg-white opacity-5"></div>
 <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4 sm:px-8 py-6 md:py-8">
 <div class="w-full md:w-3/4 text-left">
-<p class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PLANOS</p>
+<p id="page-eyebrow" class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PLANOS</p>
 <h1 id="page-title" class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white">Planos e Assinatura</h1>
 <h2 id="page-subtitle" class="text-blue-100 text-base font-medium">Premium Júnior para profissionais de enfermagem que precisam de uma experiência sem anúncios.</h2>
 </div>
@@ -40,7 +42,7 @@
 <div aria-hidden="true" class="text-[#1A3E74] text-2xl font-black">+</div>
 <div>
 <h2 id="scales-heading" class="text-xl font-black text-[#1A3E74]">Acesso premium para apoiar sua rotina de enfermagem</h2>
-<p id="scales-subheading" class="text-slate-600 mt-1">Conteúdo profissional, escalas e recursos adicionais em uma navegação sem anúncios.</p>
+<p id="scales-subheading" class="text-slate-600 mt-1">Escalas, recursos e materiais adicionais em uma experiência sem anúncios.</p>
 </div>
 </div>
 <div class="flex flex-wrap gap-2 mb-4">
@@ -49,77 +51,146 @@
 <span class="px-3 py-1.5 rounded-full bg-[#1A3E74] text-white text-sm font-semibold">Dimensionamento (COFEN)</span>
 <span class="px-3 py-1.5 rounded-full bg-[#1A3E74] text-white text-sm font-semibold">Fugulin</span>
 <span class="px-3 py-1.5 rounded-full bg-[#1A3E74] text-white text-sm font-semibold">MEEM</span>
-<span class="px-3 py-1.5 rounded-full bg-[#1A3E74] text-white text-sm font-semibold">+ outros conteúdos premium</span>
+<span id="premium-more" class="px-3 py-1.5 rounded-full bg-[#1A3E74] text-white text-sm font-semibold">+ outros conteúdos premium</span>
 </div>
 <p id="benefit-line" class="text-slate-700 font-medium">Sem anúncios para você se concentrar na leitura e no trabalho.</p>
 </section>
 <div id="account-status" class="mb-6 hidden"></div>
-<div id="subscription-container" class="w-full"><p class="text-center text-slate-500">Carregando opções de assinatura...</p></div>
+<div id="subscription-message" class="mb-6 hidden" role="status" aria-live="polite"></div>
+<div id="subscription-container" class="w-full"><p id="subscription-loading" class="text-center text-slate-500">Carregando opções de assinatura...</p></div>
 </main>
 <div id="footer-placeholder"></div>
 <script>
 (function () {
   "use strict";
-  var EUR_LANGS = { tr:1, nl:1, pl:1, ru:1, fr:1, es:1, de:1, it:1, uk:1, sv:1 };
+
   var PT_ASAAS_SUBSCRIPTION_URL = "https://www.asaas.com/c/vcnk68nigacrape5";
   var PT_ASAAS_PIX_URL = "https://www.asaas.com/c/z89jgzlk57nb354p";
+  var EUR_LANGS = { tr:1, nl:1, pl:1, ru:1, fr:1, es:1, de:1, it:1, uk:1, sv:1 };
+
   var TEXT = {
-    pt:{title:"Plano Júnior",subtitle:"R$ 10,00 por mês",monthly:"Cartão de crédito — assinatura mensal",pix:"Pix — acesso por 30 dias",allPages:"Acesso a todo o conteúdo liberado do site",noAds:"Navegação sem anúncios",forms:"Formulários em branco para impressão",simulados:"Acesso aos simulados",monthlyNote:"Cobrança recorrente mensal. Você será levado ao checkout seguro do Asaas.",pixNote:"Pagamento único via Pix. O acesso fica disponível por 30 dias e pode ser renovado com um novo pagamento.",ctaMonthly:"Assinar com cartão",ctaPix:"Pagar com Pix",account:"Conta autenticada:",loginRequired:"Faça login para contratar o Premium Júnior."},
-    en:{title:"Premium Plan",subtitle:"US$ 5 per month",monthly:"Credit card — monthly subscription",pix:"Not available in Brazil",allPages:"Access to the site's premium content",noAds:"Ad-free browsing",forms:"Printable blank forms",simulados:"Access to simulated tests",monthlyNote:"Recurring monthly billing. You will be sent to an individualized secure checkout.",pixNote:"",ctaMonthly:"Subscribe with card",ctaPix:"",account:"Authenticated account:",loginRequired:"Sign in to subscribe to Premium."}
+    pt: {eyebrow:"PLANOS",pageTitle:"Planos e Assinatura",subtitle:"Plano Júnior premium para profissionais de enfermagem que precisam de uma navegação sem anúncios.",heading:"Acesso premium para apoiar sua rotina de enfermagem",subheading:"Escalas, recursos e materiais adicionais em uma experiência sem anúncios.",more:"+ outros conteúdos premium",benefit:"Sem anúncios para você se concentrar na leitura e no trabalho.",planTitle:"Plano Júnior",monthly:"Cartão de crédito — assinatura mensal",allPages:"Acesso a todo o conteúdo liberado do site",noAds:"Navegação sem anúncios",forms:"Formulários em branco para impressão",simulated:"Acesso aos simulados",note:"Cobrança recorrente mensal. Você será levado ao checkout seguro do Asaas.",cta:"Assinar com cartão",account:"Conta autenticada:",loginRequired:"Faça login para contratar o Premium Júnior.",pixTitle:"Pix — 30 dias",pixPrice:"R$ 10,00 /30 dias",pixNote:"Pagamento único via Pix. O acesso fica disponível por 30 dias e pode ser renovado com um novo pagamento.",pixCta:"Pagar com Pix",free:"Gratuito",junior:"Premium (Júnior)",checkoutSuccess:"Pagamento iniciado com sucesso.",checkoutCancelled:"O checkout foi cancelado. Seu plano não foi alterado.",checkoutExpired:"O checkout expirou. Inicie um novo pagamento.",stripeSuccess:"Pagamento enviado ao Stripe. A ativação será concluída após a confirmação do pagamento.",stripeCancelled:"O checkout Stripe foi cancelado. Seu plano não foi alterado.",stripeFailed:"Não foi possível iniciar o checkout internacional agora. Tente novamente.",unsupported:"Idioma de cobrança não suportado.",loading:"Carregando opções de assinatura..."},
+    en: {eyebrow:"PLANS",pageTitle:"Plans and Subscription",subtitle:"Junior Premium for nursing professionals who need an ad-free experience.",heading:"Premium access to support your nursing routine",subheading:"Scales, resources, and additional materials in an ad-free experience.",more:"+ other premium content",benefit:"No ads, so you can focus on reading and work.",planTitle:"Junior Plan",monthly:"Credit card — monthly subscription",allPages:"Access to all premium content available on the site",noAds:"Ad-free browsing",forms:"Printable blank forms",simulated:"Access to simulated tests",note:"Recurring monthly billing. You will be sent to a secure Stripe checkout.",cta:"Subscribe with card",account:"Authenticated account:",loginRequired:"Sign in to subscribe to Junior Premium.",pixTitle:"Pix — Brazil only",pixPrice:"",pixNote:"",pixCta:"",free:"Free",junior:"Premium (Junior)",checkoutSuccess:"Payment started successfully.",checkoutCancelled:"Checkout was cancelled. Your plan was not changed.",checkoutExpired:"Checkout expired. Start a new payment.",stripeSuccess:"Payment was sent to Stripe. Activation will finish after payment confirmation.",stripeCancelled:"Stripe checkout was cancelled. Your plan was not changed.",stripeFailed:"We could not start the international checkout. Please try again.",unsupported:"Unsupported billing language.",loading:"Loading subscription options..."},
+    es: {eyebrow:"PLANES",pageTitle:"Planes y suscripción",subtitle:"Premium Júnior para profesionales de enfermería que necesitan una experiencia sin anuncios.",heading:"Acceso premium para apoyar tu rutina de enfermería",subheading:"Escalas, recursos y materiales adicionales en una experiencia sin anuncios.",more:"+ otros contenidos premium",benefit:"Sin anuncios para que puedas concentrarte en la lectura y el trabajo.",planTitle:"Plan Júnior",monthly:"Tarjeta de crédito — suscripción mensual",allPages:"Acceso a todo el contenido premium disponible en el sitio",noAds:"Navegación sin anuncios",forms:"Formularios en blanco para imprimir",simulated:"Acceso a simulaciones",note:"Cobro mensual recurrente. Serás enviado a un checkout seguro de Stripe.",cta:"Suscribirse con tarjeta",account:"Cuenta autenticada:",loginRequired:"Inicia sesión para contratar Premium Júnior.",pixTitle:"Pix — solo Brasil",pixPrice:"",pixNote:"",pixCta:"",free:"Gratuito",junior:"Premium (Júnior)",checkoutSuccess:"Pago iniciado correctamente.",checkoutCancelled:"El checkout fue cancelado. Tu plan no ha cambiado.",checkoutExpired:"El checkout ha expirado. Inicia un nuevo pago.",stripeSuccess:"El pago se envió a Stripe. La activación finalizará tras la confirmación.",stripeCancelled:"El checkout de Stripe fue cancelado. Tu plan no ha cambiado.",stripeFailed:"No fue posible iniciar el checkout internacional. Inténtalo de nuevo.",unsupported:"Idioma de facturación no compatible.",loading:"Cargando opciones de suscripción..."},
+    fr: {eyebrow:"FORMULES",pageTitle:"Formules et abonnement",subtitle:"Premium Junior pour les professionnels infirmiers qui ont besoin d’une expérience sans publicité.",heading:"Accès premium pour soutenir votre pratique infirmière",subheading:"Échelles, ressources et supports supplémentaires dans une expérience sans publicité.",more:"+ autres contenus premium",benefit:"Sans publicité pour vous concentrer sur la lecture et le travail.",planTitle:"Formule Junior",monthly:"Carte bancaire — abonnement mensuel",allPages:"Accès à tout le contenu premium disponible sur le site",noAds:"Navigation sans publicité",forms:"Formulaires vierges à imprimer",simulated:"Accès aux simulations",note:"Facturation mensuelle récurrente. Vous serez redirigé vers un checkout Stripe sécurisé.",cta:"S’abonner par carte",account:"Compte authentifié :",loginRequired:"Connectez-vous pour souscrire à Premium Junior.",pixTitle:"Pix — Brésil uniquement",pixPrice:"",pixNote:"",pixCta:"",free:"Gratuit",junior:"Premium (Junior)",checkoutSuccess:"Paiement démarré avec succès.",checkoutCancelled:"Le checkout a été annulé. Votre formule n’a pas été modifiée.",checkoutExpired:"Le checkout a expiré. Lancez un nouveau paiement.",stripeSuccess:"Paiement envoyé à Stripe. L’activation sera finalisée après confirmation.",stripeCancelled:"Le checkout Stripe a été annulé. Votre formule n’a pas été modifiée.",stripeFailed:"Impossible de démarrer le checkout international. Réessayez.",unsupported:"Langue de facturation non prise en charge.",loading:"Chargement des options d’abonnement..."},
+    de: {eyebrow:"TARIFE",pageTitle:"Tarife und Abonnement",subtitle:"Junior Premium für Pflegefachpersonen, die eine werbefreie Nutzung benötigen.",heading:"Premium-Zugang zur Unterstützung Ihres Pflegealltags",subheading:"Skalen, Ressourcen und zusätzliche Materialien in einer werbefreien Umgebung.",more:"+ weitere Premium-Inhalte",benefit:"Keine Werbung, damit Sie sich auf Lesen und Arbeit konzentrieren können.",planTitle:"Junior-Tarif",monthly:"Kreditkarte — monatliches Abonnement",allPages:"Zugriff auf alle verfügbaren Premium-Inhalte der Website",noAds:"Werbefreies Surfen",forms:"Druckbare leere Formulare",simulated:"Zugriff auf Simulationen",note:"Monatliche wiederkehrende Abrechnung. Sie werden zu einem sicheren Stripe-Checkout weitergeleitet.",cta:"Mit Karte abonnieren",account:"Authentifiziertes Konto:",loginRequired:"Melden Sie sich an, um Premium Junior zu abonnieren.",pixTitle:"Pix — nur Brasilien",pixPrice:"",pixNote:"",pixCta:"",free:"Kostenlos",junior:"Premium (Junior)",checkoutSuccess:"Zahlung erfolgreich gestartet.",checkoutCancelled:"Der Checkout wurde abgebrochen. Ihr Tarif wurde nicht geändert.",checkoutExpired:"Der Checkout ist abgelaufen. Starten Sie eine neue Zahlung.",stripeSuccess:"Zahlung an Stripe gesendet. Die Aktivierung erfolgt nach Zahlungsbestätigung.",stripeCancelled:"Der Stripe-Checkout wurde abgebrochen. Ihr Tarif wurde nicht geändert.",stripeFailed:"Der internationale Checkout konnte nicht gestartet werden. Bitte versuchen Sie es erneut.",unsupported:"Nicht unterstützte Abrechnungssprache.",loading:"Abonnementoptionen werden geladen..."},
+    it: {eyebrow:"PIANI",pageTitle:"Piani e abbonamento",subtitle:"Premium Junior per i professionisti infermieristici che hanno bisogno di un’esperienza senza pubblicità.",heading:"Accesso premium per supportare la tua pratica infermieristica",subheading:"Scale, risorse e materiali aggiuntivi in un’esperienza senza pubblicità.",more:"+ altri contenuti premium",benefit:"Nessuna pubblicità, per concentrarti sulla lettura e sul lavoro.",planTitle:"Piano Junior",monthly:"Carta di credito — abbonamento mensile",allPages:"Accesso a tutti i contenuti premium disponibili sul sito",noAds:"Navigazione senza pubblicità",forms:"Moduli vuoti stampabili",simulated:"Accesso alle simulazioni",note:"Fatturazione mensile ricorrente. Sarai inviato a un checkout Stripe sicuro.",cta:"Abbonati con carta",account:"Account autenticato:",loginRequired:"Accedi per sottoscrivere Premium Junior.",pixTitle:"Pix — solo Brasile",pixPrice:"",pixNote:"",pixCta:"",free:"Gratuito",junior:"Premium (Junior)",checkoutSuccess:"Pagamento avviato con successo.",checkoutCancelled:"Il checkout è stato annullato. Il tuo piano non è cambiato.",checkoutExpired:"Il checkout è scaduto. Avvia un nuovo pagamento.",stripeSuccess:"Pagamento inviato a Stripe. L’attivazione sarà completata dopo la conferma.",stripeCancelled:"Il checkout Stripe è stato annullato. Il tuo piano non è cambiato.",stripeFailed:"Impossibile avviare il checkout internazionale. Riprova.",unsupported:"Lingua di fatturazione non supportata.",loading:"Caricamento delle opzioni di abbonamento..."},
+    tr: {eyebrow:"PLANLAR",pageTitle:"Planlar ve Abonelik",subtitle:"Reklamsız bir deneyime ihtiyaç duyan hemşirelik profesyonelleri için Junior Premium.",heading:"Hemşirelik çalışma rutininizi desteklemek için premium erişim",subheading:"Reklamsız bir deneyimde ölçekler, kaynaklar ve ek materyaller.",more:"+ diğer premium içerikler",benefit:"Okumaya ve çalışmaya odaklanmanız için reklam yok.",planTitle:"Junior Planı",monthly:"Kredi kartı — aylık abonelik",allPages:"Sitedeki tüm premium içeriklere erişim",noAds:"Reklamsız gezinme",forms:"Yazdırılabilir boş formlar",simulated:"Simülasyonlara erişim",note:"Aylık yinelenen faturalandırma. Güvenli Stripe ödeme sayfasına yönlendirileceksiniz.",cta:"Kart ile abone ol",account:"Kimliği doğrulanmış hesap:",loginRequired:"Junior Premium’a abone olmak için giriş yapın.",pixTitle:"Pix — yalnızca Brezilya",pixPrice:"",pixNote:"",pixCta:"",free:"Ücretsiz",junior:"Premium (Junior)",checkoutSuccess:"Ödeme başarıyla başlatıldı.",checkoutCancelled:"Ödeme sayfası iptal edildi. Planınız değişmedi.",checkoutExpired:"Ödeme sayfasının süresi doldu. Yeni bir ödeme başlatın.",stripeSuccess:"Ödeme Stripe’a gönderildi. Etkinleştirme ödeme onayından sonra tamamlanacak.",stripeCancelled:"Stripe ödeme sayfası iptal edildi. Planınız değişmedi.",stripeFailed:"Uluslararası ödeme başlatılamadı. Lütfen tekrar deneyin.",unsupported:"Desteklenmeyen faturalandırma dili.",loading:"Abonelik seçenekleri yükleniyor..."},
+    nl: {eyebrow:"ABONNEMENTEN",pageTitle:"Abonnementen en lidmaatschap",subtitle:"Junior Premium voor verpleegkundige professionals die een advertentievrije ervaring nodig hebben.",heading:"Premium toegang ter ondersteuning van uw verpleegkundige routine",subheading:"Schalen, hulpmiddelen en aanvullend materiaal in een advertentievrije ervaring.",more:"+ andere premiuminhoud",benefit:"Geen advertenties, zodat u zich op lezen en werk kunt concentreren.",planTitle:"Junior-abonnement",monthly:"Creditcard — maandelijks abonnement",allPages:"Toegang tot alle beschikbare premiuminhoud op de site",noAds:"Advertentievrij browsen",forms:"Afdrukbare lege formulieren",simulated:"Toegang tot simulaties",note:"Maandelijkse terugkerende betaling. U wordt naar een veilige Stripe-checkout gestuurd.",cta:"Abonneren met kaart",account:"Geauthenticeerd account:",loginRequired:"Log in om Junior Premium te nemen.",pixTitle:"Pix — alleen Brazilië",pixPrice:"",pixNote:"",pixCta:"",free:"Gratis",junior:"Premium (Junior)",checkoutSuccess:"Betaling succesvol gestart.",checkoutCancelled:"De checkout is geannuleerd. Uw abonnement is niet gewijzigd.",checkoutExpired:"De checkout is verlopen. Start een nieuwe betaling.",stripeSuccess:"Betaling is naar Stripe verzonden. Activatie wordt afgerond na bevestiging.",stripeCancelled:"Stripe-checkout geannuleerd. Uw abonnement is niet gewijzigd.",stripeFailed:"Internationale checkout kon niet worden gestart. Probeer het opnieuw.",unsupported:"Niet-ondersteunde factureringstaal.",loading:"Abonnementsopties laden..."},
+    pl: {eyebrow:"PLANY",pageTitle:"Plany i subskrypcja",subtitle:"Premium Junior dla profesjonalistów pielęgniarstwa, którzy potrzebują korzystania bez reklam.",heading:"Dostęp premium wspierający codzienną pracę pielęgniarską",subheading:"Skale, zasoby i dodatkowe materiały w środowisku bez reklam.",more:"+ inne treści premium",benefit:"Brak reklam, aby można było skupić się na czytaniu i pracy.",planTitle:"Plan Junior",monthly:"Karta kredytowa — subskrypcja miesięczna",allPages:"Dostęp do wszystkich dostępnych treści premium w serwisie",noAds:"Przeglądanie bez reklam",forms:"Puste formularze do druku",simulated:"Dostęp do symulacji",note:"Miesięczne rozliczenie cykliczne. Zostaniesz przekierowany do bezpiecznego checkoutu Stripe.",cta:"Subskrybuj kartą",account:"Uwierzytelnione konto:",loginRequired:"Zaloguj się, aby wykupić Premium Junior.",pixTitle:"Pix — tylko Brazylia",pixPrice:"",pixNote:"",pixCta:"",free:"Bezpłatny",junior:"Premium (Junior)",checkoutSuccess:"Płatność została rozpoczęta.",checkoutCancelled:"Checkout został anulowany. Plan nie został zmieniony.",checkoutExpired:"Checkout wygasł. Rozpocznij nową płatność.",stripeSuccess:"Płatność wysłana do Stripe. Aktywacja nastąpi po potwierdzeniu płatności.",stripeCancelled:"Checkout Stripe został anulowany. Plan nie został zmieniony.",stripeFailed:"Nie udało się rozpocząć międzynarodowego checkoutu. Spróbuj ponownie.",unsupported:"Nieobsługiwany język rozliczeń.",loading:"Ładowanie opcji subskrypcji..."},
+    ru: {eyebrow:"ТАРИФЫ",pageTitle:"Тарифы и подписка",subtitle:"Premium Junior для специалистов по сестринскому делу, которым нужен опыт без рекламы.",heading:"Премиум-доступ для поддержки вашей сестринской практики",subheading:"Шкалы, ресурсы и дополнительные материалы без рекламы.",more:"+ другой премиум-контент",benefit:"Без рекламы, чтобы сосредоточиться на чтении и работе.",planTitle:"Тариф Junior",monthly:"Банковская карта — ежемесячная подписка",allPages:"Доступ ко всему доступному премиум-контенту сайта",noAds:"Просмотр без рекламы",forms:"Пустые формы для печати",simulated:"Доступ к симуляциям",note:"Ежемесячное рекуррентное списание. Вы перейдёте к защищённой оплате Stripe.",cta:"Оформить картой",account:"Аутентифицированный аккаунт:",loginRequired:"Войдите, чтобы оформить Premium Junior.",pixTitle:"Pix — только Бразилия",pixPrice:"",pixNote:"",pixCta:"",free:"Бесплатный",junior:"Premium (Junior)",checkoutSuccess:"Оплата начата.",checkoutCancelled:"Checkout отменён. Тариф не изменён.",checkoutExpired:"Checkout истёк. Начните новый платёж.",stripeSuccess:"Платёж отправлен в Stripe. Активация завершится после подтверждения.",stripeCancelled:"Checkout Stripe отменён. Тариф не изменён.",stripeFailed:"Не удалось начать международный checkout. Повторите попытку.",unsupported:"Неподдерживаемый язык выставления счетов.",loading:"Загрузка вариантов подписки..."},
+    uk: {eyebrow:"ТАРИФИ",pageTitle:"Тарифи та підписка",subtitle:"Premium Junior для медичних сестер і медбратів, яким потрібен досвід без реклами.",heading:"Преміум-доступ для підтримки вашої сестринської практики",subheading:"Шкали, ресурси та додаткові матеріали без реклами.",more:"+ інший преміум-контент",benefit:"Без реклами, щоб зосередитися на читанні та роботі.",planTitle:"Тариф Junior",monthly:"Кредитна картка — щомісячна підписка",allPages:"Доступ до всього доступного преміум-контенту сайту",noAds:"Перегляд без реклами",forms:"Порожні форми для друку",simulated:"Доступ до симуляцій",note:"Щомісячне повторюване списання. Вас буде перенаправлено до захищеної оплати Stripe.",cta:"Підписатися карткою",account:"Автентифікований обліковий запис:",loginRequired:"Увійдіть, щоб оформити Premium Junior.",pixTitle:"Pix — лише Бразилія",pixPrice:"",pixNote:"",pixCta:"",free:"Безкоштовний",junior:"Premium (Junior)",checkoutSuccess:"Платіж розпочато.",checkoutCancelled:"Checkout скасовано. Тариф не змінено.",checkoutExpired:"Checkout завершився. Почніть новий платіж.",stripeSuccess:"Платіж надіслано до Stripe. Активація завершиться після підтвердження.",stripeCancelled:"Checkout Stripe скасовано. Тариф не змінено.",stripeFailed:"Не вдалося розпочати міжнародний checkout. Спробуйте ще раз.",unsupported:"Мова білінгу не підтримується.",loading:"Завантаження варіантів підписки..."},
+    sv: {eyebrow:"PLANER",pageTitle:"Planer och prenumeration",subtitle:"Premium Junior för sjuksköterskor som behöver en reklamfri upplevelse.",heading:"Premiumåtkomst för att stödja ditt omvårdnadsarbete",subheading:"Skalor, resurser och extra material i en reklamfri upplevelse.",more:"+ annat premiuminnehåll",benefit:"Inga annonser, så att du kan fokusera på läsning och arbete.",planTitle:"Juniorplan",monthly:"Kreditkort — månadsabonnemang",allPages:"Tillgång till allt tillgängligt premiuminnehåll på webbplatsen",noAds:"Reklamfri surfning",forms:"Utskrivbara tomma formulär",simulated:"Tillgång till simuleringar",note:"Återkommande månadsdebitering. Du skickas till en säker Stripe-checkout.",cta:"Prenumerera med kort",account:"Autentiserat konto:",loginRequired:"Logga in för att teckna Premium Junior.",pixTitle:"Pix — endast Brasilien",pixPrice:"",pixNote:"",pixCta:"",free:"Gratis",junior:"Premium (Junior)",checkoutSuccess:"Betalningen har startats.",checkoutCancelled:"Checkout avbröts. Din plan ändrades inte.",checkoutExpired:"Checkout har löpt ut. Starta en ny betalning.",stripeSuccess:"Betalningen skickades till Stripe. Aktiveringen slutförs efter bekräftelse.",stripeCancelled:"Stripe-checkout avbröts. Din plan ändrades inte.",stripeFailed:"Det gick inte att starta internationell checkout. Försök igen.",unsupported:"Faktureringsspråket stöds inte.",loading:"Laddar prenumerationsalternativ..."},
+    id: {eyebrow:"PAKET",pageTitle:"Paket dan Langganan",subtitle:"Premium Junior untuk tenaga keperawatan yang membutuhkan pengalaman tanpa iklan.",heading:"Akses premium untuk mendukung rutinitas keperawatan Anda",subheading:"Skala, sumber daya, dan materi tambahan dalam pengalaman tanpa iklan.",more:"+ konten premium lainnya",benefit:"Tanpa iklan agar Anda dapat fokus membaca dan bekerja.",planTitle:"Paket Junior",monthly:"Kartu kredit — langganan bulanan",allPages:"Akses ke seluruh konten premium yang tersedia di situs",noAds:"Penjelajahan tanpa iklan",forms:"Formulir kosong yang dapat dicetak",simulated:"Akses ke simulasi",note:"Penagihan bulanan berulang. Anda akan diarahkan ke checkout Stripe yang aman.",cta:"Berlangganan dengan kartu",account:"Akun terautentikasi:",loginRequired:"Masuk untuk berlangganan Premium Junior.",pixTitle:"Pix — hanya Brasil",pixPrice:"",pixNote:"",pixCta:"",free:"Gratis",junior:"Premium (Junior)",checkoutSuccess:"Pembayaran berhasil dimulai.",checkoutCancelled:"Checkout dibatalkan. Paket Anda tidak berubah.",checkoutExpired:"Checkout kedaluwarsa. Mulai pembayaran baru.",stripeSuccess:"Pembayaran dikirim ke Stripe. Aktivasi selesai setelah konfirmasi pembayaran.",stripeCancelled:"Checkout Stripe dibatalkan. Paket Anda tidak berubah.",stripeFailed:"Checkout internasional tidak dapat dimulai. Silakan coba lagi.",unsupported:"Bahasa penagihan tidak didukung.",loading:"Memuat opsi langganan..."},
+    vi: {eyebrow:"GÓI",pageTitle:"Gói và đăng ký",subtitle:"Premium Junior dành cho chuyên gia điều dưỡng cần trải nghiệm không quảng cáo.",heading:"Quyền truy cập premium hỗ trợ công việc điều dưỡng",subheading:"Thang điểm, tài nguyên và tài liệu bổ sung trong trải nghiệm không quảng cáo.",more:"+ nội dung premium khác",benefit:"Không có quảng cáo để bạn tập trung đọc và làm việc.",planTitle:"Gói Junior",monthly:"Thẻ tín dụng — đăng ký hàng tháng",allPages:"Truy cập toàn bộ nội dung premium có trên trang",noAds:"Duyệt web không quảng cáo",forms:"Biểu mẫu trống để in",simulated:"Truy cập các bài mô phỏng",note:"Thanh toán định kỳ hàng tháng. Bạn sẽ được chuyển tới trang thanh toán Stripe an toàn.",cta:"Đăng ký bằng thẻ",account:"Tài khoản đã xác thực:",loginRequired:"Đăng nhập để đăng ký Premium Junior.",pixTitle:"Pix — chỉ dành cho Brazil",pixPrice:"",pixNote:"",pixCta:"",free:"Miễn phí",junior:"Premium (Junior)",checkoutSuccess:"Đã bắt đầu thanh toán.",checkoutCancelled:"Checkout đã bị hủy. Gói của bạn không thay đổi.",checkoutExpired:"Checkout đã hết hạn. Hãy bắt đầu thanh toán mới.",stripeSuccess:"Thanh toán đã được gửi tới Stripe. Kích hoạt sẽ hoàn tất sau khi xác nhận.",stripeCancelled:"Checkout Stripe đã bị hủy. Gói của bạn không thay đổi.",stripeFailed:"Không thể bắt đầu checkout quốc tế. Vui lòng thử lại.",unsupported:"Ngôn ngữ thanh toán không được hỗ trợ.",loading:"Đang tải các tùy chọn đăng ký..."},
+    ja: {eyebrow:"プラン",pageTitle:"プランと購読",subtitle:"広告なしの利用環境を必要とする看護専門職向けのJunior Premiumです。",heading:"看護業務を支えるプレミアムアクセス",subheading:"広告なしの環境で、スケール、リソース、追加資料をご利用いただけます。",more:"+ その他のプレミアムコンテンツ",benefit:"広告なしで、読書や業務に集中できます。",planTitle:"Juniorプラン",monthly:"クレジットカード — 月額サブスクリプション",allPages:"サイトで利用できるすべてのプレミアムコンテンツへのアクセス",noAds:"広告なしの閲覧",forms:"印刷用の白紙フォーム",simulated:"シミュレーションへのアクセス",note:"月額の継続課金です。安全なStripe決済ページへ移動します。",cta:"カードで購読",account:"認証済みアカウント:",loginRequired:"Junior Premiumを申し込むにはログインしてください。",pixTitle:"Pix — ブラジルのみ",pixPrice:"",pixNote:"",pixCta:"",free:"無料",junior:"Premium (Junior)",checkoutSuccess:"支払いを開始しました。",checkoutCancelled:"決済がキャンセルされました。プランは変更されていません。",checkoutExpired:"決済の有効期限が切れました。新しい支払いを開始してください。",stripeSuccess:"Stripeへ支払いが送信されました。支払い確認後に有効化されます。",stripeCancelled:"Stripe決済がキャンセルされました。プランは変更されていません。",stripeFailed:"海外向け決済を開始できませんでした。もう一度お試しください。",unsupported:"対応していない請求言語です。",loading:"購読オプションを読み込んでいます..."},
+    zh: {eyebrow:"方案",pageTitle:"方案与订阅",subtitle:"面向需要无广告体验的护理专业人员推出的 Junior Premium。",heading:"支持护理工作的高级访问权限",subheading:"在无广告环境中使用量表、资源和其他专业材料。",more:"+ 其他高级内容",benefit:"无广告，让您专注于阅读和工作。",planTitle:"Junior 方案",monthly:"信用卡 — 月度订阅",allPages:"访问网站上提供的全部高级内容",noAds:"无广告浏览",forms:"可打印空白表格",simulated:"访问模拟测试",note:"按月自动续费。您将被转到安全的 Stripe 结账页面。",cta:"使用信用卡订阅",account:"已验证账户：",loginRequired:"请登录以订阅 Junior Premium。",pixTitle:"Pix — 仅限巴西",pixPrice:"",pixNote:"",pixCta:"",free:"免费",junior:"Premium (Junior)",checkoutSuccess:"支付已成功开始。",checkoutCancelled:"结账已取消。您的方案没有变化。",checkoutExpired:"结账已过期。请开始新的支付。",stripeSuccess:"支付已发送至 Stripe。确认付款后将完成激活。",stripeCancelled:"Stripe 结账已取消。您的方案没有变化。",stripeFailed:"无法开始国际结账，请重试。",unsupported:"不支持的结算语言。",loading:"正在加载订阅选项..."},
+    ko: {eyebrow:"요금제",pageTitle:"요금제 및 구독",subtitle:"광고 없는 경험이 필요한 간호 전문인을 위한 Junior Premium입니다.",heading:"간호 업무를 지원하는 프리미엄 이용 권한",subheading:"광고 없이 척도, 리소스 및 추가 자료를 이용할 수 있습니다.",more:"+ 기타 프리미엄 콘텐츠",benefit:"광고가 없어 읽기와 업무에 집중할 수 있습니다.",planTitle:"Junior 요금제",monthly:"신용카드 — 월간 구독",allPages:"사이트에서 제공되는 모든 프리미엄 콘텐츠 이용",noAds:"광고 없는 브라우징",forms:"인쇄 가능한 빈 양식",simulated:"시뮬레이션 이용",note:"매월 자동 청구됩니다. 안전한 Stripe 결제 페이지로 이동합니다.",cta:"카드로 구독",account:"인증된 계정:",loginRequired:"Junior Premium을 구독하려면 로그인하세요.",pixTitle:"Pix — 브라질에서만 이용 가능",pixPrice:"",pixNote:"",pixCta:"",free:"무료",junior:"Premium (Junior)",checkoutSuccess:"결제가 시작되었습니다.",checkoutCancelled:"결제가 취소되었습니다. 요금제는 변경되지 않았습니다.",checkoutExpired:"결제 시간이 만료되었습니다. 새 결제를 시작하세요.",stripeSuccess:"Stripe로 결제가 전송되었습니다. 결제 확인 후 활성화됩니다.",stripeCancelled:"Stripe 결제가 취소되었습니다. 요금제는 변경되지 않았습니다.",stripeFailed:"국제 결제를 시작할 수 없습니다. 다시 시도하세요.",unsupported:"지원되지 않는 청구 언어입니다.",loading:"구독 옵션을 불러오는 중..."},
+    ar: {eyebrow:"الباقات",pageTitle:"الباقات والاشتراك",subtitle:"Premium Junior لمتخصصي التمريض الذين يحتاجون إلى تجربة خالية من الإعلانات.",heading:"وصول مميز لدعم عملك في التمريض",subheading:"مقاييس وموارد ومواد إضافية ضمن تجربة خالية من الإعلانات.",more:"+ محتوى مميز آخر",benefit:"بدون إعلانات لتتمكن من التركيز على القراءة والعمل.",planTitle:"باقة Junior",monthly:"بطاقة ائتمان — اشتراك شهري",allPages:"الوصول إلى جميع المحتويات المميزة المتاحة على الموقع",noAds:"تصفح بدون إعلانات",forms:"نماذج فارغة قابلة للطباعة",simulated:"الوصول إلى المحاكاة",note:"فوترة شهرية متكررة. سيتم تحويلك إلى صفحة دفع آمنة عبر Stripe.",cta:"الاشتراك بالبطاقة",account:"الحساب الموثق:",loginRequired:"سجّل الدخول للاشتراك في Premium Junior.",pixTitle:"Pix — البرازيل فقط",pixPrice:"",pixNote:"",pixCta:"",free:"مجاني",junior:"Premium (Junior)",checkoutSuccess:"بدأ الدفع بنجاح.",checkoutCancelled:"تم إلغاء الدفع. لم تتغير باقتك.",checkoutExpired:"انتهت صلاحية الدفع. ابدأ عملية دفع جديدة.",stripeSuccess:"تم إرسال الدفع إلى Stripe. سيكتمل التفعيل بعد تأكيد الدفع.",stripeCancelled:"تم إلغاء دفع Stripe. لم تتغير باقتك.",stripeFailed:"تعذر بدء الدفع الدولي. حاول مرة أخرى.",unsupported:"لغة الفوترة غير مدعومة.",loading:"جارٍ تحميل خيارات الاشتراك..."}
   };
-  var l = "pt";
-  function lang(){ try { if(window.AccountI18n && window.AccountI18n.getLanguage) l = window.AccountI18n.getLanguage(); } catch(e){} if(!l) l=window.__LANG||"pt"; l=String(l).toLowerCase(); if(l==="pt-br")l="pt"; return TEXT[l]?l:"en"; }
-  function esc(s){return String(s==null?"":s).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'})[c];});}
-  function price(x){return x==="pt"?"R$ 10,00":(EUR_LANGS[x]?"€ 5":"US$ 5");}
-  function cardHtml(x){
-    var t=TEXT[x]||TEXT.en;
-    var out='<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
-    out+='<article class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span><h2 class="text-xl font-black text-[#1A3E74]">'+esc(t.title)+'</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">'+esc(price(x))+'</span></div><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
-    [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
-    out+='</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.monthlyNote)+'</p><button type="button" id="js-pay-monthly" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaMonthly)+'</button></article>';
-    if(x==="pt"){
-      out+='<article class="flex flex-col rounded-2xl border border-[#1A3E74] bg-white p-6 shadow-sm h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Pix</span><h2 class="text-xl font-black text-[#1A3E74]">Pix — 30 dias</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 10,00</span><span class="text-sm text-[#1A3E74]"> /30 dias</span></div><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
-      [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
-      out+='</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.pixNote)+'</p><button type="button" id="js-pay-pix" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaPix)+'</button></article>';
-    }
-    return out+'</div>';
+
+  function normalizeLang() {
+    var x = "pt";
+    try { if (window.AccountI18n && window.AccountI18n.getLanguage) x = window.AccountI18n.getLanguage(); } catch (e) {}
+    x = String(x || window.__LANG || "pt").toLowerCase();
+    if (x === "pt-br") x = "pt";
+    return TEXT[x] ? x : null;
   }
-  function renderStatus(user,profile){var el=document.getElementById("account-status");if(!el)return;var plan=profile&&profile.plan==="junior"?"Júnior":"Gratuito";var email=user.email||(profile&&profile.email)||"";el.className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm";el.innerHTML='<p class="text-sm text-slate-700"><strong>'+esc(email)+'</strong> — plano efetivo: <strong>'+esc(plan)+'</strong></p>';}
-  function openExternal(url,button,eventName){
-    if(button){button.disabled=true;button.setAttribute("aria-busy","true");}
-    try{if(window.gtag)window.gtag("event",eventName,{provider:"asaas",page_path:location.pathname});}catch(e){}
+
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>\"']/g, function (c) {
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", "\"":"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  function setText(id, value) { var el = document.getElementById(id); if (el) el.textContent = value; }
+
+  function setMessage(kind, text) {
+    var el = document.getElementById("subscription-message");
+    if (!el) return;
+    el.className = "mb-6 rounded-xl border p-4 text-sm font-semibold " + (kind === "error" ? "border-red-200 bg-red-50 text-red-700" : "border-blue-200 bg-blue-50 text-blue-800");
+    el.textContent = text;
+    el.classList.remove("hidden");
+  }
+
+  function openAsaas(url, button, eventName, t, successMessage) {
+    if (button) { button.disabled = true; button.setAttribute("aria-busy", "true"); }
+    try { if (window.gtag) window.gtag("event", eventName, { provider:"asaas", page_path:location.pathname, language:"pt" }); } catch (e) {}
+    setMessage("success", successMessage);
     window.location.assign(url);
   }
-  async function stripeCheckout(button,x){
-    var user=window.Auth.currentUser(); if(!user){alert((TEXT[x]||TEXT.en).loginRequired);return;}
-    if(button){button.disabled=true;button.setAttribute("aria-busy","true");}
-    try{
-      var token=await user.getIdToken();
-      var response=await fetch("https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/stripe-checkout",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid,lang:x})});
-      var data=await response.json().catch(function(){return {};});
-      if(!response.ok||!data.url)throw new Error(data.error||"Falha ao criar checkout Stripe");
+
+  async function stripeCheckout(button, lang, t) {
+    var user = window.Auth.currentUser();
+    if (!user) { setMessage("error", t.loginRequired); return; }
+    if (!window.PaymentRouter || window.PaymentRouter.providerFor(lang) !== "stripe") { setMessage("error", t.unsupported); return; }
+    if (button) { button.disabled = true; button.setAttribute("aria-busy", "true"); }
+    try {
+      var token = await user.getIdToken();
+      var response = await fetch("https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/stripe-checkout", { method:"POST", headers:{ "Authorization":"Bearer " + token, "Content-Type":"application/json" }, body:JSON.stringify({ uid:user.uid, lang:lang }) });
+      var data = await response.json().catch(function(){ return {}; });
+      if (!response.ok || !data.url) throw new Error(data.error || "checkout_creation_failed");
       window.location.assign(data.url);
-    }catch(error){console.error("[Premium] Stripe:",error);alert("Não foi possível iniciar o pagamento agora. Tente novamente.");if(button){button.disabled=false;button.removeAttribute("aria-busy");}}
+    } catch (error) {
+      console.error("[Premium] Stripe:", error);
+      setMessage("error", t.stripeFailed);
+      if (button) { button.disabled=false; button.removeAttribute("aria-busy"); }
+    }
   }
-  function bind(){
-    var x=lang(), month=document.getElementById("js-pay-monthly"), pix=document.getElementById("js-pay-pix");
-    if(month)month.addEventListener("click",function(){ if(x==="pt") openExternal(PT_ASAAS_SUBSCRIPTION_URL,month,"subscription_checkout_click"); else stripeCheckout(month,x); });
-    if(pix)pix.addEventListener("click",function(){openExternal(PT_ASAAS_PIX_URL,pix,"subscription_pix_checkout_click");});
+
+  function renderCards(lang, t) {
+    var container = document.getElementById("subscription-container");
+    if (!container) return;
+    var provider = window.PaymentRouter ? window.PaymentRouter.providerFor(lang) : null;
+    if (!provider) { setMessage("error", t.unsupported); container.innerHTML=""; return; }
+    var currPrice = lang === "pt" ? "R$ 10,00" : (EUR_LANGS[lang] ? "€ 5" : "US$ 5");
+    var out = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
+    out += '<article class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span><h2 class="text-xl font-black text-[#1A3E74]">'+esc(t.planTitle)+'</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">'+esc(currPrice)+'</span></div><p class="text-sm font-semibold text-slate-700 mb-3">'+esc(t.monthly)+'</p><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+    [t.allPages,t.noAds,t.forms,t.simulated].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
+    out += '</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.note)+'</p><button type="button" id="js-pay-monthly" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.cta)+'</button></article>';
+    if (lang === "pt") {
+      out += '<article class="flex flex-col rounded-2xl border border-[#1A3E74] bg-white p-6 shadow-sm h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Pix</span><h2 class="text-xl font-black text-[#1A3E74]">'+esc(t.pixTitle)+'</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">'+esc(t.pixPrice)+'</span></div><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+      [t.allPages,t.noAds,t.forms,t.simulated].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
+      out += '</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.pixNote)+'</p><button type="button" id="js-pay-pix" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.pixCta)+'</button></article>';
+    }
+    container.innerHTML = out + '</div>';
+    var month = document.getElementById("js-pay-monthly");
+    if (month) month.addEventListener("click", function(){ if(provider === "asaas") openAsaas(PT_ASAAS_SUBSCRIPTION_URL, month, "subscription_checkout_click", t, t.checkoutSuccess); else stripeCheckout(month, lang, t); });
+    var pix = document.getElementById("js-pay-pix");
+    if (pix) pix.addEventListener("click", function(){ openAsaas(PT_ASAAS_PIX_URL, pix, "subscription_pix_checkout_click", t, t.checkoutSuccess); });
   }
-  async function init(){
-    var x=lang();
-    var subtitle=document.getElementById("page-subtitle");if(subtitle)subtitle.textContent=x==="pt"?"Plano Júnior premium para profissionais de enfermagem que precisam de uma navegação sem anúncios.":(TEXT[x]||TEXT.en).subtitle;
-    var heading=document.getElementById("scales-heading");if(heading)heading.textContent=x==="pt"?"Acesso premium para apoiar sua rotina de enfermagem":(TEXT[x]||TEXT.en).allPages;
-    var sub=document.getElementById("scales-subheading");if(sub)sub.textContent=x==="pt"?"Escalas, recursos e materiais adicionais em uma experiência sem anúncios.":(TEXT[x]||TEXT.en).noAds;
-    var benefit=document.getElementById("benefit-line");if(benefit)benefit.textContent=(TEXT[x]||TEXT.en).noAds;
+
+  function showReturnState(lang, t) {
+    var params = new URLSearchParams(location.search);
+    if (params.get("stripe") === "success") setMessage("success", t.stripeSuccess);
+    else if (params.get("stripe") === "cancel") setMessage("success", t.stripeCancelled);
+    else if (params.get("asaas") === "success") setMessage("success", t.checkoutSuccess);
+    else if (params.get("asaas") === "cancel") setMessage("success", t.checkoutCancelled);
+    else if (params.get("asaas") === "expired") setMessage("error", t.checkoutExpired);
+  }
+
+  async function init() {
+    var lang = normalizeLang();
+    if (!lang) { setMessage("error", TEXT.en.unsupported); return; }
+    var t = TEXT[lang];
+    setText("page-eyebrow", t.eyebrow); setText("page-title", t.pageTitle); setText("page-subtitle", t.subtitle); setText("scales-heading", t.heading); setText("scales-subheading", t.subheading); setText("premium-more", t.more); setText("benefit-line", t.benefit); setText("subscription-loading", t.loading);
+    showReturnState(lang, t);
     await window.Auth.init();
-    if(!window.Auth.isLoggedIn()){var c=document.getElementById("subscription-container");if(c)c.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">'+esc((TEXT[x]||TEXT.en).loginRequired)+'</div>';return;}
-    var user=window.Auth.currentUser();
-    renderStatus(user,window.Auth.profile());
-    var c2=document.getElementById("subscription-container");if(c2)c2.innerHTML=cardHtml(x);
-    bind();
+    if (!window.Auth.isLoggedIn()) { var c=document.getElementById("subscription-container"); if(c)c.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">'+esc(t.loginRequired)+'</div>'; return; }
+    var user = window.Auth.currentUser();
+    renderStatus(user, window.Auth.profile(), t);
+    renderCards(lang, t);
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
+
+  function renderStatus(user, profile, t) {
+    var el = document.getElementById("account-status"); if(!el)return;
+    var plan = profile && profile.plan === "junior" ? t.junior : t.free;
+    var email = (user && user.email) || (profile && profile.email) || "";
+    el.className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm";
+    el.innerHTML='<p class="text-sm text-slate-700"><strong>'+esc(t.account)+'</strong> '+esc(email)+' — <strong>'+esc(plan)+'</strong></p>';
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
 </script>
 </body>
