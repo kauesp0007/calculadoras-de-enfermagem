@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260913-221401";
+const CACHE_VERSION = "20260914-043102";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -374,7 +374,11 @@ const urlsToCache = [
   'js/access/license-engine.js',
   'js/access/premium-banner-manager.js',
   'js/access/premium-widgets.js',
+  'js/access/route-localizer.js',
   'js/accessibility.js',
+  'js/account-extra-localizer.js',
+  'js/account-page-localizer.js',
+  'js/account-routing.js',
   'js/auth/auth-apple.js',
   'js/auth/auth-core.js',
   'js/auth/auth-email.js',
@@ -398,7 +402,9 @@ const urlsToCache = [
   'js/auth/user-cache.js',
   'js/auth/user-events.js',
   'js/backToTop.js',
+  'js/billing/payment-router.js',
   'js/conta-i18n.js',
+  'js/conta-menu-localizer.js',
   'js/cookies.js',
   'js/favorites/favorites-cache.js',
   'js/favorites/favorites-events.js',
@@ -407,6 +413,7 @@ const urlsToCache = [
   'js/favorites/favorites-ui.js',
   'js/favorites/favorites-utils.js',
   'js/firebase/firebase-init.js',
+  'js/forum-moderation-bridge.js',
   'js/history/history-cache.js',
   'js/history/history-events.js',
   'js/history/history-service.js',
@@ -1107,6 +1114,7 @@ const urlsToCache = [
   'scripts/extract-docx.js',
   'scripts/find-css-duplicates.js',
   'scripts/fix-broken-links.js',
+  'scripts/fix-forum-moderation-auth.js',
   'scripts/gerar-biblioteca-icones.js',
   'scripts/gerar-snippets-icones.js',
   'scripts/icone-svg.js',
