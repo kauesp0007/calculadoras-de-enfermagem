@@ -1,6 +1,6 @@
 // Stripe Checkout do Premium Júnior (internacional).
 // O usuário é autenticado pelo Firebase; o UID é carregado na sessão e nos metadados.
-// Métodos de pagamento são gerenciados dinamicamente pelo Dashboard do Stripe.
+// Regra canônica: pt-BR usa Asaas; todos os 18 idiomas internacionais usam Stripe.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -9,6 +9,7 @@ const STRIPE_API = "https://api.stripe.com/v1";
 const SITE_URL = "https://www.calculadorasdeenfermagem.com.br";
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const JWKS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
+const INTERNATIONAL_LANGS = ["en", "es", "fr", "de", "it", "hi", "zh", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk", "ar"];
 const EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
 const USD_PRICE_ID = Deno.env.get("STRIPE_PRICE_USD") ?? "price_1UEeJeAE0EBt2lxCFI56AWCx";
 const EUR_PRICE_ID = Deno.env.get("STRIPE_PRICE_EUR") ?? "price_1UEf7uAE0EBt2lxCmfLGGmNH";
@@ -72,6 +73,14 @@ async function verifyFirebaseToken(idToken: string): Promise<{ uid: string; emai
   return { uid, email, name };
 }
 
+function normalizeLanguage(value: unknown): string {
+  return String(value || "").trim().toLowerCase();
+}
+
+function isSupportedInternational(lang: string): boolean {
+  return INTERNATIONAL_LANGS.indexOf(lang) !== -1;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("", { status: 204, headers: corsHeaders() });
   if (req.method !== "POST") return new Response(JSON.stringify({ error: "method_not_allowed" }), { status: 405, headers: corsHeaders() });
@@ -80,24 +89,38 @@ serve(async (req) => {
   try {
     const body = await req.json();
     const uid = String(body?.uid || "");
-    const lang = String(body?.lang || "en").toLowerCase();
+    const lang = normalizeLanguage(body?.lang);
     if (!uid) return new Response(JSON.stringify({ error: "missing_uid" }), { status: 400, headers: corsHeaders() });
+
+    // Fail-closed: Stripe somente para os 18 idiomas internacionais.
+    // pt/pt-BR e idiomas desconhecidos nunca recebem checkout Stripe.
+    if (!isSupportedInternational(lang)) {
+      return new Response(JSON.stringify({ error: "unsupported_international_language" }), { status: 400, headers: corsHeaders() });
+    }
 
     const authHeader = req.headers.get("Authorization") || "";
     const idToken = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
     const user = idToken ? await verifyFirebaseToken(idToken) : null;
     if (!user || user.uid !== uid) return new Response(JSON.stringify({ error: "unauthorized" }), { status: 401, headers: corsHeaders() });
 
-    const priceId = EUR_LANGS.includes(lang) ? EUR_PRICE_ID : USD_PRICE_ID;
+    const priceId = EUR_LANGS.indexOf(lang) !== -1 ? EUR_PRICE_ID : USD_PRICE_ID;
+    const successUrl = `${SITE_URL}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=success`;
+    const cancelUrl = `${SITE_URL}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=cancel`;
     const form = new URLSearchParams({
       mode: "subscription",
       "line_items[0][price]": priceId,
       "line_items[0][quantity]": "1",
       client_reference_id: uid,
+      "metadata[uid]": uid,
+      "metadata[lang]": lang,
+      "metadata[payment_provider]": "stripe",
       "subscription_data[metadata][uid]": uid,
+      "subscription_data[metadata][lang]": lang,
+      "subscription_data[metadata][payment_provider]": "stripe",
       customer_email: user.email,
-      success_url: `${SITE_URL}/conta/assinatura.html?stripe=success`,
-      cancel_url: `${SITE_URL}/conta/assinatura.html?stripe=cancel`,
+      locale: "auto",
+      success_url: successUrl,
+      cancel_url: cancelUrl,
     });
 
     const res = await fetch(`${STRIPE_API}/checkout/sessions`, {
