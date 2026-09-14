@@ -5,11 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Planos e Assinatura - Calculadoras de Enfermagem</title>
 <meta name="robots" content="noindex, follow"/>
-<style id="critical-fonts">@font-face{font-family:"Inter";src:url("/fonts/inter/inter-regular.woff2") format("woff2");font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-600.woff2") format("woff2");font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-700.woff2") format("woff2");font-weight:700;font-display:swap;size-adjust:98%}</style>
 <link rel="stylesheet" href="/public/output.css"/>
 <link rel="stylesheet" href="/global-styles.css"/>
-<link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high"/>
-<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background-color:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background-color:transparent}#footer-placeholder{display:block;min-height:520px;background-color:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
 <script src="/js/firebase/firebase-init.js"></script>
 <script src="/js/auth/auth-session.js"></script>
 <script src="/js/auth/auth-permissions.js"></script>
@@ -36,9 +33,6 @@
 <h1 id="page-title" class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white">Planos e Assinatura</h1>
 <h2 id="page-subtitle" class="text-blue-100 text-base font-medium">Premium Júnior para profissionais de enfermagem que precisam de uma experiência sem anúncios.</h2>
 </div>
-<div class="hidden md:flex w-full md:w-auto justify-center md:justify-end shrink-0">
-<img src="/img/ilustracao_enfermeira.webp" alt="Ilustração de profissional de enfermagem" class="w-24 md:w-32 h-auto rounded-xl" width="1920" height="2230" loading="lazy" decoding="async"/>
-</div>
 </div>
 </section>
 <section class="mb-6 w-full rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md">
@@ -60,180 +54,72 @@
 <p id="benefit-line" class="text-slate-700 font-medium">Sem anúncios para você se concentrar na leitura e no trabalho.</p>
 </section>
 <div id="account-status" class="mb-6 hidden"></div>
-<div id="subscription-container" class="w-full">
-<p class="text-center text-slate-500">Carregando opções de assinatura...</p>
-</div>
+<div id="subscription-container" class="w-full"><p class="text-center text-slate-500">Carregando opções de assinatura...</p></div>
 </main>
 <div id="footer-placeholder"></div>
 <script>
 (function () {
   "use strict";
-
-  var SUPABASE_FN_BASE = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1";
-  var SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo";
-
   var EUR_LANGS = { tr:1, nl:1, pl:1, ru:1, fr:1, es:1, de:1, it:1, uk:1, sv:1 };
+  var PT_ASAAS_SUBSCRIPTION_URL = "https://www.asaas.com/c/vcnk68nigacrape5";
+  var PT_ASAAS_PIX_URL = "https://www.asaas.com/c/z89jgzlk57nb354p";
   var TEXT = {
-    pt:{title:"Plano Júnior",subtitle:"R$ 10,00 por mês",monthly:"Cartão de crédito — assinatura mensal",pix:"Pix — acesso por 30 dias",allPages:"Acesso a todo o conteúdo liberado do site",noAds:"Navegação sem anúncios",forms:"Formulários em branco para impressão",simulados:"Acesso aos simulados",monthlyNote:"Cobrança recorrente mensal. Você será levado a um checkout individualizado do Asaas com os dados da sua conta.",pixNote:"Pagamento único via Pix. O acesso fica disponível por 30 dias e pode ser renovado com um novo pagamento.",ctaMonthly:"Assinar com cartão",ctaPix:"Pagar com Pix",account:"Conta autenticada:",loginRequired:"Faça login para contratar o Premium Júnior."},
-    en:{title:"Premium Plan",subtitle:"US$ 5 per month",monthly:"Credit card — monthly subscription",pix:"Not available in Brazil",allPages:"Access to the site's premium content",noAds:"Ad-free browsing",forms:"Printable blank forms",simulados:"Access to simulated tests",monthlyNote:"Recurring monthly billing. You will be sent to an individualized secure checkout.",pixNote:"",ctaMonthly:"Subscribe with card",ctaPix:"",account:"Authenticated account:",loginRequired:"Sign in to subscribe to Premium."},
-    es:{title:"Plan Premium",subtitle:"€ 5 al mes",monthly:"Tarjeta — suscripción mensual",pix:"No disponible en este idioma",allPages:"Acceso al contenido premium del sitio",noAds:"Navegación sin anuncios",forms:"Formularios en blanco para imprimir",simulados:"Acceso a simulacros",monthlyNote:"Cobro mensual recurrente. Serás dirigido a un checkout seguro individualizado.",pixNote:"",ctaMonthly:"Suscribirse con tarjeta",ctaPix:"",account:"Cuenta autenticada:",loginRequired:"Inicia sesión para suscribirte."},
-    fr:{title:"Formule Premium",subtitle:"€ 5 par mois",monthly:"Carte — abonnement mensuel",pix:"Non disponible dans cette langue",allPages:"Accès au contenu premium du site",noAds:"Navigation sans publicité",forms:"Formulaires vierges à imprimer",simulados:"Accès aux tests d'entraînement",monthlyNote:"Facturation mensuelle récurrente via un checkout sécurisé individualisé.",pixNote:"",ctaMonthly:"S'abonner par carte",ctaPix:"",account:"Compte authentifié :",loginRequired:"Connectez-vous pour vous abonner."},
-    de:{title:"Premium-Plan",subtitle:"€ 5 pro Monat",monthly:"Kreditkarte — monatliches Abonnement",pix:"In dieser Sprache nicht verfügbar",allPages:"Zugriff auf Premium-Inhalte der Website",noAds:"Werbefreies Surfen",forms:"Leere Formulare zum Ausdrucken",simulados:"Zugriff auf Übungstests",monthlyNote:"Monatliche wiederkehrende Abrechnung über einen individuellen sicheren Checkout.",pixNote:"",ctaMonthly:"Mit Karte abonnieren",ctaPix:"",account:"Authentifiziertes Konto:",loginRequired:"Melden Sie sich an, um Premium zu abonnieren."},
-    it:{title:"Piano Premium",subtitle:"€ 5 al mese",monthly:"Carta — abbonamento mensile",pix:"Non disponibile in questa lingua",allPages:"Accesso ai contenuti premium del sito",noAds:"Navigazione senza pubblicità",forms:"Moduli vuoti da stampare",simulados:"Accesso ai simulati",monthlyNote:"Addebito mensile ricorrente tramite checkout sicuro individualizzato.",pixNote:"",ctaMonthly:"Abbonati con carta",ctaPix:"",account:"Account autenticato:",loginRequired:"Accedi per sottoscrivere Premium."},
-    ja:{title:"プレミアムプラン",subtitle:"US$ 5/月",monthly:"カード — 月額サブスクリプション",pix:"この言語では利用できません",allPages:"サイトのプレミアムコンテンツへのアクセス",noAds:"広告なしで閲覧",forms:"印刷用の白紙フォーム",simulados:"模擬テストへのアクセス",monthlyNote:"月額の継続課金。安全な個別チェックアウトへ移動します。",pixNote:"",ctaMonthly:"カードで登録",ctaPix:"",account:"認証済みアカウント:",loginRequired:"ログインしてPremiumに登録してください。"},
-    zh:{title:"高级版计划",subtitle:"US$ 5/月",monthly:"银行卡 — 月度订阅",pix:"此语言不提供",allPages:"访问网站高级内容",noAds:"无广告浏览",forms:"可打印空白表格",simulados:"访问模拟测试",monthlyNote:"每月自动续费，并进入安全的个性化结账页面。",pixNote:"",ctaMonthly:"使用银行卡订阅",ctaPix:"",account:"已验证账户：",loginRequired:"请登录后订阅高级版。"},
-    hi:{title:"प्रीमियम प्लान",subtitle:"US$ 5 प्रति माह",monthly:"कार्ड — मासिक सदस्यता",pix:"इस भाषा में उपलब्ध नहीं",allPages:"साइट की प्रीमियम सामग्री तक पहुंच",noAds:"विज्ञापन-मुक्त ब्राउज़िंग",forms:"प्रिंट करने योग्य खाली फ़ॉर्म",simulados:"मॉक टेस्ट तक पहुंच",monthlyNote:"मासिक आवर्ती भुगतान और सुरक्षित व्यक्तिगत चेकआउट।",pixNote:"",ctaMonthly:"कार्ड से सदस्यता लें",ctaPix:"",account:"प्रमाणित खाता:",loginRequired:"प्रीमियम लेने के लिए लॉगिन करें।"},
-    ar:{title:"الخطة المميزة",subtitle:"5 دولارات شهريًا",monthly:"بطاقة — اشتراك شهري",pix:"غير متاح بهذه اللغة",allPages:"الوصول إلى المحتوى المميز في الموقع",noAds:"تصفح بدون إعلانات",forms:"نماذج فارغة للطباعة",simulados:"الوصول إلى الاختبارات التجريبية",monthlyNote:"دفع شهري متجدد عبر صفحة دفع آمنة مخصصة.",pixNote:"",ctaMonthly:"الاشتراك بالبطاقة",ctaPix:"",account:"الحساب الموثق:",loginRequired:"سجّل الدخول للاشتراك."},
-    ru:{title:"Премиум-план",subtitle:"€ 5 в месяц",monthly:"Карта — ежемесячная подписка",pix:"Недоступно на этом языке",allPages:"Доступ к премиум-контенту сайта",noAds:"Просмотр без рекламы",forms:"Пустые бланки для печати",simulados:"Доступ к пробным тестам",monthlyNote:"Ежемесячное списание через индивидуальную безопасную оплату.",pixNote:"",ctaMonthly:"Подписаться картой",ctaPix:"",account:"Авторизованный аккаунт:",loginRequired:"Войдите, чтобы подписаться."},
-    tr:{title:"Premium Plan",subtitle:"€ 5 / ay",monthly:"Kart — aylık abonelik",pix:"Bu dilde kullanılamaz",allPages:"Sitenin premium içeriğine erişim",noAds:"Reklamsız gezinme",forms:"Yazdırılabilir boş formlar",simulados:"Deneme testlerine erişim",monthlyNote:"Aylık yinelenen ödeme ve güvenli kişiselleştirilmiş ödeme sayfası.",pixNote:"",ctaMonthly:"Kartla abone ol",ctaPix:"",account:"Doğrulanmış hesap:",loginRequired:"Abone olmak için giriş yapın."},
-    ko:{title:"프리미엄 플랜",subtitle:"US$ 5/월",monthly:"카드 — 월간 구독",pix:"이 언어에서는 제공되지 않음",allPages:"사이트의 프리미엄 콘텐츠 이용",noAds:"광고 없는 이용",forms:"인쇄 가능한 빈 양식",simulados:"모의 테스트 이용",monthlyNote:"월간 자동 결제와 안전한 개별 결제 페이지를 사용합니다.",pixNote:"",ctaMonthly:"카드로 구독",ctaPix:"",account:"인증된 계정:",loginRequired:"로그인 후 구독하세요."},
-    nl:{title:"Premium-abonnement",subtitle:"€ 5 per maand",monthly:"Kaart — maandelijks abonnement",pix:"Niet beschikbaar in deze taal",allPages:"Toegang tot premiuminhoud",noAds:"Reclamevrij browsen",forms:"Lege formulieren om af te drukken",simulados:"Toegang tot oefentoetsen",monthlyNote:"Maandelijkse terugkerende betaling via een veilige individuele checkout.",pixNote:"",ctaMonthly:"Abonneren met kaart",ctaPix:"",account:"Geverifieerd account:",loginRequired:"Log in om u te abonneren."},
-    pl:{title:"Plan Premium",subtitle:"€ 5 miesięcznie",monthly:"Karta — subskrypcja miesięczna",pix:"Niedostępne w tym języku",allPages:"Dostęp do treści premium",noAds:"Przeglądanie bez reklam",forms:"Puste formularze do wydruku",simulados:"Dostęp do testów próbnych",monthlyNote:"Miesięczne rozliczenie cykliczne przez bezpieczny indywidualny checkout.",pixNote:"",ctaMonthly:"Subskrybuj kartą",ctaPix:"",account:"Uwierzytelnione konto:",loginRequired:"Zaloguj się, aby subskrybować."},
-    sv:{title:"Premiumplan",subtitle:"€ 5 per månad",monthly:"Kort — månadsabonnemang",pix:"Inte tillgängligt på detta språk",allPages:"Tillgång till premiuminnehåll",noAds:"Reklamfri surfning",forms:"Utskrivbara tomma formulär",simulados:"Tillgång till övningsprov",monthlyNote:"Månadsvis återkommande betalning via säker individuell checkout.",pixNote:"",ctaMonthly:"Prenumerera med kort",ctaPix:"",account:"Autentiserat konto:",loginRequired:"Logga in för att prenumerera."},
-    id:{title:"Paket Premium",subtitle:"US$ 5 per bulan",monthly:"Kartu — langganan bulanan",pix:"Tidak tersedia dalam bahasa ini",allPages:"Akses konten premium situs",noAds:"Penjelajahan tanpa iklan",forms:"Formulir kosong untuk dicetak",simulados:"Akses simulasi ujian",monthlyNote:"Pembayaran bulanan berulang melalui checkout aman individual.",pixNote:"",ctaMonthly:"Berlangganan dengan kartu",ctaPix:"",account:"Akun terautentikasi:",loginRequired:"Masuk untuk berlangganan."},
-    vi:{title:"Gói Premium",subtitle:"US$ 5/tháng",monthly:"Thẻ — gói hàng tháng",pix:"Không khả dụng bằng ngôn ngữ này",allPages:"Truy cập nội dung premium",noAds:"Duyệt web không quảng cáo",forms:"Biểu mẫu trống để in",simulados:"Truy cập bài thi thử",monthlyNote:"Thanh toán định kỳ hàng tháng qua trang thanh toán an toàn riêng.",pixNote:"",ctaMonthly:"Đăng ký bằng thẻ",ctaPix:"",account:"Tài khoản đã xác thực:",loginRequired:"Đăng nhập để đăng ký."},
-    uk:{title:"Преміум-план",subtitle:"€ 5 на місяць",monthly:"Картка — щомісячна підписка",pix:"Недоступно цією мовою",allPages:"Доступ до преміум-контенту",noAds:"Перегляд без реклами",forms:"Порожні бланки для друку",simulados:"Доступ до пробних тестів",monthlyNote:"Щомісячне повторюване списання через безпечну індивідуальну оплату.",pixNote:"",ctaMonthly:"Підписатися карткою",ctaPix:"",account:"Автентифікований обліковий запис:",loginRequired:"Увійдіть, щоб підписатися."}
+    pt:{title:"Plano Júnior",subtitle:"R$ 10,00 por mês",monthly:"Cartão de crédito — assinatura mensal",pix:"Pix — acesso por 30 dias",allPages:"Acesso a todo o conteúdo liberado do site",noAds:"Navegação sem anúncios",forms:"Formulários em branco para impressão",simulados:"Acesso aos simulados",monthlyNote:"Cobrança recorrente mensal. Você será levado ao checkout seguro do Asaas.",pixNote:"Pagamento único via Pix. O acesso fica disponível por 30 dias e pode ser renovado com um novo pagamento.",ctaMonthly:"Assinar com cartão",ctaPix:"Pagar com Pix",account:"Conta autenticada:",loginRequired:"Faça login para contratar o Premium Júnior."},
+    en:{title:"Premium Plan",subtitle:"US$ 5 per month",monthly:"Credit card — monthly subscription",pix:"Not available in Brazil",allPages:"Access to the site's premium content",noAds:"Ad-free browsing",forms:"Printable blank forms",simulados:"Access to simulated tests",monthlyNote:"Recurring monthly billing. You will be sent to an individualized secure checkout.",pixNote:"",ctaMonthly:"Subscribe with card",ctaPix:"",account:"Authenticated account:",loginRequired:"Sign in to subscribe to Premium."}
   };
-
-  function esc(v){return String(v == null ? "" : v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;");}
-  function lang(){
-    var l = "pt";
-    try { if(window.AccountI18n && window.AccountI18n.getLanguage) l = window.AccountI18n.getLanguage(); } catch(e){}
-    if(!l) l = window.__LANG || "pt";
-    l = String(l).toLowerCase();
-    if(l === "pt-br") l = "pt";
-    return TEXT[l] ? l : "en";
-  }
-  function price(l){ return l === "pt" ? "R$ 10,00" : (EUR_LANGS[l] ? "€ 5" : "US$ 5"); }
-
-  function sendEvent(name, params){
-    try {
-      if(typeof window.gtag === "function") window.gtag("event", name, params || {});
-    } catch(e){}
-  }
-
-  function cardHtml(l){
-    var t = TEXT[l];
-    var out = '<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
-    out += '<article class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full">';
-    out += '<span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span>';
-    out += '<h2 class="text-xl font-black text-[#1A3E74]">'+esc(t.title)+'</h2>';
-    out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">'+esc(price(l))+'</span><span class="text-sm text-[#1A3E74]"> '+esc(t.subtitle.indexOf("month")>-1||t.subtitle.indexOf("mes")>-1||t.subtitle.indexOf("Monat")>-1||t.subtitle.indexOf("mois")>-1||t.subtitle.indexOf("mese")>-1||l!=="pt"?"":"")+'</span></div>';
-    out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
-    [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(x){out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(x)+'</span></li>';});
-    out += '</ul>';
-    out += '<p class="text-xs text-slate-500 mb-3">'+esc(t.monthlyNote)+'</p>';
-    out += '<button type="button" id="js-pay-monthly" data-evento="subscription_checkout_click" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaMonthly)+'</button>';
-    out += '</article>';
-    if(l === "pt"){
-      out += '<article class="flex flex-col rounded-2xl border border-[#1A3E74] bg-white p-6 shadow-sm h-full">';
-      out += '<span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Pix</span>';
-      out += '<h2 class="text-xl font-black text-[#1A3E74]">Pix — 30 dias</h2>';
-      out += '<div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 10,00</span><span class="text-sm text-[#1A3E74]"> /30 dias</span></div>';
-      out += '<ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
-      [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(x){out += '<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(x)+'</span></li>';});
-      out += '</ul>';
-      out += '<p class="text-xs text-slate-500 mb-3">'+esc(t.pixNote)+'</p>';
-      out += '<button type="button" id="js-pay-pix" data-evento="subscription_pix_checkout_click" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaPix)+'</button>';
-      out += '</article>';
+  var l = "pt";
+  function lang(){ try { if(window.AccountI18n && window.AccountI18n.getLanguage) l = window.AccountI18n.getLanguage(); } catch(e){} if(!l) l=window.__LANG||"pt"; l=String(l).toLowerCase(); if(l==="pt-br")l="pt"; return TEXT[l]?l:"en"; }
+  function esc(s){return String(s==null?"":s).replace(/[&<>\"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'})[c];});}
+  function price(x){return x==="pt"?"R$ 10,00":(EUR_LANGS[x]?"€ 5":"US$ 5");}
+  function cardHtml(x){
+    var t=TEXT[x]||TEXT.en;
+    var out='<div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">';
+    out+='<article class="flex flex-col rounded-2xl border-2 border-[#1A3E74] bg-white p-6 shadow-md h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Premium</span><h2 class="text-xl font-black text-[#1A3E74]">'+esc(t.title)+'</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">'+esc(price(x))+'</span></div><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+    [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
+    out+='</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.monthlyNote)+'</p><button type="button" id="js-pay-monthly" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaMonthly)+'</button></article>';
+    if(x==="pt"){
+      out+='<article class="flex flex-col rounded-2xl border border-[#1A3E74] bg-white p-6 shadow-sm h-full"><span class="text-xs font-bold uppercase tracking-wide text-green-600 mb-2">Pix</span><h2 class="text-xl font-black text-[#1A3E74]">Pix — 30 dias</h2><div class="mt-3 mb-4"><span class="text-3xl font-black text-[#1A3E74]">R$ 10,00</span><span class="text-sm text-[#1A3E74]"> /30 dias</span></div><ul class="mt-2 mb-4 text-sm text-slate-700 space-y-2 flex-1 list-none p-0">';
+      [t.allPages,t.noAds,t.forms,t.simulados].forEach(function(v){out+='<li class="flex items-start gap-2"><span class="text-[#1A3E74] font-bold" aria-hidden="true">+</span><span>'+esc(v)+'</span></li>';});
+      out+='</ul><p class="text-xs text-slate-500 mb-3">'+esc(t.pixNote)+'</p><button type="button" id="js-pay-pix" class="mt-auto w-full px-4 py-3 rounded-lg bg-[#1A3E74] hover:bg-[#163269] text-white font-semibold transition-colors">'+esc(t.ctaPix)+'</button></article>';
     }
-    out += '</div>';
-    return out;
+    return out+'</div>';
   }
-
-  function renderStatus(user, profile){
-    var el = document.getElementById("account-status");
-    if(!el) return;
-    var plan = profile && profile.plan === "junior" ? "Júnior" : "Gratuito";
-    var email = user.email || (profile && profile.email) || "";
-    el.className = "mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm";
-    el.innerHTML = '<p class="text-sm text-slate-700"><strong>'+esc(email)+'</strong> — plano efetivo: <strong>'+esc(plan)+'</strong></p>';
+  function renderStatus(user,profile){var el=document.getElementById("account-status");if(!el)return;var plan=profile&&profile.plan==="junior"?"Júnior":"Gratuito";var email=user.email||(profile&&profile.email)||"";el.className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm";el.innerHTML='<p class="text-sm text-slate-700"><strong>'+esc(email)+'</strong> — plano efetivo: <strong>'+esc(plan)+'</strong></p>';}
+  function openExternal(url,button,eventName){
+    if(button){button.disabled=true;button.setAttribute("aria-busy","true");}
+    try{if(window.gtag)window.gtag("event",eventName,{provider:"asaas",page_path:location.pathname});}catch(e){}
+    window.location.assign(url);
   }
-
-  async function callCheckout(kind, button){
-    var user = window.Auth.currentUser();
-    if(!user){
-      alert((TEXT[lang()] || TEXT.en).loginRequired);
-      return;
-    }
-    if(button){ button.disabled = true; button.setAttribute("aria-busy","true"); }
-    sendEvent("subscription_checkout_click", {provider:"asaas", checkout_kind:kind, page_path:location.pathname});
+  async function stripeCheckout(button,x){
+    var user=window.Auth.currentUser(); if(!user){alert((TEXT[x]||TEXT.en).loginRequired);return;}
+    if(button){button.disabled=true;button.setAttribute("aria-busy","true");}
     try{
-      var token = await user.getIdToken();
-      var response = await fetch(SUPABASE_FN_BASE + "/asaas-checkout", {
-        method:"POST",
-        headers:{"Authorization":"Bearer "+token,"apikey":SUPABASE_ANON_KEY,"Content-Type":"application/json"},
-        body:JSON.stringify({kind:kind})
-      });
-      var data = await response.json().catch(function(){return {};});
-      if(!response.ok || !data.url) throw new Error(data.error || "Não foi possível criar o checkout.");
-      sendEvent("subscription_checkout_created", {provider:"asaas", checkout_kind:kind, page_path:location.pathname});
-      window.location.href = data.url;
-    }catch(error){
-      console.error("[Premium] Falha ao criar checkout Asaas:", error);
-      sendEvent("subscription_checkout_error", {provider:"asaas", checkout_kind:kind, error:String(error && error.message || error)});
-      alert("Não foi possível iniciar o pagamento agora. Tente novamente.");
-      if(button){ button.disabled = false; button.removeAttribute("aria-busy"); }
-    }
+      var token=await user.getIdToken();
+      var response=await fetch("https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/stripe-checkout",{method:"POST",headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"},body:JSON.stringify({uid:user.uid,lang:x})});
+      var data=await response.json().catch(function(){return {};});
+      if(!response.ok||!data.url)throw new Error(data.error||"Falha ao criar checkout Stripe");
+      window.location.assign(data.url);
+    }catch(error){console.error("[Premium] Stripe:",error);alert("Não foi possível iniciar o pagamento agora. Tente novamente.");if(button){button.disabled=false;button.removeAttribute("aria-busy");}}
   }
-
-  async function stripeCheckout(button, l){
-    var user = window.Auth.currentUser();
-    if(!user){ alert((TEXT[l] || TEXT.en).loginRequired); return; }
-    if(button){ button.disabled = true; button.setAttribute("aria-busy","true"); }
-    sendEvent("subscription_checkout_click", {provider:"stripe", checkout_kind:"monthly", currency:EUR_LANGS[l]?"EUR":"USD", page_path:location.pathname});
-    try{
-      var token = await user.getIdToken();
-      var response = await fetch(SUPABASE_FN_BASE + "/stripe-checkout", {
-        method:"POST",
-        headers:{"Authorization":"Bearer "+token,"apikey":SUPABASE_ANON_KEY,"Content-Type":"application/json"},
-        body:JSON.stringify({uid:user.uid,lang:l})
-      });
-      var data = await response.json().catch(function(){return {};});
-      if(!response.ok || !data.url) throw new Error(data.error || "Não foi possível criar o checkout.");
-      sendEvent("subscription_checkout_created", {provider:"stripe", checkout_kind:"monthly", currency:EUR_LANGS[l]?"EUR":"USD", page_path:location.pathname});
-      window.location.href = data.url;
-    }catch(error){
-      console.error("[Premium] Falha ao criar checkout Stripe:", error);
-      sendEvent("subscription_checkout_error", {provider:"stripe", error:String(error && error.message || error)});
-      alert("Não foi possível iniciar o pagamento agora. Tente novamente.");
-      if(button){button.disabled=false;button.removeAttribute("aria-busy");}
-    }
-  }
-
   function bind(){
-    var l=lang();
-    var month=document.getElementById("js-pay-monthly");
-    var pix=document.getElementById("js-pay-pix");
-    if(month) month.addEventListener("click",function(){ l === "pt" ? callCheckout("monthly_card",month) : stripeCheckout(month,l); });
-    if(pix) pix.addEventListener("click",function(){ callCheckout("pix_30d",pix); });
+    var x=lang(), month=document.getElementById("js-pay-monthly"), pix=document.getElementById("js-pay-pix");
+    if(month)month.addEventListener("click",function(){ if(x==="pt") openExternal(PT_ASAAS_SUBSCRIPTION_URL,month,"subscription_checkout_click"); else stripeCheckout(month,x); });
+    if(pix)pix.addEventListener("click",function(){openExternal(PT_ASAAS_PIX_URL,pix,"subscription_pix_checkout_click");});
   }
-
   async function init(){
-    var l=lang();
-    document.getElementById("page-subtitle").textContent = l === "pt" ? "Plano Júnior premium para profissionais de enfermagem que precisam de uma navegação sem anúncios." : (TEXT[l] || TEXT.en).subtitle;
-    document.getElementById("scales-heading").textContent = l === "pt" ? "Acesso premium para apoiar sua rotina de enfermagem" : (TEXT[l] || TEXT.en).allPages;
-    document.getElementById("scales-subheading").textContent = l === "pt" ? "Escalas, recursos e materiais adicionais em uma experiência sem anúncios." : (TEXT[l] || TEXT.en).noAds;
-    document.getElementById("benefit-line").textContent = (TEXT[l] || TEXT.en).noAds;
-
-    await Auth.init();
-    if(!Auth.isLoggedIn()){
-      window.location.href = window.__ACCOUNT_LOGIN_URL ? window.__ACCOUNT_LOGIN_URL(location.pathname+location.search) : "/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search);
-      return;
-    }
-    await Auth.refreshProfile();
-    var user=Auth.currentUser();
-    renderStatus(user,Auth.profile());
-    document.getElementById("subscription-container").innerHTML = cardHtml(l);
+    var x=lang();
+    var subtitle=document.getElementById("page-subtitle");if(subtitle)subtitle.textContent=x==="pt"?"Plano Júnior premium para profissionais de enfermagem que precisam de uma navegação sem anúncios.":(TEXT[x]||TEXT.en).subtitle;
+    var heading=document.getElementById("scales-heading");if(heading)heading.textContent=x==="pt"?"Acesso premium para apoiar sua rotina de enfermagem":(TEXT[x]||TEXT.en).allPages;
+    var sub=document.getElementById("scales-subheading");if(sub)sub.textContent=x==="pt"?"Escalas, recursos e materiais adicionais em uma experiência sem anúncios.":(TEXT[x]||TEXT.en).noAds;
+    var benefit=document.getElementById("benefit-line");if(benefit)benefit.textContent=(TEXT[x]||TEXT.en).noAds;
+    await window.Auth.init();
+    if(!window.Auth.isLoggedIn()){var c=document.getElementById("subscription-container");if(c)c.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">'+esc((TEXT[x]||TEXT.en).loginRequired)+'</div>';return;}
+    var user=window.Auth.currentUser();
+    renderStatus(user,window.Auth.profile());
+    var c2=document.getElementById("subscription-container");if(c2)c2.innerHTML=cardHtml(x);
     bind();
-    sendEvent("subscription_view", {page_path:location.pathname, language:l, provider:l === "pt" ? "asaas" : "stripe"});
   }
-
-  document.addEventListener("DOMContentLoaded", function(){
-    var footer=document.getElementById("footer-placeholder");
-    if(footer){ setTimeout(function(){fetch("/footer.html").then(function(r){return r.text();}).then(function(html){footer.innerHTML=html; if(window.carregarTraducoes){var l=lang(); carregarTraducoes(l === "pt" ? "pt" : l,"footer.json");carregarTraducoes(l === "pt" ? "pt" : l,"cookies.json");}}).catch(function(){});},150); }
-    init().catch(function(error){console.error("[Premium] Falha na inicialização:",error);});
-  });
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init);else init();
 })();
 </script>
 </body>
