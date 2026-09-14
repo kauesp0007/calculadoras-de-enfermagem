@@ -44,16 +44,27 @@
     }
 
     // Criação defensiva: não substitui um documento existente.
-    // Isso evita que dois ciclos de login concorrentes apaguem dados de assinatura,
-    // preferências ou histórico gravados entre os dois ciclos.
+    // Se dois ciclos de login concorrerem, uma criação pode vencer primeiro;
+    // o segundo ciclo deve apenas reler o documento vencedor, nunca falhar nem sobrescrevê-lo.
     async function createUserDoc(uid, data) {
         if (!uid) throw new Error("[FirestoreUser] UID é obrigatório.");
         var db = await _getDb();
         var ref = _docRef(db, uid);
         var snapshot = await ref.get();
         if (snapshot.exists) return _normalizeDoc(snapshot);
-        await ref.create(data);
-        return data;
+        try {
+            await ref.create(data);
+            return data;
+        } catch (error) {
+            // Firestore retorna ALREADY_EXISTS quando outro ciclo criou o documento
+            // entre o GET e o CREATE. Nesse caso, preserve e devolva o documento atual.
+            var code = error && (error.code !== undefined ? error.code : error.status);
+            if (code === 6 || String(code).toUpperCase() === "ALREADY_EXISTS") {
+                var existing = await ref.get();
+                if (existing.exists) return _normalizeDoc(existing);
+            }
+            throw error;
+        }
     }
 
     async function updateUserDoc(uid, data) {
