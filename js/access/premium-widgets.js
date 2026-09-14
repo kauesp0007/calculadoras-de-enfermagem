@@ -3,14 +3,8 @@
  *
  * RESPONSABILIDADE: Componentes reutilizáveis de conteúdo premium (Fase 6).
  *
- * Conjunto de widgets que renderizam HTML de bloqueio/upgrade sem repetir
- * markup nas páginas. Seguem o design system do site (navy #1A3E74,
- * âmbar para Premium, Tailwind).
- *
- * Todos os widgets são funções puras que retornam string HTML. A montagem
- * no DOM fica por conta do premium-banner-manager.js.
+ * Todos os widgets preservam o caminho de assinatura no idioma atual.
  */
-
 (function (window) {
     "use strict";
 
@@ -25,15 +19,26 @@
             .replace(/'/g, "&#39;");
     }
 
-    /**
-     * Cadeado premium (bloqueio simples).
-     * @param {object} [opts] - { title, message }
-     * @returns {string}
-     */
+    function _accountSubscriptionUrl() {
+        if (typeof window.__ACCOUNT_PAGE_URL === "function") {
+            return window.__ACCOUNT_PAGE_URL("/conta/assinatura.html");
+        }
+        return "/conta/assinatura.html";
+    }
+
+    function _translate(key, fallback) {
+        try {
+            if (window.AccountI18n && typeof window.AccountI18n.t === "function") {
+                return window.AccountI18n.t(key) || fallback;
+            }
+        } catch (_) {}
+        return fallback;
+    }
+
     function premiumLock(opts) {
         opts = opts || {};
-        var title = _escape(opts.title || "Conteúdo Premium");
-        var message = _escape(opts.message || "Este conteúdo está disponível apenas para assinantes.");
+        var title = _escape(opts.title || _translate("premiumSubscription", "Premium content"));
+        var message = _escape(opts.message || _translate("premiumLockMessage", "This content is available to subscribers only."));
         return (
             '<div class="premium-lock flex flex-col items-center text-center gap-3 py-10 px-6" role="status">' +
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="2.5em" height="2.5em" class="text-amber-500" aria-hidden="true">' +
@@ -45,15 +50,10 @@
         );
     }
 
-    /**
-     * Botão "Assinar" (upgrade).
-     * @param {object} [opts] - { href, label }
-     * @returns {string}
-     */
     function premiumUpgrade(opts) {
         opts = opts || {};
-        var href = opts.href || "/conta/assinatura.html";
-        var label = _escape(opts.label || "⭐ Assinar Premium");
+        var href = opts.href || _accountSubscriptionUrl();
+        var label = _escape(opts.label || _translate("premiumSubscription", "Subscribe to Premium"));
         return (
             '<a href="' + href + '" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-amber-500 hover:bg-amber-600 text-white font-semibold text-sm transition-colors">' +
             label +
@@ -61,18 +61,11 @@
         );
     }
 
-    /**
-     * Lista de benefícios de um plano.
-     * @param {string} plan
-     * @returns {string}
-     */
     function premiumBenefits(plan) {
         var items = window.AccessModules.benefits
             ? window.AccessModules.benefits.forPlan(plan)
             : [];
-        if (!items.length) {
-            return "";
-        }
+        if (!items.length) return "";
         var html = '<ul class="flex flex-col gap-2 text-sm text-gray-700">';
         items.forEach(function (b) {
             html += (
@@ -86,18 +79,13 @@
         return html;
     }
 
-    /**
-     * Card premium completo (cadeado + benefícios + botão).
-     * @param {object} [opts] - { plan, title, message, href }
-     * @returns {string}
-     */
     function premiumCard(opts) {
         opts = opts || {};
         var plan = opts.plan || "junior";
-        var title = _escape(opts.title || "Desbloqueie este conteúdo");
-        var message = _escape(opts.message || "Assine para acessar este e todos os conteúdos premium.");
+        var title = _escape(opts.title || _translate("premiumSubscription", "Unlock this content"));
+        var message = _escape(opts.message || _translate("premiumPlanDescription", "Subscribe to access this and other premium content."));
         return (
-            '<div class="premium-card rounded-2xl border border-amber-200 bg-white shadow-sm p-6 max-w-md" role="region" aria-label="Conteúdo premium">' +
+            '<div class="premium-card rounded-2xl border border-amber-200 bg-white shadow-sm p-6 max-w-md" role="region" aria-label="' + _escape(_translate("premiumSubscription", "Premium content")) + '">' +
             premiumLock({ title: title, message: message }) +
             premiumBenefits(plan) +
             '<div class="mt-5 flex justify-center">' +
@@ -115,5 +103,4 @@
     };
 
     console.log("[Access] Módulo premium-widgets.js carregado.");
-
 })(window);
