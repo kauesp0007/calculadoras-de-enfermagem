@@ -2,7 +2,7 @@
 // O usuário é autenticado pelo Firebase; o UID é carregado na sessão e nos metadados.
 // Regra canônica: pt-BR usa Asaas; todos os 18 idiomas internacionais usam Stripe.
 // Proteções: lock transacional por usuário/provedor + bloqueio de assinaturas existentes.
-// Sandbox: pode usar um único Price multi-moeda (USD/EUR) para o mesmo produto Júnior.
+// IMPORTANTE: esta função é PRODUÇÃO. Nunca deve usar Price de Sandbox como fallback.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -15,8 +15,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "
 const JWKS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 const INTERNATIONAL_LANGS = ["en", "es", "fr", "de", "it", "hi", "zh", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk", "ar"];
 const EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
-const DEFAULT_PRICE_ID = "price_1UFT82AE0EBt2lxC072BILx96E";
-const PRICE_ID = Deno.env.get("STRIPE_PRICE_ID") ?? DEFAULT_PRICE_ID;
+const PRICE_ID = Deno.env.get("STRIPE_PRICE_ID") ?? "";
 const USD_PRICE_ID = Deno.env.get("STRIPE_PRICE_USD") ?? "";
 const EUR_PRICE_ID = Deno.env.get("STRIPE_PRICE_EUR") ?? "";
 
