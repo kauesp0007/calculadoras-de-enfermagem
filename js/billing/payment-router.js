@@ -2,6 +2,7 @@
  * js/billing/payment-router.js
  * Roteamento canônico de pagamentos por idioma.
  * Regra absoluta: pt-BR -> Asaas; qualquer outro idioma suportado -> Stripe.
+ * Também garante o rodapé localizado da área centralizada /conta/.
  */
 (function (window) {
   "use strict";
@@ -45,6 +46,60 @@
     return "/conta/" + file + "?lang=" + encodeURIComponent(lang);
   }
 
+  function accountLanguage() {
+    var fromQuery = "";
+    try { fromQuery = new URLSearchParams(window.location.search).get("lang") || ""; } catch (_) {}
+    return normalizeLanguage(fromQuery || window.__LANG || "pt");
+  }
+
+  function fixLocalizedFooterLinks(container, lang) {
+    if (!container || !container.querySelectorAll) return;
+    var prefix = lang === "pt" ? "/" : "/" + lang + "/";
+    container.querySelectorAll("a[href]").forEach(function (a) {
+      var href = a.getAttribute("href") || "";
+      if (!href || href.charAt(0) === "#" || href.charAt(0) === "/" || href.indexOf(":") !== -1) return;
+      a.setAttribute("href", prefix + href.replace(/^\.\//, ""));
+    });
+  }
+
+  function ensureAccountFooter() {
+    if (!window.location.pathname.startsWith("/conta/")) return;
+    var placeholder = document.getElementById("footer-placeholder");
+    if (!placeholder || placeholder.querySelector("footer")) return;
+
+    var lang = accountLanguage();
+    var localizedUrl = lang === "pt" ? "/footer.html" : "/" + lang + "/footer.html";
+
+    fetch(localizedUrl)
+      .then(function (response) {
+        if (!response.ok) throw new Error("localized_footer_unavailable");
+        return response.text();
+      })
+      .then(function (html) {
+        if (placeholder.querySelector("footer")) return;
+        placeholder.innerHTML = html;
+        fixLocalizedFooterLinks(placeholder, lang);
+        placeholder.setAttribute("data-account-footer-loaded", "true");
+      })
+      .catch(function () {
+        if (lang === "pt" || placeholder.querySelector("footer")) return;
+        return fetch("/footer.html")
+          .then(function (response) {
+            if (!response.ok) throw new Error("root_footer_unavailable");
+            return response.text();
+          })
+          .then(function (html) {
+            if (placeholder.querySelector("footer")) return;
+            placeholder.innerHTML = html;
+            fixLocalizedFooterLinks(placeholder, "pt");
+            placeholder.setAttribute("data-account-footer-loaded", "true");
+          });
+      })
+      .catch(function (error) {
+        console.warn("[PaymentRouter] Rodapé da área de conta não carregado:", error);
+      });
+  }
+
   window.PaymentRouter = {
     INTERNATIONAL_LANGS: INTERNATIONAL_LANGS.slice(),
     normalizeLanguage: normalizeLanguage,
@@ -52,6 +107,13 @@
     isInternational: isInternational,
     providerFor: providerFor,
     currencyFor: currencyFor,
-    accountPath: accountPath
+    accountPath: accountPath,
+    ensureAccountFooter: ensureAccountFooter
   };
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureAccountFooter);
+  } else {
+    ensureAccountFooter();
+  }
 })(window);
