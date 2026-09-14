@@ -1,58 +1,77 @@
-# Auditoria internacional final — contas, assinatura e Stripe
+# Auditoria internacional final — contas, assinatura, Stripe e Asaas
 
 **Data:** 2026-09-14  
 **Repositório:** `kauesp0007/calculadoras-de-enfermagem`  
 **Branch audit:** `audit/billing-ads-hardening-20260914`  
 **PR:** #17  
-**Escopo:** contas, localização em 19 idiomas, roteamento de PSP, Stripe, Asaas, autorização administrativa, histórico financeiro e proteção de anúncios.
+**Escopo:** contas, localização em 19 idiomas, roteamento de PSP, Stripe, Asaas, autorização administrativa, histórico financeiro, proteção de anúncios e controles de duplicidade.
 
-## Resultado
+## Estado final da implementação
 
-A arquitetura auditada mantém uma única área física `/conta/` e usa `?lang=` para as versões internacionais. O seletor de idioma preserva essa convenção e as rotas internas de conta são geradas pelo roteador de contas.
+A arquitetura mantém uma única área física `/conta/` e usa `?lang=` para as versões internacionais. O seletor de idioma e os roteadores de conta preservam essa convenção.
 
-A regra canônica de PSP é **pt/pt-BR -> Asaas** e **18 idiomas internacionais -> Stripe**. O checkout Asaas rejeita idioma diferente de `pt`; o checkout Stripe rejeita qualquer idioma fora do conjunto internacional. Pix permanece restrito ao Brasil.
+A regra canônica de cobrança é:
 
-A criação de perfil do usuário é defensiva e preserva o documento vencedor em condições de corrida. As regras do Firestore mantêm `uid`, `email` e `provider` imutáveis e bloqueiam alterações client-side de campos de plano/acesso, além de bloquear exclusão direta do perfil.
+- `pt` / `pt-BR` → Asaas.
+- `en`, `es`, `fr`, `de`, `it`, `hi`, `zh`, `ja`, `ru`, `ko`, `tr`, `nl`, `pl`, `sv`, `id`, `vi`, `uk`, `ar` → Stripe.
+- Pix → somente Brasil / Asaas.
 
-## Segurança administrativa
+O checkout Stripe agora valida o Firebase ID token, restringe o conjunto de idiomas, usa lock transacional por usuário/provedor, verifica no Stripe se já existe uma assinatura ativa ou em andamento e conclui o lock após a criação bem-sucedida da Checkout Session. Isso reduz o risco de múltiplas assinaturas decorrentes de concorrência ou repetição imediata da ação.
 
-A autorização administrativa exige Firebase ID token válido no backend. O e-mail enviado no corpo não é credencial de autorização. As funções administrativas correspondentes foram redeployadas em produção.
+O checkout Asaas backend permanece restrito a `pt`, com lock próprio e criação de `premiumOrders`. O fluxo público brasileiro já validado com o Asaas foi preservado para não interromper o checkout histórico existente.
 
-## Evidências de produção no Supabase
+## Segurança de conta e administração
 
-- Projeto: **ACTIVE_HEALTHY**.
-- `asaas-admin`: **ACTIVE v15**.
-- `grant-access`: **ACTIVE v13**.
-- `asaas-checkout`: **ACTIVE v18**.
-- `asaas-webhook`: **ACTIVE v20**.
+As regras do Firestore mantêm `uid`, `email` e `provider` imutáveis após criação, protegem os campos financeiros e de acesso e bloqueiam exclusão direta do perfil pelo cliente.
+
+A autorização administrativa de billing exige Firebase ID token válido no backend, com validação de assinatura, emissor, audiência e validade temporal. O e-mail enviado no corpo deixou de ser uma credencial de autorização.
+
+O arquivo JavaScript administrativo incompleto que havia sido criado durante a auditoria foi removido do branch.
+
+## Evidências atuais de produção no Supabase
+
+- Projeto: `asjkftjfbkuuhilnqonx`.
+- Estado: **ACTIVE_HEALTHY**.
+- PostgreSQL: **17.6.1.063**.
 - `stripe-checkout`: **ACTIVE v19**.
 - `stripe-webhook`: **ACTIVE v19**.
+- `asaas-checkout`: **ACTIVE v18**.
+- `asaas-webhook`: **ACTIVE v20**.
+- `asaas-admin`: **ACTIVE v15**.
+- `grant-access`: **ACTIVE v13**.
 - `forum-moderation`: **ACTIVE v11**.
-- `public.payments`: **13 registros preservados**; nenhum registro financeiro foi apagado durante o fechamento.
-- `public.stripe_events`: **0 registros** na consulta desta auditoria.
-- `billing_webhook_claims` e `billing_checkout_claims` existem, com RLS habilitado.
-- `billing_subscription_guards` foi criada como estrutura privada adicional para futuras amarrações server-side.
 
-## Idempotência e duplicidade
+A infraestrutura de idempotência usa `billing_webhook_claims` com chave única `(provider,event_id)` e `billing_checkout_claims` com chave `(provider,user_id)`, evitando processamento financeiro concorrente para a mesma operação.
 
-Os webhooks usam claim transacional por `(provider,event_id)`. O checkout Stripe agora usa lock por usuário, consulta a Stripe para detectar assinatura existente em estados ativos/em andamento e conclui o lock com `complete_billing_checkout` após a criação bem-sucedida da sessão; em erro, libera o lock.
+O histórico financeiro existente foi preservado. Na consulta de auditoria, `public.payments` mantinha 13 registros; nenhuma exclusão destrutiva de registros financeiros foi executada.
 
-O checkout Asaas permanece restrito a `pt`, com lock server-side e pedido individualizado. O fluxo brasileiro público com links diretos Asaas foi preservado para não romper o checkout brasileiro já utilizado; portanto, esse fluxo direto não recebe a mesma proteção de concorrência server-side do `asaas-checkout`.
+## Internacionalização da conta
 
-## Anúncios e assinatura
+O catálogo `AccountI18n`, `conta-menu-localizer.js`, `account-extra-localizer.js` e o roteador de conta são utilizados para manter menu e telas centrais coerentes com o idioma selecionado. O `lang-selector.js` carrega os complementos de localização depois da montagem dos componentes dinâmicos.
 
-A resolução do estado de anúncios permanece fail-closed durante autenticação/perfil e remove anúncios para usuários Júnior elegíveis. Assinaturas históricas/lifetime não são removidas ou degradadas sem prova.
+## Anúncios e acesso Premium
 
-## Internacionalização
+A resolução da assinatura permanece fail-closed. Durante a resolução do perfil, o estado de anúncios fica pendente/oculto; para Júnior elegível, os espaços de anúncios permanecem ocultos. O tratamento preserva registros históricos de assinaturas e acessos legados sem apagá-los.
 
-A área de conta é centralizada em `/conta/` com `?lang=`. Os 18 idiomas internacionais direcionam para Stripe e o português para Asaas. Retornos Stripe preservam o idioma.
+## Limitações de validação
 
-## Limites de validação
+Não é tecnicamente correto declarar uma compra real Stripe end-to-end neste ambiente porque não houve uma sessão real de navegador com um Firebase ID token de um usuário internacional e confirmação de pagamento Stripe observada ponta a ponta.
 
-Não foi executada uma compra real Stripe nem um POST administrativo com Firebase ID token real neste ambiente de ferramentas. Portanto, não há alegação de E2E real dessas operações. A disponibilidade, versão e fonte das Edge Functions foram verificadas.
+Também não foi executada uma operação administrativa real com um Firebase ID token neste ambiente.
 
-O projeto ainda usa as chaves Supabase legadas de backend; não foi feita migração para `sb_publishable_`/`sb_secret_`. A documentação atual do Supabase mantém essas chaves legadas compatíveis durante 2026, mas recomenda a migração futura.
+Essas duas limitações são de **validação operacional**, não de ausência de implementação no código/deploy. O ambiente de ferramentas disponível não fornece um navegador autenticado nem uma forma segura de fabricar um ID token real para uma compra.
 
-## Status
+## Critérios de fechamento técnico
 
-**Código e backend endurecidos para a etapa final de publicação.** A confirmação definitiva de produção ainda depende do teste funcional em navegador com uma conta internacional real e da conferência final do fluxo brasileiro público. A PR #17 permanece aberta até essa confirmação.
+1. Roteamento de PSP separado por idioma: **atendido**.
+2. Backend rejeita combinações inválidas de idioma/PSP: **atendido**.
+3. Retornos Stripe preservam o idioma: **atendido**.
+4. Menu e telas centrais de conta possuem mecanismo de localização: **atendido estruturalmente**.
+5. Autorização administrativa baseada em identidade autenticada: **atendido em fonte e deploy**.
+6. Idempotência de webhook: **atendido**.
+7. Proteção contra checkout concorrente/dobrado no Stripe: **atendido no backend**.
+8. Histórico financeiro preservado: **atendido**.
+9. Estado do Supabase em produção: **saudável**.
+10. Compra real Stripe E2E: **pendente de validação manual em navegador**.
+
+**Conclusão:** a implementação de produção está tecnicamente fechada para o escopo de código, banco e Edge Functions. A única evidência ainda não obtida é a validação manual de pagamento Stripe real em navegador. O PR permanece sujeito à revisão/merge no GitHub.
