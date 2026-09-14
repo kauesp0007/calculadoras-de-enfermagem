@@ -1,6 +1,7 @@
 // Checkout individualizado do Premium Júnior (Brasil).
 // O ID token do Firebase é validado no backend via Google JWKS antes
 // de qualquer criação de pedido ou chamada ao Asaas.
+// Regra canônica: Asaas somente para pt-BR.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
@@ -96,6 +97,8 @@ serve(async (req) => {
     const user = await verifyFirebaseToken(idToken);
     const body = await req.json().catch(() => ({}));
     const kind = String(body?.kind || "");
+    const lang = String(body?.lang || "").trim().toLowerCase();
+    if (lang !== "pt") throw new Error("asaas_somente_pt_br");
     if (kind !== "monthly_card" && kind !== "pix_30d") throw new Error("tipo_checkout_invalido");
 
     const fsToken = await firestoreToken();
@@ -104,19 +107,19 @@ serve(async (req) => {
     const externalReference = `premium_junior_${orderId}`;
 
     await firestorePatch(`premiumOrders/${orderId}`, {
-      uid: stringValue(user.uid), email: stringValue(user.email), provider: stringValue("asaas"), kind: stringValue(kind),
+      uid: stringValue(user.uid), email: stringValue(user.email), provider: stringValue("asaas"), language: stringValue("pt"), kind: stringValue(kind),
       amount: doubleValue(PRICE_BRL), currency: stringValue("BRL"), externalReference: stringValue(externalReference),
       status: stringValue("creating"), createdAt: timestampValue(now),
     }, fsToken);
 
-    const callbackBase = `${SITE_URL}/conta/assinatura.html`;
+    const callbackBase = `${SITE_URL}/conta/assinatura.html?lang=pt`;
     const isRecurring = kind === "monthly_card";
     const checkoutPayload: Record<string, unknown> = {
       billingTypes: isRecurring ? ["CREDIT_CARD"] : ["PIX"],
       chargeTypes: isRecurring ? ["RECURRENT"] : ["DETACHED"],
       minutesToExpire: 60,
       externalReference,
-      callback: { cancelUrl: `${callbackBase}?asaas=cancel`, expiredUrl: `${callbackBase}?asaas=expired`, successUrl: `${callbackBase}?asaas=success` },
+      callback: { cancelUrl: `${callbackBase}&asaas=cancel`, expiredUrl: `${callbackBase}&asaas=expired`, successUrl: `${callbackBase}&asaas=success` },
       items: [{ externalReference, name: "Plano Júnior Premium", description: isRecurring ? "Assinatura mensal sem anúncios" : "Acesso premium por 30 dias sem anúncios", quantity: 1, value: PRICE_BRL }],
       customerData: { name: user.name || user.email, email: user.email },
     };
