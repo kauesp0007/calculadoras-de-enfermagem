@@ -1,5 +1,6 @@
 // Stripe webhook do Premium Júnior.
 // A assinatura do Stripe é validada antes do processamento.
+// Eventos são processados de forma idempotente por event.id no Firestore.
 // O Firestore é atualizado com máscaras de campo para preservar o perfil.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
@@ -17,12 +18,14 @@ function pemToArrayBuffer(pem: string): ArrayBuffer {
   for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
   return buf.buffer;
 }
+
 function b64url(input: string | ArrayBuffer): string {
   const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
   let bin = "";
   bytes.forEach((b) => bin += String.fromCharCode(b));
   return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
+
 async function firestoreAccessToken(sa: any): Promise<string> {
   const now = Math.floor(Date.now() / 1000);
   const claims = { iss: sa.client_email, scope: "https://www.googleapis.com/auth/datastore", aud: sa.token_uri, iat: now, exp: now + 3600 };
@@ -34,13 +37,37 @@ async function firestoreAccessToken(sa: any): Promise<string> {
   if (!response.ok || !data.access_token) throw new Error("FIREBASE_TOKEN_ERROR");
   return data.access_token;
 }
+
 function firestoreUrl(path: string, fields?: string[]): string {
   let url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${path}`;
   if (fields?.length) url += "?" + fields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`).join("&");
   return url;
 }
+
 function stringValue(v: string) { return { stringValue: v }; }
 function timestampValue(v: string) { return { timestampValue: v }; }
+function decodeField(field: any): any {
+  if (!field) return null;
+  if (field.stringValue !== undefined) return field.stringValue;
+  if (field.timestampValue !== undefined) return field.timestampValue;
+  if (field.booleanValue !== undefined) return field.booleanValue;
+  if (field.doubleValue !== undefined) return Number(field.doubleValue);
+  if (field.integerValue !== undefined) return Number(field.integerValue);
+  return null;
+}
+function decodeDocument(doc: any): Record<string, any> {
+  const out: Record<string, any> = {};
+  for (const [key, value] of Object.entries(doc?.fields || {})) out[key] = decodeField(value);
+  return out;
+}
+
+async function firestoreGet(path: string, token: string): Promise<Record<string, any> | null> {
+  const response = await fetch(firestoreUrl(path), { headers: { Authorization: `Bearer ${token}` } });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`FIRESTORE_GET_${response.status}`);
+  return decodeDocument(await response.json());
+}
+
 async function firestorePatch(path: string, fields: Record<string, unknown>, token: string): Promise<void> {
   const response = await fetch(firestoreUrl(path, Object.keys(fields)), { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields }) });
   if (!response.ok) throw new Error(`FIRESTORE_PATCH_${response.status}:${await response.text()}`);
@@ -102,6 +129,35 @@ async function getSubscriptionMeta(subId: string): Promise<{ uid: string; period
   return { uid, periodEnd };
 }
 
+async function processOnce(eventId: string, type: string, object: any, token: string): Promise<void> {
+  if (type === "checkout.session.completed") {
+    const uid = String(object?.client_reference_id || "");
+    if (!uid) throw new Error("checkout_uid_missing");
+    const subId = String(object?.subscription || "");
+    const name = String(object?.customer_details?.name || "");
+    const email = String(object?.customer_details?.email || "").trim().toLowerCase();
+    await setPlan(uid, "junior", subId);
+    await logSubscriber(`stripe_${String(object?.id || eventId)}`, name, email, token);
+    return;
+  }
+  if (type === "customer.subscription.deleted") {
+    const uid = String(object?.metadata?.uid || "");
+    if (uid) await setPlan(uid, "free", String(object?.id || ""));
+    return;
+  }
+  if (type === "invoice.paid") {
+    const subId = String(object?.subscription || "");
+    const meta = await getSubscriptionMeta(subId);
+    if (meta.uid) await setPlan(meta.uid, "junior", subId, meta.periodEnd);
+    return;
+  }
+  if (type === "invoice.payment_failed") {
+    const subId = String(object?.subscription || "");
+    const meta = await getSubscriptionMeta(subId);
+    if (meta.uid) await setPlan(meta.uid, "free", subId);
+  }
+}
+
 serve(async (req) => {
   if (req.method !== "POST") return new Response("method_not_allowed", { status: 405 });
   if (!FIREBASE_SERVICE_ACCOUNT) return new Response("not_configured", { status: 500 });
@@ -113,31 +169,25 @@ serve(async (req) => {
 
   try {
     const event = JSON.parse(rawBody);
+    const eventId = String(event?.id || "");
     const type = String(event?.type || "");
     const object = event?.data?.object || {};
+    if (!eventId || !type) return new Response("invalid_event", { status: 400 });
 
-    const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT);
-    const token = await firestoreAccessToken(sa);
+    const token = await firestoreAccessToken(JSON.parse(FIREBASE_SERVICE_ACCOUNT));
+    const existing = await firestoreGet(`stripeEvents/${eventId}`, token);
+    if (existing?.status === "processed") return new Response(JSON.stringify({ ok: true, duplicate: true }), { status: 200 });
 
-    if (type === "checkout.session.completed") {
-      const uid = String(object?.client_reference_id || "");
-      if (!uid) throw new Error("checkout_uid_missing");
-      const subId = String(object?.subscription || "");
-      const name = String(object?.customer_details?.name || "");
-      const email = String(object?.customer_details?.email || "").trim().toLowerCase();
-      await setPlan(uid, "junior", subId);
-      await logSubscriber(`stripe_${String(object?.id || Date.now())}`, name, email, token);
-    } else if (type === "customer.subscription.deleted") {
-      const uid = String(object?.metadata?.uid || "");
-      if (uid) await setPlan(uid, "free", String(object?.id || ""));
-    } else if (type === "invoice.paid") {
-      const subId = String(object?.subscription || "");
-      const meta = await getSubscriptionMeta(subId);
-      if (meta.uid) await setPlan(meta.uid, "junior", subId, meta.periodEnd);
-    } else if (type === "invoice.payment_failed") {
-      const subId = String(object?.subscription || "");
-      const meta = await getSubscriptionMeta(subId);
-      if (meta.uid) await setPlan(meta.uid, "free", subId);
+    await firestorePatch(`stripeEvents/${eventId}`, {
+      eventId: stringValue(eventId), type: stringValue(type), status: stringValue("received"), receivedAt: timestampValue(new Date().toISOString()),
+    }, token);
+
+    try {
+      await processOnce(eventId, type, object, token);
+      await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("processed"), processedAt: timestampValue(new Date().toISOString()) }, token);
+    } catch (error) {
+      await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("error"), error: stringValue(String(error?.message || error)), updatedAt: timestampValue(new Date().toISOString()) }, token);
+      throw error;
     }
 
     return new Response("ok", { status: 200 });
