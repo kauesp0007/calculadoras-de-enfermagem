@@ -2,13 +2,7 @@
  * js/auth/route-guard.js
  *
  * RESPONSABILIDADE: Proteção automática de rotas por prefixo.
- *
- * Nenhuma página implementa regras próprias de acesso: o guard decide,
- * com base no pathname, se o usuário pode abrir a rota. Redireciona para
- * login/assinatura conforme o requisito não atendido.
- *
- * As rotas protegidas ainda NÃO possuem conteúdo — esta é apenas a
- * infraestrutura preparada para as próximas fases.
+ * Os destinos da área de conta preservam o idioma atual.
  */
 
 (function (window) {
@@ -26,24 +20,35 @@
         { pattern: /^\/admin\//, req: { requiredRole: "administrator" } }
     ];
 
-    function _redirect(req) {
-        var returnUrl = encodeURIComponent(window.location.pathname);
+    function _localizedAccountPage(path, returnUrl) {
+        if (typeof window.__ACCOUNT_PAGE_URL === "function") {
+            var target = window.__ACCOUNT_PAGE_URL(path);
+            if (returnUrl) target += (target.indexOf("?") === -1 ? "?" : "&") + "returnUrl=" + returnUrl;
+            return target;
+        }
+        return path + "?returnUrl=" + returnUrl;
+    }
 
+    function _localizedLogin(returnUrl) {
+        if (typeof window.__ACCOUNT_LOGIN_URL === "function") {
+            return window.__ACCOUNT_LOGIN_URL(returnUrl);
+        }
+        return "/conta/login.html?returnUrl=" + returnUrl;
+    }
+
+    function _redirect(req) {
+        var returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
         if (req.requiredRole && !window.Authorization.hasRole(req.requiredRole)) {
-            window.location.href = "/conta/login.html?returnUrl=" + returnUrl;
+            window.location.href = _localizedLogin(returnUrl);
             return;
         }
         if (req.requiredPlan && !window.Authorization.hasPlan(req.requiredPlan)) {
-            window.location.href = "/conta/assinatura.html?returnUrl=" + returnUrl;
+            window.location.href = _localizedAccountPage("/conta/assinatura.html", returnUrl);
             return;
         }
         window.location.href = "/";
     }
 
-    /**
-     * Executa a verificação de acesso da rota atual.
-     * @returns {boolean} true se liberado.
-     */
     function guard() {
         var path = window.location.pathname || "/";
         for (var i = 0; i < POLICIES.length; i++) {
@@ -63,5 +68,4 @@
     window.Authorization.POLICIES = POLICIES;
 
     console.log("[Auth] Módulo route-guard.js carregado.");
-
 })(window);
