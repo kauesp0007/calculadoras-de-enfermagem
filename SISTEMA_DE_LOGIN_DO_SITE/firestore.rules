@@ -21,15 +21,21 @@ service cloud.firestore {
         && (!('lifetime' in request.resource.data) || request.resource.data.lifetime == false);
 
       // Campos de acesso e auditoria financeira são exclusivamente do backend.
+      // Campos de identidade (uid/email/provider) são imutáveis após a criação.
       allow update: if isOwner(uid)
-        && !request.resource.data.diff(resource.data).affectedKeys()
-             .hasAny([
-               'uid', 'role', 'plan', 'planExpiresAt', 'planUpdatedAt',
-               'status', 'createdAt', 'permissions', 'lifetime',
-               'lastAsaasActivationAt', 'lastAsaasSubscriptionId'
-             ]);
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly([
+               'displayName', 'photoURL', 'language', 'country',
+               'preferences', 'metadata', 'lastLoginAt'
+             ])
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.email == resource.data.email
+        && request.resource.data.provider == resource.data.provider;
 
-      allow delete: if isOwner(uid);
+      // A exclusão do perfil não é permitida diretamente pelo cliente.
+      // Exclusão de conta, quando implementada, deverá ocorrer por fluxo
+      // controlado de backend para evitar órfãos entre Auth e Firestore.
+      allow delete: if false;
     }
 
     match /users/{uid}/favorites/{favId} {
@@ -76,7 +82,16 @@ service cloud.firestore {
     match /asaasSubscribers/{subscriberId} {
       allow read, write: if false;
     }
+    match /stripeSubscribers/{subscriberId} {
+      allow read, write: if false;
+    }
     match /asaasEvents/{eventId} {
+      allow read, write: if false;
+    }
+    match /stripeEvents/{eventId} {
+      allow read, write: if false;
+    }
+    match /asaasPayments/{paymentId} {
       allow read, write: if false;
     }
 

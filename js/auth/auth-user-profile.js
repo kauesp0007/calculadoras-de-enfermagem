@@ -29,80 +29,32 @@
  *       role: string
  *     }
  *   }
- * 
- * USO:
- *   var profile = await AuthModules.userProfile.loadProfile(uid);
- *   await AuthModules.userProfile.updateProfile(uid, { language: "en" });
  */
-
 (function (window) {
   "use strict";
-
-  // ─── Garante que o namespace existe ───────────────────────────
   window.AuthModules = window.AuthModules || {};
 
-  // ─── Constantes ────────────────────────────────────────────────
-  var COLLECTION = "users";
-
-  // ─── Funções auxiliares ────────────────────────────────────────
-
-  /**
-   * Emite um evento no barramento central.
-   * @param {string} event
-   * @param {*} payload
-   */
   function _emit(event, payload) {
-    if (window.AuthModules.userEvents) {
-      window.AuthModules.userEvents.emit(event, payload);
-    }
+    if (window.AuthModules.userEvents) window.AuthModules.userEvents.emit(event, payload);
   }
 
-  /**
-   * Persiste o perfil no cache temporário (espelho do Firestore).
-   * Também mantém o cache resumido da sessão (nome, foto, plano).
-   * @param {object} profile
-   */
   function _cacheProfile(profile) {
-    if (window.AuthModules.userCache) {
-      window.AuthModules.userCache.set(profile);
-    }
-    if (window.AuthModules.session) {
-      window.AuthModules.session.persistProfile(profile);
-    }
+    if (window.AuthModules.userCache) window.AuthModules.userCache.set(profile);
+    if (window.AuthModules.session) window.AuthModules.session.persistProfile(profile);
   }
 
-  // ─── API Pública ────────────────────────────────────────────────
-
-  /**
-   * Carrega o perfil completo do usuário.
-   * 
-   * Na Fase 1, retorna dados básicos do Firebase Auth + cache.
-   * Na Fase 2, buscará do Firestore.
-   * 
-   * @param {string} uid - ID do usuário.
-   * @returns {Promise<object|null>} Perfil completo ou null.
-   */
   async function loadProfile(uid) {
-    if (!uid) {
-      return null;
-    }
+    if (!uid) return null;
 
-    // 1. Tenta o cache temporário primeiro (resposta instantânea)
-    var cached = window.AuthModules.userCache
-      ? window.AuthModules.userCache.get()
-      : null;
-
+    var cached = window.AuthModules.userCache ? window.AuthModules.userCache.get() : null;
     if (cached && cached.uid === uid) {
       _emit(window.AuthModules.userEvents.EVENTS.PROFILE_LOADED, cached);
       return cached;
     }
 
-    // 2. Busca no Firestore (fonte oficial)
     if (window.AuthModules.firestoreUser) {
       var profile = await window.AuthModules.firestoreUser.getUserDoc(uid);
-
       if (profile) {
-        // Usuário existente: atualiza o último acesso (não bloqueia a UI)
         _touchLastLogin(uid);
         profile = _ensureProfileShape(profile, uid);
         _cacheProfile(profile);
@@ -111,7 +63,6 @@
       }
     }
 
-    // 3. Usuário novo: cria o documento automaticamente
     var user = window.Auth ? window.Auth.currentUser() : null;
     if (user && user.uid === uid) {
       var created = await createProfile(user);
@@ -122,56 +73,21 @@
     return null;
   }
 
-  /**
-   * Atualiza campos do perfil.
-   * 
-   * @param {string} uid - ID do usuário.
-   * @param {object} updates - Campos a atualizar.
-   * @returns {Promise<void>}
-   */
   async function updateProfile(uid, updates) {
-    if (!uid || !updates) {
-      return null;
-    }
-
-    // Grava no Firestore (fonte oficial)
-    if (window.AuthModules.firestoreUser) {
-      await window.AuthModules.firestoreUser.updateUserDoc(uid, updates);
-    }
-
-    // Atualiza o cache local
-    var cached = window.AuthModules.userCache
-      ? window.AuthModules.userCache.get()
-      : null;
+    if (!uid || !updates) return null;
+    if (window.AuthModules.firestoreUser) await window.AuthModules.firestoreUser.updateUserDoc(uid, updates);
+    var cached = window.AuthModules.userCache ? window.AuthModules.userCache.get() : null;
     var merged = Object.assign({}, cached || {}, updates);
     _cacheProfile(merged);
-
     _emit(window.AuthModules.userEvents.EVENTS.PROFILE_UPDATED, merged);
-
     return merged;
   }
 
-  /**
-   * Cria o documento do perfil no Firestore (usuário novo).
-   * Chamado após primeiro login.
-   * 
-   * @param {object} user - Objeto Firebase User.
-   * @returns {Promise<object>} Perfil criado.
-   */
   async function createProfile(user) {
-    if (!user) {
-      return null;
-    }
+    if (!user) return null;
 
-    var serverTs = window.AuthModules.firestoreUser
-      ? window.AuthModules.firestoreUser.serverTimestamp()
-      : null;
-
-    var prefs = window.AuthModules.preferences
-      ? window.AuthModules.preferences.getDefaults()
-      : {};
-
-    // Usa o idioma do navegador como preferência inicial
+    var serverTs = window.AuthModules.firestoreUser ? window.AuthModules.firestoreUser.serverTimestamp() : null;
+    var prefs = window.AuthModules.preferences ? window.AuthModules.preferences.getDefaults() : {};
     prefs.language = _detectLanguage();
 
     var profile = {
@@ -179,9 +95,7 @@
       email: user.email || "",
       displayName: user.displayName || "",
       photoURL: user.photoURL || "",
-      provider: user.providerData && user.providerData[0]
-        ? user.providerData[0].providerId
-        : "email",
+      provider: user.providerData && user.providerData[0] ? user.providerData[0].providerId : "email",
       language: _detectLanguage(),
       country: _detectCountry(),
       createdAt: serverTs || new Date().toISOString(),
@@ -206,29 +120,24 @@
       }
     };
 
-    // Cria o documento no Firestore
+    // Usa o documento efetivamente persistido. Se outra execução acabou de criar
+    // ou atualizar o perfil, seus dados (inclusive assinatura) prevalecem.
+    var persisted = profile;
     if (window.AuthModules.firestoreUser) {
-      await window.AuthModules.firestoreUser.createUserDoc(user.uid, profile);
+      persisted = await window.AuthModules.firestoreUser.createUserDoc(user.uid, profile) || profile;
     }
 
-    // Para exibição imediata, usa data local (serverTimestamp ainda não resolveu)
-    var response = Object.assign({}, profile, {
-      createdAt: new Date(),
-      lastLoginAt: new Date()
+    var effective = _ensureProfileShape(persisted, user.uid);
+    var response = Object.assign({}, effective, {
+      createdAt: effective.createdAt instanceof Date ? effective.createdAt : new Date(),
+      lastLoginAt: effective.lastLoginAt instanceof Date ? effective.lastLoginAt : new Date()
     });
 
     _cacheProfile(response);
     _emit(window.AuthModules.userEvents.EVENTS.PROFILE_UPDATED, response);
-
     return response;
   }
 
-  // ─── Detecção de localização ────────────────────────────────────
-
-  /**
-   * Detecta o idioma do navegador e mapeia para os suportados.
-   * @returns {string}
-   */
   function _detectLanguage() {
     try {
       if (window.AccountI18n) {
@@ -236,19 +145,12 @@
         return selected === "pt-BR" ? "pt" : selected;
       }
       var lang = (navigator.language || navigator.userLanguage || "pt").toLowerCase();
-      // Mapeia para idiomas suportados no site
       var supported = ["pt", "en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
       var code = lang.split("-")[0];
       return supported.indexOf(code) !== -1 ? code : "pt";
-    } catch (e) {
-      return "pt";
-    }
+    } catch (e) { return "pt"; }
   }
 
-  /**
-   * Detecta o país pelo idioma do navegador.
-   * @returns {string}
-   */
   function _detectCountry() {
     try {
       if (window.AccountI18n) {
@@ -258,36 +160,19 @@
       var locale = navigator.language || "pt-BR";
       var parts = locale.split("-");
       return parts.length > 1 ? parts[1].toUpperCase() : "BR";
-    } catch (e) {
-      return "BR";
-    }
+    } catch (e) { return "BR"; }
   }
 
-  /**
-   * Atualiza o último acesso no Firestore (fire-and-forget, não bloqueia a UI).
-   * @param {string} uid
-   */
   function _touchLastLogin(uid) {
-    if (!window.AuthModules.firestoreUser) {
-      return;
-    }
-
+    if (!window.AuthModules.firestoreUser) return;
     var serverTs = window.AuthModules.firestoreUser.serverTimestamp();
-    window.AuthModules.firestoreUser
-      .updateUserDoc(uid, { lastLoginAt: serverTs || new Date() })
-      .catch(function (e) {
-        console.warn("[Profile] Falha ao atualizar lastLoginAt:", e);
-      });
+    window.AuthModules.firestoreUser.updateUserDoc(uid, { lastLoginAt: serverTs || new Date() }).catch(function (e) {
+      console.warn("[Profile] Falha ao atualizar lastLoginAt:", e);
+    });
   }
 
-  /**
-   * Garante que o perfil tenha a estrutura mínima esperada.
-   * @param {object} profile
-   * @param {string} uid
-   * @returns {object}
-   */
   function _ensureProfileShape(profile, uid) {
-    var out = Object.assign({}, profile);
+    var out = Object.assign({}, profile || {});
     out.uid = out.uid || uid;
     out.permissions = out.permissions || {
       canAccessPremium: false,
@@ -297,81 +182,17 @@
       canViewHistory: true,
       role: "user"
     };
-    out.preferences = window.AuthModules.preferences
-      ? window.AuthModules.preferences.normalize(out.preferences)
-      : {};
+    out.preferences = window.AuthModules.preferences ? window.AuthModules.preferences.normalize(out.preferences) : {};
     return out;
   }
 
-  /**
-   * Detecta o navegador do usuário.
-   * @returns {string}
-   */
   function _detectBrowser() {
-    try {
-      var ua = navigator.userAgent || "";
-      if (ua.indexOf("Edg") !== -1) return "Edge";
-      if (ua.indexOf("Chrome") !== -1) return "Chrome";
-      if (ua.indexOf("Firefox") !== -1) return "Firefox";
-      if (ua.indexOf("Safari") !== -1) return "Safari";
-      if (ua.indexOf("Opera") !== -1 || ua.indexOf("OPR") !== -1) return "Opera";
-      return "unknown";
-    } catch (e) {
-      return "unknown";
-    }
+    try { var ua = navigator.userAgent || ""; if (ua.indexOf("Edg") !== -1) return "Edge"; if (ua.indexOf("Chrome") !== -1) return "Chrome"; if (ua.indexOf("Firefox") !== -1) return "Firefox"; if (ua.indexOf("Safari") !== -1) return "Safari"; if (ua.indexOf("Opera") !== -1 || ua.indexOf("OPR") !== -1) return "Opera"; return "unknown"; } catch (e) { return "unknown"; }
   }
+  function _detectDevice() { try { return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "") ? "mobile" : "desktop"; } catch (e) { return "unknown"; } }
+  function _detectOS() { try { var ua = navigator.userAgent || ""; if (ua.indexOf("Windows") !== -1) return "Windows"; if (ua.indexOf("Mac") !== -1) return "macOS"; if (ua.indexOf("Linux") !== -1) return "Linux"; if (ua.indexOf("Android") !== -1) return "Android"; if (/iPhone|iPad|iPod/.test(ua)) return "iOS"; return "unknown"; } catch (e) { return "unknown"; } }
+  function _detectTimezone() { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown"; } catch (e) { return "unknown"; } }
 
-  /**
-   * Detecta o tipo de dispositivo.
-   * @returns {string}
-   */
-  function _detectDevice() {
-    try {
-      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || "")
-        ? "mobile"
-        : "desktop";
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  /**
-   * Detecta o sistema operacional.
-   * @returns {string}
-   */
-  function _detectOS() {
-    try {
-      var ua = navigator.userAgent || "";
-      if (ua.indexOf("Windows") !== -1) return "Windows";
-      if (ua.indexOf("Mac") !== -1) return "macOS";
-      if (ua.indexOf("Linux") !== -1) return "Linux";
-      if (ua.indexOf("Android") !== -1) return "Android";
-      if (/iPhone|iPad|iPod/.test(ua)) return "iOS";
-      return "unknown";
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  /**
-   * Detecta o fuso horário do usuário.
-   * @returns {string}
-   */
-  function _detectTimezone() {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || "unknown";
-    } catch (e) {
-      return "unknown";
-    }
-  }
-
-  // ─── Exportação ─────────────────────────────────────────────────
-  window.AuthModules.userProfile = {
-    loadProfile: loadProfile,
-    updateProfile: updateProfile,
-    createProfile: createProfile
-  };
-
+  window.AuthModules.userProfile = { loadProfile: loadProfile, updateProfile: updateProfile, createProfile: createProfile };
   console.log("[Auth] Módulo auth-user-profile.js carregado.");
-
 })(window);

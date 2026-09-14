@@ -1,48 +1,19 @@
 /**
  * js/auth/auth-permissions.js
- * 
- * RESPONSABILIDADE: Verificação de permissões e nível de acesso.
- * 
- * Este módulo implementa a lógica de controle de acesso baseada em:
- *   - Plano do usuário (free, junior)
- *   - Status da conta (active, suspended)
- *   - Papel (user, admin)
- * 
- * ESTRUTURA DE PERMISSÕES:
- * 
- *   Plano "free":
- *     canAccessPremium: false
- *     canDownload: false (downloads premium)
- *     canViewCertificates: false
- * 
- *   Plano "junior":
- *     canAccessPremium: true
- *     canDownload: true
- *     canViewCertificates: true
- * 
- *   Papel "admin":
- *     Todas as permissões + acesso ao painel administrativo
- * 
- * USO:
- *   var perms = AuthModules.permissions;
- *   if (perms.canAccess("premium-content")) { ... }
- *   if (perms.isAdmin()) { ... }
+ *
+ * RESPONSABILIDADE: Compatibilidade da camada legada de permissões.
+ * A decisão efetiva de acesso premium é centralizada em Authorization.
+ *
+ * REGRA DE SEGURANÇA:
+ * - plano expirado nunca concede recurso premium;
+ * - lifetime=true permanece válido;
+ * - permissões de papel podem continuar sendo resolvidas pelo RBAC central.
  */
-
 (function (window) {
   "use strict";
 
-  // ─── Garante que o namespace existe ───────────────────────────
   window.AuthModules = window.AuthModules || {};
 
-  // ─── Mapa de permissões por plano ───────────────────────────────
-
-  /**
-   * Define quais permissões cada plano possui.
-   * 
-   * 🔧 FUTURO: Para adicionar novas permissões, adicione a chave
-   *    nos objetos abaixo e na estrutura do Firestore.
-   */
   var PLAN_PERMISSIONS = {
     free: {
       canAccessPremium: false,
@@ -60,37 +31,41 @@
     }
   };
 
-  // ─── API Pública ────────────────────────────────────────────────
+  function _effectivePlan() {
+    try {
+      if (window.Authorization && typeof window.Authorization.getPlan === "function") {
+        return window.Authorization.getPlan();
+      }
+    } catch (_) { }
 
-  /**
-   * Verifica se o usuário pode acessar um recurso específico.
-   * 
-   * @param {string} resource - Identificador do recurso.
-   * @returns {boolean}
-   * 
-   * EXEMPLOS:
-   *   canAccess("premium-content")
-   *   canAccess("downloads")
-   *   canAccess("certificates")
-   */
+    var profile = window.Auth ? window.Auth.profile() : null;
+    if (!profile) return "free";
+    if (profile.lifetime === true) return "junior";
+    if (profile.plan !== "junior") return "free";
+
+    if (!profile.planExpiresAt) return "junior";
+    try {
+      var expiry = profile.planExpiresAt && typeof profile.planExpiresAt.toDate === "function"
+        ? profile.planExpiresAt.toDate()
+        : new Date(profile.planExpiresAt);
+      return !Number.isNaN(expiry.getTime()) && expiry.getTime() > Date.now() ? "junior" : "free";
+    } catch (_) {
+      return "free";
+    }
+  }
+
   function canAccess(resource) {
     var user = window.Auth ? window.Auth.currentUser() : null;
-    if (!user) {
-      return false;
-    }
+    if (!user) return false;
 
-    // Busca o perfil do cache ou do Auth.core
     var profile = window.Auth ? window.Auth.profile() : null;
+    if (!profile) return false;
 
-    // Se não tem perfil carregado, assume free
-    var plan = profile ? profile.plan : "free";
-
-    // Admin sempre tem acesso total
-    if (profile && profile.permissions && profile.permissions.role === "admin") {
+    // O RBAC central é a autoridade para administradores.
+    if (window.Authorization && typeof window.Authorization.hasRole === "function" && window.Authorization.hasRole("administrator")) {
       return true;
     }
 
-    // Mapeia recurso → permissão
     var permissionMap = {
       "premium-content": "canAccessPremium",
       downloads: "canDownload",
@@ -105,51 +80,37 @@
       return false;
     }
 
-    // Verifica a permissão no plano
+    var plan = _effectivePlan();
     var planPerms = PLAN_PERMISSIONS[plan] || PLAN_PERMISSIONS.free;
     return planPerms[permissionKey] === true;
   }
 
-  /**
-   * Verifica se o usuário é administrador.
-   * @returns {boolean}
-   */
   function isAdmin() {
-    var profile = window.Auth ? window.Auth.profile() : null;
-    if (!profile || !profile.permissions) {
-      return false;
+    if (window.Authorization && typeof window.Authorization.hasRole === "function") {
+      return window.Authorization.hasRole("administrator");
     }
-    return profile.permissions.role === "admin";
+    return false;
   }
 
-  /**
-   * Retorna o plano atual do usuário.
-   * @returns {string} "free" | "junior" | "unknown"
-   */
   function getCurrentPlan() {
-    var profile = window.Auth ? window.Auth.profile() : null;
-    return profile ? profile.plan : "unknown";
+    return _effectivePlan();
   }
 
-  /**
-   * Verifica se o plano do usuário expirou.
-   * @returns {boolean}
-   */
   function isPlanExpired() {
     var profile = window.Auth ? window.Auth.profile() : null;
-    if (!profile || !profile.planExpiresAt) {
-      return false;
+    if (!profile || profile.lifetime === true || profile.plan !== "junior") return false;
+    if (!profile.planExpiresAt) return false;
+
+    try {
+      var expiry = profile.planExpiresAt && typeof profile.planExpiresAt.toDate === "function"
+        ? profile.planExpiresAt.toDate()
+        : new Date(profile.planExpiresAt);
+      return Number.isFinite(expiry.getTime()) && Date.now() >= expiry.getTime();
+    } catch (_) {
+      return true;
     }
-
-    var now = new Date();
-    var expiry = profile.planExpiresAt.toDate
-      ? profile.planExpiresAt.toDate()
-      : new Date(profile.planExpiresAt);
-
-    return now > expiry;
   }
 
-  // ─── Exportação ─────────────────────────────────────────────────
   window.AuthModules.permissions = {
     canAccess: canAccess,
     isAdmin: isAdmin,
@@ -159,5 +120,4 @@
   };
 
   console.log("[Auth] Módulo auth-permissions.js carregado.");
-
 })(window);
