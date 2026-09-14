@@ -14,17 +14,22 @@ A regra de PSP implementada é: **pt/pt-BR -> Asaas** e **18 idiomas internacion
 
 A criação de perfil do usuário é defensiva: consulta primeiro, usa `create` em vez de sobrescrever e trata a corrida `ALREADY_EXISTS` relendo o documento vencedor. As regras do Firestore mantêm `uid`, `email` e `provider` imutáveis, bloqueiam alterações client-side dos campos de plano/acesso e bloqueiam exclusão direta do perfil.
 
-O menu de autenticação dinâmico ganhou uma camada de localização carregada site-wide, e as páginas de perfil, configurações, favoritos e histórico receberam localização complementar e preservação de rotas. O catálogo existente `AccountI18n` permanece a fonte canônica para as traduções da área de conta.
+O menu de autenticação dinâmico recebeu carregamento site-wide do localizador de conta. As páginas de perfil, configurações, favoritos e histórico receberam localização complementar e preservação de rotas. O catálogo existente `AccountI18n` permanece a fonte canônica para as traduções da área de conta.
 
 ## Segurança administrativa
 
-Foi identificada e corrigida uma falha relevante em `asaas-admin` e `grant-access`: anteriormente, a autorização administrativa dependia de um `adminEmail` enviado no corpo da requisição. O fluxo passa a exigir um **Firebase ID token válido**, validar assinatura, emissor, audiência e expiração, e obter o e-mail administrativo diretamente do JWT. O campo enviado pelo cliente deixou de ser uma credencial de autorização.
+Foi identificada e corrigida uma falha relevante em `asaas-admin` e `grant-access`: anteriormente, a autorização administrativa dependia de um `adminEmail` enviado no corpo da requisição. O fluxo agora exige um **Firebase ID token válido**, valida assinatura, emissor, audiência e expiração, e obtém o e-mail administrativo diretamente do JWT. O campo enviado pelo cliente deixou de ser uma credencial de autorização.
 
-Essas funções continuam com `verify_jwt=false` deliberadamente porque validam o token do Firebase no próprio handler; essa é a abordagem necessária para webhooks/integrações ou autenticação customizada, em vez de tratar um token Firebase como JWT nativo do gateway do Supabase.
+As duas funções foram redeployadas em produção e permanecem com `verify_jwt=false` porque implementam autenticação customizada com token Firebase no próprio handler.
 
 ## Evidências de produção no Supabase
 
-- Projeto em estado saudável.
+- `asaas-admin`: **ACTIVE v15**.
+- `grant-access`: **ACTIVE v13**.
+- `asaas-checkout`: **ACTIVE v17**.
+- `asaas-webhook`: **ACTIVE v20**.
+- `stripe-checkout`: **ACTIVE v17**.
+- `stripe-webhook`: **ACTIVE v19**.
 - `public.payments`: **13 registros**, **2 usuários distintos**, **1 aprovado**.
 - `public.stripe_events`: **0 registros**.
 - `public.billing_webhook_claims`: **0 registros** no momento da consulta.
@@ -44,7 +49,7 @@ A política de anúncios utiliza estado fail-closed durante a resolução da ass
 
 Os advisories de segurança/performance do Supabase ainda incluem alertas preexistentes de RLS sem policy em algumas tabelas servidor-only, além de avisos de `auth_rls_initplan`, índices não utilizados e múltiplas policies permissivas em objetos fora do escopo desta auditoria. Esses achados não foram alterados neste fechamento para evitar regressões em superfícies não relacionadas a billing/account.
 
-A inspeção automatizada desta fase não executou uma compra real Stripe nem um POST ao vivo nas funções administrativas, porque as credenciais de usuário/PSP e um token Firebase válido não estão disponíveis para um teste seguro neste ambiente. A verificação de fonte implantada, versões ativas das Edge Functions, regras e estado dos dados foi realizada.
+A verificação de fonte e versão implantada das Edge Functions, das regras do Firestore e do estado dos dados foi realizada. Não foi executada uma compra real Stripe nem um POST administrativo com um Firebase ID token real neste ambiente, portanto não há alegação de teste end-to-end dessas duas operações.
 
 ## Critérios de fechamento
 
