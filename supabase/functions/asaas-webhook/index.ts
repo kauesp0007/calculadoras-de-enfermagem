@@ -1,6 +1,14 @@
 // Asaas webhook do Premium Júnior.
 // A relação pagamento -> usuário usa a referência interna do checkout;
 // nunca depende de procurar UID por e-mail.
+//
+// Critérios de confiabilidade:
+// - autenticação por asaas-access-token;
+// - processamento síncrono: só responde 200 após concluir o efeito financeiro;
+// - event.id é idempotente;
+// - payment.id também é idempotente para evitar dupla extensão entre
+//   PAYMENT_CONFIRMED/PAYMENT_RECEIVED;
+// - falhas retornam 500 para permitir nova entrega pelo gateway.
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
@@ -100,6 +108,15 @@ async function saveEvent(eventId: string, event: string, status: string, token: 
   await firestorePatch(`asaasEvents/${eventId}`, fields, token);
 }
 
+async function markPaymentProcessed(paymentId: string, uid: string, subscriptionId: string, event: string, token: string): Promise<void> {
+  if (!paymentId) return;
+  const now = new Date().toISOString();
+  await firestorePatch(`asaasPayments/${paymentId}`, {
+    paymentId: stringValue(paymentId), uid: stringValue(uid), subscriptionId: stringValue(subscriptionId || ""),
+    event: stringValue(event), status: stringValue("processed"), processedAt: timestampValue(now), updatedAt: timestampValue(now),
+  }, token);
+}
+
 async function setPlan(token: string, uid: string, plan: "free" | "junior", subscriptionId: string, extend: boolean): Promise<void> {
   const existing = await firestoreGet(`users/${uid}`, token);
   if (plan === "free") {
@@ -181,6 +198,9 @@ async function processSubscriptionCreated(subscription: any, token: string): Pro
 
 async function processPayment(event: string, paymentId: string, payload: any, token: string): Promise<void> {
   if (!paymentId) throw new Error("PAYMENT_ID_MISSING");
+  const previous = await firestoreGet(`asaasPayments/${paymentId}`, token);
+  if (previous?.status === "processed") return;
+
   const payment = await asaasGet(`/payments/${paymentId}`);
   const subscriptionId = String(payment.subscription || payload?.payment?.subscription || "");
   if (!subscriptionId) return;
@@ -195,7 +215,11 @@ async function processPayment(event: string, paymentId: string, payload: any, to
   const existing = await firestoreGet(`users/${uid}`, token);
   const lastActivation = existing?.lastAsaasActivationAt ? new Date(existing.lastAsaasActivationAt).getTime() : 0;
   const isInitial = lastActivation > 0 && Date.now() - lastActivation < INITIAL_PAYMENT_GRACE_MS;
-  if (!isInitial && (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED")) await setPlan(token, uid, "junior", subscriptionId, true);
+
+  if (!isInitial && (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED")) {
+    await setPlan(token, uid, "junior", subscriptionId, true);
+  }
+  await markPaymentProcessed(paymentId, uid, subscriptionId, event, token);
 }
 
 async function processSubscriptionCancel(subscriptionId: string, payload: any, token: string): Promise<void> {
@@ -228,31 +252,29 @@ serve(async (req) => {
   const provided = req.headers.get("asaas-access-token") || "";
   if (provided !== ASAAS_WEBHOOK_TOKEN) return new Response(JSON.stringify({ error: "invalid_token" }), { status: 401, headers: responseHeaders() });
 
+  let eventId = "";
+  let event = "";
+  let token = "";
   try {
     const payload = await req.json();
-    const eventId = String(payload?.id || "");
-    const event = String(payload?.event || "");
+    eventId = String(payload?.id || "");
+    event = String(payload?.event || "");
     if (!eventId || !event) return new Response(JSON.stringify({ error: "invalid_event" }), { status: 400, headers: responseHeaders() });
 
-    const token = await firestoreAccessToken();
+    token = await firestoreAccessToken();
     const existing = await firestoreGet(`asaasEvents/${eventId}`, token);
     if (existing?.status === "processed") return new Response(JSON.stringify({ ok: true, duplicate: true }), { status: 200, headers: responseHeaders() });
 
     await saveEvent(eventId, event, "received", token);
-    const work = processEvent(event, payload, token)
-      .then(() => saveEvent(eventId, event, "processed", token))
-      .catch(async (error) => {
-        console.error("[asaas-webhook]", error);
-        try { await saveEvent(eventId, event, "error", token, String(error?.message || error)); } catch (saveError) { console.error("[asaas-webhook] event-error", saveError); }
-      });
+    await processEvent(event, payload, token);
+    await saveEvent(eventId, event, "processed", token);
 
-    const runtime = (globalThis as any).EdgeRuntime;
-    if (runtime && typeof runtime.waitUntil === "function") runtime.waitUntil(work);
-    else void work;
-
-    return new Response(JSON.stringify({ ok: true, accepted: true }), { status: 200, headers: responseHeaders() });
+    return new Response(JSON.stringify({ ok: true, processed: true }), { status: 200, headers: responseHeaders() });
   } catch (error) {
-    console.error("[asaas-webhook] receive", error);
-    return new Response(JSON.stringify({ error: "webhook_receive_failed" }), { status: 500, headers: responseHeaders() });
+    console.error("[asaas-webhook]", error);
+    if (token && eventId) {
+      try { await saveEvent(eventId, event, "error", token, String(error?.message || error)); } catch (saveError) { console.error("[asaas-webhook] event-error", saveError); }
+    }
+    return new Response(JSON.stringify({ error: "processing_failed" }), { status: 500, headers: responseHeaders() });
   }
 });
