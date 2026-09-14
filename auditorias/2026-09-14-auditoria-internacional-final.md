@@ -18,9 +18,9 @@ O menu de autenticação dinâmico recebeu carregamento site-wide do localizador
 
 ## Segurança administrativa
 
-Foi identificada e corrigida uma falha relevante em `asaas-admin` e `grant-access`: anteriormente, a autorização administrativa dependia de um `adminEmail` enviado no corpo da requisição. O fluxo agora exige um **Firebase ID token válido**, valida assinatura, emissor, audiência e expiração, e obtém o e-mail administrativo diretamente do JWT. O campo enviado pelo cliente deixou de ser uma credencial de autorização.
+Foi identificada e corrigida uma falha relevante em `asaas-admin` e `grant-access`: anteriormente, a autorização administrativa dependia de um `adminEmail` enviado no corpo da requisição. O fluxo agora exige um **Firebase ID token válido**, valida assinatura, emissor, audiência e validade temporal, e obtém a identidade administrativa diretamente do JWT. O e-mail enviado no corpo deixou de ser credencial de autorização.
 
-As duas funções foram redeployadas em produção e permanecem com `verify_jwt=false` porque implementam autenticação customizada com token Firebase no próprio handler.
+As duas funções foram redeployadas em produção e permanecem com `verify_jwt=false` porque implementam autenticação customizada com o JWT do Firebase no próprio handler.
 
 ## Evidências de produção no Supabase
 
@@ -49,7 +49,7 @@ A política de anúncios utiliza estado fail-closed durante a resolução da ass
 
 Os advisories de segurança/performance do Supabase ainda incluem alertas preexistentes de RLS sem policy em algumas tabelas servidor-only, além de avisos de `auth_rls_initplan`, índices não utilizados e múltiplas policies permissivas em objetos fora do escopo desta auditoria. Esses achados não foram alterados neste fechamento para evitar regressões em superfícies não relacionadas a billing/account.
 
-A verificação de fonte e versão implantada das Edge Functions, das regras do Firestore e do estado dos dados foi realizada. Não foi executada uma compra real Stripe nem um POST administrativo com um Firebase ID token real neste ambiente, portanto não há alegação de teste end-to-end dessas duas operações.
+A verificação de fonte e versão implantada das Edge Functions, das regras do Firestore e do estado dos dados foi realizada. Não foi executada uma compra real Stripe nem um POST administrativo com um Firebase ID token real neste ambiente; portanto, não há alegação de teste end-to-end dessas duas operações.
 
 ## Critérios de fechamento
 
