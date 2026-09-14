@@ -114,8 +114,12 @@ async function setPlan(uid: string, planId: "free" | "junior", subId: string, ex
 
 async function logSubscriber(id: string, name: string, email: string, token: string) {
   const now = new Date().toISOString();
-  await firestorePatch(`asaasSubscribers/${id}`, {
-    name: stringValue(name), email: stringValue(email), planId: stringValue("junior"), provider: stringValue("stripe"), createdAt: timestampValue(now),
+  await firestorePatch(`stripeSubscribers/${id}`, {
+    name: stringValue(name),
+    email: stringValue(email),
+    planId: stringValue("junior"),
+    provider: stringValue("stripe"),
+    createdAt: timestampValue(now),
   }, token);
 }
 
@@ -182,17 +186,25 @@ serve(async (req) => {
       eventId: stringValue(eventId), type: stringValue(type), status: stringValue("received"), receivedAt: timestampValue(new Date().toISOString()),
     }, token);
 
-    try {
-      await processOnce(eventId, type, object, token);
-      await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("processed"), processedAt: timestampValue(new Date().toISOString()) }, token);
-    } catch (error) {
-      await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("error"), error: stringValue(String(error?.message || error)), updatedAt: timestampValue(new Date().toISOString()) }, token);
-      throw error;
-    }
+    await processOnce(eventId, type, object, token);
+    await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("processed"), processedAt: timestampValue(new Date().toISOString()) }, token);
 
     return new Response("ok", { status: 200 });
   } catch (error) {
     console.error("[stripe-webhook]", error);
+    try {
+      const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT || "");
+      const token = await firestoreAccessToken(sa);
+      const rawError = String(error?.message || error);
+      const eventId = (() => {
+        try { return String(JSON.parse(rawBody)?.id || ""); } catch (_) { return ""; }
+      })();
+      if (eventId) {
+        await firestorePatch(`stripeEvents/${eventId}`, { status: stringValue("error"), error: stringValue(rawError), updatedAt: timestampValue(new Date().toISOString()) }, token);
+      }
+    } catch (saveError) {
+      console.error("[stripe-webhook] event-error", saveError);
+    }
     return new Response("error", { status: 500 });
   }
 });
