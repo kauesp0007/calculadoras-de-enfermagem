@@ -1,7 +1,7 @@
 /**
  * js/billing/payment-router.js
  * Roteamento canônico de pagamentos por idioma.
- * Regra absoluta: pt-BR -> Asaas; qualquer outro idioma -> Stripe.
+ * Regra absoluta: pt-BR -> Asaas; qualquer outro idioma suportado -> Stripe.
  */
 (function (window) {
   "use strict";
@@ -26,12 +26,17 @@
   }
 
   function providerFor(language) {
-    return isBrazil(language) ? "asaas" : "stripe";
+    var normalized = normalizeLanguage(language);
+    if (normalized === "pt") return "asaas";
+    if (INTERNATIONAL_LANGS.indexOf(normalized) !== -1) return "stripe";
+    return null;
   }
 
   function currencyFor(language) {
     var lang = normalizeLanguage(language);
-    return ["fr", "es", "de", "it", "tr", "nl", "pl", "ru", "uk", "sv"].indexOf(lang) !== -1 ? "EUR" : "USD";
+    if (["fr", "es", "de", "it", "tr", "nl", "pl", "ru", "uk", "sv"].indexOf(lang) !== -1) return "EUR";
+    if (["en", "hi", "zh", "ja", "ar", "ko", "id", "vi"].indexOf(lang) !== -1) return "USD";
+    return null;
   }
 
   function accountPath(page, language) {
