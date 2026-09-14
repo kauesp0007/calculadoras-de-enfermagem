@@ -12,17 +12,43 @@ const SITE_URL = "https://www.calculadorasdeenfermagem.com.br";
 const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const JWKS_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
+// Firebase publica certificados x509, mas a Web Crypto API importa diretamente JWK.
+// Usamos o endpoint JWK oficial para evitar tentar importar um certificado como SPKI.
+const FIREBASE_JWK_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 const INTERNATIONAL_LANGS = ["en", "es", "fr", "de", "it", "hi", "zh", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk", "ar"];
 const EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
 const PRICE_ID = Deno.env.get("STRIPE_PRICE_ID") ?? "";
 const USD_PRICE_ID = Deno.env.get("STRIPE_PRICE_USD") ?? "";
 const EUR_PRICE_ID = Deno.env.get("STRIPE_PRICE_EUR") ?? "";
 
+let firebaseJwkCache: Record<string, JsonWebKey> | null = null;
+let firebaseJwkCacheAt = 0;
+const FIREBASE_JWK_CACHE_MS = 5 * 60 * 1000;
+
 function corsHeaders() { return { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, apikey, Content-Type", "Content-Type": "application/json; charset=utf-8" }; }
 function b64urlDecode(input:string):Uint8Array{const b64=input.replace(/-/g,"+").replace(/_/g,"/");const padded=b64+"=".repeat((4-(b64.length%4))%4);const bin=atob(padded);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return bytes;}
-function pemCertToArrayBuffer(pem:string):ArrayBuffer{const b64=pem.replace(/-----BEGIN CERTIFICATE-----/,"").replace(/-----END CERTIFICATE-----/,"").replace(/\s+/g,"");const bin=atob(b64);const buf=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)buf[i]=bin.charCodeAt(i);return buf.buffer;}
-async function verifyFirebaseToken(idToken:string):Promise<{uid:string;email:string;name:string}>{const parts=idToken.split(".");if(parts.length!==3)throw new Error("invalid_token");const[h,p,s]=parts;let header:any,payload:any;try{header=JSON.parse(new TextDecoder().decode(b64urlDecode(h)));payload=JSON.parse(new TextDecoder().decode(b64urlDecode(p)));}catch{throw new Error("invalid_token");}if(header.alg!=="RS256"||!header.kid)throw new Error("invalid_token");if(Number(payload.exp||0)*1000<Date.now())throw new Error("token_expired");if(payload.aud!==FIREBASE_PROJECT_ID)throw new Error("invalid_audience");if(payload.iss!==`https://securetoken.google.com/${FIREBASE_PROJECT_ID}`)throw new Error("invalid_issuer");const certsRes=await fetch(JWKS_URL);if(!certsRes.ok)throw new Error("google_keys_unavailable");const certs=await certsRes.json();const cert=certs[header.kid];if(!cert)throw new Error("unknown_key_id");const key=await crypto.subtle.importKey("spki",pemCertToArrayBuffer(cert),{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["verify"]);const valid=await crypto.subtle.verify("RSASSA-PKCS1-v1_5",key,b64urlDecode(s),new TextEncoder().encode(`${h}.${p}`));if(!valid)throw new Error("invalid_signature");const uid=String(payload.sub||"");const email=String(payload.email||"").trim().toLowerCase();const name=String(payload.name||"").trim();if(!uid||!email)throw new Error("user_email_missing");return{uid,email,name};}
+async function loadFirebaseJwks(forceRefresh=false):Promise<Record<string, JsonWebKey>>{
+  const now=Date.now();
+  if(!forceRefresh&&firebaseJwkCache&&now-firebaseJwkCacheAt<FIREBASE_JWK_CACHE_MS)return firebaseJwkCache;
+  const response=await fetch(FIREBASE_JWK_URL,{headers:{"Accept":"application/json"}});
+  if(!response.ok)throw new Error("google_keys_unavailable");
+  const payload=await response.json();
+  const keys=Array.isArray(payload?.keys)?payload.keys:[];
+  const map:Record<string,JsonWebKey>={};
+  for(const key of keys){if(key?.kid)map[String(key.kid)]=key as JsonWebKey;}
+  if(Object.keys(map).length===0)throw new Error("google_keys_empty");
+  firebaseJwkCache=map;
+  firebaseJwkCacheAt=now;
+  return map;
+}
+async function getFirebaseCryptoKey(kid:string):Promise<CryptoKey>{
+  let keys=await loadFirebaseJwks(false);
+  let jwk=keys[kid];
+  if(!jwk){keys=await loadFirebaseJwks(true);jwk=keys[kid];}
+  if(!jwk)throw new Error("unknown_key_id");
+  return crypto.subtle.importKey("jwk",jwk,{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["verify"]);
+}
+async function verifyFirebaseToken(idToken:string):Promise<{uid:string;email:string;name:string}>{const parts=idToken.split(".");if(parts.length!==3)throw new Error("invalid_token");const[h,p,s]=parts;let header:any,payload:any;try{header=JSON.parse(new TextDecoder().decode(b64urlDecode(h)));payload=JSON.parse(new TextDecoder().decode(b64urlDecode(p)));}catch{throw new Error("invalid_token");}if(header.alg!=="RS256"||!header.kid)throw new Error("invalid_token");const now=Math.floor(Date.now()/1000);if(Number(payload.exp||0)<=now)throw new Error("token_expired");if(Number(payload.iat||0)>now+60)throw new Error("token_not_yet_valid");if(Number(payload.auth_time||0)>now+60)throw new Error("auth_time_invalid");if(payload.aud!==FIREBASE_PROJECT_ID)throw new Error("invalid_audience");if(payload.iss!==`https://securetoken.google.com/${FIREBASE_PROJECT_ID}`)throw new Error("invalid_issuer");const key=await getFirebaseCryptoKey(String(header.kid));const valid=await crypto.subtle.verify("RSASSA-PKCS1-v1_5",key,b64urlDecode(s),new TextEncoder().encode(`${h}.${p}`));if(!valid)throw new Error("invalid_signature");const uid=String(payload.sub||"");const email=String(payload.email||"").trim().toLowerCase();const name=String(payload.name||"").trim();if(!uid||!email)throw new Error("user_email_missing");return{uid,email,name};}
 function normalizeLanguage(value:unknown):string{return String(value||"").trim().toLowerCase();}
 function isSupportedInternational(lang:string):boolean{return INTERNATIONAL_LANGS.indexOf(lang)!==-1;}
 function selectedPriceId(lang:string):string{if(USD_PRICE_ID&&EUR_PRICE_ID)return EUR_LANGS.indexOf(lang)!==-1?EUR_PRICE_ID:USD_PRICE_ID;return PRICE_ID;}
