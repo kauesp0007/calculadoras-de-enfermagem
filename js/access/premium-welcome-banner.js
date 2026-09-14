@@ -1,58 +1,34 @@
 /* Banner global de boas-vindas/upgrade. Inicializa de forma independente do Access para não desaparecer por ordem de carregamento. */
 (function (window, document) {
   "use strict";
-
   var ROOT_ID = "premium-welcome-banner-root";
-  var STORAGE_KEY = "premiumWelcomeBannerDismissed";
-
+  var STORAGE_KEY = "premiumWelcomeBannerDismissed_v2";
   var I18N = {
-    pt: ["Seja bem-vindo ao Calculadoras de Enfermagem", "Conheça o plano Júnior e tenha acesso à plataforma e aos conteúdos premium sem anúncios.", "R$ 10,00/mês", "Conhecer o plano Júnior", "Fechar"],
-    en: ["Welcome to Nursing Calculators", "Discover the Junior plan for access to the platform and premium content without ads.", "R$ 10.00/month", "View Junior plan", "Close"],
-    es: ["Bienvenido a Calculadoras de Enfermería", "Conoce el plan Júnior para acceder a la plataforma y al contenido premium sin anuncios.", "R$ 10,00/mes", "Ver plan Júnior", "Cerrar"],
-    fr: ["Bienvenue sur Calculadoras de Enfermagem", "Découvrez le forfait Júnior pour accéder à la plateforme et au contenu premium sans publicités.", "R$ 10,00/mois", "Voir le forfait Júnior", "Fermer"],
-    de: ["Willkommen bei Calculadoras de Enfermagem", "Entdecken Sie den Júnior-Tarif für Zugriff auf die Plattform und Premium-Inhalte ohne Werbung.", "R$ 10,00/Monat", "Júnior-Tarif ansehen", "Schließen"],
-    it: ["Benvenuto su Calculadoras de Enfermagem", "Scopri il piano Júnior per accedere alla piattaforma e ai contenuti premium senza pubblicità.", "R$ 10,00/mese", "Scopri il piano Júnior", "Chiudi"],
-    hi: ["Nursing Calculators में आपका स्वागत है", "बिना विज्ञापनों के प्लेटफ़ॉर्म और प्रीमियम सामग्री तक पहुँच के लिए Júnior योजना देखें।", "R$ 10,00/माह", "Júnior योजना देखें", "बंद करें"],
-    zh: ["欢迎使用护理计算器", "了解 Júnior 方案，无广告访问平台和高级内容。", "R$ 10,00/月", "查看 Júnior 方案", "关闭"],
-    ja: ["看護計算機へようこそ", "Júniorプランで、広告なしでプラットフォームとプレミアムコンテンツをご利用いただけます。", "R$ 10,00/月", "Júniorプランを見る", "閉じる"],
-    ru: ["Добро пожаловать в Calculadoras de Enfermagem", "Ознакомьтесь с планом Júnior для доступа к платформе и премиум-контенту без рекламы.", "R$ 10,00/мес.", "Посмотреть план Júnior", "Закрыть"],
-    ko: ["간호 계산기에 오신 것을 환영합니다", "광고 없이 플랫폼과 프리미엄 콘텐츠를 이용하려면 Júnior 요금제를 확인하세요.", "R$ 10,00/월", "Júnior 요금제 보기", "닫기"],
-    tr: ["Calculadoras de Enfermagem'e hoş geldiniz", "Platforma ve premium içeriklere reklamsız erişim için Júnior planını keşfedin.", "R$ 10,00/ay", "Júnior planını görüntüle", "Kapat"],
-    nl: ["Welkom bij Calculadoras de Enfermagem", "Ontdek het Júnior-abonnement voor toegang tot het platform en premiuminhoud zonder advertenties.", "R$ 10,00/maand", "Júnior-abonnement bekijken", "Sluiten"],
-    pl: ["Witamy w Calculadoras de Enfermagem", "Poznaj plan Júnior i korzystaj z platformy oraz treści premium bez reklam.", "R$ 10,00/mies.", "Zobacz plan Júnior", "Zamknij"],
-    sv: ["Välkommen till Calculadoras de Enfermagem", "Upptäck Júnior-planen för åtkomst till plattformen och premiuminnehåll utan annonser.", "R$ 10,00/mån", "Visa Júnior-planen", "Stäng"],
-    id: ["Selamat datang di Calculadoras de Enfermagem", "Kenali paket Júnior untuk mengakses platform dan konten premium tanpa iklan.", "R$ 10,00/bulan", "Lihat paket Júnior", "Tutup"],
-    vi: ["Chào mừng đến với Calculadoras de Enfermagem", "Khám phá gói Júnior để truy cập nền tảng và nội dung cao cấp không có quảng cáo.", "R$ 10,00/tháng", "Xem gói Júnior", "Đóng"],
-    uk: ["Вітаємо в Calculadoras de Enfermagem", "Ознайомтеся з планом Júnior для доступу до платформи та преміум-контенту без реклами.", "R$ 10,00/міс.", "Переглянути план Júnior", "Закрити"],
-    ar: ["مرحبًا بكم في حاسبات التمريض", "تعرّف على خطة Júnior للوصول إلى المنصة والمحتوى المميز دون إعلانات.", "R$ 10,00/شهريًا", "عرض خطة Júnior", "إغلاق"]
+    pt:["Seja bem-vindo ao Calculadoras de Enfermagem","Conheça o plano Júnior e tenha acesso à plataforma e aos conteúdos premium sem anúncios.","R$ 10,00/mês","Conhecer o plano Júnior","Fechar"],
+    en:["Welcome to Nursing Calculators","Discover the Junior plan for access to the platform and premium content without ads.","R$ 10.00/month","View Junior plan","Close"],
+    es:["Bienvenido a Calculadoras de Enfermería","Conoce el plan Júnior para acceder a la plataforma y al contenido premium sin anuncios.","R$ 10,00/mes","Ver plan Júnior","Cerrar"],
+    fr:["Bienvenue sur Calculadoras de Enfermagem","Découvrez le forfait Júnior pour accéder à la plateforme et au contenu premium sans publicités.","R$ 10,00/mois","Voir le forfait Júnior","Fermer"],
+    de:["Willkommen bei Calculadoras de Enfermagem","Entdecken Sie den Júnior-Tarif für Zugriff auf die Plattform und Premium-Inhalte ohne Werbung.","R$ 10,00/Monat","Júnior-Tarif ansehen","Schließen"],
+    it:["Benvenuto su Calculadoras de Enfermagem","Scopri il piano Júnior per accedere alla piattaforma e ai contenuti premium senza pubblicità.","R$ 10,00/mese","Scopri il piano Júnior","Chiudi"],
+    hi:["Nursing Calculators में आपका स्वागत है","बिना विज्ञापनों के प्लेटफ़ॉर्म और प्रीमियम सामग्री तक पहुँच के लिए Júnior योजना देखें।","R$ 10,00/माह","Júnior योजना देखें","बंद करें"],
+    zh:["欢迎使用护理计算器","了解 Júnior 方案，无广告访问平台和高级内容。","R$ 10,00/月","查看 Júnior 方案","关闭"],
+    ja:["看護計算機へようこそ","Júniorプランで、広告なしでプラットフォームとプレミアムコンテンツをご利用いただけます。","R$ 10,00/月","Júniorプランを見る","閉じる"],
+    ru:["Добро пожаловать в Calculadoras de Enfermagem","Ознакомьтесь с планом Júnior для доступа к платформе и премиум-контенту без рекламы.","R$ 10,00/мес.","Посмотреть план Júnior","Закрыть"],
+    ko:["간호 계산기에 오신 것을 환영합니다","광고 없이 플랫폼과 프리미엄 콘텐츠를 이용하려면 Júnior 요금제를 확인하세요.","R$ 10,00/월","Júnior 요금제 보기","닫기"],
+    tr:["Calculadoras de Enfermagem'e hoş geldiniz","Platforma ve premium içeriklere reklamsız erişim için Júnior planını keşfedin.","R$ 10,00/ay","Júnior planını görüntüle","Kapat"],
+    nl:["Welkom bij Calculadoras de Enfermagem","Ontdek het Júnior-abonnement voor toegang tot het platform en premiuminhoud zonder advertenties.","R$ 10,00/maand","Júnior-abonnement bekijken","Sluiten"],
+    pl:["Witamy w Calculadoras de Enfermagem","Poznaj plan Júnior i korzystaj z platformy oraz treści premium bez reklam.","R$ 10,00/mies.","Zobacz plan Júnior","Zamknij"],
+    sv:["Välkommen till Calculadoras de Enfermagem","Upptäck Júnior-planen för åtkomst till plattformen och premiuminnehåll utan annonser.","R$ 10,00/mån","Visa Júnior-planen","Stäng"],
+    id:["Selamat datang di Calculadoras de Enfermagem","Kenali paket Júnior untuk mengakses platform dan konten premium tanpa iklan.","R$ 10,00/bulan","Lihat paket Júnior","Tutup"],
+    vi:["Chào mừng đến với Calculadoras de Enfermagem","Khám phá gói Júnior để truy cập nền tảng và nội dung cao cấp không có quảng cáo.","R$ 10,00/tháng","Xem gói Júnior","Đóng"],
+    uk:["Вітаємо в Calculadoras de Enfermagem","Ознайомтеся з планом Júnior для доступу до платформи та преміум-контенту без реклами.","R$ 10,00/міс.","Переглянути план Júnior","Закрити"],
+    ar:["مرحبًا بكم في حاسبات التمريض","تعرّف على خطة Júnior للوصول إلى المنصة والمحتوى المميز دون إعلانات.","R$ 10,00/شهريًا","عرض خطة Júnior","إغلاق"]
   };
-
-  function accountPage() { return (window.location.pathname || "").indexOf("/conta/") === 0; }
-  function premium() {
-    try {
-      var p = window.Auth && window.Auth.profile ? window.Auth.profile() : null;
-      if (p && p.lifetime === true) return true;
-      if (p && p.plan === "junior") {
-        if (!p.planExpiresAt) return true;
-        var d = typeof p.planExpiresAt.toDate === "function" ? p.planExpiresAt.toDate() : new Date(p.planExpiresAt);
-        return !isNaN(d.getTime()) && d.getTime() > Date.now();
-      }
-      return !!(window.Authorization && window.Authorization.hasPlan && window.Authorization.hasPlan("premium"));
-    } catch (_) { return false; }
-  }
-  function dismissed() { try { return localStorage.getItem(STORAGE_KEY) === "1"; } catch (_) { return false; } }
-  function close() {
-    try { localStorage.setItem(STORAGE_KEY, "1"); } catch (_) {}
-    var el = document.getElementById(ROOT_ID); if (el) el.remove();
-  }
-  function show() {
-    if (!document.body || accountPage() || premium() || dismissed() || document.getElementById(ROOT_ID)) return;
-    var lang = (window.__LANG || "pt").toLowerCase(), t = I18N[lang] || I18N.pt, rtl = lang === "ar";
-    var root = document.createElement("div"); root.id = ROOT_ID; root.dir = rtl ? "rtl" : "ltr"; root.setAttribute("role", "dialog"); root.setAttribute("aria-label", t[0]);
-    root.innerHTML = '<style>#premium-welcome-banner-root{position:fixed;top:18px;right:18px;z-index:2147483000;width:min(390px,calc(100vw - 36px));font-family:inherit}#premium-welcome-banner-root .pwb-card{position:relative;border:1px solid #d9e5f3;border-radius:16px;background:#fff;box-shadow:0 14px 38px rgba(20,53,89,.18);padding:18px;color:#1f2937}#premium-welcome-banner-root h2{margin:0 32px 9px 0;color:#1A3E74;font-size:17px;line-height:1.3;font-weight:700}#premium-welcome-banner-root p{margin:0 0 12px;font-size:14px;line-height:1.5}#premium-welcome-banner-root .pwb-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwb-price{font-weight:700;color:#1A3E74;white-space:nowrap}.pwb-button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:10px;background:#1A3E74;color:#fff;padding:10px 13px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.pwb-close{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:#64748b;display:grid;place-items:center;cursor:pointer}@media(max-width:520px){#premium-welcome-banner-root{top:10px;right:10px;left:10px;width:auto}#premium-welcome-banner-root .pwb-row{align-items:stretch;flex-direction:column}.pwb-price{white-space:normal}}</style><div class="pwb-card"><button type="button" class="pwb-close" aria-label="'+t[4]+'" title="'+t[4]+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="15" height="20" aria-hidden="true" fill="currentColor"><path d="M342.6 182.6 236.3 288l106.3 105.4c9.4 9.4 9.4 24.6 0 34s-24.6 9.4-34 0L202.3 322l-106.3 105.4c-9.4 9.4-24.6 9.4-34 0s-9.4-24.6 0-34L168.3 288 62 182.6c-9.4-9.4-9.4-24.6 0-34s24.6-9.4 34 0L202.3 254l106.3-105.4c9.4-9.4 24.6-9.4 34 0s9.4 24.6 0 34z"/></svg></button><h2>'+t[0]+'</h2><p>'+t[1]+'</p><div class="pwb-row"><span class="pwb-price">'+t[2]+'</span><a class="pwb-button" href="/conta/assinatura.html?lang='+encodeURIComponent(lang)+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="13" height="15" aria-hidden="true" fill="currentColor"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 0 0 0 256zm89.6 32h-11.2A174.2 174.2 0 0 1 224 320a174.2 174.2 0 0 1-78.4-32h-11.2C60.1 288 0 348.1 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6C448 348.1 387.9 288 313.6 288z"/></svg>'+t[3]+'</a></div></div>';
-    document.body.appendChild(root); root.querySelector(".pwb-close").addEventListener("click", close);
-  }
-  function init() { if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", show, {once:true}); else show(); setTimeout(show, 1200); }
-  window.AccessModules = window.AccessModules || {}; window.AccessModules.premiumWelcomeBanner = { init: init, show: show };
-  init();
-})(window, document);
+  function account(){return (location.pathname||"").indexOf("/conta/")===0;}
+  function premium(){try{var p=window.Auth&&window.Auth.profile?window.Auth.profile():null;if(p&&p.lifetime===true)return true;if(p&&p.plan==="junior"){if(!p.planExpiresAt)return true;var d=typeof p.planExpiresAt.toDate==="function"?p.planExpiresAt.toDate():new Date(p.planExpiresAt);return !isNaN(d.getTime())&&d.getTime()>Date.now();}return !!(window.Authorization&&window.Authorization.hasPlan&&window.Authorization.hasPlan("premium"));}catch(e){return false;}}
+  function dismissed(){try{return localStorage.getItem(STORAGE_KEY)==="1";}catch(e){return false;}}
+  function close(){try{localStorage.setItem(STORAGE_KEY,"1");}catch(e){}var x=document.getElementById(ROOT_ID);if(x)x.remove();}
+  function show(){if(!document.body||account()||premium()||dismissed()||document.getElementById(ROOT_ID))return;var lang=(window.__LANG||"pt").toLowerCase(),t=I18N[lang]||I18N.pt,r=lang==="ar",root=document.createElement("div");root.id=ROOT_ID;root.dir=r?"rtl":"ltr";root.setAttribute("role","dialog");root.setAttribute("aria-label",t[0]);root.innerHTML='<style>#premium-welcome-banner-root{position:fixed;top:18px;right:18px;z-index:2147483000;width:min(390px,calc(100vw - 36px));font-family:inherit}#premium-welcome-banner-root .pwb-card{position:relative;border:1px solid #d9e5f3;border-radius:16px;background:#fff;box-shadow:0 14px 38px rgba(20,53,89,.18);padding:18px;color:#1f2937}#premium-welcome-banner-root h2{margin:0 32px 9px 0;color:#1A3E74;font-size:17px;line-height:1.3;font-weight:700}#premium-welcome-banner-root p{margin:0 0 12px;font-size:14px;line-height:1.5}#premium-welcome-banner-root .pwb-row{display:flex;align-items:center;justify-content:space-between;gap:12px}.pwb-price{font-weight:700;color:#1A3E74;white-space:nowrap}.pwb-button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:10px;background:#1A3E74;color:#fff;padding:10px 13px;font-size:13px;font-weight:700;text-decoration:none;cursor:pointer}.pwb-close{position:absolute;top:8px;right:8px;width:32px;height:32px;border:0;border-radius:8px;background:transparent;color:#64748b;display:grid;place-items:center;cursor:pointer}@media(max-width:520px){#premium-welcome-banner-root{top:10px;right:10px;left:10px;width:auto}#premium-welcome-banner-root .pwb-row{align-items:stretch;flex-direction:column}.pwb-price{white-space:normal}}</style><div class="pwb-card"><button type="button" class="pwb-close" aria-label="'+t[4]+'" title="'+t[4]+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="15" height="20" aria-hidden="true" fill="currentColor"><path d="M342.6 182.6 236.3 288l106.3 105.4c9.4 9.4 9.4 24.6 0 34s-24.6 9.4-34 0L202.3 322l-106.3 105.4c-9.4 9.4-24.6 9.4-34 0s-9.4-24.6 0-34L168.3 288 62 182.6c-9.4-9.4-9.4-24.6 0-34s24.6-9.4 34 0L202.3 254l106.3-105.4c9.4-9.4 9.4-9.4 34 0s9.4 24.6 0 34z"/></svg></button><h2>'+t[0]+'</h2><p>'+t[1]+'</p><div class="pwb-row"><span class="pwb-price">'+t[2]+'</span><a class="pwb-button" href="/conta/assinatura.html?lang='+encodeURIComponent(lang)+'"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" width="13" height="15" aria-hidden="true" fill="currentColor"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 0 0 0 256zm89.6 32h-11.2A174.2 174.2 0 0 1 224 320a174.2 174.2 0 0 1-78.4-32h-11.2C60.1 288 0 348.1 0 422.4V464c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48v-41.6C448 348.1 387.9 288 313.6 288z"/></svg>'+t[3]+'</a></div></div>';document.body.appendChild(root);root.querySelector(".pwb-close").addEventListener("click",close);}
+  function init(){if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",show,{once:true});else show();setTimeout(show,1200);}
+  window.AccessModules=window.AccessModules||{};window.AccessModules.premiumWelcomeBanner={init:init,show:show};init();
+})(window,document);
