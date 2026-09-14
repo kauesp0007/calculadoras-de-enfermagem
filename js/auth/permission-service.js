@@ -3,12 +3,10 @@
  *
  * RESPONSABILIDADE: Catálogo de permissões individuais e resolução.
  *
- * A permissão efetiva de um usuário é a união de:
- *   - permissões do papel (role-service)
- *   - permissões do plano (plan-service)
- *   - permissões explícitas no perfil (campo "permissions" no Firestore)
+ * REGRA: permissões originadas do plano só existem quando o plano efetivo
+ * ainda é válido. Assim, uma licença Júnior expirada não mantém permissões
+ * premium no cache de autorização.
  */
-
 (function (window) {
     "use strict";
 
@@ -35,57 +33,60 @@
         "manageSystem"
     ];
 
-    function all() {
-        return ALL.slice();
-    }
+    function all() { return ALL.slice(); }
 
-    /**
-     * Resolve o conjunto final de permissões de um perfil.
-     * @param {object|null} profile
-     * @returns {string[]}
-     */
     function resolve(profile) {
-        if (!profile) {
-            return [];
-        }
+        if (!profile) return [];
 
         var set = {};
-
-        function add(p) {
-            if (p === "ALL") {
-                ALL.forEach(function (x) {
-                    set[x] = true;
-                });
+        function add(permission) {
+            if (permission === "ALL") {
+                ALL.forEach(function (item) { set[item] = true; });
                 return;
             }
-            if (p) {
-                set[p] = true;
-            }
+            if (permission) set[permission] = true;
         }
 
         if (window.AuthorizationModules.roleService) {
             window.AuthorizationModules.roleService.permissionsFor(profile.role).forEach(add);
         }
-        if (window.AuthorizationModules.planService) {
-            window.AuthorizationModules.planService.permissionsFor(profile.plan).forEach(add);
+
+        // Nunca usa profile.plan bruto como autoridade. Authorization.getPlan()
+        // já aplica expiração e lifetime=true.
+        var effectivePlan = profile.plan || "free";
+        if (window.Authorization && typeof window.Authorization.getPlan === "function") {
+            effectivePlan = window.Authorization.getPlan();
+        } else if (effectivePlan === "junior" && profile.lifetime !== true && profile.planExpiresAt) {
+            try {
+                var expiry = profile.planExpiresAt && typeof profile.planExpiresAt.toDate === "function"
+                    ? profile.planExpiresAt.toDate()
+                    : new Date(profile.planExpiresAt);
+                if (!Number.isFinite(expiry.getTime()) || expiry.getTime() <= Date.now()) effectivePlan = "free";
+            } catch (_) {
+                effectivePlan = "free";
+            }
         }
+
+        if (window.AuthorizationModules.planService) {
+            window.AuthorizationModules.planService.permissionsFor(effectivePlan).forEach(add);
+        }
+
         if (profile.permissions && typeof profile.permissions === "object") {
             Object.keys(profile.permissions).forEach(function (key) {
-                if (profile.permissions[key] === true) {
-                    add(key);
-                }
+                // Flags premium do perfil não podem ressuscitar um Júnior expirado.
+                var premiumFlags = {
+                    canAccessPremium: true,
+                    canDownload: true,
+                    canViewCertificates: true
+                };
+                if (effectivePlan !== "junior" && premiumFlags[key] === true) return;
+                if (profile.permissions[key] === true) add(key);
             });
         }
 
         return Object.keys(set);
     }
 
-    /**
-     * Verifica se um perfil possui uma permissão.
-     * @param {object|null} profile
-     * @param {string} name
-     * @returns {boolean}
-     */
     function has(profile, name) {
         return resolve(profile).indexOf(name) !== -1;
     }
@@ -98,5 +99,4 @@
     };
 
     console.log("[Auth] Módulo permission-service.js carregado.");
-
 })(window);
