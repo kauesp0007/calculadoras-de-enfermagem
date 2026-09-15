@@ -32,8 +32,8 @@
 <div class="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6 px-4 sm:px-8 py-6 md:py-8">
 <div class="w-full md:w-3/4 text-left">
 <p id="page-eyebrow" class="text-blue-300 text-xs font-bold uppercase tracking-[0.15em] mb-2">PLANOS</p>
-<h1 id="page-title" class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white">Planos e Assinatura</h1>
-<h2 id="page-subtitle" class="text-blue-100 text-base font-medium">Premium Júnior para profissionais de enfermagem que precisam de uma experiência sem anúncios.</h2>
+<h1 id="page-title" class="font-black text-[clamp(28px,5vw,44px)] leading-tight mb-3 text-white font-sans">Planos e Assinatura</h1>
+<h2 id="page-subtitle" class="text-blue-100 text-base font-medium font-sans">Premium Júnior para profissionais de enfermagem que precisam de uma experiência sem anúncios.</h2>
 </div>
 </div>
 </section>
@@ -63,6 +63,10 @@
 <script>
 (function () {
   "use strict";
+
+  // Kill switch de assinaturas (false = desativa pagamentos nacional e internacional)
+  var SUBSCRIPTIONS_ENABLED = false;
+  var PAUSED_TEXT = { pt:"Assinaturas temporariamente indisponíveis.", en:"Subscriptions are temporarily unavailable.", es:"Suscripciones temporalmente no disponibles.", fr:"Abonnements temporairement indisponibles.", de:"Abonnements vorübergehend nicht verfügbar.", it:"Abbonamenti temporaneamente non disponibili.", tr:"Abonelikler geçici olarak kullanılamıyor.", nl:"Abonnementen tijdelijk niet beschikbaar.", pl:"Subskrypcje tymczasowo niedostępne.", ru:"Подписки временно недоступны.", uk:"Підписки тимчасово недоступні.", sv:"Prenumerationer är tillfälligt otillgängliga.", id:"Langganan sementara tidak tersedia.", vi:"Đăng ký tạm thời không khả dụng.", ja:"サブスクリプションは一時的に利用できません。", zh:"订阅暂时不可用。", ko:"구독은 일시적으로 이용할 수 없습니다.", ar:"الاشتراكات غير متاحة مؤقتًا.", hi:"सदस्यताएँ अस्थायी रूप से अनुपलब्ध हैं।" };
 
   var PT_ASAAS_SUBSCRIPTION_URL = "https://www.asaas.com/c/vcnk68nigacrape5";
   var PT_ASAAS_PIX_URL = "https://www.asaas.com/c/z89jgzlk57nb354p";
@@ -174,6 +178,7 @@
     if (!lang) { setMessage("error", TEXT.en.unsupported); return; }
     var t = TEXT[lang];
     setText("page-eyebrow", t.eyebrow); setText("page-title", t.pageTitle); setText("page-subtitle", t.subtitle); setText("scales-heading", t.heading); setText("scales-subheading", t.subheading); setText("premium-more", t.more); setText("benefit-line", t.benefit); setText("subscription-loading", t.loading);
+    if (!SUBSCRIPTIONS_ENABLED) { var pc=document.getElementById("subscription-container"); if(pc)pc.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 font-semibold">'+esc(PAUSED_TEXT[lang]||PAUSED_TEXT.en||PAUSED_TEXT.pt)+'</div>'; return; }
     showReturnState(lang, t);
     await window.Auth.init();
     if (!window.Auth.isLoggedIn()) { var c=document.getElementById("subscription-container"); if(c)c.innerHTML='<div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">'+esc(t.loginRequired)+'</div>'; return; }
