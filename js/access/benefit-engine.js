@@ -1,4 +1,4 @@
-/** Canonical benefit catalog. Advertising is intentionally not a plan benefit. */
+/** Canonical benefit catalog. Advertising remains active for both Free and Premium. */
 (function(window){"use strict";
   window.AccessModules=window.AccessModules||{};
   var BENEFITS={
