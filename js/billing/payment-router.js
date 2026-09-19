@@ -34,9 +34,8 @@
   }
 
   function currencyFor(language) {
-    var lang = normalizeLanguage(language);
-    if (["fr", "es", "de", "it", "tr", "nl", "pl", "ru", "uk", "sv"].indexOf(lang) !== -1) return "EUR";
-    if (["en", "hi", "zh", "ja", "ar", "ko", "id", "vi"].indexOf(lang) !== -1) return "USD";
+    // A moeda é definida pelo Stripe Price configurado no backend.
+    // O frontend não infere moeda por idioma.
     return null;
   }
 
