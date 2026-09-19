@@ -1258,12 +1258,22 @@ openModal('Imagem · Image', '<img src="'+escapeHtml(src)+'" alt="Imagem ampliad
 applyLang();
 carregarLikes();
 carregarPosts();
-// Re-renderiza o feed quando o login muda (para exibir os botões
-// Editar/Excluir assim que o usuário logado é carregado pelo Firebase).
-try{
-if(window.Auth && window.Auth.onAuthChange){ window.Auth.onAuthChange(function(){ renderFeed(); }); }
-if(window.Auth && window.Auth.onProfileChange){ window.Auth.onProfileChange(function(){ renderFeed(); }); }
-}catch(e){}
+// Re-renderiza o feed assim que o login (Firebase Auth) é carregado,
+// aguardando o window.Auth ficar disponível (polling).
+(function(){
+var attempts = 0;
+function tryBind(){
+attempts++;
+if(window.Auth && window.Auth.onAuthChange){
+try{ window.Auth.onAuthChange(function(){ renderFeed(); }); }catch(e){}
+try{ window.Auth.onProfileChange(function(){ renderFeed(); }); }catch(e){}
+renderFeed();
+} else if(attempts < 50){
+setTimeout(tryBind, 200);
+}
+}
+tryBind();
+})();
 })();
 </script>
 

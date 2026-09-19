@@ -1257,7 +1257,20 @@ openModal('画像 · Image', '<img src="'+escapeHtml(src)+'" alt="拡大画像" 
 applyLang();
 carregarLikes();
 carregarPosts();
-try{ if(window.Auth && window.Auth.onAuthChange){ window.Auth.onAuthChange(function(){ renderFeed(); }); } if(window.Auth && window.Auth.onProfileChange){ window.Auth.onProfileChange(function(){ renderFeed(); }); } }catch(e){}
+(function(){
+var attempts = 0;
+function tryBind(){
+attempts++;
+if(window.Auth && window.Auth.onAuthChange){
+try{ window.Auth.onAuthChange(function(){ renderFeed(); }); }catch(e){}
+try{ window.Auth.onProfileChange(function(){ renderFeed(); }); }catch(e){}
+renderFeed();
+} else if(attempts < 50){
+setTimeout(tryBind, 200);
+}
+}
+tryBind();
+})();
 })();
 </script>
 
