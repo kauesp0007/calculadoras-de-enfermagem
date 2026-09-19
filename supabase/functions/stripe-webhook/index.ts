@@ -108,6 +108,8 @@ serve(async req=>{
       // Preserve already-paid access until its recorded period end; do not grant or extend.
     }else if(type==="customer.subscription.deleted"){
       await setFree({...sub,metadata:meta},"subscription_deleted");
+    }else if(type==="checkout.session.expired"){
+      if(String(sub.status)==="checkout_pending")await setFree({...sub,metadata:meta},"checkout_expired");
     }
     const done=await db().rpc("complete_billing_webhook",{p_provider:"stripe",p_event_id:eventId});if(done.error)throw done.error;
     return new Response(JSON.stringify({ok:true}),{status:200,headers:H});
