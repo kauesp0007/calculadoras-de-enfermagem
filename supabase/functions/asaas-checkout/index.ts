@@ -18,6 +18,6 @@ serve(async req=>{if(req.method==="OPTIONS")return new Response("",{status:204,h
  const ref="premium_"+crypto.randomUUID();const recurring=kind==="monthly_card";
  const payload:any={billingTypes:recurring?["CREDIT_CARD"]:["PIX"],chargeTypes:recurring?["RECURRENT"]:["DETACHED"],minutesToExpire:60,externalReference:ref,callback:{cancelUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=cancel`,expiredUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=expired`,successUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=success`},items:[{externalReference:ref,name:"Premium",description:recurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],customerData:{name:String(u.user_metadata?.full_name||u.email||"Cliente"),email:String(u.email||"")}};
  if(recurring)payload.subscription={cycle:"MONTHLY"};
- const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
+ await admin().from("billing_subscriptions").insert({user_id:u.id,provider:"asaas",external_id:ref,status:"checkout_pending",plan:"premium",currency:"BRL",metadata:{kind,lang}});\n const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
  return new Response(JSON.stringify({url:String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(String(checkout?.id||""))}`),checkoutId:checkout?.id||null,externalReference:ref}),{status:200,headers});
 }catch(e){return new Response(JSON.stringify({error:String((e as Error)?.message||e)}),{status:400,headers});}});
