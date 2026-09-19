@@ -471,11 +471,7 @@ function initializeAuthMenu() {
     var scripts = [
       "/js/access/access-events.js",
       "/js/access/content-policy.js",
-      "/js/access/benefit-engine.js",
-      "/js/access/license-engine.js",
       "/js/access/access-analytics.js",
-      "/js/access/premium-widgets.js",
-      "/js/access/premium-banner-manager.js",
       "/js/access/content-access.js",
       "/js/access/access-router.js"
     ];
@@ -528,16 +524,10 @@ function initializeAuthMenu() {
     }
     var isAdmin = _isAdmin() || window.Authorization.hasRole("administrator");
     if (mobile) {
-      if (!window.Authorization.hasPlan("premium")) {
-        out += '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a>';
-      }
       if (isAdmin) {
         out += '<a role="menuitem" href="/conta/admin-pagamentos.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Admin</a>';
       }
     } else {
-      if (!window.Authorization.hasPlan("premium")) {
-        out += '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/assinatura.html') + '" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Plano</a></li>';
-      }
       if (isAdmin) {
         out += '<li><a href="/conta/admin-pagamentos.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium whitespace-nowrap">Admin</a></li>';
       }
@@ -747,7 +737,20 @@ function initializeAuthMenu() {
     waitAndUpdate();
   }
 
-  loadAuthScripts();
+  // Adia o carregamento de Firebase/Auth (~138 KB) para depois do primeiro
+  // paint, liberando a thread principal (melhora LCP/TBT). A funcionalidade
+  // do menu de login é preservada (o avatar aparece logo em seguida).
+  var _authDeferred = false;
+  function _deferAuth() {
+    if (_authDeferred) return;
+    _authDeferred = true;
+    loadAuthScripts();
+  }
+  if ("requestIdleCallback" in window) {
+    requestIdleCallback(_deferAuth, { timeout: 3000 });
+  } else {
+    setTimeout(_deferAuth, 300);
+  }
 }
 
 function inicializarTooltips() {
@@ -1209,68 +1212,17 @@ function ativarModoDislexia() {
 })();
 
 /* =========================
-   Controle de anúncios para assinantes premium
+   Controle de anúncios (premium removido — todos os usuários são free)
    ========================= */
-// Planos considerados premium (espelha plan-service.js PREMIUM_PLANS)
-var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
-
-// CSS de segurança: esconde anúncios (multiplex) para
-// assinantes premium, mesmo antes do JS de ocultação rodar.
-(function () {
-  if (document.getElementById("premium-no-ads-css")) return;
-  var style = document.createElement("style");
-  style.id = "premium-no-ads-css";
-  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}";
-  (document.head || document.documentElement).appendChild(style);
-})();
-
-/**
- * Verifica se o usuário atual é assinante premium.
- * Prioriza a camada Authorization (definitiva) e usa o cache síncrono
- * do perfil como fallback antes do auth carregar.
- */
+// Stubs mantidos como no-op por compatibilidade com demais call sites.
+// Nenhum usuário é premium; todos veem os anúncios.
 function isPremiumSubscriber() {
-  // Premium temporariamente desativado: anúncios liberados para todos.
   return false;
 }
 
-/**
- * Oculta os anúncios (multiplex) para assinantes premium.
- * Combina: classe CSS no <html> (fallback imediato), ocultação via JS dos
- * nós já presentes e MutationObserver para anúncios inseridos depois.
- */
-var _noAdsObserverInstalled = false;
-
-function hideAdNodes() {
-  var sel = "ins.adsbygoogle, .ads-multiplex-container, #multiplex-ad-reserved, .multiplex-ad-reserved";
-  document.querySelectorAll(sel).forEach(function (ad) {
-    ad.style.display = "none";
-    ad.innerHTML = "";
-  });
-}
-
 function hideAdsForPremium() {
-  var isPremium = isPremiumSubscriber();
-  if (isPremium) {
-    document.documentElement.classList.add("premium-no-ads");
-  } else {
-    document.documentElement.classList.remove("premium-no-ads");
-  }
-  if (!isPremium) return;
-
-  hideAdNodes();
-
-  // Observa o DOM e esconde anúncios inseridos depois.
-  if (!_noAdsObserverInstalled && typeof MutationObserver !== "undefined" && document.body) {
-    _noAdsObserverInstalled = true;
-    new MutationObserver(function () {
-      if (isPremiumSubscriber()) hideAdNodes();
-    }).observe(document.body, { childList: true, subtree: true });
-  }
+  // Nada a fazer: não há mais assinantes premium.
 }
-
-// Aplica a proteção o mais cedo possível (defer), antes do AdSense carregar.
-hideAdsForPremium();
 
 /* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
