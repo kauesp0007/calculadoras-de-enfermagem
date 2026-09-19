@@ -1,6 +1,6 @@
 /*
  * Guarda canônica de publicidade.
- * Regra: assinantes Premium continuam permitindo AdSense.
+ * Regra: Premium continua permitindo anúncios; este módulo não remove AdSense.
  * Estado autenticado não resolvido é tratado como bloqueado.
  */
 (function (window, document) {
@@ -17,7 +17,7 @@
   }
 
   function premium(profile) {
-    // Premium temporariamente desativado: todos tratados como free.
+    // Premium mantém anúncios ativos; este módulo não remove anúncios.
     return false;
   }
 
