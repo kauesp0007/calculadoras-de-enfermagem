@@ -11,7 +11,8 @@
     premium:[
       {id:"premium-content",label:"Acesso ao conteúdo premium"},
       {id:"all-simulados",label:"Acesso aos simulados premium"},
-      {id:"premium-forms",label:"Acesso aos formulários premium"}
+      {id:"premium-forms",label:"Acesso aos formulários premium"},
+      {id:"ads",label:"Exibição de anúncios"}
     ]
   };
   function forPlan(plan){return (BENEFITS[plan==="premium"?"premium":"free"]||BENEFITS.free).slice();}
