@@ -826,15 +826,85 @@ function calcular() {
 let incompleto = false;
 let somaTotal = 0;
 let dominiosValores = [];
+let primeiroErro = null;
+
+flaccData.forEach((item) => {
+const select = document.getElementById(item.id);
+const selectVal = select.value;
+const card = document.getElementById(`card_${item.id}`);
+
+if (selectVal === "") {
+incompleto = true;
+card.classList.add("error");
+if (!primeiroErro) primeiroErro = card;
+dominiosValores.push({ nome: item.label, obtido: 0, max: item.max });
+} else {
+card.classList.remove("error");
+const val = parseInt(selectVal, 10);
+somaTotal += val;
+dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
+}
+});
+
+if (incompleto) {
+const msg = document.getElementById("msgValidacaoErro");
+if (msg) msg.style.display = "block";
+if (primeiroErro) primeiroErro.scrollIntoView({ behavior: "smooth", block: "center" });
+return;
+}
+
+const msgErro = document.getElementById("msgValidacaoErro");
+if (msgErro) msgErro.style.display = "none";
+
+let classe = "Sem dor";
+let bgPill = "#16a34a";
+if (somaTotal >= 1 && somaTotal <= 3) {
+classe = "Dor leve";
+bgPill = "#eab308";
+} else if (somaTotal >= 4 && somaTotal <= 6) {
+classe = "Dor moderada";
+bgPill = "#f97316";
+} else if (somaTotal >= 7) {
+classe = "Dor intensa";
+bgPill = "#e11d48";
+}
+
+document.getElementById("scoreValor").textContent = somaTotal;
+const pill = document.getElementById("statusPill");
+pill.textContent = classe;
+pill.style.backgroundColor = bgPill;
+
+document.getElementById("resultadoMensagem").textContent =
+`Escore FLACC: ${somaTotal} de 10 pontos. A pontuação é um indicador comportamental e deve ser interpretada no contexto clínico; não determina tratamento isoladamente.`;
+
+const tbody = document.getElementById("tabelaDominios");
+tbody.innerHTML = "";
+
+dominiosValores.forEach((dom) => {
+const cor = dom.obtido === 0 ? "#16a34a" : dom.obtido === 1 ? "#eab308" : "#e11d48";
+const pct = Math.round((dom.obtido / dom.max) * 100);
+const tr = document.createElement("tr");
+tr.innerHTML = `
+<td class="font-bold text-slate-700">${dom.nome}</td>
+<td class="text-center font-black" style="color:${cor}">${dom.obtido}</td>
+<td class="text-center text-slate-400">${dom.max}</td>
+<td>
+<div class="flex items-center gap-3">
+<div class="flex-1 h-[6px] bg-slate-200 rounded-full overflow-hidden">
+<div style="width:${pct}%;background-color:${cor}" class="h-full rounded-full"></div>
+</div>
+</div>
+</td>`;
+tbody.appendChild(tr);
+});
+
 document.getElementById("totalObtidoTd").textContent = somaTotal;
 document.getElementById("totalObtidoTd").style.color = bgPill;
+const corte = document.getElementById("corteTd");
+if (corte) corte.textContent = "Faixa: 0–10 pontos";
 
 resultadoSection.classList.add("visible");
-setTimeout(() => {
-resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
-}, 100);
-
-
+setTimeout(() => resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" }), 100);
 }
 
 // Consultando NANDA
