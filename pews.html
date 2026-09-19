@@ -373,13 +373,12 @@ Preenchido: <span id="contadorPreenchidos" class="text-blue-600">0</span>/3
 </form>
 
 <!-- Card de Pontos Extras -->
-<label for="extraPoints" id="extraPointsCard" class="extra-points-card mt-5 no-print">
-<input type="checkbox" id="extraPoints" class="custom-checkbox">
-<div>
-<h4 class="text-[13px] font-black text-slate-800 m-0">Pontos Extras (+2 pts)</h4>
-<p class="text-[11px] font-medium text-slate-600 m-0 leading-tight">Marque se recebeu nebulização nos últimos 15 min ou tem vômitos persistentes pós-cirurgia.</p>
+<div id="extraPointsCard" class="extra-points-card mt-5 no-print">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+<label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" id="nebulizacao15min" class="custom-checkbox"><span><strong class="text-[13px] font-black text-slate-800">Nebulização até 15 min antes (+2 pts)</strong><span class="block text-[11px] font-medium text-slate-600 leading-tight">Adicionar 2 pontos quando presente.</span></span></label>
+<label class="flex items-start gap-3 cursor-pointer"><input type="checkbox" id="vomitosPosOperatorios" class="custom-checkbox"><span><strong class="text-[13px] font-black text-slate-800">Vômitos persistentes após cirurgia (+2 pts)</strong><span class="block text-[11px] font-medium text-slate-600 leading-tight">Adicionar 2 pontos quando presente.</span></label>
 </div>
-</label>
+</div>
 
 <div class="mt-8 pt-6 border-t-2 border-slate-200 flex flex-col sm:flex-row gap-4 justify-center">
 <button type="button" id="btnCalcular" class="btn-primary flex-1 max-w-sm flex justify-center items-center gap-2">
@@ -413,7 +412,7 @@ Preenchido: <span id="contadorPreenchidos" class="text-blue-600">0</span>/3
 
 <div class="flex items-end justify-center gap-3 mb-2">
 <span id="scoreValor" class="score-big">0</span>
-<span class="text-2xl font-bold text-blue-200 mb-3">/ 11</span>
+<span class="text-2xl font-bold text-blue-200 mb-3">/ 13</span>
 </div>
 
 <div id="statusPill" class="status-pill mb-6">Baixo Risco</div>
@@ -610,14 +609,13 @@ document.getElementById("contadorPreenchidos").textContent = preenchidos;
 }
 
 // Toggle Extra points visual
-const cbExtra = document.getElementById("extraPoints");
-const extraCard = document.getElementById("extraPointsCard");
-cbExtra.addEventListener("change", function() {
-if(this.checked) {
-extraCard.classList.add("active");
-} else {
-extraCard.classList.remove("active");
-}
+const cbNebulizacao = document.getElementById("nebulizacao15min");
+const cbVomitos = document.getElementById("vomitosPosOperatorios");
+[cbNebulizacao, cbVomitos].forEach(function(cb) {
+cb.addEventListener("change", function() {
+const card = document.getElementById("extraPointsCard");
+if(card) card.classList.toggle("active", cbNebulizacao.checked || cbVomitos.checked);
+});
 });
 
 document.getElementById("btnToggleDados").addEventListener("click", function() {
@@ -651,9 +649,8 @@ alert("Preencha todos os 3 parâmetros principais para gerar o escore PEWS.");
 return;
 }
 
-if (cbExtra.checked) {
-somaScore += 2;
-}
+if (cbNebulizacao.checked) somaScore += 2;
+if (cbVomitos.checked) somaScore += 2;
 
 calcScore = somaScore;
 let bg = "";
@@ -719,7 +716,7 @@ tbody.appendChild(tr);
 });
 
 // Extra Points Row
-if(cbExtra.checked) {
+if((cbNebulizacao.checked || cbVomitos.checked)) {
 let tr = document.createElement("tr");
 tr.innerHTML = `
 <td class="font-bold text-slate-700">+ Pontos Extras (Nebulização/Vômitos)</td>
@@ -753,7 +750,7 @@ const banco = await response.json();
 let keywords = ['criança', 'pediátrica', 'bebê', 'lactente', 'infantil'];
 if (vals.neurologico > 0) keywords.push('consciência', 'cognição', 'confusão', 'queda', 'lesão');
 if (vals.cardiovascular > 0) keywords.push('débito cardíaco', 'perfusão', 'pressão', 'choque');
-if (vals.respiratorio > 0 || cbExtra.checked) keywords.push('respiração', 'troca de gases', 'ventilação', 'vias aéreas', 'aspiração');
+if (vals.respiratorio > 0 || (cbNebulizacao.checked || cbVomitos.checked)) keywords.push('respiração', 'troca de gases', 'ventilação', 'vias aéreas', 'aspiração');
 
 let excludeWords = ['adulto', 'idoso', 'gestante', 'materna', 'envelhecimento'];
 
@@ -793,7 +790,7 @@ document.getElementById(`badge_${i.id}`).textContent = `--/${i.max}`;
 document.getElementById(`badge_${i.id}`).style = "";
 document.getElementById(`bar_${i.id}`).style.width = "0%";
 });
-cbExtra.checked = false;
+(cbNebulizacao.checked || cbVomitos.checked) = false;
 extraCard.classList.remove("active");
 
 document.getElementById('pacNome').value = '';
@@ -898,7 +895,7 @@ let v = parseInt(document.getElementById(item.id).value) || 0;
 return [item.label.replace(/^\d+\.\s*/, ''), v, item.max];
 });
 
-if(cbExtra.checked) {
+if((cbNebulizacao.checked || cbVomitos.checked)) {
 bodyData.push(["Pontos Extras (Nebulização/Vômitos)", 2, 2]);
 }
 
@@ -955,7 +952,7 @@ if (v === 3) cor = "#e11d48";
 return `<tr><td>${item.label.replace(/^\d+\.\s*/, '')}</td><td style="text-align:center;font-weight:700;color:${cor};">${v}</td><td style="text-align:center;color:#94A3B8;">${item.max}</td></tr>`;
 }).join("");
 
-if(cbExtra.checked) {
+if((cbNebulizacao.checked || cbVomitos.checked)) {
 linhasTabela += `<tr><td>Pontos Extras (Nebulização/Vômitos)</td><td style="text-align:center;font-weight:700;color:#f97316;">2</td><td style="text-align:center;color:#94A3B8;">2</td></tr>`;
 }
 
@@ -994,7 +991,7 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 </style></head><body>
 <div class="hdr"><div><h1>Escala de PEWS</h1><p>Pediatric Early Warning Score - Avaliação de Crianças</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${dataFormatada}</div></div>
 ${(nome || idade || setor || prof ? `<div class="secao"><div class="sec-titulo">Identificação</div><div class="grid2">${nome ? `<p><strong>Paciente:</strong> ${nome}</p>` : ""}${idade ? `<p><strong>Idade (M/A):</strong> ${idade}</p>` : ""}${setor ? `<p><strong>Setor:</strong> ${setor}</p>` : ""}${prof ? `<p><strong>Avaliador:</strong> ${prof}</p>` : ""}</div></div>` : "")}
-<div class="secao"><div class="res-box"><div class="res-score">${calcScore} <span style="font-size:16px; color:#64748b">/ 11</span></div><div><span class="res-pill">${calcClass}</span></div><p class="res-msg"><strong>Interpretação:</strong> ${calcClass}</p></div></div>
+<div class="secao"><div class="res-box"><div class="res-score">${calcScore} <span style="font-size:16px; color:#64748b">/ 13</span></div><div><span class="res-pill">${calcClass}</span></div><p class="res-msg"><strong>Interpretação:</strong> ${calcClass}</p></div></div>
 <div class="secao"><div class="sec-titulo">Memória da Avaliação Fisiológica</div>
 <table><thead><tr><th>Parâmetro / Avaliação</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máximo</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td>ESCORE TOTAL</td><td style="text-align:center">${calcScore}</td><td style="text-align:center">11</td></tr></tfoot></table></div>
