@@ -937,29 +937,33 @@ const resultadoSection = document.getElementById("resultado-section");
 function calcular() {
 let incompleto = false;
 let somaTotal = 0;
-let dominiosValores = [];
+let dominiosValores = [];
 let primeiroErro = null;
 
 ITENS_SILVERMAN.forEach((item) => {
-const selectVal = document.getElementById(item.id).value;
+const select = document.getElementById(item.id);
+const selectVal = select.value;
 const val = Number(selectVal);
 const allowed = item.opts.map(o => o.val).filter(v => v !== "");
+
 if (selectVal === "" || !Number.isInteger(val) || !allowed.includes(val)) {
 incompleto = true;
-document.getElementById(`card_${item.id}`).classList.add("error");
-if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
+const card = document.getElementById(`card_${item.id}`);
+card.classList.add("error");
+if (!primeiroErro) primeiroErro = card;
 dominiosValores.push({ nome: item.label, obtido: 0, max: item.max });
 } else {
 document.getElementById(`card_${item.id}`).classList.remove("error");
-const val = parseInt(selectVal);
 somaTotal += val;
 dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
+}
+});
 
 if (incompleto) {
 const msgErro = document.getElementById("msgValidacaoErro");
 msgErro.style.display = "block";
 if (primeiroErro) {
-primeiroErro.scrollIntoView({ behavior: 'smooth', block: 'center' });
+primeiroErro.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 return;
 }
@@ -968,30 +972,27 @@ document.getElementById("msgValidacaoErro").style.display = "none";
 clearInterval(timerInterval);
 
 // Determinar Classificação
-let classe = "",
-bgPill = "",
-recomendacao = "";
+let classe = "";
+let bgPill = "";
+let recomendacao = "";
 
 if (somaTotal === 0) {
-classe = "No Respiratory Distress";
-bgPill = "#16a34a"; // Verde
+classe = "Sem desconforto respiratório";
+bgPill = "#16a34a";
 recomendacao = "";
-} 
-else if (somaTotal >= 1 && somaTotal <= 3) {
-classe = "Mild Respiratory Distress";
-bgPill = "#eab308"; // Amarelo
+} else if (somaTotal >= 1 && somaTotal <= 3) {
+classe = "Desconforto respiratório leve";
+bgPill = "#eab308";
 recomendacao = "";
-} 
-else if (somaTotal >= 4 && somaTotal <= 6) {
-classe = "Moderate Respiratory Distress";
-bgPill = "#ea580c"; // Laranja
+} else if (somaTotal >= 4 && somaTotal <= 6) {
+classe = "Desconforto respiratório moderado";
+bgPill = "#ea580c";
 recomendacao = "";
-} 
-else if (somaTotal >= 7) {
-classe = "Severe Respiratory Distress";
-bgPill = "#e11d48"; // Vermelho
+} else if (somaTotal >= 7) {
+classe = "Desconforto respiratório grave";
+bgPill = "#e11d48";
 recomendacao = "";
-} 
+}
 
 // Exibir no Hero Card
 document.getElementById("scoreValor").textContent = somaTotal;
