@@ -31,7 +31,6 @@
     var NAMED_POLICIES = {
         public: { visibility: "public" },
         authenticated: { visibility: "authenticated", requiredRole: "user" },
-        premium: { visibility: "premium", requiredPlan: "premium" },
         institution: { visibility: "institution", requiredPlan: "institution" },
         moderator: { visibility: "moderator", requiredRole: "moderator" },
         editor: { visibility: "editor", requiredRole: "editor" },
@@ -43,17 +42,7 @@
     // valor = plano mínimo para acesso (único plano pago: junior).
     // Este é o mapa canônico "o que é pago" — atualize AQUI ao criar novas
     // páginas restritas (ver .github/instructions/planos-de-acesso.instructions.md).
-    var RESTRICTED_CONTENT = {
-        // Bloqueio para o plano free. O plano pago (junior) libera.
-        morse: "junior",
-        braden: "junior",
-        fugulin: "junior",
-        dimensionamento: "junior",
-        meem: "junior",
-        balancohidrico: "junior",
-        medicamentos: "junior",
-        glasgow: "junior"
-    };
+    var RESTRICTED_CONTENT = {}; // Sistema premium removido: nenhum conteúdo é restrito por plano.
 
     /**
      * Lê o conteúdo de uma meta tag pelo atributo name.
@@ -116,10 +105,6 @@
         // Plano mínimo exigido por este conteúdo (registro central),
         // a menos que a página declare explicitamente uma política.
         var restrictedPlan = RESTRICTED_CONTENT[contentId] || null;
-        // Formulários em branco de escalas: todos bloqueados para o plano free.
-        if (!restrictedPlan && /^(formulario|fotmulario)/i.test(contentId)) {
-            restrictedPlan = "junior";
-        }
         var explicitPlan = context.requiredPlan || _meta("required-plan") || base.requiredPlan || null;
         var requiredPlan = explicitPlan || restrictedPlan || null;
 

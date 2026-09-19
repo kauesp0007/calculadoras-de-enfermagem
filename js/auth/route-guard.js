@@ -10,12 +10,8 @@
 
     window.Authorization = window.Authorization || {};
 
+    // Sistema premium removido: restam apenas proteções por papel/feature (admin/forum).
     var POLICIES = [
-        { pattern: /^\/premium\//, req: { requiredPlan: "premium" } },
-        { pattern: /^\/cursos\//, req: { requiredPlan: "premium" } },
-        { pattern: /^\/certificados\//, req: { requiredPlan: "premium" } },
-        { pattern: /^\/biblioteca-premium\//, req: { requiredPlan: "premium" } },
-        { pattern: /^\/downloads\//, req: { requiredPlan: "premium" } },
         { pattern: /^\/forum\//, req: { requiredFeature: "forum" } },
         { pattern: /^\/admin\//, req: { requiredRole: "administrator" } }
     ];

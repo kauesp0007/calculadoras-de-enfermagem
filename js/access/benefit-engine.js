@@ -14,6 +14,8 @@
 (function (window) {
     "use strict";
 
+    return; // Sistema premium removido: módulo de benefícios por plano desativado.
+
     window.AccessModules = window.AccessModules || {};
 
     var BENEFITS = {

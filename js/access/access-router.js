@@ -30,10 +30,6 @@
             case "required-role":
                 if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else window.location.href = "/";
                 break;
-            case "required-plan":
-                if (window.AccessModules.bannerManager) window.AccessModules.bannerManager.mount({ plan: result.requiredPlan || "junior", title: "Conteúdo Premium", message: "Assine para acessar este conteúdo." });
-                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else _redirectTo("/conta/assinatura.html");
-                break;
             case "required-permission":
             case "required-license":
             case "required-feature":

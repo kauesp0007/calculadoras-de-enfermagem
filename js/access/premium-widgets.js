@@ -6,6 +6,7 @@
  */
 (function (window) {
     "use strict";
+    return; // Sistema premium removido: widgets de bloqueio/upgrade desativados.
     window.AccessModules = window.AccessModules || {};
 
     function _escape(str) {
@@ -14,7 +15,7 @@
     function _upgradeUrl() {
         try {
             if (window.AccountRoutes && window.AccountRoutes.accountUrl) return window.AccountRoutes.accountUrl("assinatura.html");
-        } catch (_) {}
+        } catch (_) { }
         return "/conta/assinatura.html";
     }
     function premiumLock(opts) {
