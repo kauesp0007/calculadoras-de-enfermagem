@@ -567,6 +567,12 @@ function atualizarCard(id) {
 const select = document.getElementById(id);
 const val = parseInt(select.value);
 if (isNaN(val) || val === -99) return;
+if (val === -98) {
+const badge = document.getElementById(`badge_${id}`);
+const bar = document.getElementById(`bar_${id}`);
+badge.textContent = "NT"; badge.style.background = "#f1f5f9"; badge.style.color = "#475569"; badge.style.borderColor = "#94a3b8";
+bar.style.width = "0%"; atualizarGlobais(); return;
+}
 
 const item = ITENS_GLASGOW.find(i => i.id === id);
 let pct = 0;
@@ -630,13 +636,15 @@ const vals = {};
 
 ITENS_GLASGOW.forEach(i => {
 let val = parseInt(document.getElementById(i.id).value);
-if (isNaN(val) || val === -99) incompleto = true;
-if(i.id !== "pupilar") { somaBase += val; } else { penalidade = val; }
+const allowed = i.opts.map(op => op.val).filter(v => v !== -99);
+if (!allowed.includes(val) || val === -98) incompleto = true;
+if (i.id !== "pupilar" && val >= 1 && val <= i.max) somaBase += val;
+else if (i.id === "pupilar" && val >= -2 && val <= 0) penalidade = val;
 vals[i.id] = val;
 });
 
 if (incompleto) {
-alert("Preencha todos os 4 critérios para gerar o Escore de Glasgow.");
+alert("Preencha todos os componentes testáveis. Quando um componente não puder ser avaliado, registre-o como NT (Não testável). O escore total não é calculado quando houver componente NT.");
 return;
 }
 
