@@ -24,16 +24,11 @@ A presença dos secrets precisa ser verificada no ambiente de execução; os val
 
 ## Preços
 
-- Brasil: R$ 10,00, Asaas.
-- Internacional: USD 5/mês ou EUR 5/mês, Stripe.
-- O frontend não escolhe preço.
+- Brasil: preço definido exclusivamente por `ASAAS_PRICE_BRL` no backend.
+- Internacional: Price recorrente definido exclusivamente por `STRIPE_PRICE_USD` / `STRIPE_PRICE_EUR`.
+- O frontend não escolhe preço ou moeda.
 
-Os Price IDs documentados são:
-
-- USD: `price_1UEeJeAE0EBt2lxCFI56AWCx`
-- EUR: `price_1UEf7uAE0EBt2lxCmfLGGmNH`
-
-Antes da ativação, conferir no Stripe que ambos estão ativos e são recorrentes mensais.
+Antes da ativação, confirmar no Stripe que os Price IDs configurados são ativos e recorrentes mensais.
 
 ## Asaas
 
