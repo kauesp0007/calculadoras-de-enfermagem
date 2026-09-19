@@ -31,7 +31,7 @@ Fluxo:
 ## 3. Brasil — Asaas
 
 - Idioma: `pt` / pt-BR.
-- Preço operacional definido no projeto: R$ 10,00.
+- Preço operacional: definido exclusivamente por configuração segura do backend; não é hard-coded no código.
 - Cartão: assinatura recorrente mensal.
 - Pix: cobrança avulsa com acesso Premium por 30 dias.
 
