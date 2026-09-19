@@ -1214,13 +1214,13 @@ function ativarModoDislexia() {
 // Planos considerados premium (espelha plan-service.js PREMIUM_PLANS)
 var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
 
-// CSS de segurança: esconde anúncios (multiplex + auto-placed) para
+// CSS de segurança: esconde anúncios (multiplex) para
 // assinantes premium, mesmo antes do JS de ocultação rodar.
 (function () {
   if (document.getElementById("premium-no-ads-css")) return;
   var style = document.createElement("style");
   style.id = "premium-no-ads-css";
-  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .google-auto-placed,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}html:not(.premium-no-ads) [data-premium-only]{display:none !important;}";
+  style.textContent = "html.premium-no-ads ins.adsbygoogle,html.premium-no-ads .ads-multiplex-container,html.premium-no-ads #multiplex-ad-reserved,html.premium-no-ads .multiplex-ad-reserved{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;}html:not(.premium-no-ads) [data-premium-only]{display:none !important;}";
   (document.head || document.documentElement).appendChild(style);
 })();
 
@@ -1247,14 +1247,14 @@ function isPremiumSubscriber() {
 }
 
 /**
- * Oculta os anúncios (multiplex + auto-placed) para assinantes premium.
+ * Oculta os anúncios (multiplex) para assinantes premium.
  * Combina: classe CSS no <html> (fallback imediato), ocultação via JS dos
  * nós já presentes e MutationObserver para anúncios inseridos depois.
  */
 var _noAdsObserverInstalled = false;
 
 function hideAdNodes() {
-  var sel = "ins.adsbygoogle, .google-auto-placed, .ads-multiplex-container, #multiplex-ad-reserved, .multiplex-ad-reserved";
+  var sel = "ins.adsbygoogle, .ads-multiplex-container, #multiplex-ad-reserved, .multiplex-ad-reserved";
   document.querySelectorAll(sel).forEach(function (ad) {
     ad.style.display = "none";
     ad.innerHTML = "";
@@ -1272,7 +1272,7 @@ function hideAdsForPremium() {
 
   hideAdNodes();
 
-  // Observa o DOM e esconde anúncios inseridos depois (auto-placed).
+  // Observa o DOM e esconde anúncios inseridos depois.
   if (!_noAdsObserverInstalled && typeof MutationObserver !== "undefined" && document.body) {
     _noAdsObserverInstalled = true;
     new MutationObserver(function () {
@@ -1443,7 +1443,7 @@ function initLazyLoadServices() {
         onUserInteraction();
       } else {
         adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle, .google-auto-placed")
+        document.querySelectorAll("ins.adsbygoogle")
           .forEach(ad => {
             ad.style.display = "none";
             ad.innerHTML = "";
