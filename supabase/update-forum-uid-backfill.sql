@@ -1,0 +1,29 @@
+-- =====================================================================
+-- Fórum — Backfill manual do uid (posts antigos)
+-- =====================================================================
+-- IMPORTANTE: posts criados ANTES da coluna `uid` só possuem `author_key`
+-- (UUID aleatório do navegador) e `nome_usuario` (apelido livre). NÃO há
+-- campo que vincule esses posts a um login Firebase, portanto NÃO é
+-- possível preencher o uid automaticamente.
+--
+-- O que fazer:
+--   Se você (administrador) quiser assumir a autoria de posts antigos que
+--   você mesmo criou, use um dos templates abaixo substituindo:
+--     'SEU_UID_FIREBASE'  -> seu uid do Firebase (campo "sub" do JWT).
+--     'SEU_AUTHOR_KEY'    -> o author_key do navegador onde você criou o
+--                            post (localStorage "forum_author_key").
+--
+-- Idempotente (só atualiza linhas com uid nulo).
+-- =====================================================================
+
+-- Opção A: atribuir seu uid a TODOS os posts de um author_key específico.
+-- update public.posts
+-- set uid = 'SEU_UID_FIREBASE'
+-- where author_key = 'SEU_AUTHOR_KEY'
+--   and uid is null;
+
+-- Opção B: atribuir seu uid a posts específicos (pelos IDs).
+-- update public.posts
+-- set uid = 'SEU_UID_FIREBASE'
+-- where id in (1, 2, 3)
+--   and uid is null;

@@ -898,9 +898,12 @@ renderFeed();
 function canManagePost(post){
 if(isDev()) return true;
 if(!post) return false;
-var isPremium = false;
-if(window.Authorization && window.Authorization.hasPlan){ isPremium = window.Authorization.hasPlan('junior'); }
-return isPremium && (post.author_key === getAuthorKey());
+if(post.author_key && post.author_key === getAuthorKey()) return true;
+var uid = getAuthorUid();
+return !!(uid && post.uid && String(post.uid) === String(uid));
+}
+function getAuthorUid(){
+try{ var u=(window.Auth&&window.Auth.currentUser)?window.Auth.currentUser():null; return u?String(u.uid||''):''; }catch(e){ return ''; }
 }
 function getAdminEmail(){
 try{ var u=(window.Auth&&window.Auth.currentUser)?window.Auth.currentUser():null; return u?String(u.email||'').toLowerCase():''; }catch(e){ return ''; }
@@ -1033,7 +1036,7 @@ if(!txt){ showToast('Escreva sua resposta. · Write your reply.'); return; }
 if(!sb){ showToast('Não foi possível publicar agora. · Could not publish right now.'); return; }
 closeModal();
 try{
-var { error } = await sb.from('posts').insert([{ nome_usuario: nome, conteudo: txt, parent_id: parentId, author_key: getAuthorKey() }]);
+var { error } = await sb.from('posts').insert([{ nome_usuario: nome, conteudo: txt, parent_id: parentId, author_key: getAuthorKey(), uid: getAuthorUid() || null }]);
 if(error) throw error;
 showToast('Resposta publicada. · Reply published.');
 PAGE=0; ALL_POSTS=[]; carregarPosts();
@@ -1062,11 +1065,24 @@ if(!sb){ showToast('Não foi possível editar agora. · Could not edit right now
 closeModal();
 try{
 if(isDev()){
-var res = await sb.functions.invoke('forum-moderation', { body: { action:'update', post_id: Number(id), content: txt, adminEmail: getAdminEmail() } });
-if(res.error) throw new Error(res.error.message || res.error);
+var adminUser = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(!adminUser || !adminUser.getIdToken) throw new Error('admin_not_logged_in');
+var adminToken = await adminUser.getIdToken();
+var adminResponse = await fetch(SUPABASE_URL + '/functions/v1/forum-moderation', { method:'POST', headers:{ 'Authorization':'Bearer ' + adminToken, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'update', post_id: Number(id), content: txt }) });
+var adminData = await adminResponse.json().catch(function(){ return {}; });
+if(!adminResponse.ok) throw new Error(adminData.error || 'moderation_update_failed');
+} else {
+var post = ALL_POSTS.find(function(p){ return String(p.id) === String(id); });
+var user = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(post && post.uid && user && user.getIdToken){
+var token = await user.getIdToken();
+var response = await fetch(SUPABASE_URL + '/functions/v1/forum-author', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'update', post_id: Number(id), content: txt }) });
+var data = await response.json().catch(function(){ return {}; });
+if(!response.ok) throw new Error(data.error || 'author_update_failed');
 } else {
 var { error } = await sb.from('posts').update({ conteudo: txt }).eq('id', id);
 if(error) throw error;
+}
 }
 showToast('Publicação atualizada. · Post updated.');
 PAGE=0; ALL_POSTS=[]; carregarPosts();
@@ -1084,11 +1100,24 @@ closeModal();
 if(!sb){ showToast('Não foi possível excluir agora. · Could not delete right now.'); return; }
 try{
 if(isDev()){
-var res = await sb.functions.invoke('forum-moderation', { body: { action:'delete', post_id: Number(id), adminEmail: getAdminEmail() } });
-if(res.error) throw new Error(res.error.message || res.error);
+var adminUser = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(!adminUser || !adminUser.getIdToken) throw new Error('admin_not_logged_in');
+var adminToken = await adminUser.getIdToken();
+var adminResponse = await fetch(SUPABASE_URL + '/functions/v1/forum-moderation', { method:'POST', headers:{ 'Authorization':'Bearer ' + adminToken, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'delete', post_id: Number(id) }) });
+var adminData = await adminResponse.json().catch(function(){ return {}; });
+if(!adminResponse.ok) throw new Error(adminData.error || 'moderation_delete_failed');
+} else {
+var post = ALL_POSTS.find(function(p){ return String(p.id) === String(id); });
+var user = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(post && post.uid && user && user.getIdToken){
+var token = await user.getIdToken();
+var response = await fetch(SUPABASE_URL + '/functions/v1/forum-author', { method:'POST', headers:{ 'Authorization':'Bearer ' + token, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'delete', post_id: Number(id) }) });
+var data = await response.json().catch(function(){ return {}; });
+if(!response.ok) throw new Error(data.error || 'author_delete_failed');
 } else {
 var { error } = await sb.from('posts').delete().eq('id', id);
 if(error) throw error;
+}
 }
 showToast('Publicação excluída. · Post deleted.');
 PAGE=0; ALL_POSTS=[]; carregarPosts();
@@ -1197,14 +1226,15 @@ profissao: document.getElementById('f-profissao').value || null,
 area: document.getElementById('f-area').value || null,
 local_trabalho: document.getElementById('f-local').value.trim() || null,
 original_language: (LANG === 'pt') ? 'pt-BR' : LANG,
-author_key: getAuthorKey()
+author_key: getAuthorKey(),
+uid: getAuthorUid() || null
 };
 var { error } = await sb.from('posts').insert([payload]);
 if(error){
 // fallback para schema antigo (colunas novas ainda não migradas)
 if(error.code === 'PGRST204'){
 delete payload.pais_codigo; delete payload.pais_nome; delete payload.profissao;
-delete payload.area; delete payload.local_trabalho; delete payload.original_language; delete payload.titulo;
+delete payload.area; delete payload.local_trabalho; delete payload.original_language; delete payload.titulo; delete payload.uid;
 var retry = await sb.from('posts').insert([payload]);
 if(retry.error) throw retry.error;
 } else { throw error; }

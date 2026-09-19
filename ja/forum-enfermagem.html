@@ -1083,8 +1083,12 @@ if(!sb){ showToast('Não foi possível editar agora. · Could not edit right now
 closeModal();
 try{
 if(isDev()){
-var res = await sb.functions.invoke('forum-moderation', { body: { action:'update', post_id: Number(id), content: txt, adminEmail: getAdminEmail() } });
-if(res.error) throw new Error(res.error.message || res.error);
+var adminUser = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(!adminUser || !adminUser.getIdToken) throw new Error('admin_not_logged_in');
+var adminToken = await adminUser.getIdToken();
+var adminResponse = await fetch(SUPABASE_URL + '/functions/v1/forum-moderation', { method:'POST', headers:{ 'Authorization':'Bearer ' + adminToken, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'update', post_id: Number(id), content: txt }) });
+var adminData = await adminResponse.json().catch(function(){ return {}; });
+if(!adminResponse.ok) throw new Error(adminData.error || 'moderation_update_failed');
 } else {
 var { error } = await sb.from('posts').update({ conteudo: txt }).eq('id', id);
 if(error) throw error;
@@ -1105,8 +1109,12 @@ closeModal();
 if(!sb){ showToast('Não foi possível excluir agora. · Could not delete right now.'); return; }
 try{
 if(isDev()){
-var res = await sb.functions.invoke('forum-moderation', { body: { action:'delete', post_id: Number(id), adminEmail: getAdminEmail() } });
-if(res.error) throw new Error(res.error.message || res.error);
+var adminUser = (window.Auth && window.Auth.currentUser) ? window.Auth.currentUser() : null;
+if(!adminUser || !adminUser.getIdToken) throw new Error('admin_not_logged_in');
+var adminToken = await adminUser.getIdToken();
+var adminResponse = await fetch(SUPABASE_URL + '/functions/v1/forum-moderation', { method:'POST', headers:{ 'Authorization':'Bearer ' + adminToken, 'Content-Type':'application/json' }, body:JSON.stringify({ action:'delete', post_id: Number(id) }) });
+var adminData = await adminResponse.json().catch(function(){ return {}; });
+if(!adminResponse.ok) throw new Error(adminData.error || 'moderation_delete_failed');
 } else {
 var { error } = await sb.from('posts').delete().eq('id', id);
 if(error) throw error;
