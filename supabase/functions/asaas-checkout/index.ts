@@ -7,7 +7,7 @@ const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
 const ASAAS=Deno.env.get("ASAAS_API_TOKEN")??"";
 const FIREBASE_PROJECT_ID=Deno.env.get("FIREBASE_PROJECT_ID")??"calculadoras-enfermagem";
 const SITE="https://www.calculadorasdeenfermagem.com.br";
-const PRICE_BRL=10;
+const PRICE_BRL=Number(Deno.env.get("ASAAS_PRICE_BRL")||"0");
 const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com.br","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
 const db=()=>createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -45,6 +45,7 @@ serve(async req=>{
     const lang=String(body?.lang||"").toLowerCase();
     if(lang!=="pt")throw new Error("asaas_somente_pt_br");
     if(kind!=="monthly_card"&&kind!=="pix_30d")throw new Error("tipo_checkout_invalido");
+    if(!Number.isFinite(PRICE_BRL)||PRICE_BRL<=0)throw new Error("asaas_price_not_configured");
 
     const {data:active}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
     if(active?.plan==="premium"&&(!active.premium_expires_at||new Date(active.premium_expires_at)>new Date()))throw new Error("already_premium");
