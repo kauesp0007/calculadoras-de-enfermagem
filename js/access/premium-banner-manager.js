@@ -26,7 +26,7 @@
     }
 
     function isPremiumProfile(profile) {
-        // Premium temporariamente desativado: todos tratados como free.
+        // Premium mantém anúncios ativos; este módulo não remove anúncios.
         return false;
     }
 
@@ -51,7 +51,7 @@
         var profile = auth.profile ? auth.profile() : null;
         if (!profile) return false;
 
-        return !isPremiumProfile(profile);
+        return true;
     }
 
     function consentAllowsAds() {
