@@ -117,6 +117,7 @@ Já implantado:
 - `billing-admin` (v2)
 - `grant-access` legado desativado com HTTP 410
 - `asaas-admin` legado desativado com HTTP 410
+- endpoints experimentais `stripe-checkout-test` e `stripe-webhook-test` desativados com HTTP 410
 
 Ainda não implantado:
 
