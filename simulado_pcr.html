@@ -252,7 +252,7 @@ const questionsData = [
 { id: 30, question: "Para garantir a eficácia das compressões em superfícies macias (cama hospitalar), o socorrista deve:", options: ["Realizar compressões mais profundas", "Utilizar uma prancha rígida sob as costas do paciente", "Aumentar a frequência para 150 por minuto", "Realizar compressões com um braço só"], answerIndex: 1, ref: "SBC - Qualidade da RCP [Ano: 2024 | Banca: SBC]" }
 ];
 
-let totalQuestions=30,activeQuestions=[],userAnswers=[],timerInterval=null,centiseconds=0,isImmediateMode=false,quizStarted=false;
+let totalQuestions=30,activeQuestions=[],userAnswers=[],timerInterval=null,centiseconds=0,isImmediateMode=false,timerStartMs=0,quizStarted=false;
 const btn10=document.getElementById('btn10Questoes'),btn20=document.getElementById('btn20Questoes'),btn30=document.getElementById('btn30Questoes'),btnStart=document.getElementById('btnStart'),startArea=document.getElementById('start-area'),quizContainer=document.getElementById('quiz-container'),questionsGrid=document.getElementById('questions-grid'),clockMin=document.getElementById('clockMin'),clockSec=document.getElementById('clockSec'),clockCs=document.getElementById('clockCs'),fClockMin=document.getElementById('fClockMin'),fClockSec=document.getElementById('fClockSec'),floatClock=document.getElementById('floatClock'),btnFinish=document.getElementById('btnFinish'),resultArea=document.getElementById('result-area'),memoriaBody=document.getElementById('memoria-body'),btnPrint=document.getElementById('btnPrint');
 
 function updateClocks(){
@@ -283,7 +283,8 @@ const shuffled=shuffleArray([...questionsData]);activeQuestions=shuffled.slice(0
 userAnswers=new Array(totalQuestions).fill(null);
 document.querySelectorAll('input[name="correctionMode"]').forEach(r=>r.disabled=true);
 renderQuestions();
-timerInterval=setInterval(function(){centiseconds++;updateClocks()},10);
+timerStartMs=performance.now();
+timerInterval=setInterval(function(){centiseconds=Math.floor((performance.now()-timerStartMs)/10);updateClocks()},50);
 const fq=document.getElementById('q-card-0');if(fq)fq.scrollIntoView({behavior:'smooth',block:'center'});
 });
 
