@@ -4,7 +4,7 @@
  * Regra de segurança:
  * - visitante não autenticado: AdSense permitido;
  * - usuário free autenticado: AdSense permitido;
- * - Júnior/lifetime: AdSense nunca é carregado;
+ * - Premium: AdSense permanece ativo;
  * - usuário autenticado sem perfil resolvido: AdSense permanece bloqueado;
  * - falha na leitura do perfil: AdSense permanece bloqueado.
  *
