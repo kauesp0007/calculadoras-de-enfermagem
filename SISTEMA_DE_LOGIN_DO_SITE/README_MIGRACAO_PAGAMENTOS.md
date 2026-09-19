@@ -1,77 +1,119 @@
-# Migração do sistema de pagamentos — produção
+# Migração FREE/PREMIUM — Checklist de Produção
 
-Esta branch remove a arquitetura antiga de assinaturas do frontend e prepara o fluxo individualizado Asaas/Stripe.
+Atualizado em 2026-09-19.
 
-## Antes de publicar
+## Estado atual
 
-### Supabase
+A arquitetura canônica já está definida e o backend de leitura comercial está implantado. A autenticação continua temporariamente no Firebase; o estado comercial está no Supabase.
 
-Atualize os Secrets existentes sem colocar valores no Git:
+Não fazer merge enquanto os gates deste documento não estiverem comprovados.
+
+## Configuração obrigatória
+
+Secrets necessários no Supabase, sem valores no Git:
 
 - `ASAAS_API_TOKEN`
 - `ASAAS_WEBHOOK_TOKEN`
-- `FIREBASE_SERVICE_ACCOUNT`
 - `FIREBASE_PROJECT_ID`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
 - `STRIPE_PRICE_USD`
 - `STRIPE_PRICE_EUR`
 
-Faça deploy das funções:
+A presença dos secrets precisa ser verificada no ambiente de execução; os valores nunca devem aparecer em logs, commits ou respostas.
 
-```text
-supabase functions deploy asaas-checkout --project-ref asjkftjfbkuuhilnqonx
-supabase functions deploy asaas-webhook --project-ref asjkftjfbkuuhilnqonx
-supabase functions deploy stripe-checkout --project-ref asjkftjfbkuuhilnqonx
-supabase functions deploy stripe-webhook --project-ref asjkftjfbkuuhilnqonx
-```
+## Preços
 
-O `supabase/config.toml` desativa a verificação JWT da plataforma nas funções que validam Firebase ID tokens ou recebem webhooks externos.
+- Brasil: R$ 10,00, Asaas.
+- Internacional: USD 5/mês ou EUR 5/mês, Stripe.
+- O frontend não escolhe preço.
+
+Os Price IDs documentados são:
+
+- USD: `price_1UEeJeAE0EBt2lxCFI56AWCx`
+- EUR: `price_1UEf7uAE0EBt2lxCmfLGGmNH`
+
+Antes da ativação, conferir no Stripe que ambos estão ativos e são recorrentes mensais.
+
+## Asaas
+
+A documentação atual do Asaas Checkout confirma `CREDIT_CARD` + `RECURRENT` para assinatura e `PIX` + `DETACHED` para cobrança avulsa. A confirmação financeira deve ocorrer por Webhook, não pelo callback.
+
+Configurar o webhook para receber os eventos necessários de Checkout, assinatura e cobrança, com `authToken` próprio e header `asaas-access-token`.
+
+O processamento deve ser idempotente pelo `event.id`.
+
+## Stripe
+
+A sessão deve usar `mode=subscription` e Price recorrente. Metadata da sessão e da assinatura deve conter o identificador interno do usuário.
+
+O webhook deve validar a assinatura usando o corpo bruto e `STRIPE_WEBHOOK_SECRET`.
+
+Para `invoice.paid`, a integração consulta a assinatura quando necessário para obter metadata e `current_period_end`. Isso evita depender de metadata que não esteja presente no objeto Invoice.
+
+## Testes obrigatórios
+
+### Autenticação
+
+- Sem Authorization → rejeitar.
+- Firebase ID token inválido → rejeitar.
+- Firebase ID token válido → permitir apenas a própria identidade.
+- UID enviado pelo cliente não pode substituir o UID do token.
+
+### Autorização
+
+- Conta Free → somente conteúdo Free.
+- Conta Premium ativa → conteúdo Premium.
+- Premium expirado → Free.
+- Falha no endpoint de billing → fail-closed para Free.
+- Query string, callback, localStorage e cookie adulterados → não concedem Premium.
+- Premium não remove anúncios.
 
 ### Asaas
 
-Mantenha o webhook ativo, v3, sequencial e com fila habilitada. O token configurado no Asaas deve ser exatamente o mesmo Secret `ASAAS_WEBHOOK_TOKEN` do Supabase.
-
-Adicione aos eventos:
-
-- `CHECKOUT_CREATED`
-- `CHECKOUT_PAID`
-- `CHECKOUT_CANCELED`
-- `CHECKOUT_EXPIRED`
-- `SUBSCRIPTION_CREATED`
-- `SUBSCRIPTION_DELETED`
-- `SUBSCRIPTION_INACTIVATED`
-- `PAYMENT_CONFIRMED`
-- `PAYMENT_RECEIVED`
-
-Depois de testar o checkout novo, desative os links públicos antigos `vcnk68nigacrape5` e `z89jgzlk57nb354p`. Eles não carregam o UID autenticado e não devem continuar em produção após a migração.
-
-O Checkout novo usa R$ 10,00 como preço oficial no Brasil. A documentação atual do Asaas Checkout aceita `CREDIT_CARD` e `PIX`; boleto não é anunciado pelo novo Checkout. Para boleto recorrente, implementar uma integração específica de assinatura via API posteriormente.
+- Checkout cartão mensal.
+- Checkout Pix 30 dias.
+- `CHECKOUT_PAID`.
+- `CHECKOUT_CANCELED`.
+- `CHECKOUT_EXPIRED`.
+- `SUBSCRIPTION_CREATED`.
+- `SUBSCRIPTION_UPDATED`.
+- `SUBSCRIPTION_INACTIVATED`.
+- `SUBSCRIPTION_DELETED`.
+- `PAYMENT_CONFIRMED`.
+- `PAYMENT_RECEIVED`.
+- `PAYMENT_REFUNDED`.
+- chargeback.
+- evento duplicado.
+- webhook com token inválido.
+- tentativa de criar checkout duplicado.
 
 ### Stripe
 
-A função `stripe-checkout` não envia mais `payment_method_types=card`; o Dashboard do Stripe controla os métodos elegíveis.
+- Checkout USD.
+- Checkout EUR.
+- `checkout.session.completed`.
+- `invoice.paid`.
+- `invoice.payment_failed`.
+- `customer.subscription.updated`.
+- `customer.subscription.deleted`.
+- assinatura duplicada.
+- evento duplicado.
+- assinatura Stripe sem metadata esperada.
+- assinatura com status não elegível.
+- assinatura cancelada.
+- replay de webhook com timestamp fora da tolerância.
 
-O Stripe continua responsável pelas 18 localizações internacionais e pelos preços USD 5/EUR 5.
+## Critério de aprovação
 
-### Rotação de credenciais
+O fluxo só pode ser considerado pronto quando:
 
-O segredo do webhook Stripe que foi exposto fora do ambiente de secrets deve ser revogado e substituído antes do próximo deploy em produção.
+- nenhum teste obrigatório falhar;
+- nenhum secret for exposto;
+- nenhum endpoint legado conceder Premium;
+- os quatro novos fluxos estiverem validados no ambiente apropriado;
+- o Supabase registrar corretamente identidade, assinatura e entitlement;
+- a autorização do frontend depender exclusivamente do estado retornado pelo backend;
+- a varredura final não encontrar concessão por Junior/Senior/Pleno/lifetime ou ad-free.
 
-## Teste de aceitação
-
-1. Criar uma conta Firebase de teste.
-2. Abrir `/conta/assinatura.html` autenticado.
-3. Confirmar que o preço brasileiro exibido é R$10,00.
-4. Clicar em cartão e verificar criação de `premiumOrders/{orderId}`.
-5. Confirmar redirecionamento para `asaas.com/checkoutSession/show?id=...`.
-6. Fazer pagamento de teste no ambiente apropriado.
-7. Confirmar `CHECKOUT_PAID` no Asaas.
-8. Confirmar `asaasEvents/{eventId}` e `premiumOrders/{orderId}`.
-9. Confirmar `users/{uid}.plan=junior` e `planExpiresAt` válido.
-10. Confirmar desaparecimento dos anúncios.
-11. Confirmar que conteúdo premium é liberado.
-12. Repetir com Pix e confirmar validade de 30 dias.
-13. Cancelar uma assinatura e confirmar que o acesso não é removido antes do vencimento do período já pago.
-14. Testar Stripe em pelo menos um idioma USD e um idioma EUR.
-15. Depois da validação, regenerar `sw.js` com `node gerar-sw.js` para eliminar referências a arquivos excluídos do precache.
+Depois disso, o PR #29 pode ser revisado para merge.
