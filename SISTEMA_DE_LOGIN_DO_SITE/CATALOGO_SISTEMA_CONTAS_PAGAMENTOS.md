@@ -1,131 +1,148 @@
-# Sistema de Contas e Pagamentos — Arquitetura Atual
+# Sistema de Contas e Pagamentos — Arquitetura Canônica
 
-Data: 2026-09-13
+Data: 2026-09-19
 
-## 1. Princípios
+## 1. Modelo comercial
 
-O site usa GitHub Pages para o frontend estático, Firebase Authentication para identidade, Firestore como fonte de verdade do plano e Supabase Edge Functions como backend de pagamentos.
+Existem somente dois estados comerciais:
 
-Existem somente dois planos efetivos:
+- `free`: conteúdo gratuito; anúncios permanecem ativos.
+- `premium`: conteúdo premium liberado; anúncios permanecem ativos.
 
-- `free` — acesso ao conteúdo gratuito, com anúncios.
-- `junior` — acesso aos conteúdos premium e navegação sem anúncios enquanto a licença estiver válida.
+Não existem mais Junior, Senior, Pleno, lifetime ou benefícios de remoção de anúncios como parte do modelo canônico. Registros históricos antigos permanecem somente para auditoria/migração e não podem conceder acesso.
 
-Não existe mais uma muralha global que envie todo usuário gratuito para a página de assinatura. O bloqueio é por conteúdo/página conforme `js/access/content-policy.js` e `js/access/access-router.js`.
+## 2. Autoridade
 
-## 2. Fonte de verdade
-
-`users/{uid}` é a fonte de verdade para o estado de acesso. O cliente não pode alterar `plan`, `role`, `permissions` ou `status` pelas regras do Firestore.
-
-Os registros operacionais de pagamento são privados:
-
-- `premiumOrders/{orderId}` — pedido criado antes do checkout.
-- `asaasCustomers/{customerId}` — associação estável Asaas customer ↔ Firebase UID.
-- `asaasSubscribers/{orderId}` — registro administrativo do assinante.
-- `asaasEvents/{eventId}` — idempotência e estado do processamento do webhook.
-- `users/{uid}/subscriptions/{subscriptionId}` — histórico controlado pelo backend.
-
-## 3. Brasil — Asaas
-
-Preço oficial: **R$ 10,00**.
-
-### Cartão de crédito
-
-É uma assinatura recorrente mensal.
+- Firebase Authentication permanece temporariamente como autoridade de identidade, para preservar as contas existentes.
+- Supabase é a autoridade comercial: `billing_identities`, `billing_subscriptions` e `user_entitlements`.
+- O cliente nunca grava entitlement diretamente.
+- Callbacks, query strings, localStorage e cookies nunca concedem Premium.
+- Somente eventos autenticados dos provedores podem alterar o entitlement.
 
 Fluxo:
 
-1. Usuário autenticado abre `/conta/assinatura.html`.
-2. Frontend obtém o Firebase ID token.
-3. `POST /asaas-checkout` recebe `kind=monthly_card`.
-4. A Edge Function valida o token, obtém `uid`, e-mail e nome e cria `premiumOrders/{orderId}`.
-5. A Edge Function cria `POST /v3/checkouts` no Asaas com `billingTypes=[CREDIT_CARD]`, `chargeTypes=[RECURRENT]`, valor R$10,00 e `externalReference=premium_junior_{orderId}`.
-6. O frontend redireciona para o checkout individual retornado pelo Asaas.
-7. O Asaas envia Webhooks.
-8. O backend reconcilia pelo `externalReference`; nunca depende de pesquisa de UID por e-mail.
+1. Firebase autentica.
+2. Edge Function valida o Firebase ID token.
+3. O backend resolve `billing_identities`.
+4. O backend lê/escreve o estado comercial no Supabase.
+5. Webhooks do provedor confirmam pagamento, renovação, cancelamento ou estorno.
+6. `billing-access` devolve somente o estado comercial necessário ao frontend.
 
-### Pix
+## 3. Brasil — Asaas
 
-Pagamento único com validade de 30 dias.
+- Idioma: `pt` / pt-BR.
+- Preço operacional definido no projeto: R$ 10,00.
+- Cartão: assinatura recorrente mensal.
+- Pix: cobrança avulsa com acesso Premium por 30 dias.
 
-Fluxo igual ao anterior, mas `kind=pix_30d`, `billingTypes=[PIX]` e `chargeTypes=[DETACHED]`.
+A criação usa `POST /v3/checkouts`. O backend grava uma intenção em `billing_subscriptions` antes da chamada ao provedor e reconcilia por `externalReference`.
 
-O Checkout oficial do Asaas aceita `CREDIT_CARD` e `PIX`; não deve ser anunciado como um único Checkout de cartão + boleto. Consulte a configuração vigente do produto antes de anunciar boleto.
+O Checkout não confirma pagamento. A confirmação é feita por Webhook.
 
-## 4. Eventos Asaas
-
-O webhook deve estar ativo em produção e autenticado pelo header `asaas-access-token`.
-
-Eventos usados pelo backend:
+Eventos relevantes:
 
 - `CHECKOUT_CREATED`
 - `CHECKOUT_PAID`
 - `CHECKOUT_CANCELED`
 - `CHECKOUT_EXPIRED`
 - `SUBSCRIPTION_CREATED`
-- `SUBSCRIPTION_DELETED`
+- `SUBSCRIPTION_UPDATED`
 - `SUBSCRIPTION_INACTIVATED`
+- `SUBSCRIPTION_DELETED`
 - `PAYMENT_CONFIRMED`
 - `PAYMENT_RECEIVED`
+- `PAYMENT_REFUNDED`
+- eventos de chargeback relevantes
 
-O evento é persistido por seu `id` para idempotência. O processamento ocorre após a aceitação do evento; falhas são registradas como `error` em `asaasEvents`.
+O webhook valida `asaas-access-token` e usa idempotência pelo `event.id`.
 
-## 5. Internacional — Stripe
+## 4. Internacional — Stripe
 
-Preços ativos:
+Os 18 idiomas internacionais utilizam Stripe:
+
+`en, es, fr, de, it, hi, zh, ja, ru, ko, tr, nl, pl, sv, id, vi, uk, ar`.
+
+Preços configurados no projeto/documentação:
 
 - USD 5/mês: `price_1UEeJeAE0EBt2lxCFI56AWCx`
 - EUR 5/mês: `price_1UEf7uAE0EBt2lxCmfLGGmNH`
 
-O frontend mantém as 18 localizações do site. A Edge Function `stripe-checkout` escolhe USD/EUR pelo idioma, valida o Firebase ID token e envia `client_reference_id=uid` e `subscription_data.metadata.uid=uid`.
+A Edge Function seleciona o Price pelo idioma e o servidor envia o Price ID ao Stripe. O frontend não define preço ou moeda.
 
-A criação do Checkout não lista manualmente `payment_method_types`; o Stripe Dashboard gerencia os métodos dinâmicos elegíveis. Isso evita o erro observado de `No valid payment method types for this Checkout Session`.
+A sessão usa `mode=subscription`, `client_reference_id` e metadata na sessão e na assinatura. O webhook usa o corpo bruto para validar `Stripe-Signature`, idempotência por event ID e consulta a assinatura no Stripe quando necessário para obter metadata e `current_period_end`.
 
-## 6. Edge Functions
+Eventos principais:
 
-- `asaas-checkout` — cria checkout individual autenticado para o Brasil.
-- `asaas-webhook` — recebe, persiste e processa eventos Asaas.
-- `asaas-admin` — leitura administrativa de `asaasSubscribers`.
-- `stripe-checkout` — cria Checkout Session internacional autenticada.
-- `stripe-webhook` — ativa/renova/revoga o plano a partir dos eventos Stripe.
+- `checkout.session.completed`
+- `invoice.paid`
+- `invoice.payment_failed`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
 
-Os segredos ficam somente no ambiente do Supabase.
+Falha de pagamento não concede nem estende acesso. O acesso já pago não é revogado antecipadamente apenas por `invoice.payment_failed`; a decisão final de encerramento ocorre pelo estado da assinatura/evento de término.
 
-## 7. Acesso premium
+## 5. Banco de dados
 
-`js/auth/auth-core.js` administra autenticação e perfil, mas não redireciona automaticamente usuários gratuitos para a assinatura.
+`billing_identities` vincula Firebase UID à identidade comercial.
 
-`js/auth/authorization.js` considera `lifetime=true` ou um `junior` ainda dentro de `planExpiresAt` como acesso premium efetivo.
+`billing_subscriptions` guarda uma linha operacional por assinatura/checkout, com provedor, referência externa, status, períodos e metadata.
 
-`js/access/content-policy.js` define quais conteúdos exigem `junior`.
+`user_entitlements` guarda o estado efetivo:
 
-`global-scripts.js` usa `Authorization.hasPlan("premium")` para remover anúncios do assinante.
+- `free`
+- `premium`
 
-## 8. Página de assinatura
+RLS está habilitado nas tabelas comerciais e o acesso direto de cliente é bloqueado; o backend utiliza service role.
 
-`conta/assinatura.html` carrega explicitamente `auth-user-profile.js` e seus módulos necessários. Não utiliza mais a antiga cadeia `js/subscriptions/*`.
+`payments` e dados históricos legados não são apagados nesta etapa.
 
-A página registra eventos de funil em GA4:
+## 6. Segurança
 
-- `subscription_view`
-- `subscription_checkout_click`
-- `subscription_checkout_created`
-- `subscription_checkout_error`
+Nunca colocar em Git ou frontend:
 
-## 9. Regras de segurança
+- `ASAAS_API_TOKEN`
+- `ASAAS_WEBHOOK_TOKEN`
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- credenciais de service account do Firebase
 
-- Nunca coloque `ASAAS_API_TOKEN`, `ASAAS_WEBHOOK_TOKEN`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` ou service account no frontend.
-- O frontend envia somente o Firebase ID token e a anon key pública do Supabase.
-- O plano não é concedido por escrita direta do cliente no Firestore.
-- Webhooks são a autoridade para confirmação financeira; callbacks do navegador não concedem acesso.
+O webhook Stripe valida assinatura e timestamp. O webhook Asaas valida o token próprio do webhook. A autenticação de checkout valida o Firebase ID token no servidor.
 
-## 10. Operação
+## 7. Estado de produção nesta etapa
 
-Antes de ativar uma mudança de pagamento em produção:
+Já implantado:
 
-1. Faça o deploy das Edge Functions.
-2. Atualize os Secrets do Supabase.
-3. Configure no Asaas os eventos de Checkout, assinatura e cobrança usados pelo backend.
-4. Faça um pagamento de teste controlado.
-5. Confirme a cadeia `premiumOrders → webhook → users/{uid}.plan → acesso premium`.
-6. Só depois desative os links públicos antigos do Asaas e remova referências administrativas antigas.
+- `billing-access`
+- `billing-admin`
+- `grant-access` legado desativado com HTTP 410
+- `asaas-admin` legado desativado com HTTP 410
+
+Ainda não implantado:
+
+- novo `asaas-checkout`
+- novo `asaas-webhook`
+- novo `stripe-checkout`
+- novo `stripe-webhook`
+
+Essas quatro funções permanecem como código de branch até que secrets, preços, endpoints de webhook e testes E2E sejam comprovados.
+
+## 8. Gate de produção
+
+Antes do deploy dos quatro fluxos:
+
+1. Confirmar secrets no ambiente Supabase sem expor valores.
+2. Confirmar Price IDs e moeda/recorrência no Stripe.
+3. Confirmar webhook Asaas v3, token próprio, envio sequencial e eventos necessários.
+4. Validar compilação/sintaxe das quatro Edge Functions.
+5. Testar autenticação sem token, token inválido e token válido.
+6. Testar Free e Premium.
+7. Testar duplicidade de checkout e webhook.
+8. Testar Asaas cartão, Pix, renovação, cancelamento, expiração, reembolso e chargeback.
+9. Testar Stripe em pelo menos um idioma USD e um idioma EUR, incluindo renovação, falha de pagamento e cancelamento.
+10. Confirmar que callback nunca concede acesso.
+11. Confirmar que adulteração de localStorage/cookie/query string não concede acesso.
+12. Confirmar que anúncios permanecem ativos em Free e Premium.
+13. Somente depois ativar os novos webhooks/checkout em produção.
+14. Executar varredura final de referências legadas.
+15. Somente então avaliar aprovação e merge do PR #29.
