@@ -180,7 +180,7 @@ Esta pontuação correlaciona-se com a idade gestacional de
 </button>
 
 <div id="dadosBody" class="hidden px-6 pb-6 pt-2 border-t border-gray-100">
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-4">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 mt-4" style="display:none">
 <div class="lg:col-span-2">
 <label class="block text-xs font-bold text-gray-600 uppercase tracking-wide mb-1.5">RN de (Nome da Mãe)</label>
 <input type="text" id="nome_rn" class="w-full p-3.5 rounded-xl bg-gray-50 border-transparent shadow-[0_2px_10px_rgba(26,62,116,0.06)] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#1A3E74]/30 transition-all font-medium text-gray-800" placeholder="Ex: RN de Maria Silva" />
@@ -700,7 +700,8 @@ let linhasMemoria = "";
 ballardData.forEach((sec) => {
 sec.itens.forEach((c) => {
 const valorMarcado = estado[c.id];
-const op = c.opcoes.find((o) => o.val === valorMarcado);
+const opcoesMemoria = c.id === "genitalia" ? (document.getElementById("sexo_ballard")?.value === "M" ? c.opcoesMasculino : c.opcoesFeminino) : c.opcoes;
+const op = (opcoesMemoria || []).find((o) => o.val === valorMarcado);
 linhasMemoria += `
 <tr class="hover:bg-blue-50/30 transition-colors border-b border-gray-100">
 <td class="p-3 text-xs text-gray-500 uppercase">${sec.categoria.replace("Maturidade ", "")}</td>
@@ -755,7 +756,7 @@ document.getElementById("nome_rn").value = "";
 document.getElementById("prontuario").value = "";
 document.getElementById("berco").value = "";
 document.getElementById("avaliador").value = "";
-if (document.getElementById("sexo_ballard")) { document.getElementById("sexo_ballard").value = ""; const gen = ballardData[1].itens.find(x => x.id === "genitalia"); if (gen) gen.opcoes = []; }
+if (document.getElementById("sexo_ballard")) { document.getElementById("sexo_ballard").value = ""; const gen = ballardData[1].itens.find(x => x.id === "genitalia"); if (gen) gen.opcoes = []; renderizarItens(); }
 
 const containerResult = document.getElementById("resultado-container");
 containerResult.classList.remove("opacity-100");
