@@ -18,7 +18,10 @@
     return !Number.isNaN(expires.getTime()) && expires.getTime() > Date.now();
   }
   function getRole() { var p = _profile(); return p && p.role ? p.role : (_user() ? "user" : "guest"); }
-  function getPlan() { var p = _profile(); if (!p || !_premiumStillValid(p)) return "free"; return p.plan || "free"; }
+  function getPlan() {
+    if (window.AuthorizationModules.planService && window.AuthorizationModules.planService.PREMIUM_ENABLED === false) return "free";
+    var p = _profile(); if (!p || !_premiumStillValid(p)) return "free"; return p.plan || "free";
+  }
   function getPermissions() {
     var uid = _uid(), cache = window.AuthorizationModules.permissionCache, cached = cache ? cache.get(uid) : null;
     if (cached) return cached;
@@ -27,7 +30,11 @@
     return resolved;
   }
   function hasRole(name) { return window.AuthorizationModules.roleService.has(getRole(), name); }
-  function hasPlan(name) { if (name === "premium") return getPlan() === "junior"; return window.AuthorizationModules.planService.hasPlan(getPlan(), name); }
+  function hasPlan(name) {
+    if (window.AuthorizationModules.planService && window.AuthorizationModules.planService.PREMIUM_ENABLED === false) return true;
+    if (name === "premium") return getPlan() === "junior";
+    return window.AuthorizationModules.planService.hasPlan(getPlan(), name);
+  }
   function hasPermission(name) { return getPermissions().indexOf(name) !== -1; }
   function can(permission) { return hasPermission(permission) || hasRole("administrator"); }
   function canAccess(req) {

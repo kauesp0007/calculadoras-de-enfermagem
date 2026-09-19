@@ -82,28 +82,8 @@
   }
 
   function _syncAdStateFromProfile(profile) {
-    if (!profile) {
-      return;
-    }
-
-    var isLifetime = profile.lifetime === true;
-    var hasJunior = profile.plan === "junior";
-    var expiresOk = true;
-
-    if (hasJunior && profile.planExpiresAt) {
-      try {
-        var expires = profile.planExpiresAt instanceof Date
-          ? profile.planExpiresAt
-          : (typeof profile.planExpiresAt.toDate === "function"
-              ? profile.planExpiresAt.toDate()
-              : new Date(profile.planExpiresAt));
-        expiresOk = !Number.isNaN(expires.getTime()) && expires.getTime() > Date.now();
-      } catch (_) {
-        expiresOk = false;
-      }
-    }
-
-    _setAdState(isLifetime || (hasJunior && expiresOk) ? "premium" : "free");
+    // Premium temporariamente desativado: anúncios liberados para todos.
+    _setAdState("free");
   }
 
   async function init() {
@@ -200,9 +180,8 @@
   }
 
   function hasPlan(planName) {
-    if (!_currentPlan) return false;
-    if (planName === "premium") return _currentPlan === "junior";
-    return _currentPlan === planName;
+    // Premium temporariamente desativado: todos têm acesso total.
+    return true;
   }
 
   function hasPermission(permission) {

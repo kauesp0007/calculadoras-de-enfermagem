@@ -14,11 +14,12 @@
 
   window.AuthModules = window.AuthModules || {};
 
+  // Premium temporariamente desativado: free tem os mesmos acessos do junior.
   var PLAN_PERMISSIONS = {
     free: {
-      canAccessPremium: false,
-      canDownload: false,
-      canViewCertificates: false,
+      canAccessPremium: true,
+      canDownload: true,
+      canViewCertificates: true,
       canSaveFavorites: true,
       canViewHistory: true
     },

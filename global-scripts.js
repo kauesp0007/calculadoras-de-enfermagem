@@ -1230,19 +1230,7 @@ var PREMIUM_AD_FREE_PLANS = ["junior", "pleno", "senior"];
  * do perfil como fallback antes do auth carregar.
  */
 function isPremiumSubscriber() {
-  if (window.Authorization && window.Authorization.hasPlan) {
-    return window.Authorization.hasPlan("premium");
-  }
-  try {
-    var keys = ["auth_user_profile_cache", "auth_profile"];
-    for (var i = 0; i < keys.length; i++) {
-      var raw = localStorage.getItem(keys[i]);
-      if (!raw) continue;
-      var obj = JSON.parse(raw);
-      var plan = (obj && obj.data && obj.data.plan) || (obj && obj.plan) || null;
-      if (plan && PREMIUM_AD_FREE_PLANS.indexOf(plan) !== -1) return true;
-    }
-  } catch (e) { /* ignora */ }
+  // Premium temporariamente desativado: anúncios liberados para todos.
   return false;
 }
 

@@ -35,7 +35,6 @@
     function all() { return ALL.slice(); }
 
     function resolve(profile) {
-        if (!profile) return [];
         var set = {};
         function add(permission) {
             if (permission === "ALL") {
@@ -44,6 +43,13 @@
             }
             if (permission) set[permission] = true;
         }
+
+        // Premium desativado: todos (inclusive visitantes) têm as permissões de plano.
+        if (window.AuthorizationModules.planService && window.AuthorizationModules.planService.PREMIUM_ENABLED === false) {
+            window.AuthorizationModules.planService.permissionsFor("free").forEach(add);
+        }
+
+        if (!profile) return Object.keys(set);
 
         if (window.AuthorizationModules.roleService) {
             window.AuthorizationModules.roleService.permissionsFor(profile.role).forEach(add);

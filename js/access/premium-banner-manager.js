@@ -26,18 +26,8 @@
     }
 
     function isPremiumProfile(profile) {
-        try {
-            if (!profile) return false;
-            if (profile.lifetime === true) return true;
-            if (profile.plan !== "junior") return false;
-            if (!profile.planExpiresAt) return true;
-            var date = typeof profile.planExpiresAt.toDate === "function"
-                ? profile.planExpiresAt.toDate()
-                : new Date(profile.planExpiresAt);
-            return !isNaN(date.getTime()) && date.getTime() > Date.now();
-        } catch (_) {
-            return true;
-        }
+        // Premium temporariamente desativado: todos tratados como free.
+        return false;
     }
 
     function authStateResolvedForAds() {
@@ -69,7 +59,7 @@
             var consent = localStorage.getItem("cookieConsent");
             if (consent === "refused") return false;
             if (consent === "managed" && localStorage.getItem("ad_storage") === "denied") return false;
-        } catch (_) {}
+        } catch (_) { }
         return true;
     }
 
