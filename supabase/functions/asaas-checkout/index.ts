@@ -1,23 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-
-const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
-const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
-const ASAAS_API_TOKEN=Deno.env.get("ASAAS_API_TOKEN")??"";
-const ASAAS_WEBHOOK_TOKEN=Deno.env.get("ASAAS_WEBHOOK_TOKEN")??"";
-const ASAAS_API="https://api.asaas.com/v3";
-const SITE="https://www.calculadorasdeenfermagem.com.br";
-const PRICE_BRL=10;
-const headers={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
-const admin=()=>createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-async function user(req:Request){const h=req.headers.get("Authorization")||"";if(!h.startsWith("Bearer "))throw new Error("unauthorized");const {data,error}=await admin().auth.getUser(h.slice(7));if(error||!data.user)throw new Error("unauthorized");return data.user;}
-async function asaas(path:string,init:RequestInit={}){if(!ASAAS_API_TOKEN)throw new Error("asaas_not_configured");const r=await fetch(ASAAS_API+path,{...init,headers:{access_token:ASAAS_API_TOKEN,"Content-Type":"application/json",...(init.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error("asaas_"+r.status);return d;}
-serve(async req=>{if(req.method==="OPTIONS")return new Response("",{status:204,headers});if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers});try{
- const u=await user(req);const body=await req.json().catch(()=>({}));const kind=String(body?.kind||"monthly_card");const lang=String(body?.lang||"pt").toLowerCase();if(lang!=="pt"&&lang!=="pt-br")throw new Error("asaas_somente_pt_br");if(!["monthly_card","pix_30d"].includes(kind))throw new Error("tipo_checkout_invalido");
- const {data:ent}=await admin().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",u.id).maybeSingle();if(ent?.plan==="premium"&&(!ent.premium_expires_at||new Date(ent.premium_expires_at)>new Date()))throw new Error("already_premium");
- const ref="premium_"+crypto.randomUUID();const recurring=kind==="monthly_card";
- const payload:any={billingTypes:recurring?["CREDIT_CARD"]:["PIX"],chargeTypes:recurring?["RECURRENT"]:["DETACHED"],minutesToExpire:60,externalReference:ref,callback:{cancelUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=cancel`,expiredUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=expired`,successUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=success`},items:[{externalReference:ref,name:"Premium",description:recurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],customerData:{name:String(u.user_metadata?.full_name||u.email||"Cliente"),email:String(u.email||"")}};
+import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
+const URL=Deno.env.get("SUPABASE_URL")??"",KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"",ASAAS=Deno.env.get("ASAAS_API_TOKEN")??"",FB=Deno.env.get("FIREBASE_PROJECT_ID")??"calculadoras-enfermagem",SITE="https://www.calculadorasdeenfermagem.com.br",PRICE_BRL=10;
+const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
+const H={"Access-Control-Allow-Origin":"*","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
+const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+async function firebaseUser(req:Request){const h=req.headers.get("Authorization")||"";if(!h.startsWith("Bearer "))throw new Error("unauthorized");const {payload}=await jwtVerify(h.slice(7).trim(),JWKS,{algorithms:["RS256"],issuer:\`https://securetoken.google.com/\${FB}\`,audience:FB});const uid=String(payload.sub||"").trim();if(!uid)throw new Error("unauthorized");return{uid,email:payload.email?String(payload.email):null,name:payload.name?String(payload.name):null};}
+async function identity(u:{uid:string,email:string|null}){const {data,error}=await db().from("billing_identities").upsert({provider:"firebase",external_subject:u.uid,email:u.email,updated_at:new Date().toISOString()},{onConflict:"provider,external_subject"}).select("id").single();if(error||!data)throw new Error("identity_unavailable");return data.id as string;}
+async function asaas(path:string,init:RequestInit={}){if(!ASAAS)throw new Error("asaas_not_configured");const r=await fetch("https://api.asaas.com/v3"+path,{...init,headers:{access_token:ASAAS,"Content-Type":"application/json",...(init.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error("asaas_"+r.status);return d;}
+serve(async req=>{if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});try{
+ const u=await firebaseUser(req),id=await identity(u),body=await req.json().catch(()=>({})),kind=String(body?.kind||"monthly_card"),lang=String(body?.lang||"pt").toLowerCase();
+ if(!["pt","pt-br"].includes(lang)||!["monthly_card","pix_30d"].includes(kind))throw new Error("invalid_checkout");
+ const {data:ent}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();if(ent?.plan==="premium"&&(!ent.premium_expires_at||new Date(ent.premium_expires_at)>new Date()))throw new Error("already_premium");
+ const ref="premium_"+crypto.randomUUID(),recurring=kind==="monthly_card";
+ const payload:any={billingTypes:recurring?["CREDIT_CARD"]:["PIX"],chargeTypes:recurring?["RECURRENT"]:["DETACHED"],minutesToExpire:60,externalReference:ref,callback:{cancelUrl:\`\${SITE}/conta/assinatura.html?lang=pt&asaas=cancel\`,expiredUrl:\`\${SITE}/conta/assinatura.html?lang=pt&asaas=expired\`,successUrl:\`\${SITE}/conta/assinatura.html?lang=pt&asaas=success\`},items:[{name:"Premium",description:recurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],customerData:{name:u.name||u.email||"Cliente",email:u.email||""}};
  if(recurring)payload.subscription={cycle:"MONTHLY"};
- await admin().from("billing_subscriptions").insert({user_id:u.id,provider:"asaas",external_id:ref,status:"checkout_pending",plan:"premium",currency:"BRL",metadata:{kind,lang}});\n const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
- return new Response(JSON.stringify({url:String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(String(checkout?.id||""))}`),checkoutId:checkout?.id||null,externalReference:ref}),{status:200,headers});
-}catch(e){return new Response(JSON.stringify({error:String((e as Error)?.message||e)}),{status:400,headers});}});
+ const ins=await db().from("billing_subscriptions").insert({user_id:id,provider:"asaas",external_id:ref,status:"checkout_pending",plan:"premium",currency:"BRL",metadata:{kind,lang}});if(ins.error)throw ins.error;
+ const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
+ return new Response(JSON.stringify({url:\`https://asaas.com/checkoutSession/show?id=\${encodeURIComponent(String(checkout?.id||""))}\`,checkoutId:checkout?.id||null,externalReference:ref}),{status:200,headers:H});
+}catch(e){const msg=String((e as Error)?.message||e);return new Response(JSON.stringify({error:msg}),{status:400,headers:H});}});
