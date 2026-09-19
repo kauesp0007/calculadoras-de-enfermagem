@@ -8,7 +8,7 @@ Applied to Supabase project `asjkftjfbkuuhilnqonx` on 2026-09-19.
 - No commercial Junior/Senior/Pleno/lifetime tiers.
 
 ## Identity bridge
-Firebase Auth remains the login authority during the controlled migration so existing accounts are not broken. Billing does not trust Firebase/Firestore plan fields.
+Firebase Auth remains the login authority during the controlled migration so existing accounts are not broken. Billing does not trust Firebase/Firestore plan fields. Obsolete public billing RPCs were removed after the bridge was implemented.
 
 Supabase now stores:
 - `billing_identities`: stable internal billing identity, currently mapped from Firebase UID; future field `supabase_user_id` permits controlled migration.
