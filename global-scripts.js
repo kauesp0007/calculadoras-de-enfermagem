@@ -1301,6 +1301,82 @@ function initializeMultiplexAds() {
   });
 }
 
+/* =========================
+   Injeção Dinâmica: Anúncio Display Horizontal (Pré-Hero)
+   ========================= */
+var __preHeroAdInjected = false;
+
+// Pastas/arquivos proibidos não recebem o anúncio pré-hero.
+function isForbiddenAdPath() {
+  var p = window.location.pathname;
+  if (/^\/(downloads|biblioteca|blog|blog-templates)(\/|$)/.test(p)) return true;
+  if (/\/downloads\.html$/.test(p)) return true;
+  return false;
+}
+
+// Localiza o container do hero (que contém o <h1>) para inserir o anúncio antes dele.
+function findHeroContainer(h1) {
+  var node = h1.parentElement;
+  var lastWrapper = null;
+  while (node && node !== document.body && node !== document.documentElement) {
+    var cls = (typeof node.className === 'string') ? node.className : '';
+    if (node.tagName === 'SECTION' || node.tagName === 'HEADER') return node;
+    if (/mini-hero|card-navy|hero-navy|gradient-hero|hero-card|hero-banner/i.test(cls)) return node;
+    if (node.tagName === 'MAIN' || node.tagName === 'ARTICLE') break;
+    lastWrapper = node;
+    node = node.parentElement;
+  }
+  return lastWrapper || h1.parentElement || h1;
+}
+
+// Injeta o bloco de anúncio (com espaço reservado anti-CLS) antes do hero.
+function injectPreHeroAd() {
+  if (__preHeroAdInjected) return;
+  if (isPremiumSubscriber()) return;
+  if (localStorage.getItem('admin_mode') === 'true') return;
+  if (isForbiddenAdPath()) return;
+
+  var h1 = document.querySelector('h1');
+  if (!h1) return;
+
+  var hero = findHeroContainer(h1);
+  if (!hero || !hero.parentNode) return;
+
+  if (hero.parentNode.querySelector('.pre-hero-ad')) return;
+
+  var wrap = document.createElement('div');
+  wrap.className = 'no-print pre-hero-ad';
+  wrap.setAttribute('aria-hidden', 'true');
+  wrap.style.cssText = 'min-height:100px;width:100%;margin-bottom:24px;text-align:center;';
+
+  var ins = document.createElement('ins');
+  ins.className = 'adsbygoogle';
+  ins.style.cssText = 'display:block;min-height:90px;';
+  ins.setAttribute('data-ad-client', 'ca-pub-6472730056006847');
+  ins.setAttribute('data-ad-slot', '2979726942');
+  ins.setAttribute('data-ad-format', 'horizontal');
+  ins.setAttribute('data-full-width-responsive', 'true');
+
+  wrap.appendChild(ins);
+  hero.parentNode.insertBefore(wrap, hero);
+  __preHeroAdInjected = true;
+}
+
+// Dispara o push do AdSense para o anúncio pré-hero (data-ad-slot 2979726942).
+function initializePreHeroAds() {
+  if (isPremiumSubscriber()) return;
+  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="2979726942"]').forEach(function (ad) {
+    if (ad.dataset.preheroInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
+    ad.dataset.preheroInitialized = "true";
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (error) {
+      delete ad.dataset.preheroInitialized;
+      console.warn("Falha ao inicializar o AdSense Pré-Hero:", error);
+    }
+  });
+}
+
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
    ========================================================= */
@@ -1321,6 +1397,11 @@ function initLazyLoadServices() {
     var isRefused = (savedConsent === "refused");
     var isManaged = (savedConsent === "managed");
     var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+    // Injeção do anúncio pré-hero (antes do hero card), com anti-CLS
+    if (!adsBlocked && !isPremiumSubscriber()) {
+      injectPreHeroAd();
+    }
 
     window.__metricsLoaded = false;
     window.__adsenseLoaded = false;
@@ -1370,8 +1451,14 @@ function initLazyLoadServices() {
 
       var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
       if (existingAdSense) {
-        existingAdSense.addEventListener("load", initializeMultiplexAds, { once: true });
-        if (existingAdSense.dataset.loaded === "true") initializeMultiplexAds();
+        existingAdSense.addEventListener("load", function () {
+          initializeMultiplexAds();
+          initializePreHeroAds();
+        }, { once: true });
+        if (existingAdSense.dataset.loaded === "true") {
+          initializeMultiplexAds();
+          initializePreHeroAds();
+        }
         return;
       }
 
@@ -1382,6 +1469,7 @@ function initLazyLoadServices() {
       ad.addEventListener("load", function () {
         ad.dataset.loaded = "true";
         initializeMultiplexAds();
+        initializePreHeroAds();
       }, { once: true });
       document.head.appendChild(ad);
       console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
@@ -1440,6 +1528,7 @@ function initLazyLoadServices() {
       gtag("consent", "update", consent);
       if (consent.ad_storage === "granted") {
         adsBlocked = false;
+        injectPreHeroAd();
         onUserInteraction();
       } else {
         adsBlocked = true;
