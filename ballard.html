@@ -556,7 +556,7 @@ btn.className = `btn-opcao-${critId} py-2 px-1 text-[10px] sm:text-xs font-bold 
 });
 
 // Ativar botão clicado
-const btnAtivo = document.getElementById(`btn-${critId}-${variante ? variante + "-" : ""}${valor}`);
+const btnAtivo = document.getElementById(`btn-${critId}-${valor}`);
 btnAtivo.className = `btn-opcao-${critId} py-2 px-1 text-[10px] sm:text-xs font-black rounded-lg border-none shadow-[0_4px_12px_rgba(26,62,116,0.25)] text-[#1A3E74] bg-blue-100 transition-all flex flex-col items-center justify-center text-center leading-tight transform scale-[1.05] z-10`;
 
 // Ativar Barra
@@ -574,7 +574,7 @@ ballardData.forEach((seccao, index) => {
 const containerAlvo = index === 0 ? containerNeuro : containerFisico;
 
 seccao.itens.forEach((crit) => {
-estado[crit.id] = null;
+if (!(crit.id in estado)) estado[crit.id] = null;
 
 const critDiv = document.createElement("div");
 critDiv.className = "bg-white rounded-2xl p-5 shadow-[0_8px_24px_rgba(26,62,116,0.08)] flex flex-col justify-between transition-transform hover:-translate-y-1 relative overflow-hidden group";
@@ -665,6 +665,8 @@ cuidadosHTML = `
 `;
 }
 
+cuidadosHTML = "<li>O escore estima maturidade/idade gestacional; não determina horas de cuidado nem conduta terapêutica.</li>";
+horasText = "";
 resultadoAvaliacao.classificacao = classif;
 
 // Atualizar Hero Result
@@ -741,6 +743,7 @@ document.getElementById("nome_rn").value = "";
 document.getElementById("prontuario").value = "";
 document.getElementById("berco").value = "";
 document.getElementById("avaliador").value = "";
+if (document.getElementById("sexo_ballard")) { document.getElementById("sexo_ballard").value = ""; const gen = ballardData[1].itens.find(x => x.id === "genitalia"); if (gen) gen.opcoes = []; }
 
 const containerResult = document.getElementById("resultado-container");
 containerResult.classList.remove("opacity-100");
@@ -767,7 +770,8 @@ let tableRows = "";
 ballardData.forEach((sec) => {
 sec.itens.forEach((c) => {
 const val = estado[c.id];
-const op = c.opcoes.find((o) => o.val === val);
+const opcoesExport = c.id === "genitalia" ? (document.getElementById("sexo_ballard")?.value === "M" ? c.opcoesMasculino : c.opcoesFeminino) : c.opcoes;
+const op = (opcoesExport || []).find((o) => o.val === val);
 tableRows += `<tr><td style="font-size: 8pt; color: #666;">${sec.categoria.replace("Maturidade ", "")}</td><td>${c.titulo.replace(/^\d+\.\s*/, "")}</td><td>${op ? op.text : "-"}</td><td style="text-align:center; font-weight:bold; color:#1A3E74;">${val}</td></tr>`;
 });
 });
@@ -899,6 +903,13 @@ janela.document.close();
 
 // Inicialização dos Eventos
 document.getElementById("btnCalcular").addEventListener("click", calcular);
+document.getElementById("sexo_ballard")?.addEventListener("change", function(){
+const sexo = this.value;
+const gen = ballardData[1].itens.find(x => x.id === "genitalia");
+if (gen) gen.opcoes = sexo === "M" ? gen.opcoesMasculino : (sexo === "F" ? gen.opcoesFeminino : []);
+estado.genitalia = null;
+renderizarItens();
+});
 document.getElementById("btnLimpar").addEventListener("click", limpar);
 document.getElementById("btnGerarPDF").addEventListener("click", function() {
 const btn = this;
