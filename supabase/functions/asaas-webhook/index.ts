@@ -109,13 +109,20 @@ serve(async req=>{
       if(u.error)throw u.error;
       if(metadata.checkout_paid===true&&String(subscription?.status||"").toUpperCase()==="ACTIVE")await setPremium({...sub,metadata},expiry,metadata);
     }else if(event==="PAYMENT_CONFIRMED"||event==="PAYMENT_RECEIVED"){
-      const expiry=addDays(30);
+      let expiry=addDays(30);
+      const paymentSubId=String(payment?.subscription||metadata.provider_subscription_id||"");
+      if(paymentSubId){
+        const remote=await asaasGet(`/subscriptions/${encodeURIComponent(paymentSubId)}`);
+        if(remote?.nextDueDate)expiry=iso(String(remote.nextDueDate)+"T23:59:59-03:00")||expiry;
+        metadata.provider_subscription_id=paymentSubId;
+        metadata.asaas_customer_id=String(remote?.customer||customerId||metadata.asaas_customer_id||"");
+      }
       await setPremium({...sub,metadata},expiry,metadata);
     }else if(["CHECKOUT_CANCELED","CHECKOUT_EXPIRED"].includes(event)){
       await setFree({...sub,metadata},event);
     }else if(["SUBSCRIPTION_INACTIVATED","SUBSCRIPTION_DELETED"].includes(event)){
       await setFree({...sub,metadata},event);
-    }else if(["PAYMENT_REFUNDED","PAYMENT_PARTIALLY_REFUNDED","PAYMENT_CHARGEBACK_REQUESTED"].includes(event)){
+    }else if(["PAYMENT_REFUNDED","PAYMENT_PARTIALLY_REFUNDED","PAYMENT_CHARGEBACK_REQUESTED","PAYMENT_CHARGEBACK_DISPUTE"].includes(event)){
       await setFree({...sub,metadata},event);
     }
 
