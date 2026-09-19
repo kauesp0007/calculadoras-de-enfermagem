@@ -1,6 +1,6 @@
 /*
  * Guarda canônica de publicidade.
- * Regra: assinantes Júnior/lifetime nunca devem permitir AdSense.
+ * Regra: assinantes Premium continuam permitindo AdSense.
  * Estado autenticado não resolvido é tratado como bloqueado.
  */
 (function (window, document) {
