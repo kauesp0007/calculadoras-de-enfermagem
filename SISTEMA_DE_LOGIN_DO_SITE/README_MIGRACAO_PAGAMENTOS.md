@@ -14,6 +14,7 @@ Secrets necessários no Supabase, sem valores no Git:
 
 - `ASAAS_API_TOKEN`
 - `ASAAS_WEBHOOK_TOKEN`
+- `ASAAS_PRICE_BRL`
 - `FIREBASE_PROJECT_ID`
 - `STRIPE_SECRET_KEY`
 - `STRIPE_WEBHOOK_SECRET`
