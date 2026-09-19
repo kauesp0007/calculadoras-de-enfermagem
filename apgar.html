@@ -462,13 +462,12 @@ Preenchido: <span id="contadorPreenchidos" class="text-blue-600">0</span>/5
 <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 512" class="text-navy text-lg" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M142.4 21.9c5.6 16.8-3.5 34.9-20.2 40.5L96 71.1 96 192c0 53 43 96 96 96s96-43 96-96l0-120.9-26.1-8.7c-16.8-5.6-25.8-23.7-20.2-40.5s23.7-25.8 40.5-20.2l26.1 8.7C334.4 19.1 352 43.5 352 71.1L352 192c0 77.2-54.6 141.6-127.3 156.7C231 404.6 278.4 448 336 448c61.9 0 112-50.1 112-112l0-70.7c-28.3-12.3-48-40.5-48-73.3c0-44.2 35.8-80 80-80s80 35.8 80 80c0 32.8-19.7 61-48 73.3l0 70.7c0 97.2-78.8 176-176 176c-92.9 0-168.9-71.9-175.5-163.1C87.2 334.2 32 269.6 32 192L32 71.1c0-27.5 17.6-52 43.8-60.7l26.1-8.7c16.8-5.6 34.9 3.5 40.5 20.2zM480 224a32 32 0 1 0 0-64 32 32 0 1 0 0 64z"/></svg>
 <div>
-<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</h4>
+<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">NANDA-I — avaliação independente (Top 6)</h4>
 <p class="text-[11px] font-bold text-slate-500 m-0 mt-0.5">Cruzamento focado em neonatologia e adaptação extrauterina.</p>
 </div>
 </div>
 <div class="p-5 bg-white">
 <ul id="lista-nanda" class="space-y-0"></ul>
-<p class="nanda-disclaimer-screen" style="font-size:10px;line-height:1.5;color:#94A3B8;font-style:italic;margin:12px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p>
 </div>
 </div>
 
@@ -636,9 +635,14 @@ let somaScore = 0;
 const vals = {};
 
 ITENS_APGAR.forEach(i => {
-let val = parseInt(document.getElementById(i.id).value);
-if (isNaN(val) || val === -1) incompleto = true;
+let val = parseInt(document.getElementById(i.id).value, 10);
+const allowed = i.opts.map(op => op.val).filter(v => v !== -1);
+if (!Number.isInteger(val) || !allowed.includes(val)) {
+incompleto = true;
+val = 0;
+} else {
 somaScore += val;
+}
 vals[i.id] = val;
 });
 
@@ -650,15 +654,15 @@ return;
 calcScore = somaScore;
 let bg = "";
 
-if (calcScore >= 8) { 
-calcClass = "Boa Vitalidade (Normal)"; bg = "var(--green)"; 
-calcConduta = "Recém-nascido sem asfixia. Proceder com cuidados de rotina (clampeamento, aquecimento, contato pele a pele).";
+if (calcScore >= 7) { 
+calcClass = "Boa vitalidade (7–10)"; bg = "var(--green)"; 
+calcConduta = "";
 } else if (calcScore >= 4) { 
-calcClass = "Asfixia Moderada"; bg = "var(--orange)";
-calcConduta = "Necessita de suporte. Manter vias aéreas pérvias, aquecimento, estimulação tátil e possível VPP (Ventilação com Pressão Positiva).";
+calcClass = "Moderadamente anormal (4–6)"; bg = "var(--orange)";
+calcConduta = "";
 } else { 
-calcClass = "Asfixia Grave"; bg = "var(--red)";
-calcConduta = "Emergência Neonatal. Iniciar protocolo de reanimação cardiopulmonar neonatal imediatamente (VPP, compressões, drogas se necessário).";
+calcClass = "Baixo (0–3)"; bg = "var(--red)";
+calcConduta = "";
 }
 
 document.getElementById("scoreValor").textContent = calcScore;
@@ -669,7 +673,7 @@ const msg = document.getElementById("resultadoMensagem");
 pill.textContent = calcClass;
 pill.style.backgroundColor = bg;
 
-msg.innerHTML = `O Recém-Nascido obteve o Índice de Apgar de <strong>${calcScore} pontos</strong>, o que sugere <strong>${calcClass}</strong>.<br><br><strong>Conduta:</strong> ${calcConduta}`;
+msg.textContent = `Índice de Apgar: ${calcScore} pontos — ${calcClass}. O Apgar não diagnostica asfixia e não determina, por si só, a necessidade de reanimação neonatal.`;
 document.getElementById("somaObtida").textContent = calcScore;
 document.getElementById("somaObtida").style.color = bg;
 
@@ -703,56 +707,11 @@ tbody.appendChild(tr);
 resSection.classList.add("visible");
 setTimeout(() => resSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 
-chamarNanda(calcScore, vals);
+
 }
 
 // --- NANDA API (Neonatal) ---
-async function chamarNanda(score, vals) {
-const lista = document.getElementById("lista-nanda");
-if (score >= 8) {
-lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="text-green-500 text-xl block mb-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>RN com boa vitalidade. Focar em diagnósticos de manutenção: Amamentação eficaz, Disposição para melhoria do conforto.</li>';
-return;
-}
 
-lista.innerHTML = '<li class="text-sm font-bold text-slate-500 text-center py-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico neonatal...</li>';
-try {
-const response = await fetch('/banco_nanda.json');
-if (!response.ok) throw new Error("Erro");
-const banco = await response.json();
-
-let keywords = ['recém-nascido', 'bebê', 'neonato', 'asfixia', 'termorregulação'];
-if (vals.resp < 2) keywords.push('respiração', 'troca de gases', 'ventilação', 'vias aéreas', 'aspiração');
-if (vals.fc < 2 || vals.cor < 2) keywords.push('débito cardíaco', 'perfusão tissular', 'choque');
-
-let excludeWords = ['adulto', 'idoso', 'gestante', 'materna', 'envelhecimento', 'paternidade', 'pais'];
-
-let pontuados = banco.map(diag => {
-let matchScore = 0;
-let text = (diag.diagnostico + " " + diag.definicao).toLowerCase();
-
-let hasExclude = excludeWords.some(ew => text.includes(ew));
-if (hasExclude) return { ...diag, matchScore: 0 }; 
-
-keywords.forEach(kw => { if (text.includes(kw)) matchScore++; });
-return { ...diag, matchScore: matchScore };
-}).filter(d => d.matchScore > 0);
-
-pontuados.sort((a, b) => b.matchScore - a.matchScore);
-const top6 = pontuados.slice(0, 6);
-
-if (top6.length === 0) {
-lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4">Nenhum diagnóstico direto encontrado no banco resumido.</li>';
-return;
-}
-
-lista.innerHTML = '';
-top6.forEach(d => {
-lista.innerHTML += `<li class="nanda-item flex items-start gap-3"><span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span><div><h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5><p class="text-[11px] font-medium text-slate-500 m-0">${d.definicao}</p></div></li>`;
-});
-} catch (e) {
-lista.innerHTML = '<li class="text-xs font-bold text-red-500 text-center py-4">Banco NANDA indisponível.</li>';
-}
-}
 
 function limpar() {
 ITENS_APGAR.forEach(i => {
@@ -846,7 +805,7 @@ y += 12;
 // Mensagem e Conduta
 doc.setFillColor(248, 250, 252); doc.roundedRect(marginL, y, usable, 18, 2, 2, "F");
 doc.setTextColor(30, 41, 59); doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-const msg = `Conduta Recomendada: ${calcConduta}`;
+const msg = `Interpretação: ${calcClass}`;
 const linhas = doc.splitTextToSize(msg, usable - 8);
 doc.text(linhas, marginL + 4, y + 6);
 y += 22;
@@ -947,12 +906,12 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 .footer{text-align:center;font-size:7.5pt;color:#94A3B8;margin-top:20px;border-top:1px solid #E2E8F0;padding-top:8px}
 </style></head><body>
 <div class="hdr"><div><h1>Índice de Apgar</h1><p>Avaliação da Condição e Vitalidade Neonatal</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data Emissão:</strong> ${dataFormatada}</div></div>
-${(nome || minuto || dataHora || prof ? `<div class="secao"><div class="sec-titulo">Identificação do RN</div><div class="grid2">${nome ? `<p><strong>Recém-nascido:</strong> ${nome}</p>` : ""}${minuto ? `<p><strong>Avaliação no:</strong> ${minuto}</p>` : ""}${dataHora ? `<p><strong>Nascimento:</strong> ${dataHora.replace("T", " às ")}</p>` : ""}${prof ? `<p><strong>Avaliador:</strong> ${prof}</p>` : ""}</div></div>` : "")}
-<div class="secao"><div class="res-box"><div class="res-score">${calcScore} <span style="font-size:16px; color:#64748b">/ 10</span></div><div><span class="res-pill">${calcClass}</span></div><p class="res-msg"><strong>Conduta:</strong> ${calcConduta}</p></div></div>
+${(nome || minuto || dataHora || prof ? `<div class="secao"><div class="sec-titulo">Informações Assistenciais Simuladas do RN</div><div class="grid2">${nome ? `<p><strong>Recém-nascido:</strong> ${nome}</p>` : ""}${minuto ? `<p><strong>Avaliação no:</strong> ${minuto}</p>` : ""}${dataHora ? `<p><strong>Nascimento:</strong> ${dataHora.replace("T", " às ")}</p>` : ""}${prof ? `<p><strong>Avaliador:</strong> ${prof}</p>` : ""}</div></div>` : "")}
+<div class="secao"><div class="res-box"><div class="res-score">${calcScore} <span style="font-size:16px; color:#64748b">/ 10</span></div><div><span class="res-pill">${calcClass}</span></div><p class="res-msg"><strong>Interpretação:</strong> ${calcClass}</p></div></div>
 <div class="secao"><div class="sec-titulo">Memória da Avaliação (Sinais Clínicos)</div>
 <table><thead><tr><th>Critério</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máximo</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td>ESCORE TOTAL</td><td style="text-align:center">${calcScore}</td><td style="text-align:center">10</td></tr></tfoot></table></div>
-<div class="secao"><div class="sec-titulo">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</div><div class="nanda-box"><ul>${nandaHtml}</ul><p class="nanda-disclaimer-print" style="font-size:7pt;line-height:1.4;color:#94A3B8;font-style:italic;margin:8px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p></div></div>
+<div class="secao"><div class="sec-titulo">NANDA-I — avaliação independente (Top 6)</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
 <div class="sig"><div class="sig-line">${prof || "Assinatura do Profissional"}</div><div class="sig-line">Local e Data</div></div>
 <div class="footer">APGAR, Virginia. A proposal for a new method of evaluation of the newborn infant (1953). | Calculadoras de Enfermagem</div>
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
@@ -1034,6 +993,8 @@ data-matched-content-columns-num="1,4"
 data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
 </aside>
 <!-- MULTIPLEX_AD_RESERVED_END -->
+
+<div class="clinical-audit-stamp" style="text-align:right; margin:18px 16px 14px; padding-right:4px; font-size:10px; line-height:1.4; color:#94a3b8; font-weight:400;">Revisão técnica, melhorias e auditoria — 19/09/2026 às 13:48</div>
 
 <div id="footer-placeholder"></div>
 <script>

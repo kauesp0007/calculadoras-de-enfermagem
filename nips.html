@@ -12,7 +12,7 @@
 <!-- 3. Title e Metatags (SEO e Redes Sociais) -->
 <title>Escala NIPS: Avaliação de Dor em Recém-Nascidos - Calculadoras de Enfermagem</title>
 <meta content="#1A3E74" name="theme-color"/>
-<meta content="Calcule a Escala NIPS para avaliar a dor em recém-nascidos e prematuros, utilizando seis parâmetros para determinar a necessidade de intervenção." name="description"/>
+<meta content="Calcule a Escala NIPS para avaliar a dor em recém-nascidos e prematuros, utilizando seis parâmetros para auxiliar na avaliação comportamental da dor; o resultado não determina, isoladamente, uma intervenção." name="description"/>
 <meta content="Calculadoras de Enfermagem" name="author"/>
 <meta content="Escala NIPS: Avaliação de Dor em Recém-Nascidos - Calculadoras de Enfermagem" property="og:title"/>
 <meta content="Calcule a Escala NIPS para avaliar a dor em recém-nascidos e prematuros, utilizando seis parâmetros para determinar a necessidade de intervenção." property="og:description"/>
@@ -702,13 +702,13 @@ Limpar
 </div>
 </div>
 
-<!-- Diagnósticos NANDA (educativo) -->
+<!-- Observação clínica complementar -->
 <div class="fugulin-card overflow-hidden">
 <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="text-navy text-lg" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M0 96C0 43 43 0 96 0L384 0l32 0c17.7 0 32 14.3 32 32l0 320c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0L96 512c-53 0-96-43-96-96L0 96zM64 416c0 17.7 14.3 32 32 32l256 0 0-64L96 384c-17.7 0-32 14.3-32 32zM208 112l0 48-48 0c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-48 0 0-48c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
 <div>
-<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</h4>
-<p class="text-[11px] font-medium text-slate-500 m-0 mt-0.5">Baseado nas observações do neonato.</p>
+<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Observação clínica complementar</h4>
+<p class="text-[11px] font-medium text-slate-500 m-0 mt-0.5">A escala fornece um escore comportamental de dor; diagnóstico e intervenção exigem avaliação clínica.</p>
 </div>
 </div>
 <div class="p-5 bg-white">
@@ -718,7 +718,6 @@ Limpar
 Processando raciocínio clínico...
 </li>
 </ul>
-<p class="nanda-disclaimer-screen" style="font-size:10px;line-height:1.5;color:#94A3B8;font-style:italic;margin:12px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p>
 </div>
 </div>
 </div>
@@ -986,25 +985,21 @@ const resultadoSection = document.getElementById("resultado-section");
 function calcular() {
 let incompleto = false;
 let somaTotal = 0;
-let criteriosValores = [];
-let diagnosticosKeywords = ["dor", "neonato"];
+let criteriosValores = [];
 
 ITENS_NIPS.forEach((item) => {
 const selectVal = document.getElementById(item.id).value;
-if (selectVal === "") {
+const val = Number(selectVal);
+const allowed = item.opts.map(o => o.val).filter(v => v !== "");
+if (selectVal === "" || !Number.isInteger(val) || !allowed.includes(val)) {
 incompleto = true;
 } else {
-const val = parseInt(selectVal);
 somaTotal += val;
 const op = item.opts.find(o => o.val === val);
 const respostaStr = op ? op.text.replace(/\s\(\d+\)$/, "") : "";
 criteriosValores.push({ nome: item.label, resposta: respostaStr, obtido: val, max: item.max });
 
-if (val > 0) {
-if (item.id === "choro") diagnosticosKeywords.push("choro", "agitação");
-if (item.id === "respiracao") diagnosticosKeywords.push("respiração", "padrão respiratório");
-if (item.id === "estado_consciencia") diagnosticosKeywords.push("agitação", "sono", "conforto");
-}
+
 }
 });
 
@@ -1013,21 +1008,23 @@ alert("Por favor, responda todos os 6 parâmetros para calcular a Escala NIPS.")
 return;
 }
 
-// Determinar Classificação (>= 4 dor)
+// Interpretação publicada do NIPS (faixas de referência).
 let classe = "",
 bgPill = "",
 msgDesc = "";
 
-if (somaTotal >= 4) {
-classe = "PRESENÇA DE DOR";
-bgPill = "#e11d48"; // Vermelho
-msgDesc = "O escore indica presença de dor. Avalie a necessidade de intervenção analgésica não-farmacológica ou farmacológica e comunique a equipe médica.";
-diagnosticosKeywords.push("aguda", "conforto prejudicado");
+if (somaTotal <= 1) {
+classe = "SEM DOR"; bgPill = "#16a34a";
+msgDesc = "Faixa de referência: 0–1. Interprete junto ao contexto clínico.";
+} else if (somaTotal === 2) {
+classe = "DOR LEVE"; bgPill = "#eab308";
+msgDesc = "Faixa de referência: 2. Interprete junto ao contexto clínico.";
+} else if (somaTotal <= 4) {
+classe = "DOR MODERADA"; bgPill = "#f97316";
+msgDesc = "Faixa de referência: 3–4. Interprete junto ao contexto clínico.";
 } else {
-classe = "AUSÊNCIA DE DOR";
-bgPill = "#16a34a"; // Verde
-msgDesc = "O escore indica ausência de dor significativa. Continue monitorando o paciente conforme protocolo da unidade.";
-diagnosticosKeywords.push("bem-estar", "disposição");
+classe = "DOR INTENSA"; bgPill = "#e11d48";
+msgDesc = "Faixa de referência: 5–7. Interprete junto ao contexto clínico.";
 }
 
 // Exibir no Hero Card
@@ -1062,52 +1059,10 @@ resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
 
 // Chamar NANDA
-chamarNanda(diagnosticosKeywords);
+
 }
 
-async function chamarNanda(keywords) {
-const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Consultando banco de dados NANDA-I...</li>';
 
-try {
-const response = await fetch("/banco_nanda.json");
-if (!response.ok) throw new Error("Erro fetch");
-const banco = await response.json();
-
-const pontuados = banco
-.map((diag) => {
-let matchScore = 0;
-const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
-keywords.forEach((kw) => {
-if (texto.includes(kw.toLowerCase())) matchScore++;
-});
-return { ...diag, matchScore };
-})
-.filter((d) => d.matchScore > 0);
-
-pontuados.sort((a, b) => b.matchScore - a.matchScore);
-const top5 = pontuados.slice(0, 5);
-
-if (top5.length > 0) {
-lista.innerHTML = "";
-top5.forEach((d) => {
-lista.innerHTML += `
-<li class="nanda-item flex items-start gap-3">
-<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
-<div>
-<h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
-<p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
-</div>
-</li>
-`;
-});
-} else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico associado às seleções atuais.</li>';
-}
-} catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
-}
-}
 
 function limpar() {
 ITENS_NIPS.forEach((item) => {
@@ -1297,7 +1252,7 @@ return `<tr><td>${item.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align
 }).join("");
 
 // Resgatando HTML do NANDA list gerado
-const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+const nandaHtml = "<li class='nanda-item'>A NIPS fornece um indicador comportamental de dor; a necessidade de intervenção deve ser avaliada clinicamente.</li>";
 
 const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo NIPS</title>
 <style>
@@ -1325,7 +1280,7 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 <div class="hdr"><div><h1>Escala NIPS</h1><p>Avaliação de Dor em Recém-Nascidos</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${data.data}</div></div>
 ${
 data.nome || data.idade || data.setor
-? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
+? `<div class="secao"><div class="sec-titulo">Informações Assistenciais Simuladas</div><div class="grid2">
 ${data.nome ? `<p><strong>Nome/RN:</strong> ${data.nome}</p>` : ""}
 ${data.idade ? `<p><strong>Idade:</strong> ${data.idade}</p>` : ""}
 ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
@@ -1336,7 +1291,7 @@ ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
 <div class="secao"><div class="sec-titulo">Memória da Avaliação</div>
 <table><thead><tr><th>Parâmetro</th><th style="text-align:center">Resposta</th><th style="text-align:center">Pontos</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td colspan="2">TOTAL</td><td style="text-align:center">${data.soma}</td></tr></tfoot></table></div>
-<div class="secao"><div class="sec-titulo">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</div><div class="nanda-box"><ul>${nandaHtml}</ul><p class="nanda-disclaimer-print" style="font-size:7pt;line-height:1.4;color:#94A3B8;font-style:italic;margin:8px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p></div></div>
+<div class="secao"><div class="sec-titulo">Observação clínica complementar (Relacionados)</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
 <div class="sig"><div class="sig-line">Assinatura do Profissional responsável</div><div class="sig-line">Local e Data</div></div>
 <div class="footer">Lawrence J. et al. (1993). Neonatal Infant Pain Scale | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
@@ -1417,6 +1372,8 @@ data-matched-content-columns-num="1,4"
 data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
 </aside>
 <!-- MULTIPLEX_AD_RESERVED_END -->
+
+<div class="clinical-audit-stamp" style="text-align:right; margin:18px 16px 14px; padding-right:4px; font-size:10px; line-height:1.4; color:#94a3b8; font-weight:400;">Revisão técnica, melhorias e auditoria — 19/09/2026 às 13:48</div>
 
 <div id="footer-placeholder"></div>
 <script>

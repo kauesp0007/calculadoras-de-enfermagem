@@ -550,12 +550,12 @@ Limpar
 </div>
 </div>
 
-<!-- Diagnósticos NANDA (educativo) -->
+<!-- NANDA-I — avaliação independente -->
 <div class="cries-card overflow-hidden">
 <div class="p-4 md:p-5 border-b-2 border-blue-200 bg-blue-50/80 flex items-center gap-3">
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" class="text-navy text-lg" width="1em" height="1em"><path d="M0 96C0 43 43 0 96 0L384 0l32 0c17.7 0 32 14.3 32 32l0 320c0 17.7-14.3 32-32 32l0 64c17.7 0 32 14.3 32 32s-14.3 32-32 32l-32 0L96 512c-53 0-96-43-96-96L0 96zM64 416c0 17.7 14.3 32 32 32l256 0 0-64L96 384c-17.7 0-32 14.3-32 32zM208 112l0 48-48 0c-8.8 0-16 7.2-16 16l0 32c0 8.8 7.2 16 16 16l48 0 0 48c0 8.8 7.2 16 16 16l32 0c8.8 0 16-7.2 16-16l0-48 48 0c8.8 0 16-7.2 16-16l0-32c0-8.8-7.2-16-16-16l-48 0 0-48c0-8.8-7.2-16-16-16l-32 0c-8.8 0-16 7.2-16 16z"/></svg>
 <div>
-<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</h4>
+<h4 class="text-sm md:text-base font-bold text-navy m-0 uppercase tracking-wide">NANDA-I — avaliação independente</h4>
 <p class="text-[11px] font-medium text-slate-500 m-0 mt-0.5">Baseado nos sinais clínicos avaliados no recém-nascido.</p>
 </div>
 </div>
@@ -566,7 +566,6 @@ Limpar
 Processando raciocínio clínico...
 </li>
 </ul>
-<p class="nanda-disclaimer-screen" style="font-size:10px;line-height:1.5;color:#94A3B8;font-style:italic;margin:12px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p>
 </div>
 </div>
 </div>
@@ -694,12 +693,12 @@ opts: [
 },
 {
 id: "expressao", label: "4. Expressão Facial", max: 2,
-desc: "Sinais visuais de dor ou desconforto.",
+desc: "Expressão facial associada à dor.",
 opts: [
 { val: "", text: "Selecione..." },
 { val: 0, text: "0 - Relaxada" },
 { val: 1, text: "1 - Careta (expressão de dor intermitente)" },
-{ val: 2, text: "2 - Contorcida / Grito silencioso" }
+{ val: 2, text: "2 - Careta com gemido/grunhido" }
 ]
 },
 {
@@ -821,30 +820,25 @@ const resultadoSection = document.getElementById("resultado-section");
 function calcular() {
 let incompleto = false;
 let somaTotal = 0;
-let dominiosValores = [];
-let diagnosticosKeywords = ["dor aguda"];
+let dominiosValores = [];
 let primeiroErro = null;
 
 ITENS_CRIES.forEach((item) => {
 const selectVal = document.getElementById(item.id).value;
-if (selectVal === "") {
+const val = Number(selectVal);
+const allowed = item.opts.map(o => o.val).filter(v => v !== "");
+if (selectVal === "" || !Number.isInteger(val) || !allowed.includes(val)) {
 incompleto = true;
 document.getElementById(`card_${item.id}`).classList.add("error");
 if(!primeiroErro) primeiroErro = document.getElementById(`card_${item.id}`);
 dominiosValores.push({ nome: item.label, obtido: 0, max: item.max });
 } else {
 document.getElementById(`card_${item.id}`).classList.remove("error");
-const val = parseInt(selectVal);
 somaTotal += val;
 dominiosValores.push({ nome: item.label, obtido: val, max: item.max });
 
 // Alimentando keywords NANDA baseado nas anormalidades (val > 0)
 if (val > 0) {
-if (item.id === "choro") diagnosticosKeywords.push("choro", "comunicação", "dor");
-if (item.id === "oxigenio") diagnosticosKeywords.push("respiração", "gases", "ventilação");
-if (item.id === "sinais") diagnosticosKeywords.push("débito", "pressão", "cardíaco");
-if (item.id === "expressao") diagnosticosKeywords.push("desconforto");
-if (item.id === "insonia") diagnosticosKeywords.push("sono", "insônia", "fadiga");
 }
 }
 });
@@ -860,21 +854,10 @@ return;
 
 document.getElementById("msgValidacaoErro").style.display = "none";
 
-// Determinar Classificação CRIES (Range 0-10)
-let classe = "", bgPill = "", recomendacao = "";
-if (somaTotal === 0) {
-classe = "Ausência de Dor"; bgPill = "#16a34a"; // Verde
-recomendacao = "O recém-nascido não apresenta sinais de dor. Mantenha os cuidados de rotina e medidas de conforto padrão.";
-} else if (somaTotal >= 1 && somaTotal <= 3) {
-classe = "Dor Leve"; bgPill = "#eab308"; // Amarelo
-recomendacao = "Indica dor leve. Priorize intervenções não farmacológicas (ex: sucção não nutritiva, enrolamento/contenção, contato pele a pele). Reavalie após a intervenção.";
-} else if (somaTotal >= 4 && somaTotal <= 6) {
-classe = "Dor Moderada"; bgPill = "#f97316"; // Laranja
-recomendacao = "Indica dor moderada. Intervenções farmacológicas podem ser necessárias conforme prescrição médica, em associação com medidas não farmacológicas.";
-} else {
-classe = "Dor Intensa"; bgPill = "#e11d48"; // Vermelho
-recomendacao = "Indica dor intensa/severa. Analgesia farmacológica é fortemente recomendada. Discuta com a equipe médica para ajuste do manejo da dor.";
-}
+// Interpretação: o escore CRIES varia de 0 a 10; escores maiores representam maior expressão subjetiva de dor.
+let classe = "Escore CRIES";
+let bgPill = "#2563eb";
+let recomendacao = "";
 
 // Exibir no Hero Card
 document.getElementById("scoreValor").textContent = somaTotal;
@@ -882,7 +865,7 @@ const pill = document.getElementById("statusPill");
 pill.textContent = classe;
 pill.style.backgroundColor = bgPill;
 
-document.getElementById("resultadoMensagem").innerHTML = `O escore obtido é <strong>${somaTotal} pontos</strong> de 10 possíveis.<br><br><strong>Recomendação:</strong> ${recomendacao}`;
+document.getElementById("resultadoMensagem").textContent = `O escore CRIES é de ${somaTotal} pontos de 10 possíveis. Escores maiores representam maior expressão subjetiva de dor. A escala foi desenvolvida para avaliação da dor neonatal, especialmente no contexto pós-operatório, e não prescreve tratamento.`;
 
 // Gerar Tabela de Detalhamento
 const tbody = document.getElementById("tabelaDominios");
@@ -918,63 +901,6 @@ resultadoSection.classList.add("visible");
 setTimeout(() => {
 resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }, 100);
-
-// Chamar NANDA
-chamarNanda(diagnosticosKeywords);
-}
-
-// --- Consultando Banco NANDA... ---
-async function chamarNanda(keywords) {
-const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico...</li>';
-
-try {
-const response = await fetch("/banco_nanda.json");
-if (!response.ok) throw new Error("Erro fetch");
-const banco = await response.json();
-
-const pontuados = banco
-.map((diag) => {
-let matchScore = 0;
-const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
-keywords.forEach((kw) => {
-if (texto.includes(kw.toLowerCase())) matchScore++;
-});
-return { ...diag, matchScore };
-})
-.filter((d) => d.matchScore > 0);
-
-pontuados.sort((a, b) => b.matchScore - a.matchScore);
-
-const uniqueDiagnosticos = [];
-const codigosVistos = new Set();
-for (const d of pontuados) {
-if (!codigosVistos.has(d.codigo)) {
-uniqueDiagnosticos.push(d);
-codigosVistos.add(d.codigo);
-}
-if (uniqueDiagnosticos.length >= 6) break;
-}
-
-if (uniqueDiagnosticos.length > 0) {
-lista.innerHTML = "";
-uniqueDiagnosticos.forEach((d) => {
-lista.innerHTML += `
-<li class="nanda-item flex items-start gap-3">
-<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
-<div>
-<h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
-<p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
-</div>
-</li>
-`;
-});
-} else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico associado às seleções atuais.</li>';
-}
-} catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
-}
 }
 
 function limpar() {
@@ -1176,7 +1102,7 @@ else if (val === 2) corVal = "#e11d48"; // Vermelho
 return `<tr><td>${i.label.replace(/^\d+\.\s*/, "")}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${val}</td><td style="text-align:center;color:#94A3B8">${i.max}</td><td style="text-align:center;font-weight:bold;color:${corVal}">${pct}%</td></tr>`;
 }).join("");
 
-const nandaHtml = document.getElementById("lista-nanda").innerHTML;
+const nandaHtml = "<li class='nanda-item'>A escala fornece um escore de dor; diagnóstico e intervenção devem ser definidos pela avaliação clínica.</li>";
 
 const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Laudo Escala CRIES</title>
 <style>
@@ -1204,7 +1130,7 @@ ul{list-style:none;} .nanda-item{border-bottom:1px solid #f1f5f9;padding:6px 0;}
 <div class="hdr"><div><h1>Escala CRIES</h1><p>Avaliação da Dor em Recém-Nascidos</p></div><div style="text-align:right;font-size:8.5pt;"><strong>Data:</strong> ${data.data}</div></div>
 ${
 data.nome || data.idade || data.setor
-? `<div class="secao"><div class="sec-titulo">Identificação do Paciente</div><div class="grid2">
+? `<div class="secao"><div class="sec-titulo">Informações Assistenciais Simuladas</div><div class="grid2">
 ${data.nome ? `<p><strong>Nome/RN:</strong> ${data.nome}</p>` : ""}
 ${data.idade ? `<p><strong>Idade/IG:</strong> ${data.idade}</p>` : ""}
 ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
@@ -1215,7 +1141,7 @@ ${data.setor ? `<p><strong>Setor/Leito:</strong> ${data.setor}</p>` : ""}
 <div class="secao"><div class="sec-titulo">Memória da Avaliação Clínica</div>
 <table><thead><tr><th>Parâmetro</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máx</th><th style="text-align:center">%</th></tr></thead><tbody>${linhasTabela}</tbody>
 <tfoot><tr><td>TOTAL</td><td style="text-align:center">${data.soma}</td><td style="text-align:center">10</td><td style="text-align:center">${Math.round((data.soma / 10) * 100)}%</td></tr></tfoot></table></div>
-<div class="secao"><div class="sec-titulo">Exemplificando com a NANDA: Diagnósticos da NANDA relacionados aos problemas levantados (Caráter educativo)</div><div class="nanda-box"><ul>${nandaHtml}</ul><p class="nanda-disclaimer-print" style="font-size:7pt;line-height:1.4;color:#94A3B8;font-style:italic;margin:8px 0 0">O diagnóstico NANDA necessita de uma avaliação criteriosa de suas taxonomias, da busca das características e relações. A divulgação de diagnósticos nesta escala tem apenas a função educativa de promover o seu uso e conhecer seus diversos diagnósticos. Em nenhuma hipótese, induzir o usuário a usar indiscriminadamente qualquer diagnóstico de enfermagem sem o apoio aos achados clínicos obtidos através da anamnese, do exame físico e de outras ferramentas sistemáticas que levarão o enfermeiro a fazer a prescrição de cuidados.</p></div></div>
+<div class="secao"><div class="sec-titulo">NANDA-I — avaliação independente</div><div class="nanda-box"><ul>${nandaHtml}</ul></div></div>
 <div class="sig"><div class="sig-line">Assinatura do Profissional / Enfermeiro(a)</div><div class="sig-line">Local e Data</div></div>
 <div class="footer">KRECHEL, S. W.; BILDNER, J. Paediatric Anaesthesia (1995) | Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br</div>
 <script>window.onload=function(){window.print();}<\/script></body></html>`;
@@ -1301,6 +1227,8 @@ data-matched-content-columns-num="1,4"
 data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
 </aside>
 <!-- MULTIPLEX_AD_RESERVED_END -->
+
+<div class="clinical-audit-stamp" style="text-align:right; margin:18px 16px 14px; padding-right:4px; font-size:10px; line-height:1.4; color:#94a3b8; font-weight:400;">Revisão técnica, melhorias e auditoria — 19/09/2026 às 13:48</div>
 
 <div id="footer-placeholder"></div>
 <script>
