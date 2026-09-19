@@ -92,7 +92,7 @@ Falha de pagamento não concede nem estende acesso. O acesso já pago não é re
 - `free`
 - `premium`
 
-RLS está habilitado nas tabelas comerciais e o acesso direto de cliente é bloqueado; o backend utiliza service role.
+RLS está habilitado nas tabelas comerciais e o acesso direto de cliente é bloqueado; o backend utiliza service role. Índices únicos parciais impedem dois fluxos abertos simultâneos para o mesmo usuário e provedor.
 
 `payments` e dados históricos legados não são apagados nesta etapa.
 
@@ -113,8 +113,8 @@ O webhook Stripe valida assinatura e timestamp. O webhook Asaas valida o token p
 
 Já implantado:
 
-- `billing-access`
-- `billing-admin`
+- `billing-access` (v2)
+- `billing-admin` (v2)
 - `grant-access` legado desativado com HTTP 410
 - `asaas-admin` legado desativado com HTTP 410
 
