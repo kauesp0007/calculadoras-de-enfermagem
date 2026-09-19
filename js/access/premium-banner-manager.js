@@ -64,6 +64,7 @@
     }
 
     function loadAdSenseForEligibleUser() {
+        return; // DESATIVADO: global-scripts.js é o único carregador de AdSense.
         if (isAccountPage() || !authStateResolvedForAds() || !adsAllowed() || !consentAllowsAds()) return;
         if (window.__adsenseLoaded || _adsenseLoading) return;
 

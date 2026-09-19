@@ -6,6 +6,8 @@
 (function (window, document) {
   "use strict";
 
+  return; // DESATIVADO: global-scripts.js é o único gestor de anúncios (multiplex + display).
+
   window.AccessModules = window.AccessModules || {};
 
   var ADS_SRC = "pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";

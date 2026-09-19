@@ -26,6 +26,7 @@
   var _adState = "pending";
 
   function _installAdGate() {
+    return; // DESATIVADO: anúncios gerenciados exclusivamente por global-scripts.js.
     if (document.getElementById("auth-premium-ad-gate")) return;
     var style = document.createElement("style");
     style.id = "auth-premium-ad-gate";
@@ -47,6 +48,7 @@
   }
 
   function _clearExistingAdMarkup() {
+    return; // DESATIVADO: não oculta anúncios.
     var selectors = [
       "ins.adsbygoogle",
       ".google-auto-placed",
@@ -62,23 +64,8 @@
   }
 
   function _setAdState(state) {
-    _installAdGate();
+    // DESATIVADO: o estado de conta não interfere nos anúncios (global-scripts.js gerencia).
     _adState = state;
-    var root = document.documentElement;
-    root.classList.remove("auth-ad-pending", "auth-premium-no-ads");
-
-    if (state === "premium") {
-      root.classList.add("auth-premium-no-ads");
-      _clearExistingAdMarkup();
-    } else if (state === "pending") {
-      root.classList.add("auth-ad-pending");
-    } else {
-      document.querySelectorAll("[data-auth-ad-hidden=\"true\"]").forEach(function (el) {
-        el.style.removeProperty("display");
-        el.style.removeProperty("visibility");
-        el.removeAttribute("data-auth-ad-hidden");
-      });
-    }
   }
 
   function _syncAdStateFromProfile(profile) {

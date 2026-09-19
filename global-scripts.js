@@ -1434,28 +1434,24 @@ function initLazyLoadServices() {
     }
 
     function loadAdSenseOnce() {
-      if (window.__adsenseLoaded || adsBlocked || isPremiumSubscriber()) return;
+      if (adsBlocked || isPremiumSubscriber()) return;
+
+      // Inicializa multiplex + pré-hero imediatamente. O push({}) é seguro antes
+      // ou depois do script carregar; os guards internos evitam push duplicado.
+      initializeMultiplexAds();
+      initializePreHeroAds();
+
+      if (window.__adsenseLoaded) return;
       window.__adsenseLoaded = true;
 
       var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-      if (existingAdSense) {
-        existingAdSense.addEventListener("load", function () {
-          initializeMultiplexAds();
-          initializePreHeroAds();
-        }, { once: true });
-        if (existingAdSense.dataset.loaded === "true") {
-          initializeMultiplexAds();
-          initializePreHeroAds();
-        }
-        return;
-      }
+      if (existingAdSense) return;
 
       var ad = document.createElement("script");
       ad.async = true;
       ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
       ad.crossOrigin = "anonymous";
       ad.addEventListener("load", function () {
-        ad.dataset.loaded = "true";
         initializeMultiplexAds();
         initializePreHeroAds();
       }, { once: true });
