@@ -923,58 +923,7 @@ resultadoSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 // Consultando NANDA
-async function chamarNanda(keywords) {
-const lista = document.getElementById("lista-nanda");
-lista.innerHTML = '<li class="text-sm text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2 inline-block" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico...</li>';
 
-try {
-const response = await fetch("/banco_nanda.json");
-if (!response.ok) throw new Error("Erro fetch");
-const banco = await response.json();
-
-const pontuados = banco
-.map((diag) => {
-let matchScore = 0;
-const texto = (diag.diagnostico + " " + diag.definicao).toLowerCase();
-keywords.forEach((kw) => {
-if (texto.includes(kw.toLowerCase())) matchScore++;
-});
-return { ...diag, matchScore };
-})
-.filter((d) => d.matchScore > 0);
-
-pontuados.sort((a, b) => b.matchScore - a.matchScore);
-
-const uniqueDiagnosticos = [];
-const codigosVistos = new Set();
-for (const d of pontuados) {
-if (!codigosVistos.has(d.codigo)) {
-uniqueDiagnosticos.push(d);
-codigosVistos.add(d.codigo);
-}
-if (uniqueDiagnosticos.length >= 6) break;
-}
-
-if (uniqueDiagnosticos.length > 0) {
-lista.innerHTML = "";
-uniqueDiagnosticos.forEach((d) => {
-lista.innerHTML += `
-<li class="nanda-item flex items-start gap-3">
-<span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span>
-<div>
-<h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5>
-<p class="text-[11px] text-slate-500 leading-snug m-0">${d.definicao}</p>
-</div>
-</li>
-`;
-});
-} else {
-lista.innerHTML = '<li class="text-xs text-slate-500 text-center py-4">Nenhum diagnóstico associado às seleções atuais.</li>';
-}
-} catch (e) {
-lista.innerHTML = '<li class="text-xs text-red-500 text-center py-4">Banco de dados NANDA temporariamente indisponível.</li>';
-}
-}
 
 function limpar() {
 flaccData.forEach((item) => {
