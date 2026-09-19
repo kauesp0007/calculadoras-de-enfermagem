@@ -30,3 +30,10 @@ The billing Edge Functions validate the Firebase ID token server-side, resolve t
 
 ## Production gate
 Do not deploy/activate the new checkout until provider secrets, webhook URLs, Stripe Prices/currencies, Asaas webhook events, and end-to-end tests are validated.
+
+## Cutover safety status — 2026-09-19
+- Production `grant-access` legacy endpoint was disabled with HTTP 410; it can no longer grant legacy lifetime/Junior access.
+- Production `asaas-admin` legacy Firestore reader was disabled with HTTP 410.
+- New `billing-access` and `billing-admin` endpoints are deployed and isolated from legacy Firestore billing.
+- The production Asaas/Stripe checkout and webhook endpoints remain on the legacy versions until the new provider contracts, secrets, prices and end-to-end payment tests are validated. This prevents an untested checkout from being activated while the old customer-facing flow remains operational.
+- This is a deliberate cutover gate, not a completed migration.
