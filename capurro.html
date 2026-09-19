@@ -883,46 +883,7 @@ setTimeout(() => resSection.scrollIntoView({ behavior: 'smooth', block: 'start' 
 }
 
 // --- NANDA NEONATAL ---
-async function chamarNanda(semanas) {
-const lista = document.getElementById("lista-nanda");
-if (semanas >= 37 && semanas < 42) {
-lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" class="text-green-500 text-xl block mb-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>Recém-nascido a termo. Risco primário atenuado. Monitorar amamentação e adaptação extrauterina.</li>';
-return;
-}
 
-lista.innerHTML = '<li class="text-sm font-bold text-slate-500 text-center py-6"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-spin mr-2" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M304 48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zm0 416a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM48 304a48 48 0 1 0 0-96 48 48 0 1 0 0 96zm464-48a48 48 0 1 0 -96 0 48 48 0 1 0 96 0zM142.9 437A48 48 0 1 0 75 369.1 48 48 0 1 0 142.9 437zm0-294.2A48 48 0 1 0 75 75a48 48 0 1 0 67.9 67.9zM369.1 437A48 48 0 1 0 437 369.1 48 48 0 1 0 369.1 437z"/></svg> Processando raciocínio clínico neonatal...</li>';
-try {
-const response = await fetch('/banco_nanda.json');
-if (!response.ok) throw new Error("Erro");
-const banco = await response.json();
-
-let keywords = ['neonatal', 'recém-nascido', 'infantil', 'bebê', 'lactente'];
-if (semanas < 37) keywords.push('hipotermia', 'termorregulação', 'bilirrubina', 'icterícia', 'infecção', 'sucção', 'amamentação', 'respiratório', 'desenvolvimento');
-if (semanas >= 42) keywords.push('aspiração', 'macrossomia', 'pele', 'glicemia', 'metabolismo');
-
-let pontuados = banco.map(diag => {
-let score = 0;
-let text = (diag.diagnostico + " " + diag.definicao).toLowerCase();
-keywords.forEach(kw => { if (text.includes(kw)) score++; });
-return { ...diag, matchScore: score };
-}).filter(d => d.matchScore > 0);
-
-pontuados.sort((a, b) => b.matchScore - a.matchScore);
-const top6 = pontuados.slice(0, 6);
-
-if (top6.length === 0) {
-lista.innerHTML = '<li class="text-xs font-bold text-slate-500 text-center py-4">Nenhum diagnóstico direto encontrado no banco resumido.</li>';
-return;
-}
-
-lista.innerHTML = '';
-top6.forEach(d => {
-lista.innerHTML += `<li class="nanda-item flex items-start gap-3"><span class="bg-blue-100 text-blue-800 text-[10px] font-black px-2 py-1 rounded shadow-sm mt-0.5">${d.codigo}</span><div><h5 class="text-[13px] font-bold text-slate-800 leading-tight mb-1">${d.diagnostico}</h5><p class="text-[11px] font-medium text-slate-500 m-0">${d.definicao}</p></div></li>`;
-});
-} catch (e) {
-lista.innerHTML = '<li class="text-xs font-bold text-red-500 text-center py-4">Banco NANDA indisponível.</li>';
-}
-}
 
 const RECOMENDACOES = {
 "Pré-Termo": { title: "Recém-nascido pré-termo", sub: "Maior risco de hipotermia, desconforto respiratório, hipoglicemia e icterícia. Avaliações complementares são recomendadas.", tools: [{ l: "Ballard", h: "ballard.html" }, { l: "Apgar", h: "apgar.html" }, { l: "Silverman", h: "silverman.html" }, { l: "CRIES", h: "cries.html" }] },
