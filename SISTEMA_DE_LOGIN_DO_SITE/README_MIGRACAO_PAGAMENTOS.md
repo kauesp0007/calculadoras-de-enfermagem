@@ -93,6 +93,7 @@ Para `invoice.paid`, a integração consulta a assinatura quando necessário par
 - Checkout USD.
 - Checkout EUR.
 - `checkout.session.completed`.
+- `checkout.session.expired`.
 - `invoice.paid`.
 - `invoice.payment_failed`.
 - `customer.subscription.updated`.
