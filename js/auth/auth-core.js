@@ -1,256 +1,98 @@
 /**
- * js/auth/auth-core.js
- *
- * FACADE centralizada de autenticação. Acesso ao conteúdo é decidido por
- * Authorization/Access; este módulo NÃO redireciona usuários free para planos.
- *
- * Controle de anúncios:
- * - Enquanto o estado de autenticação/plano não foi resolvido, anúncios ficam
- *   visualmente retidos para evitar qualquer exposição prematura a assinantes.
- * - Usuário free/sem assinatura: anúncios automáticos e multiplex são liberados.
- * - Usuário junior válido: anúncios permanecem ocultos.
- * - Se o perfil de um usuário autenticado não puder ser lido, o estado fica
- *   retido (fail-closed) para nunca liberar anúncio por engano a um assinante.
+ * Canonical account facade.
+ * Authentication remains Firebase during the controlled migration.
+ * Billing/access authority is Supabase via billing-access.
  */
-(function (window) {
-  "use strict";
+(function(window){
+ "use strict";
+ window.AuthModules=window.AuthModules||{};
+ var _initialized=false,_currentUser=null,_userProfile=null,_billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null};
+ var _listeners=[],_profileListeners=[];
+ var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
-  window.AuthModules = window.AuthModules || {};
-
-  var _initialized = false;
-  var _currentUser = null;
-  var _userProfile = null;
-  var _currentPlan = null;
-  var _listeners = [];
-  var _profileListeners = [];
-  var _adState = "pending";
-
-  function _installAdGate() {
-    return; // DESATIVADO: anúncios gerenciados exclusivamente por global-scripts.js.
-    if (document.getElementById("auth-premium-ad-gate")) return;
-    var style = document.createElement("style");
-    style.id = "auth-premium-ad-gate";
-    style.textContent = [
-      "html.auth-ad-pending ins.adsbygoogle,",
-      "html.auth-ad-pending .google-auto-placed,",
-      "html.auth-ad-pending .ads-multiplex-container,",
-      "html.auth-ad-pending #multiplex-ad-reserved,",
-      "html.auth-ad-pending .multiplex-ad-reserved,",
-      "html.auth-premium-no-ads ins.adsbygoogle,",
-      "html.auth-premium-no-ads .google-auto-placed,",
-      "html.auth-premium-no-ads .ads-multiplex-container,",
-      "html.auth-premium-no-ads #multiplex-ad-reserved,",
-      "html.auth-premium-no-ads .multiplex-ad-reserved",
-      "{display:none !important;height:0 !important;min-height:0 !important;margin:0 !important;padding:0 !important;overflow:hidden !important;visibility:hidden !important;}"
-    ].join("");
-    (document.head || document.documentElement).appendChild(style);
-    document.documentElement.classList.add("auth-ad-pending");
-  }
-
-  function _clearExistingAdMarkup() {
-    return; // DESATIVADO: não oculta anúncios.
-    var selectors = [
-      "ins.adsbygoogle",
-      ".google-auto-placed",
-      ".ads-multiplex-container",
-      "#multiplex-ad-reserved",
-      ".multiplex-ad-reserved"
-    ];
-    document.querySelectorAll(selectors.join(",")).forEach(function (el) {
-      el.style.setProperty("display", "none", "important");
-      el.style.setProperty("visibility", "hidden", "important");
-      el.setAttribute("data-auth-ad-hidden", "true");
-    });
-  }
-
-  function _setAdState(state) {
-    // DESATIVADO: o estado de conta não interfere nos anúncios (global-scripts.js gerencia).
-    _adState = state;
-  }
-
-  function _syncAdStateFromProfile(profile) {
-    // Premium temporariamente desativado: anúncios liberados para todos.
-    _setAdState("free");
-  }
-
-  async function init() {
-    if (_initialized) return;
-    _setAdState("pending");
-
-    var fb = await window.FirebaseInit.init();
-    var auth = fb.auth;
-
-    await new Promise(function (resolve) {
-      var done = false;
-      function finish() {
-        if (!done) { done = true; resolve(); }
-      }
-      auth.onAuthStateChanged(function (user) {
-        _handleAuthState(user);
-        finish();
-      });
-      setTimeout(finish, 5000);
-    });
-
-    auth.getRedirectResult().catch(function (error) {
-      if (error && error.code !== "auth/no-redirect-result") {
-        console.error("[Auth] Erro no redirect:", error.code, error.message);
-      }
-    });
-
-    _initialized = true;
-  }
-
-  function _handleAuthState(user) {
-    _currentUser = user || null;
-    _setAdState(user ? "pending" : "free");
-
-    if (!user) {
-      _userProfile = null;
-      _currentPlan = null;
-      _clearLocalCache();
-      _notifyListeners(null);
-      return;
-    }
-
-    if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
-      window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
-        _userProfile = profile;
-        _currentPlan = profile && profile.plan ? profile.plan : "free";
-        _syncAdStateFromProfile(profile || { plan: "free" });
-        _notifyProfileListeners(profile);
-      }).catch(function (error) {
-        console.warn("[Auth] Perfil indisponível; anúncios mantidos retidos por segurança:", error && error.message ? error.message : error);
-        _userProfile = null;
-        _currentPlan = null;
-        _setAdState("pending");
-      });
-    } else {
-      console.warn("[Auth] Módulo de perfil indisponível; anúncios mantidos retidos por segurança.");
-      _currentPlan = null;
-      _setAdState("pending");
-    }
-
-    _notifyListeners(user);
-  }
-
-  function onAuthChange(callback) {
-    if (typeof callback === "function") _listeners.push(callback);
-  }
-
-  function onProfileChange(callback) {
-    if (typeof callback === "function") _profileListeners.push(callback);
-  }
-
-  function _notifyListeners(user) {
-    _listeners.forEach(function (cb) {
-      try { cb(user); } catch (e) { console.error("[Auth] Erro em listener:", e); }
-    });
-  }
-
-  function _notifyProfileListeners(profile) {
-    _profileListeners.forEach(function (cb) {
-      try { cb(profile); } catch (e) { console.error("[Auth] Erro em listener de perfil:", e); }
-    });
-  }
-
-  function isLoggedIn() {
-    return !!_currentUser;
-  }
-
-  function currentUser() {
-    return _currentUser;
-  }
-
-  function profile() {
-    return _userProfile;
-  }
-
-  function hasPlan(planName) {
-    // Premium temporariamente desativado: todos têm acesso total.
-    return true;
-  }
-
-  function hasPermission(permission) {
-    return !!(_userProfile && _userProfile.permissions && _userProfile.permissions[permission] === true);
-  }
-
-  async function signIn(providerName, options) {
-    if (!_initialized) await init();
-    var providerModule = window.AuthModules.providers && window.AuthModules.providers.getProvider
-      ? window.AuthModules.providers.getProvider(providerName)
-      : null;
-    if (!providerModule) throw new Error("Provedor não disponível: " + providerName);
-    return providerModule.signIn(options);
-  }
-
-  async function signOut() {
-    if (!_initialized) return;
-    var auth = window.FirebaseInit.getAuthSync();
-    if (!auth) return;
-    await auth.signOut();
-    _currentUser = null;
-    _userProfile = null;
-    _currentPlan = null;
-    _setAdState("free");
-    _clearLocalCache();
-  }
-
-  function _clearLocalCache() {
-    if (window.AuthModules.session && window.AuthModules.session.clearCache) {
-      window.AuthModules.session.clearCache();
-    }
-    if (window.AuthModules.userCache && window.AuthModules.userCache.clear) {
-      window.AuthModules.userCache.clear();
-    }
-  }
-
-  function isInitialized() {
-    return _initialized;
-  }
-
-  function refreshProfile() {
-    var user = _currentUser;
-    if (!user || !user.uid) return Promise.resolve(null);
-    if (window.AuthModules.userCache && window.AuthModules.userCache.clear) {
-      window.AuthModules.userCache.clear();
-    }
-    if (window.AuthorizationModules && window.AuthorizationModules.permissionCache && window.AuthorizationModules.permissionCache.invalidate) {
-      window.AuthorizationModules.permissionCache.invalidate();
-    }
-    _setAdState("pending");
-    if (window.AuthModules.userProfile && window.AuthModules.userProfile.loadProfile) {
-      return window.AuthModules.userProfile.loadProfile(user.uid).then(function (profile) {
-        _userProfile = profile;
-        _currentPlan = profile && profile.plan ? profile.plan : "free";
-        _syncAdStateFromProfile(profile || { plan: "free" });
-        _notifyProfileListeners(profile);
-        return profile;
-      }).catch(function (error) {
-        console.warn("[Auth] Falha ao atualizar perfil; anúncios mantidos retidos por segurança:", error && error.message ? error.message : error);
-        _setAdState("pending");
-        throw error;
-      });
-    }
-    _setAdState("pending");
-    return Promise.resolve(null);
-  }
-
-  window.Auth = {
-    init: init,
-    isLoggedIn: isLoggedIn,
-    currentUser: currentUser,
-    profile: profile,
-    hasPlan: hasPlan,
-    hasPermission: hasPermission,
-    signIn: signIn,
-    signOut: signOut,
-    onAuthChange: onAuthChange,
-    onProfileChange: onProfileChange,
-    isInitialized: isInitialized,
-    refreshProfile: refreshProfile
-  };
-
-  window.AuthModules.core = window.Auth;
-  console.log("[Auth] Módulo auth-core.js carregado.");
+ async function loadBilling(user){
+   if(!user||typeof user.getIdToken!=="function") return {plan:"free"};
+   var token=await user.getIdToken(false);
+   var res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"}});
+   if(!res.ok) throw new Error("billing_access_"+res.status);
+   var data=await res.json();
+   return data&&data.plan==="premium"?data:{plan:"free",premium_expires_at:data&&data.premium_expires_at||null,provider:null,provider_customer_id:null,provider_subscription_id:null};
+ }
+ function applyBilling(profile,billing){
+   var p=Object.assign({},profile||{});
+   p.plan=billing&&billing.plan==="premium"?"premium":"free";
+   p.premiumExpiresAt=billing&&billing.premium_expires_at||null;
+   p.billingProvider=billing&&billing.provider||null;
+   p.billingCustomerId=billing&&billing.provider_customer_id||null;
+   p.billingSubscriptionId=billing&&billing.provider_subscription_id||null;
+   return p;
+ }
+ async function init(){
+   if(_initialized) return;
+   var fb=await window.FirebaseInit.init(),auth=fb.auth;
+   await new Promise(function(resolve){
+     var done=false; function finish(){if(!done){done=true;resolve();}}
+     auth.onAuthStateChanged(function(user){_handleAuthState(user);finish();});
+     setTimeout(finish,5000);
+   });
+   auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
+   _initialized=true;
+ }
+ async function _handleAuthState(user){
+   _currentUser=user||null;
+   if(!user){_userProfile=null;_billing={plan:"free"};_clearLocalCache();_notifyListeners(null);return;}
+   try{
+     _billing=await loadBilling(user);
+   }catch(e){
+     console.error("[Auth] Billing state unavailable; fail-closed to FREE.",e);
+     _billing={plan:"free",billingUnavailable:true};
+   }
+   if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
+     try{
+       var profile=await window.AuthModules.userProfile.loadProfile(user.uid);
+       _userProfile=applyBilling(profile||{uid:user.uid,email:user.email||"",role:"user"},_billing);
+       _notifyProfileListeners(_userProfile);
+     }catch(e){
+       _userProfile=applyBilling({uid:user.uid,email:user.email||"",role:"user"},_billing);
+       console.warn("[Auth] Profile unavailable; using minimal profile.",e);
+       _notifyProfileListeners(_userProfile);
+     }
+   }else{
+     _userProfile=applyBilling({uid:user.uid,email:user.email||"",role:"user"},_billing);
+     _notifyProfileListeners(_userProfile);
+   }
+   _notifyListeners(user);
+ }
+ function onAuthChange(cb){if(typeof cb==="function")_listeners.push(cb);}
+ function onProfileChange(cb){if(typeof cb==="function")_profileListeners.push(cb);}
+ function _notifyListeners(user){_listeners.slice().forEach(function(cb){try{cb(user);}catch(e){console.error("[Auth] listener:",e);}});}
+ function _notifyProfileListeners(p){_profileListeners.slice().forEach(function(cb){try{cb(p);}catch(e){console.error("[Auth] profile listener:",e);}});}
+ function isLoggedIn(){return !!_currentUser;}
+ function currentUser(){return _currentUser;}
+ function profile(){return _userProfile;}
+ function hasPlan(plan){if(plan!=="premium")return true;return !!(_billing.plan==="premium"&&(!_billing.premium_expires_at||new Date(_billing.premium_expires_at)>new Date()));}
+ function hasPermission(permission){return !!(window.AuthorizationModules.permissionService&&window.AuthorizationModules.permissionService.has(_userProfile,permission));}
+ async function signIn(providerName,options){
+   if(!_initialized)await init();
+   var p=window.AuthModules.providers&&window.AuthModules.providers.getProvider?window.AuthModules.providers.getProvider(providerName):null;
+   if(!p)throw new Error("Provedor não disponível: "+providerName);
+   return p.signIn(options);
+ }
+ async function signOut(){
+   if(!_initialized)return;
+   var auth=window.FirebaseInit.getAuthSync();if(auth)await auth.signOut();
+   _currentUser=null;_userProfile=null;_billing={plan:"free"};_clearLocalCache();
+ }
+ function _clearLocalCache(){
+   if(window.AuthModules.session&&window.AuthModules.session.clearCache)window.AuthModules.session.clearCache();
+   if(window.AuthModules.userCache&&window.AuthModules.userCache.clear)window.AuthModules.userCache.clear();
+ }
+ async function refreshProfile(){
+   if(!_currentUser)return null;
+   _billing=await loadBilling(_currentUser);
+   var p=window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile?await window.AuthModules.userProfile.loadProfile(_currentUser.uid):_userProfile;
+   _userProfile=applyBilling(p||_userProfile||{},_billing);_notifyProfileListeners(_userProfile);return _userProfile;
+ }
+ window.Auth={init,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},refreshProfile};
+ window.AuthModules.core=window.Auth;
 })(window);
