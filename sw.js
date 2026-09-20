@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260920-044500";
+const CACHE_VERSION = "20260920-231500";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -1327,6 +1327,12 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
+
+  // Nunca interceptar/cachear recursos de outras origens nem requisições
+  // autenticadas. Conteúdo Premium é personalizado por usuário e sua
+  // resposta jamais pode entrar no Cache API do domínio.
+  if (url.origin !== self.location.origin) return;
+  if (req.headers.has("Authorization")) return;
 
   // Intercepta apenas requisições HTTP/HTTPS normais de GET
   if (!url.protocol.startsWith("http") || req.method !== "GET") return;
