@@ -5,7 +5,7 @@
 (function(window){
  "use strict";
  window.AuthModules=window.AuthModules||{};
- var _initialized=false,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
+ var _initialized=false,_initPromise=null,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
  var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
@@ -29,16 +29,29 @@
    return p;
  }
  function billingStatus(){return {resolved:!!_billing.resolved,unavailable:!!_billing.billingUnavailable,plan:_billing.plan||"free",premium_expires_at:_billing.premium_expires_at||null};}
- async function init(){
-   if(_initialized) return;
-   var fb=await window.FirebaseInit.init(),auth=fb.auth;
-   await new Promise(function(resolve){
-     var done=false; function finish(){if(!done){done=true;resolve();}}
-     auth.onAuthStateChanged(function(user){Promise.resolve(_handleAuthState(user)).then(finish).catch(function(e){console.error("[Auth] Falha ao resolver estado de autenticação:",e);finish();});});
-     setTimeout(finish,5000);
+ function init(){
+   if(_initialized) return Promise.resolve();
+   if(_initPromise) return _initPromise;
+   _initPromise=(async function(){
+     var fb=await window.FirebaseInit.init(),auth=fb.auth;
+     await new Promise(function(resolve){
+       var done=false;
+       function finish(){if(!done){done=true;resolve();}}
+       auth.onAuthStateChanged(function(user){
+         Promise.resolve(_handleAuthState(user)).then(finish).catch(function(e){
+           console.error("[Auth] Falha ao resolver estado de autenticação:",e);
+           finish();
+         });
+       });
+       setTimeout(finish,5000);
+     });
+     auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
+     _initialized=true;
+   })().catch(function(e){
+     _initPromise=null;
+     throw e;
    });
-   auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
-   _initialized=true;
+   return _initPromise;
  }
  async function _handleAuthState(user){
    _currentUser=user||null;

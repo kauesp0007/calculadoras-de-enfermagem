@@ -52,6 +52,13 @@
     });
   }
   async function ensureAuth(){
+    // O global-scripts.js expõe um bootstrap único para toda a aplicação.
+    // Premium deve reutilizar essa promessa em vez de iniciar uma segunda cadeia
+    // concorrente de Firebase/Auth.
+    if(typeof window.__ENSURE_AUTH==="function"){
+      await window.__ENSURE_AUTH();
+      return;
+    }
     if(window.Auth&&typeof window.Auth.init==="function"){
       await window.Auth.init();
       return;
