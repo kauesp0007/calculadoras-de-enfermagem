@@ -46,6 +46,10 @@
     }
 
     function guard() {
+        // Rotas Premium são protegidas exclusivamente pelo premium-content-loader.
+        // Este guard genérico nunca pode redirecionar um assinante para assinatura.
+        if (window.__IS_PREMIUM_ROUTE === true) return true;
+
         var path = window.location.pathname || "/";
         for (var i = 0; i < POLICIES.length; i++) {
             if (POLICIES[i].pattern.test(path)) {
