@@ -49,10 +49,27 @@ serve(async req=>{
     const uid=await firebaseUid(req);
     if(!(await premiumForUid(uid))) return new Response("Premium required",{status:403,headers:H});
     const sb=db();
-    const {data,error}=await sb.from("premium_content_pages").select("content,source_sha").eq("path",key).maybeSingle();
+    const parts=key.split("/").filter(Boolean);
+    const langs=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
+    const candidates=[key];
+    if(parts.length>1&&langs.has(parts[0])) candidates.push(parts.slice(1).join("/"));
+
+    let data=null;
+    let error=null;
+    for(const candidate of [...new Set(candidates)]){
+      const result=await sb.from("premium_content_pages").select("content,source_sha").eq("path",candidate).maybeSingle();
+      if(result.error){error=result.error;break;}
+      if(result.data){data=result.data;break;}
+    }
     if(error) throw error;
     if(!data) return new Response("Premium content unavailable",{status:404,headers:H});
-    return new Response(data.content,{status:200,headers:{...H,"ETag":`"${data.source_sha}"`,"Vary":"Authorization"}});
+
+    return new Response(data.content,{status:200,headers:{
+      ...H,
+      "Cache-Control":"private, no-store, max-age=0",
+      "ETag":`"${data.source_sha||key}"`,
+      "Vary":"Authorization"
+    }});
   }catch(e){
     const msg=String((e as Error)?.message||e);
     const status=msg==="unauthorized"?401:500;
