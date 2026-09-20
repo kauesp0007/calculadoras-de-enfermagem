@@ -609,7 +609,18 @@ function _setupAuthorization() {
 
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
-  function updateAuthUI(user) {
+  function _premiumSubscribeUrl() {
+  var base = typeof window.__ACCOUNT_PAGE_URL === "function"
+    ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
+    : "/conta/assinatura.html?lang=" + encodeURIComponent(window.__LANG || "pt");
+  return base;
+}
+
+function _premiumCtaHtml() {
+  return '<a href="' + _premiumSubscribeUrl() + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">Assine já</a>';
+}
+
+function updateAuthUI(user) {
     var desktopLink = document.getElementById("menu-auth-link-desktop");
     var desktopItem = document.getElementById("menu-auth-desktop");
     var mobileLink = document.getElementById("menu-auth-link-mobile");
@@ -669,7 +680,8 @@ function _setupAuthorization() {
           '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
-          "</a>";
+          "</a>" +
+          _premiumCtaHtml();
       }
     }
 
@@ -711,7 +723,8 @@ function _setupAuthorization() {
           '<a role="menuitem" href="' + window.__ACCOUNT_LOGIN_URL() + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
-          "</a>";
+          "</a>" +
+          _premiumCtaHtml();
       }
     }
 
