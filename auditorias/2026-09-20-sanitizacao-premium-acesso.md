@@ -158,3 +158,28 @@ Nenhuma mudança deve ser considerada concluída se:
 - O workflow CI permanece responsável pela execução integral dos 272 candidatos antes da integração.
 
 Nenhuma afirmação de teste de produção é feita neste relatório. A validação de produção depende do ambiente publicado e de contas Free/Premium reais.
+
+
+## Validação final de backend — 2026-09-20
+
+### Entitlement e entrega protegida
+- Projeto Supabase em estado ACTIVE_HEALTHY.
+- Edge Function `billing-access`: valida token Firebase por assinatura criptográfica (RS256), issuer e audience; consulta somente `billing_identities` + `user_entitlements`; não concede Premium no navegador.
+- Edge Function `premium-content`: valida novamente o token Firebase e o entitlement antes de consultar `premium_content_pages`.
+- Conteúdo protegido é entregue com `Cache-Control: private, no-store` e `Vary: Authorization`.
+- `premium_content_pages`, `user_entitlements` e tabelas de billing estão com RLS habilitado e sem políticas públicas; tentativa de leitura como `anon` foi negada pelo PostgreSQL.
+- Estado atual verificado: 1 entitlement Premium ativo associado a identidade Firebase e 1 assinatura Premium ativa correspondente; nenhum entitlement Premium expirado foi encontrado.
+
+### Catálogo localizado
+Durante a contra-prova foi encontrada uma lacuna de sincronização: as 18 versões localizadas de `balancohidrico.html` existiam no repositório, mas ainda não estavam cadastradas em `premium_content_pages`. As 18 cópias foram sincronizadas com seu `source_sha` correspondente.
+
+Após a sincronização:
+- `premium_content_pages`: 272 registros;
+- 217 registros localizados;
+- 55 registros de raiz;
+- as 18 versões de `balancohidrico.html` estão presentes.
+
+Isso elimina o risco de um assinante Premium acessar uma versão localizada e receber indevidamente o conteúdo da raiz por fallback por falta de registro no catálogo.
+
+### Limitação da validação
+A validação de endpoint com uma sessão real de navegador não foi executada nesta etapa porque não há navegador automatizado disponível neste ambiente. A validação foi feita por inspeção do código implantado, consultas ao banco, verificação de RLS/entitlement, comparação do catálogo e CI do repositório.
