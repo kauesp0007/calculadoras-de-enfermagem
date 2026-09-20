@@ -72,7 +72,7 @@ serve(async req=>{
       callback:{
         cancelUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=cancel`,
         expiredUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=expired`,
-        successUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=success`
+        successUrl:`${SITE}/boas_vindas_assinante.html?lang=pt&provider=asaas&payment=success`
       },
       items:[{name:"Premium",description:isRecurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],
       customerData:{name:u.name||u.email||"Cliente",email:u.email||""}
