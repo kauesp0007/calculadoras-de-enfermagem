@@ -49,7 +49,7 @@ serve(async req=>{
 
     const {data:active}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
     if(active?.plan==="premium"&&(!active.premium_expires_at||new Date(active.premium_expires_at)>new Date()))throw new Error("already_premium");
-    const {data:existing}=await db().from("billing_subscriptions").select("id,status").eq("user_id",id).eq("provider","asaas").in("status",["checkout_pending","active","past_due"]).limit(1);
+    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
     if(existing?.length)throw new Error("active_billing_flow");
 
     const ref="premium_"+crypto.randomUUID();
