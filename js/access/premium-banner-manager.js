@@ -117,6 +117,36 @@
         }
     }
 
+    function mountSubscriptionPromo() {
+        if (_root || (window.location.pathname || "").indexOf("/conta/") === 0) return;
+        var root = document.createElement("div");
+        root.id = "premium-promo-banner";
+        root.setAttribute("role", "complementary");
+        root.setAttribute("aria-label", "Assinatura Premium");
+        root.style.cssText = "position:fixed;top:16px;right:16px;width:min(300px,calc(100vw - 32px));aspect-ratio:1/1;z-index:9998;display:none;";
+        root.innerHTML =
+            '<div style="height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:20px;border-radius:18px;box-sizing:border-box;background:#ffffff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.16);text-align:left;">' +
+            '<div><p style="margin:0 0 8px;font-size:12px;line-height:1.2;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1A3E74;">Comunidade de enfermagem</p>' +
+            '<p style="margin:0;font-size:20px;line-height:1.2;font-weight:900;color:#1A3E74;">Faça parte da nossa comunidade</p>' +
+            '<p style="margin:12px 0 0;font-size:14px;line-height:1.45;color:#475569;">Assine o plano Premium por apenas <strong>R$ 5,00/mês</strong> e amplie seu acesso a conteúdos e recursos.</p></div>' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">' +
+            '<a href="/conta/assinatura.html?lang=pt" data-evento="click_banner_assine_premium" style="display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;background:#1A3E74;color:#ffffff;font-size:13px;font-weight:800;text-decoration:none;">Assine já</a>' +
+            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:0;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;">Fechar</button>' +
+            '</div></div>';
+        document.body.appendChild(root);
+        setTimeout(function(){
+            root.style.display = "block";
+            requestAnimationFrame(function(){
+                if (root) root.style.opacity = "1";
+            });
+        }, 4000);
+        setTimeout(function(){ if (root && root.parentNode) root.parentNode.removeChild(root); }, 11000);
+        root.querySelector("[data-premium-promo-close]").addEventListener("click", function(){
+            if (root && root.parentNode) root.parentNode.removeChild(root);
+        });
+        _root = root;
+    }
+
     function _getRoot() {
         if (_root) return _root;
         _root = document.getElementById("premium-banner-root");
@@ -129,6 +159,8 @@
     }
 
     function mount(opts) {
+        mountSubscriptionPromo();
+
         opts = opts || {};
         var root = _getRoot();
         var widget = window.AccessModules.widgets ? window.AccessModules.widgets.premiumCard(opts) : "";
