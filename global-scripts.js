@@ -179,6 +179,7 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
   }
 
   window.__PREMIUM_PATHS = PREMIUM_PATHS;
+  window.__IS_PREMIUM_ROUTE = isPremiumPath();
   window.__PREMIUM_ROUTE_GATE = canEnter;
 })(window, document);
 
@@ -901,6 +902,17 @@ function updateAuthUI(user) {
   // Loader de conteúdo protegido e demais módulos usam exatamente o mesmo
   // bootstrap. Isso impede duas cadeias concorrentes de carregar Firebase/Auth.
   window.__ENSURE_AUTH = loadAuthScripts;
+
+  // Em rotas Premium, a autorização é resolvida imediatamente pela mesma
+  // promessa compartilhada usada pelo loader. Em páginas públicas, o Auth
+  // continua lazy para preservar desempenho.
+  if (window.__IS_PREMIUM_ROUTE) {
+    window.__ENSURE_AUTH()
+      .then(function () { window.__PREMIUM_ROUTE_GATE(true); })
+      .catch(function (e) {
+        console.error("[PremiumGate] Falha no bootstrap de autenticação:", e);
+      });
+  }
 
   // Adia o carregamento normal de Firebase/Auth para depois do primeiro paint.
   // Uma página Premium pode chamar __ENSURE_AUTH imediatamente sem criar uma
