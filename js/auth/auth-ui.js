@@ -523,19 +523,42 @@
    * Redireciona o usuário após login bem-sucedido.
    */
   function _redirectAfterLogin() {
-    // Verifica se há uma URL de retorno nos parâmetros
     var params = new URLSearchParams(window.location.search);
     var returnUrl = params.get("returnUrl") || params.get("redirect");
-
-    // Após um login iniciado sem destino útil, o usuário deve entrar na
-    // área da conta, e não ser devolvido silenciosamente à página inicial.
-    // Destinos explícitos (por exemplo, uma calculadora Premium) continuam
-    // tendo prioridade.
     var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
-    if (returnUrl && returnUrl.indexOf("/") === 0 && returnUrl.indexOf("//") !== 0 && returnUrl.indexOf("\\") === -1 && returnUrl.indexOf("/conta/login.html") !== 0) {
+
+    // Destinos de conta nunca devem ser usados como retorno automático.
+    // Se o usuário chegou ao login a partir de uma área de conta, o login
+    // concluído retorna à home. Rotas Premium continuam podendo solicitar
+    // explicitamente o retorno à página de origem.
+    if (
+      returnUrl &&
+      returnUrl.indexOf("/") === 0 &&
+      returnUrl.indexOf("//") !== 0 &&
+      returnUrl.indexOf("\\") === -1 &&
+      returnUrl.indexOf("/conta/login.html") !== 0
+    ) {
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
-      if (normalizedReturn !== "/" && normalizedReturn !== localizedHome) {
+      var isAccountRoute = normalizedReturn.indexOf("/conta/") === 0;
+      var premiumPath = normalizedReturn;
+      var parts = premiumPath.split("/").filter(Boolean);
+      var languages = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
+      if(parts.length > 1 && languages[parts[0]]) {
+        premiumPath = "/" + parts.slice(1).join("/");
+      }
+      var isPremiumRoute = !!(
+        window.__PREMIUM_PATHS &&
+        window.__PREMIUM_PATHS[premiumPath]
+      );
+
+      if (
+        !isAccountRoute &&
+        normalizedReturn !== "/" &&
+        normalizedReturn !== localizedHome
+      ) {
+        targetUrl = returnUrl;
+      } else if (isPremiumRoute) {
         targetUrl = returnUrl;
       }
     }

@@ -46,6 +46,11 @@ async function bootProfile(){
       new Promise(function(_,reject){setTimeout(function(){reject(new Error(label||"timeout"));},ms);})
     ]);
   }
+  // Se o Firebase já possui uma sessão em memória, libere a interface
+  // imediatamente, sem depender de nova inicialização ou de Supabase.
+  var immediateUser=fallbackUser();
+  if(immediateUser)renderIdentity(immediateUser);
+
   try{
     if(!window.FirebaseInit||typeof window.FirebaseInit.init!=="function"){
       throw new Error("firebase_init_unavailable");
