@@ -10,8 +10,16 @@
     var user=window.Auth&&window.Auth.currentUser?window.Auth.currentUser():null;
     if(!user) throw new Error("not_authenticated");
     var token=await user.getIdToken(false);
+    var controller=new AbortController();
+    var timeout=setTimeout(function(){controller.abort();},8000);
     var qs=new URLSearchParams(Object.assign({resource:resource},query||{})).toString();
-    var res=await fetch(URL+"?"+qs,{method:method,headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+    var res;
+    try{
+      res=await fetch(URL+"?"+qs,{method:method,headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal});
+    }catch(e){
+      if(e&&e.name==="AbortError") throw new Error("account_data_timeout");
+      throw e;
+    }finally{clearTimeout(timeout);}
     var data=await res.json().catch(function(){return{};});
     if(!res.ok) throw new Error(data.error||("account_data_"+res.status));
     return data;
