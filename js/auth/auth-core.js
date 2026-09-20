@@ -1,22 +1,22 @@
-/**
- * Canonical account facade.
+/** Canonical account facade.
  * Authentication remains Firebase during the controlled migration.
  * Billing/access authority is Supabase via billing-access.
  */
 (function(window){
  "use strict";
  window.AuthModules=window.AuthModules||{};
- var _initialized=false,_currentUser=null,_userProfile=null,_billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null};
- var _listeners=[],_profileListeners=[];
+ var _initialized=false,_currentUser=null,_userProfile=null;
+ var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
  async function loadBilling(user){
    if(!user||typeof user.getIdToken!=="function") return {plan:"free"};
    var token=await user.getIdToken(false);
-   var res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"}});
+   var res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},cache:"no-store"});
    if(!res.ok) throw new Error("billing_access_"+res.status);
    var data=await res.json();
-   return data&&data.plan==="premium"?data:{plan:"free",premium_expires_at:data&&data.premium_expires_at||null,provider:null,provider_customer_id:null,provider_subscription_id:null};
+   if(data&&data.plan==="premium") return data;
+   return {plan:"free",premium_expires_at:data&&data.premium_expires_at||null,provider:null,provider_customer_id:null,provider_subscription_id:null};
  }
  function applyBilling(profile,billing){
    var p=Object.assign({},profile||{});
@@ -25,6 +25,7 @@
    p.billingProvider=billing&&billing.provider||null;
    p.billingCustomerId=billing&&billing.provider_customer_id||null;
    p.billingSubscriptionId=billing&&billing.provider_subscription_id||null;
+   p.billingUnavailable=!!(billing&&billing.billingUnavailable);
    return p;
  }
  async function init(){
@@ -40,25 +41,26 @@
  }
  async function _handleAuthState(user){
    _currentUser=user||null;
-   if(!user){_userProfile=null;_billing={plan:"free"};_clearLocalCache();_notifyListeners(null);return;}
+   if(!user){_userProfile=null;_billing={plan:"free",billingUnavailable:false};_clearLocalCache();_notifyListeners(null);return;}
    try{
      _billing=await loadBilling(user);
    }catch(e){
-     console.error("[Auth] Billing state unavailable; fail-closed to FREE.",e);
+     console.error("[Auth] Billing state unavailable; access resolution is pending.",e);
      _billing={plan:"free",billingUnavailable:true};
    }
+   var base={uid:user.uid,email:user.email||"",role:"user"};
    if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
      try{
        var profile=await window.AuthModules.userProfile.loadProfile(user.uid);
-       _userProfile=applyBilling(profile||{uid:user.uid,email:user.email||"",role:"user"},_billing);
+       _userProfile=applyBilling(profile||base,_billing);
        _notifyProfileListeners(_userProfile);
      }catch(e){
-       _userProfile=applyBilling({uid:user.uid,email:user.email||"",role:"user"},_billing);
+       _userProfile=applyBilling(base,_billing);
        console.warn("[Auth] Profile unavailable; using minimal profile.",e);
        _notifyProfileListeners(_userProfile);
      }
    }else{
-     _userProfile=applyBilling({uid:user.uid,email:user.email||"",role:"user"},_billing);
+     _userProfile=applyBilling(base,_billing);
      _notifyProfileListeners(_userProfile);
    }
    _notifyListeners(user);
@@ -81,7 +83,7 @@
  async function signOut(){
    if(!_initialized)return;
    var auth=window.FirebaseInit.getAuthSync();if(auth)await auth.signOut();
-   _currentUser=null;_userProfile=null;_billing={plan:"free"};_clearLocalCache();
+   _currentUser=null;_userProfile=null;_billing={plan:"free",billingUnavailable:false};_clearLocalCache();
  }
  function _clearLocalCache(){
    if(window.AuthModules.session&&window.AuthModules.session.clearCache)window.AuthModules.session.clearCache();
