@@ -158,30 +158,30 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
   function canEnter(forceCheck) {
     if (!isPremiumPath()) return true;
     var auth = window.Auth;
+
+    // Este gate é apenas informativo. Ele NÃO navega para login/assinatura.
+    // A decisão de acesso de uma rota Premium pertence exclusivamente ao
+    // premium-content-loader, depois da validação do entitlement no backend.
     if (!auth || !auth.isInitialized || !auth.isInitialized()) {
       scheduleResolvedCheck();
-      if (forceCheck) return false;
-      return true;
-    }
-    var user = auth.currentUser ? auth.currentUser() : null;
-    if (!user) {
-      window.location.replace(loginUrl());
       return false;
     }
+
+    var user = auth.currentUser ? auth.currentUser() : null;
+    if (!user) return false;
+
     var billing = auth.billingStatus ? auth.billingStatus() : null;
-    // Nunca tratar estado ainda não resolvido como FREE. Em rota Premium,
-    // aguarde o entitlement canônico ou mostre indisponibilidade.
     if (billing && !billing.resolved) {
       scheduleResolvedCheck();
       return false;
     }
+
     if (billing && billing.unavailable) {
       showBillingRetry();
       return false;
     }
-    if (auth.hasPlan && auth.hasPlan("premium")) return true;
-    window.location.replace(subscriptionUrl());
-    return false;
+
+    return !!(auth.hasPlan && auth.hasPlan("premium"));
   }
 
   window.__PREMIUM_PATHS = PREMIUM_PATHS;
