@@ -173,7 +173,10 @@
   function _ensureProfileShape(profile, uid) {
     var out = Object.assign({}, profile || {});
     out.uid = out.uid || uid;
-    out.plan = "free";
+    // O plano comercial não pertence ao perfil Firestore. A autoridade é
+    // billing-access/Supabase e auth-core aplica o entitlement após o billing.
+    // Permissões comerciais não devem ser herdadas de um cache de perfil.
+    // O objeto permanece apenas como fallback estrutural para compatibilidade.
     out.permissions = out.permissions || {
       canAccessPremium: false,
       canDownload: false,
