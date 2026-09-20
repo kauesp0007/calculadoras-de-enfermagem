@@ -41,7 +41,7 @@ STYLE = '''<style>
     margin: 32px auto;
     overflow: visible;
     position: relative;
-    z-index: 2147483647;
+    z-index: 1;
   }}
   @media (max-width: 600px) {{
     .multiplex-ad-reserved {{
@@ -109,6 +109,18 @@ def reserve(text: str) -> tuple[str, str]:
         current = text[start:end]
         is_centralized = ADS_LOADER_FRAGMENT not in current and "adsbygoogle || []).push" not in current
         if f'data-ad-slot="{AD_SLOT}"' in current and is_centralized:
+            language = re.search(
+                r'<div\b[^>]*\bid\s*=\s*["\']language-selector-placeholder["\'][^>]*>',
+                text,
+                re.IGNORECASE,
+            )
+            if language:
+                nl = newline_for(text)
+                clean = text[:start] + text[end:]
+                block = current.replace("\n", nl)
+                before = clean[:language.end()].rstrip()
+                after = clean[language.end():].lstrip("\r\n")
+                return before + nl * 2 + block + nl * 2 + after, "reposicionado_apos_seletor_idioma"
             return text, "ja_configurado"
         outside = text[:start] + text[end:]
         configured = ad_block(ADS_LOADER_FRAGMENT not in outside)
