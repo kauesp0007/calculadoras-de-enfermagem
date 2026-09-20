@@ -93,6 +93,12 @@
       if(!res.ok) throw new Error("premium_content_"+res.status);
       var html=await res.text();
       if(!/^\s*<!doctype html/i.test(html)&&!/^\s*<html[\s>]/i.test(html)) throw new Error("invalid_premium_document");
+      // O catálogo protegido pode conter resíduos do shell público de versões
+      // anteriores. Removê-los aqui evita recursão do próprio loader após o
+      // document.write e garante que o documento final seja o conteúdo real.
+      html=html
+        .replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
+        .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
       document.open();document.write(html);document.close();
     }catch(e){
       console.error("[PremiumContent] protected content unavailable",e);
