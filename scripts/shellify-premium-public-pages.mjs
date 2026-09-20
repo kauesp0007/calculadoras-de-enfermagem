@@ -22,11 +22,14 @@ function eligible(rel){
   return (p.length===1||(p.length===2&&LANGS.has(p[0])))&&RE.test(p.at(-1));
 }
 function shellify(html){
-  if(html.includes('id="premium-content-placeholder"')) return html;
   const headEnd=html.toLowerCase().lastIndexOf("</head>");
   if(headEnd<0) throw new Error("missing </head>");
   const body=html.match(/<body\b[^>]*>/i)?.[0]||"<body>";
-  const head=html.slice(0,headEnd);
+  let head=html.slice(0,headEnd);
+  // Remove qualquer loader anterior antes de reconstruir o shell.
+  head=head.replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"");
+  // O arquivo público deve conter somente o shell. Todo o conteúdo premium
+  // permanece em premium_content_pages e é entregue pela Edge Function.
   return head+"\n"+LOADER+"\n</head>\n"+body+"\n"+PLACEHOLDER+"\n</body>\n</html>";
 }
 const files=(await walk(ROOT)).filter(eligible).sort();
