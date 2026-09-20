@@ -6,6 +6,9 @@ var PREMIUM_PAGE_TYPES={
   simulados:1,
   "biblioteca-provas":1,
   "formularios-em-branco-de-escalas":1,
-  "formularios_de_escalas_assistenciais":1
+  "formularios_de_escalas_assistenciais":1,
+  "simulado":1,
+  "provas":1,
+  "formularios":1
 };
 var NAMED_POLICIES={public:{visibility:"public"},authenticated:{visibility:"authenticated",requiredRole:"user"},premium:{visibility:"restricted",requiredPlan:"premium"},institution:{visibility:"institution",requiredRole:"institution"},moderator:{visibility:"moderator",requiredRole:"moderator"},editor:{visibility:"editor",requiredRole:"editor"},admin:{visibility:"admin",requiredRole:"administrator"}};var RESTRICTED_CONTENT=Object.assign({},PREMIUM_PAGE_IDS,PREMIUM_PAGE_TYPES);function meta(n){var e=document.querySelector('meta[name="'+n+'"]');return e?(e.getAttribute("content")||""):"";}function list(s){return s?String(s).split(",").map(function(x){return x.trim();}).filter(Boolean):[];}function idFromPath(){var a=(location.pathname||"/").split("/").filter(Boolean);if(!a.length)return"home";var x=a[a.length-1];return x.indexOf(".")>=0?x.split(".")[0]:x;}function resolve(ctx){ctx=ctx||{};var id=ctx.contentId||meta("content-id")||idFromPath(),named=ctx.visibility||meta("content-access"),base=NAMED_POLICIES[named]||{},restricted=RESTRICTED_CONTENT[id]||null,requiredPlan=ctx.requiredPlan||meta("required-plan")||base.requiredPlan||restricted||null;return{contentId:id,contentType:ctx.contentType||meta("content-type")||"page",visibility:ctx.visibility||base.visibility||meta("visibility")||(requiredPlan?"restricted":"public"),requiredRole:ctx.requiredRole||meta("required-role")||base.requiredRole||null,requiredPlan:requiredPlan,requiredPermissions:list(ctx.requiredPermissions||meta("required-permission")),requiredFeatures:list(ctx.requiredFeatures||meta("required-feature")),requiredLicense:ctx.requiredLicense||meta("required-license")||null,status:ctx.status||meta("content-status")||"active"};}window.AccessModules.policy={NAMED_POLICIES:NAMED_POLICIES,RESTRICTED_CONTENT:RESTRICTED_CONTENT,PREMIUM_PAGE_IDS:PREMIUM_PAGE_IDS,PREMIUM_PAGE_TYPES:PREMIUM_PAGE_TYPES,resolve:resolve};})(window);
