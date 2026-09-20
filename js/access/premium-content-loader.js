@@ -15,7 +15,10 @@
     "/js/auth/auth-core.js"
   ];
   function pathKey(){
-    var parts=window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
+    return window.location.pathname.replace(/^\/+/, "");
+  }
+  function canonicalPathKey(){
+    var parts=pathKey().split("/").filter(Boolean);
     var langs={en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
     if(parts.length>1&&langs[parts[0]]) parts.shift();
     return parts.join("/");
@@ -75,8 +78,8 @@
     if(!window.Auth||typeof window.Auth.init!=="function") throw new Error("auth_bootstrap_failed");
     await window.Auth.init();
   }
-  async function request(token){
-    return fetch(ENDPOINT+"?path="+encodeURIComponent(pathKey()),{
+  async function request(token,key){
+    return fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey()),{
       headers:{Authorization:"Bearer "+token,Accept:"text/html"},
       cache:"no-store"
     });
@@ -110,10 +113,23 @@
       }
 
       var token=await user.getIdToken(false);
-      var res=await request(token);
+      var currentKey=pathKey();
+      var canonicalKey=canonicalPathKey();
+      var res=await request(token,currentKey);
+
+      // Preferir a cópia privada traduzida. Quando ela ainda não existir,
+      // utilizar a cópia canônica da raiz para impedir 404 em rotas Premium
+      // localizadas. A versão traduzida, quando cadastrada, nunca é substituída.
+      if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
+        res=await request(token,canonicalKey);
+      }
+
       if(res.status===401){
         token=await user.getIdToken(true);
-        res=await request(token);
+        res=await request(token,currentKey);
+        if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
+          res=await request(token,canonicalKey);
+        }
       }
       if(res.status===403){
         // 403 só deve virar redirecionamento quando o estado comercial
@@ -139,7 +155,7 @@
       if(res.status>=500){
         for(var attempt=2;attempt<=MAX_ATTEMPTS&&res.status>=500;attempt++){
           await new Promise(function(resolve){setTimeout(resolve,500*attempt);});
-          res=await request(await user.getIdToken(false));
+          res=await request(await user.getIdToken(false),currentKey);
         }
       }
       if(res.status===401){login();return;}
