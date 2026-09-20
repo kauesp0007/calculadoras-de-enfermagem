@@ -70,68 +70,44 @@
 </div>
 </main>
 <div id="footer-placeholder"></div>
-<script src="/js/firebase/firebase-init.js"></script>
+<script src="/js/firebase/firebase-init.js" defer></script>
 <script>
 (function(){
 "use strict";
 var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data";
 var BILL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
-var user=null;
-var billingState=null;
+var user=null,billingState={plan:"verifying"};
+
 function $(id){return document.getElementById(id);}
-function timeout(promise,ms,label){
-  var timer;
-  return Promise.race([promise,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error(label||"timeout"));},ms);})]).finally(function(){clearTimeout(timer);});
-}
-function returnUrl(){return window.location.pathname+window.location.search+window.location.hash;}
-function localized(path){
-  try{if(typeof window.__ACCOUNT_PAGE_URL==="function")return window.__ACCOUNT_PAGE_URL(path);}catch(_){} 
-  return path;
-}
-function redirectLogin(){window.location.replace((typeof window.__ACCOUNT_LOGIN_URL==="function"?window.__ACCOUNT_LOGIN_URL(returnUrl()):"/conta/login.html?returnUrl="+encodeURIComponent(returnUrl())));}
-async function getSession(){
-  await timeout(window.FirebaseInit.init(),12000,"firebase_init_timeout");
-  var auth=window.FirebaseInit.getAuthSync();
-  if(!auth)throw new Error("firebase_auth_unavailable");
-  if(auth.currentUser)return auth.currentUser;
-  return await timeout(new Promise(function(resolve){
-    var done=false;
-    var unsubscribe=auth.onAuthStateChanged(function(next){if(done)return;done=true;try{if(unsubscribe)unsubscribe();}catch(_){}resolve(next||null);});
-  }),12000,"auth_state_timeout");
-}
-async function api(url,method,body){
-  if(!user)throw new Error("not_authenticated");
-  var token=await timeout(user.getIdToken(false),7000,"token_timeout");
-  var controller=new AbortController();
-  var timer=setTimeout(function(){controller.abort();},9000);
-  try{
-    var response=await fetch(url,{method:method||"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal});
-    var data=await response.json().catch(function(){return{};});
-    if(!response.ok){var error=new Error(data.error||("request_"+response.status));error.status=response.status;throw error;}
-    return data;
-  }finally{clearTimeout(timer);}
-}
-function safeDate(value){if(!value)return"—";var d=new Date(value);return isNaN(d.getTime())?"—":d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});}
 function showMessage(text,error){
-  var box=$("profile-message");if(!box)return;box.textContent=text;box.style.display="block";
+  var box=$("profile-message"); if(!box)return;
+  box.textContent=text; box.style.display="block";
   box.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(error?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");
 }
-function hideMessage(){var box=$("profile-message");if(box)box.style.display="none";}
-function render(profile,billing){
-  if(!profile)return;
-  $("profile-name").textContent=profile.displayName||profile.email||"—";
+function safeDate(value){
+  if(!value)return "—";
+  var d=new Date(value);
+  return isNaN(d.getTime())?"—":d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"});
+}
+function render(profile){
+  profile=profile||{};
+  var name=profile.displayName||profile.email||"Usuário";
+  $("profile-name").textContent=name;
   $("profile-email").textContent=profile.email||"—";
   $("edit-name-input").value=profile.displayName||"";
   var avatar=$("profile-avatar");
   if(avatar){
     avatar.innerHTML="";
     if(profile.photoURL){
-      var img=document.createElement("img");img.src=profile.photoURL;img.alt="";img.className="w-full h-full object-cover";img.referrerPolicy="no-referrer";avatar.appendChild(img);
+      var img=document.createElement("img");
+      img.src=profile.photoURL; img.alt=""; img.className="w-16 h-16 rounded-full border-2 border-[#1A3E74] object-cover";
+      img.referrerPolicy="no-referrer"; avatar.appendChild(img);
     }else{
-      var initial=(profile.displayName||profile.email||"U").trim().charAt(0).toUpperCase()||"U";avatar.textContent=initial;
+      avatar.className="w-16 h-16 rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-black text-2xl";
+      avatar.textContent=name.trim().charAt(0).toUpperCase()||"U";
     }
   }
-  var plan=billing&&billing.plan;
+  var plan=billingState&&billingState.plan;
   $("profile-plan").textContent=plan==="premium"?"Premium":plan==="verifying"?"Verificando…":"Gratuito";
   $("profile-language").textContent=profile.language||"pt";
   $("profile-country").textContent=profile.country||"BR";
@@ -141,63 +117,83 @@ function render(profile,billing){
   $("profile-loading").style.display="none";
   $("profile-content").style.display="block";
 }
-async function loadProfile(){
-  var data=await api(DATA+"?resource=profile");
-  if(!data||!data.profile)throw new Error("profile_empty");
-  var billing={plan:"verifying"};
-  render(data.profile,billing);
-  try{billing=await api(BILL);billingState=billing;render(data.profile,billing);}catch(error){
-    billingState={plan:"verifying",billingUnavailable:true};
-    render(data.profile,billingState);
-    console.warn("[Perfil] billing indisponível:",error);
+function showStaticState(){
+  render({displayName:"Visitante",email:"",language:"pt",country:"BR",provider:"—"});
+  $("profile-plan").textContent="Sistema de contas pausado";
+  $("profile-message").style.display="none";
+}
+async function withTimeout(promise,ms){
+  var timer;
+  return Promise.race([promise,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("timeout"));},ms);})]).finally(function(){clearTimeout(timer);});
+}
+async function api(url,method,body){
+  if(!user)throw new Error("not_authenticated");
+  var token=await withTimeout(user.getIdToken(false),6000);
+  var controller=new AbortController();
+  var timer=setTimeout(function(){controller.abort();},7000);
+  try{
+    var response=await fetch(url,{method:method||"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal});
+    var data=await response.json().catch(function(){return{};});
+    if(!response.ok)throw new Error(data.error||("request_"+response.status));
+    return data;
+  }finally{clearTimeout(timer);}
+}
+async function loadChrome(){
+  var header=$("global-header-container"),footer=$("footer-placeholder");
+  var jobs=[];
+  if(header&&!header.innerHTML.trim())jobs.push(withTimeout(fetch("/menu-global.html",{cache:"no-store"}),4000).then(function(r){if(r.ok)return r.text();}).then(function(html){if(html)header.innerHTML=html;}).catch(function(e){console.warn("[Perfil] menu:",e);}));
+  if(footer&&!footer.innerHTML.trim())jobs.push(withTimeout(fetch("/footer.html",{cache:"no-store"}),4000).then(function(r){if(r.ok)return r.text();}).then(function(html){if(html)footer.innerHTML=html;}).catch(function(e){console.warn("[Perfil] footer:",e);}));
+  await Promise.allSettled(jobs);
+  try{if(window.initializeNavigationMenu)window.initializeNavigationMenu();}catch(e){}
+}
+async function loadAccount(){
+  try{
+    if(!window.FirebaseInit||!window.FirebaseInit.init)throw new Error("firebase_unavailable");
+    await withTimeout(window.FirebaseInit.init(),8000);
+    var auth=window.FirebaseInit.getAuthSync();
+    if(!auth)throw new Error("auth_unavailable");
+    user=auth.currentUser;
+    if(!user){
+      user=await withTimeout(new Promise(function(resolve){
+        var done=false;
+        var unsub=auth.onAuthStateChanged(function(next){if(done)return;done=true;try{unsub();}catch(_){}resolve(next||null);});
+      }),7000);
+    }
+    if(!user){showStaticState();return;}
+    var data=await api(DATA+"?resource=profile");
+    if(data&&data.profile)render(data.profile);
+    try{billingState=await api(BILL); if(data&&data.profile)render(data.profile);}catch(e){console.warn("[Perfil] billing:",e);}
+  }catch(error){
+    console.warn("[Perfil] conta indisponível:",error);
+    showStaticState();
   }
 }
 async function saveName(){
-  hideMessage();
-  var input=$("edit-name-input"),button=$("btn-save-name"),name=(input.value||"").trim();
+  var input=$("edit-name-input"),button=$("btn-save-name");
+  if(!user){showMessage("O sistema de login está pausado no momento. Esta ação ficará disponível quando as contas forem reativadas.",true);return;}
+  var name=(input.value||"").trim();
   if(name.length<2){showMessage("Digite um nome válido (mínimo 2 caracteres).",true);input.focus();return;}
   button.disabled=true;button.setAttribute("aria-busy","true");
   try{
     var response=await api(DATA+"?resource=profile","PATCH",{displayName:name});
     if(!response||!response.profile)throw new Error("profile_update_empty");
-    user.displayName=name;
-    try{if(typeof user.updateProfile==="function")await timeout(user.updateProfile({displayName:name}),8000,"firebase_profile_update_timeout");}catch(firebaseError){console.warn("[Perfil] Firebase displayName não atualizado:",firebaseError);}
-    var refreshed=response.profile;
-    try{billingState=await api(BILL);}catch(_){} 
-    render(refreshed,billingState||{plan:"verifying"});
-    showMessage("Nome atualizado com sucesso!",false);
-  }catch(error){console.error("[Perfil] falha ao salvar:",error);showMessage("Não foi possível salvar o nome. Tente novamente.",true);}
+    try{await withTimeout(user.updateProfile({displayName:name}),6000);}catch(_){}
+    render(response.profile);showMessage("Nome atualizado com sucesso!",false);
+  }catch(error){console.error("[Perfil] salvar:",error);showMessage("Não foi possível salvar o nome. Tente novamente.",true);}
   finally{button.disabled=false;button.removeAttribute("aria-busy");}
 }
 async function signOut(){
-  hideMessage();
+  if(!user){showMessage("O sistema de login está pausado no momento. Não há uma sessão ativa para encerrar.",true);return;}
   var button=$("btn-sair");button.disabled=true;button.setAttribute("aria-busy","true");
-  try{var auth=window.FirebaseInit.getAuthSync();if(auth)await timeout(auth.signOut(),8000,"signout_timeout");window.location.replace("/");}
-  catch(error){console.error("[Perfil] logout:",error);button.disabled=false;button.removeAttribute("aria-busy");showMessage("Não foi possível sair da conta. Tente novamente.",true);}
+  try{var auth=window.FirebaseInit.getAuthSync();if(auth)await withTimeout(auth.signOut(),6000);window.location.replace("/");}
+  catch(error){button.disabled=false;button.removeAttribute("aria-busy");showMessage("Não foi possível sair da conta. Tente novamente.",true);}
 }
-async function loadChrome(){
-  var header=$("global-header-container");
-  if(header&&!header.innerHTML.trim()){try{var hr=await fetch("/menu-global.html",{cache:"no-store"});if(hr.ok)header.innerHTML=await hr.text();}catch(e){console.warn("[Perfil] menu global:",e);}}
-  var footer=$("footer-placeholder");
-  if(footer&&!footer.innerHTML.trim()){try{var fr=await fetch("/footer.html",{cache:"no-store"});if(fr.ok)footer.innerHTML=await fr.text();}catch(e){console.warn("[Perfil] footer:",e);}}
-  try{if(window.initializeNavigationMenu)window.initializeNavigationMenu();}catch(e){console.warn("[Perfil] navegação:",e);}
-  try{if(window.AccountMenuI18n&&window.AccountMenuI18n.localize)window.AccountMenuI18n.localize();}catch(_){} 
-}
-async function boot(){
-  try{
-    await loadChrome();
-    user=await getSession();
-    if(!user){redirectLogin();return;}
-    $("btn-save-name").addEventListener("click",saveName);
-    $("btn-sair").addEventListener("click",signOut);
-    await loadProfile();
-    hideMessage();
-  }catch(error){
-    console.error("[Perfil] inicialização:",error);
-    $("profile-loading").textContent="Não foi possível carregar seu perfil. Tente novamente.";
-    $("profile-loading").className="bg-white rounded-2xl shadow-xl border border-red-200 p-12 text-center text-red-700 font-medium";
-    showMessage("Sua sessão pode ter expirado ou o serviço de conta está temporariamente indisponível.",true);
-  }
+function boot(){
+  showStaticState();
+  $("btn-save-name").addEventListener("click",saveName);
+  $("btn-sair").addEventListener("click",signOut);
+  loadChrome().catch(function(e){console.warn("[Perfil] chrome:",e);});
+  loadAccount();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
