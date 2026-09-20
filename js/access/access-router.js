@@ -22,17 +22,20 @@
         var target = path === "/conta/login.html" ? _loginUrl(window.location.pathname + window.location.search) : path === "/conta/assinatura.html" ? _accountPage(path) + "&returnUrl=" + returnUrl : path + "?returnUrl=" + returnUrl;
         window.location.href = target;
     }
-    var _premiumDecisionPending = false;
+    var _premiumDecisionListenersBound = false;
 
     function _deferPremiumDecision() {
-        if (_premiumDecisionPending) return;
         var auth = window.Auth;
-        if (!auth) return;
-        _premiumDecisionPending = true;
+        if (!auth || _premiumDecisionListenersBound) return;
+        _premiumDecisionListenersBound = true;
 
         function retry() {
-            _premiumDecisionPending = false;
-            try { guard(); } catch (e) { console.warn("[Access] Reavaliação Premium falhou:", e); }
+            try {
+                var billing = auth.billingStatus ? auth.billingStatus() : null;
+                if (!billing || billing.resolved) guard();
+            } catch (e) {
+                console.warn("[Access] Reavaliação Premium falhou:", e);
+            }
         }
 
         if (auth.onProfileChange) auth.onProfileChange(retry);
