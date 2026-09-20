@@ -49,13 +49,13 @@
         if(!window.firebase||!window.firebase.initializeApp)throw new Error("firebase_sdk_unavailable");
         _app=window.firebase.apps&&window.firebase.apps.length?window.firebase.app():window.firebase.initializeApp(firebaseConfig);
         _auth=window.firebase.auth();
+        // A persistência é importante, mas não pode bloquear a autenticação inicial.
+        // Disparamos a configuração em segundo plano e mantemos um fallback de 5s.
         try{
           if(_auth&&_auth.setPersistence&&window.firebase.auth.Auth.Persistence.LOCAL){
-            await Promise.race([
-              _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL),
-              new Promise(function(_,reject){setTimeout(function(){reject(new Error("firebase_persistence_timeout"));},5000);})
-            ]);
-            console.log("[Firebase] Persistência LOCAL do Auth configurada.");
+            _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
+              .then(function(){console.log("[Firebase] Persistência LOCAL do Auth configurada.");})
+              .catch(function(e){console.warn("[Firebase] Persistência LOCAL indisponível:",e);});
           }
         }catch(e){console.warn("[Firebase] Persistência LOCAL indisponível:",e);}
         if(_auth&&_auth.useDeviceLanguage)_auth.useDeviceLanguage();
