@@ -122,10 +122,13 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
     return "/conta/assinatura.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
   }
 
+  var _premiumGateCheckScheduled = false;
   function scheduleResolvedCheck() {
     var auth = window.Auth;
-    if (!auth || !isPremiumPath()) return;
+    if (_premiumGateCheckScheduled || !auth || !isPremiumPath()) return;
+    _premiumGateCheckScheduled = true;
     var run = function () {
+      _premiumGateCheckScheduled = false;
       try { canEnter(true); } catch (e) { console.warn("[PremiumGate] resolução tardia falhou:", e); }
     };
     if (auth.onAuthChange) auth.onAuthChange(run);
