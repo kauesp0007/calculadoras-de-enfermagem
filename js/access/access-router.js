@@ -33,8 +33,9 @@
             case "required-permission":
             case "required-license":
             case "required-feature":
+            case "required-plan":
             default:
-                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else window.location.href = "/";
+                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else _redirectTo("/conta/assinatura.html");
                 break;
         }
         return false;
