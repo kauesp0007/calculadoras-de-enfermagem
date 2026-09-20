@@ -75,7 +75,8 @@ serve(async req=>{
         successUrl:`${SITE}/boas_vindas_assinante.html?lang=pt&provider=asaas&payment=success`
       },
       items:[{name:"Premium",description:isRecurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],
-      customerData:{name:u.name||u.email||"Cliente",email:u.email||""}
+      // Não enviar customerData parcial: o Asaas valida CPF/endereço/telefone
+      // quando esse objeto é informado. O Checkout coleta esses dados do pagador.
     };
     if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate};
 
