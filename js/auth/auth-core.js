@@ -28,6 +28,7 @@
    p.billingUnavailable=!!(billing&&billing.billingUnavailable);
    return p;
  }
+ function billingStatus(){return {resolved:!!_billing.resolved,unavailable:!!_billing.billingUnavailable,plan:_billing.plan||"free",premium_expires_at:_billing.premium_expires_at||null};}
  async function init(){
    if(_initialized) return;
    var fb=await window.FirebaseInit.init(),auth=fb.auth;
@@ -41,12 +42,12 @@
  }
  async function _handleAuthState(user){
    _currentUser=user||null;
-   if(!user){_userProfile=null;_billing={plan:"free",billingUnavailable:false};_clearLocalCache();_notifyListeners(null);return;}
+   if(!user){_userProfile=null;_billing={plan:"free",billingUnavailable:false,resolved:true};_clearLocalCache();_notifyListeners(null);return;}
    try{
-     _billing=await loadBilling(user);
+     _billing=Object.assign({},await loadBilling(user),{resolved:true,billingUnavailable:false});
    }catch(e){
      console.error("[Auth] Billing state unavailable; access resolution is pending.",e);
-     _billing={plan:"free",billingUnavailable:true};
+     _billing={plan:"free",billingUnavailable:true,resolved:true};
    }
    var base={uid:user.uid,email:user.email||"",role:"user"};
    if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
@@ -95,6 +96,6 @@
    var p=window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile?await window.AuthModules.userProfile.loadProfile(_currentUser.uid):_userProfile;
    _userProfile=applyBilling(p||_userProfile||{},_billing);_notifyProfileListeners(_userProfile);return _userProfile;
  }
- window.Auth={init,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},refreshProfile};
+ window.Auth={init,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},billingStatus:billingStatus,refreshProfile};
  window.AuthModules.core=window.Auth;
 })(window);
