@@ -14,6 +14,10 @@
   function isAvailable(plan){var p=PLANS[plan];return !!(p&&p.available);}
   function list(){return Object.keys(PLANS);}
   function label(plan){return PLANS[normalize(plan)].label;}
-  window.AuthorizationModules.planService={LEVELS:LEVELS,PLANS:PLANS,PREMIUM_PLANS:["premium"],PREMIUM_ENABLED:true,normalize:normalize,levelOf:levelOf,hasPlan:hasPlan,permissionsFor:permissionsFor,isPremium:isPremium,isAvailable:isAvailable,list:list,label:label};
+  window.AuthorizationModules.planService={
+    LEVELS:LEVELS,PLANS:PLANS,PREMIUM_PLANS:["premium"],PREMIUM_ENABLED:true,
+    normalize:normalize,levelOf:levelOf,hasPlan:hasPlan,permissionsFor:permissionsFor,
+    isPremium:isPremium,isAvailable:isAvailable,list:list,label:label
+  };
   window.PREMIUM_AD_FREE_PLANS=[];
 })(window);
