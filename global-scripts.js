@@ -122,10 +122,13 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
     return "/conta/assinatura.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
   }
 
-  function canEnter() {
+  function canEnter(forceCheck) {
     if (!isPremiumPath()) return true;
     var auth = window.Auth;
-    if (!auth || !auth.isInitialized || !auth.isInitialized()) return true;
+    if (!auth || !auth.isInitialized || !auth.isInitialized()) {
+      if (forceCheck) return false;
+      return true;
+    }
     var user = auth.currentUser ? auth.currentUser() : null;
     if (!user) {
       window.location.replace(loginUrl());
@@ -505,8 +508,8 @@ function initializeAuthMenu() {
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
   
-window.__RUN_PREMIUM_ROUTE_GATE = function () {
-  try { return window.__PREMIUM_ROUTE_GATE ? window.__PREMIUM_ROUTE_GATE() : true; } catch (e) { console.warn("[PremiumGate] falha:", e); return false; }
+window.__RUN_PREMIUM_ROUTE_GATE = function (forceCheck) {
+  try { return window.__PREMIUM_ROUTE_GATE ? window.__PREMIUM_ROUTE_GATE(!!forceCheck) : true; } catch (e) { console.warn("[PremiumGate] falha:", e); return false; }
 };
 function _setupAuthorization() {
     if (!window.Authorization) {
@@ -519,7 +522,7 @@ function _setupAuthorization() {
       window.Authorization.guard();
     }
     if (window.Auth && window.Auth.isInitialized()) {
-      if (window.__RUN_PREMIUM_ROUTE_GATE && !window.__RUN_PREMIUM_ROUTE_GATE()) return;
+      if (window.__RUN_PREMIUM_ROUTE_GATE && !window.__RUN_PREMIUM_ROUTE_GATE(true)) return;
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
