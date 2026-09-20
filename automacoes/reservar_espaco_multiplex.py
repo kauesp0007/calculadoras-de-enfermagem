@@ -40,6 +40,8 @@ STYLE = '''<style>
     min-height: 260px;
     margin: 32px auto;
     overflow: visible;
+    position: relative;
+    z-index: 2147483647;
   }}
   @media (max-width: 600px) {{
     .multiplex-ad-reserved {{
