@@ -33,7 +33,7 @@ serve(async req=>{
   if(!identityId) return new Response(JSON.stringify({plan:"free",premium_expires_at:null}),{status:200,headers:H});
   const {data:ent,error}=await sb.from("user_entitlements").select("plan,premium_expires_at,provider,provider_customer_id,provider_subscription_id").eq("user_id",identityId).maybeSingle();
   if(error) throw error;
-  const active=ent.plan==="premium" && (!ent.premium_expires_at || new Date(ent.premium_expires_at)>new Date());
-  return new Response(JSON.stringify({plan:active?"premium":"free",premium_expires_at:ent.premium_expires_at||null,provider:active?ent.provider:null,provider_customer_id:active?ent.provider_customer_id:null,provider_subscription_id:active?ent.provider_subscription_id:null}),{status:200,headers:H});
+  const active=!!ent && ent.plan==="premium" && (!ent.premium_expires_at || new Date(ent.premium_expires_at)>new Date());
+  return new Response(JSON.stringify({plan:active?"premium":"free",premium_expires_at:ent?.premium_expires_at||null,provider:active?ent?.provider:null,provider_customer_id:active?ent?.provider_customer_id:null,provider_subscription_id:active?ent?.provider_subscription_id:null}),{status:200,headers:H});
  }catch(e){const msg=String((e as Error)?.message||e);return new Response(JSON.stringify({error:msg==="unauthorized"?"unauthorized":"billing_access_unavailable"}),{status:msg==="unauthorized"?401:500,headers:H});}
 });
