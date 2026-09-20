@@ -148,17 +148,9 @@ async function loadChrome(){
 }
 async function loadAccount(){
   try{
-    if(!window.FirebaseInit||!window.FirebaseInit.init)throw new Error("firebase_unavailable");
-    await withTimeout(window.FirebaseInit.init(),8000);
-    var auth=window.FirebaseInit.getAuthSync();
-    if(!auth)throw new Error("auth_unavailable");
-    user=auth.currentUser;
-    if(!user){
-      user=await withTimeout(new Promise(function(resolve){
-        var done=false;
-        var unsub=auth.onAuthStateChanged(function(next){if(done)return;done=true;try{unsub();}catch(_){}resolve(next||null);});
-      }),7000);
-    }
+    if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");
+    await withTimeout(window.Auth.init(),10000);
+    user=window.Auth.currentUser?window.Auth.currentUser():null;
     if(!user){showStaticState();return;}
     var data=await api(DATA+"?resource=profile");
     if(data&&data.profile)render(data.profile);
