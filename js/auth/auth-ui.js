@@ -527,10 +527,21 @@
     var params = new URLSearchParams(window.location.search);
     var returnUrl = params.get("returnUrl") || params.get("redirect");
 
-    // Valida que a URL de retorno é do mesmo domínio (segurança)
-    var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
+    // Após um login iniciado sem destino útil, o usuário deve entrar na
+    // área da conta, e não ser devolvido silenciosamente à página inicial.
+    // Destinos explícitos (por exemplo, uma calculadora Premium) continuam
+    // tendo prioridade.
+    var lang = window.__LANG || "pt";
+    var accountPath = "/conta/perfil.html?lang=" + encodeURIComponent(lang);
+    var targetUrl = accountPath;
     if (returnUrl && returnUrl.indexOf("/") === 0 && returnUrl.indexOf("//") !== 0 && returnUrl.indexOf("\\") === -1 && returnUrl.indexOf("/conta/login.html") !== 0) {
-      targetUrl = returnUrl;
+      // Se o retorno for apenas a home, isso não agrega contexto de navegação;
+      // nesse caso, a área da conta é o destino padrão pós-login.
+      var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
+      var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
+      if (normalizedReturn !== "/" && normalizedReturn !== localizedHome) {
+        targetUrl = returnUrl;
+      }
     }
 
     window.location.href = targetUrl;
