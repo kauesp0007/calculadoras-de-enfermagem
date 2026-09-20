@@ -38,7 +38,7 @@ serve(async req=>{
     if(!INTERNATIONAL.includes(lang))throw new Error("unsupported_international_language");
     const {data:ent}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
     if(ent?.plan==="premium"&&(!ent.premium_expires_at||new Date(ent.premium_expires_at)>new Date()))throw new Error("already_premium");
-    const {data:existing}=await db().from("billing_subscriptions").select("id,status").eq("user_id",id).eq("provider","stripe").in("status",["checkout_pending","active","past_due"]).limit(1);
+    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
     if(existing?.length)throw new Error("active_billing_flow");
     const price=priceFor(lang);
     const ref="premium_"+crypto.randomUUID();
