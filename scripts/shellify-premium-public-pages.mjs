@@ -30,7 +30,7 @@ function shellify(html){
   const headEnd=lower.indexOf("</head>",headStart);
   if(headEnd<0) throw new Error("missing </head>");
   const headSource=source.slice(headStart,headEnd);
-  if(/<\\/h(?:\\s|\\n|$)/i.test(headSource)){
+  if(/<\/h(?:\s|\n|$)/i.test(headSource)){
     throw new Error("malformed standalone </h detected; refusing to rewrite");
   }
   const head=source.slice(0,headEnd)
