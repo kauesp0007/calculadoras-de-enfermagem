@@ -146,6 +146,21 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
     if (auth.onProfileChange) auth.onProfileChange(run);
   }
 
+  function showBillingRetry() {
+    if (document.getElementById("premium-billing-retry")) return;
+    var box = document.createElement("div");
+    box.id = "premium-billing-retry";
+    box.setAttribute("role","alert");
+    box.setAttribute("style","position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(255,255,255,.98);font-family:inherit;");
+    box.innerHTML = '<div style="max-width:520px;text-align:center"><h1 style="font-size:1.25rem;font-weight:700;margin:0 0 10px">Não foi possível verificar sua assinatura</h1><p style="margin:0 0 18px;color:#475569">Sua conta não foi transformada em conta gratuita. O serviço de assinatura está temporariamente indisponível.</p><button id="premium-billing-retry-btn" type="button" style="padding:10px 18px;border-radius:8px;border:0;background:#1A3E74;color:#fff;font-weight:600;cursor:pointer">Tentar novamente</button></div>';
+    document.body.appendChild(box);
+    document.getElementById("premium-billing-retry-btn").addEventListener("click",function(){
+      box.remove();
+      if (window.Auth && window.Auth.refreshProfile) window.Auth.refreshProfile().then(function(){canEnter(true);}).catch(function(){showBillingRetry();});
+      else showBillingRetry();
+    });
+  }
+
   function canEnter(forceCheck) {
     if (!isPremiumPath()) return true;
     var auth = window.Auth;
@@ -157,6 +172,11 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
     var user = auth.currentUser ? auth.currentUser() : null;
     if (!user) {
       window.location.replace(loginUrl());
+      return false;
+    }
+    var billing = auth.billingStatus ? auth.billingStatus() : null;
+    if (billing && billing.unavailable) {
+      showBillingRetry();
       return false;
     }
     if (auth.hasPlan && auth.hasPlan("premium")) return true;
