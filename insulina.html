@@ -499,7 +499,7 @@ Utilize a seringa compatível com a apresentação e a graduação indicada no p
 
 <!-- Seringa Interativa U-100 -->
 <div class="mt-8 w-full">
-<object data="img/seringa_insulina_u100_interativa_corrigida_v2.svg" type="image/svg+xml" style="width:100%;height:auto;max-height:500px;display:block" aria-label="Seringa de insulina U-100 interativa com graduação de 0 a 100 UI"></object>
+<object id="seringaInterativa" data="img/seringa_insulina_u100_interativa_corrigida_v2.svg" type="image/svg+xml" style="width:100%;height:auto;max-height:500px;display:block" aria-label="Seringa de insulina U-100 interativa com graduação de 0 a 100 UI"></object>
 </div>
 </div>
 
@@ -629,6 +629,28 @@ Volume = ${volumeFormat} mL
 resultadoDiv.innerHTML = detalhamentoHTML;
 resultadoSection.classList.remove("hidden");
 resultadoSection.scrollIntoView({ behavior: "auto", block: "start" });
+
+// Reflete na seringa interativa o valor exato da dose prescrita (em UI).
+atualizarSeringa(prescricaoUI);
+}
+
+// Atualiza a seringa U-100 com a dose exata calculada (clampada ao limite da seringa).
+function atualizarSeringa(dose) {
+const obj = document.getElementById("seringaInterativa");
+if (!obj) return;
+const aplicar = () => {
+const doc = obj.contentDocument;
+const win = doc ? doc.defaultView : null;
+if (win && typeof win.setDoseSeringa === "function") {
+win.setDoseSeringa(dose);
+return true;
+}
+return false;
+};
+if (!aplicar()) {
+obj.addEventListener("load", () => aplicar(), { once: true });
+setTimeout(aplicar, 300);
+}
 }
 function limparCampos() {
 document.getElementById("prescricao").value = "";
