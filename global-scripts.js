@@ -811,14 +811,50 @@ function updateAuthUI(user) {
           "<span class='max-w-[100px] truncate'>" + displayName + "</span>" +
           '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
           "</button>" +
-          '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100">' +
-          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
-          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
-          '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
-          _premiumCtaHtml(isLoggedIn) +
+          '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100" role="menu">' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Configurações</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          '<li>' + _premiumCtaHtml(isLoggedIn) + '</li>' +
           _extraMenuItems(false) +
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
           "</ul>";
+
+        (function bindDesktopAccountDropdown() {
+          var accountButton = desktopItem.querySelector('button[aria-haspopup="true"]');
+          var accountMenu = desktopItem.querySelector('ul[role="menu"]');
+          if (!accountButton || !accountMenu) return;
+          accountButton.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            var isOpen = !accountMenu.classList.contains("hidden");
+            accountMenu.classList.toggle("hidden", isOpen);
+            accountButton.setAttribute("aria-expanded", String(!isOpen));
+          });
+          accountButton.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              accountButton.click();
+            } else if (e.key === "Escape") {
+              accountMenu.classList.add("hidden");
+              accountButton.setAttribute("aria-expanded", "false");
+            }
+          });
+          if (!window.__ACCOUNT_MENU_DOCUMENT_LISTENER) {
+            window.__ACCOUNT_MENU_DOCUMENT_LISTENER = true;
+            document.addEventListener("click", function (e) {
+              document.querySelectorAll("#menu-auth-desktop ul[role='menu']").forEach(function (menu) {
+                var host = document.getElementById("menu-auth-desktop");
+                var btn = host && host.querySelector('button[aria-haspopup="true"]');
+                if (host && !host.contains(e.target)) {
+                  menu.classList.add("hidden");
+                  if (btn) btn.setAttribute("aria-expanded", "false");
+                }
+              });
+            });
+          }
+        })();
 
         setTimeout(function () {
           var logoutBtn = document.getElementById("menu-auth-logout-desktop");
@@ -860,7 +896,7 @@ function updateAuthUI(user) {
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
-          _premiumCtaHtml(isLoggedIn) +
+          '<div class="px-4 py-1.5">' + _premiumCtaHtml(isLoggedIn) + '</div>' +
           _extraMenuItems(true) +
           '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
 
@@ -901,6 +937,33 @@ function updateAuthUI(user) {
       setTimeout(function () {
         safeUpdateUI(user, retries + 1);
       }, 200);
+    }
+  }
+
+  // ── Finaliza a integração do menu após o Auth estar disponível ──
+  // Esta função é deliberadamente definida antes de loadAuthScripts().
+  // Sem ela, o bootstrap do Auth podia concluir, mas a interface do menu
+  // ficava sem listener/renderização após o login.
+  var _authUiBound = false;
+  function _afterAuthReady() {
+    if (!window.Auth) return;
+
+    // Renderiza imediatamente com a identidade Firebase já disponível.
+    safeUpdateUI(window.Auth.currentUser());
+
+    // Mantém o menu sincronizado com login/logout sem depender do RBAC.
+    if (!_authUiBound) {
+      _authUiBound = true;
+      if (window.Auth.onAuthChange) {
+        window.Auth.onAuthChange(function (user) {
+          safeUpdateUI(user);
+        });
+      }
+      bindProfileListener();
+      bindFavorites();
+      bindHistory();
+      bindAuthorization();
+      bindAccess();
     }
   }
 
