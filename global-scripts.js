@@ -104,7 +104,18 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
 
   function isPremiumPath() {
     var path = normalizePath(window.location.pathname);
-    return !!PREMIUM_PATHS[path];
+    var parts = path.split("/").filter(Boolean);
+    var langs = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
+    if (parts.length > 1 && langs[parts[0]]) path = "/" + parts.slice(1).join("/");
+    if (PREMIUM_PATHS[path]) return true;
+    var file = parts.length ? parts[parts.length - 1].toLowerCase() : "";
+    if (/^simulado(?:[-_]|\.|$)/i.test(file)) return true;
+    if (/^flashcards_quiz\.html$/i.test(file)) return true;
+    if (/^fotmulario_.*\.html$/i.test(file)) return true;
+    if (/^formulario(?:[-_].*)?\.html$/i.test(file)) return true;
+    if (/^formularios-em-branco-de-escalas\.html$/i.test(file)) return true;
+    if (/^biblioteca-provas\.html$/i.test(file)) return true;
+    return false;
   }
 
   function loginUrl() {
