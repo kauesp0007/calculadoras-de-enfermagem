@@ -4,7 +4,7 @@
  * RESPONSABILIDADE: Preferências do usuário (idioma, tema, newsletter, etc.).
  *
  * As preferências ficam armazenadas no campo "preferences" do documento
- * do usuário no Firestore (users/{uid}). Este módulo centraliza os defaults,
+ * do usuário no Supabase PostgreSQL (users/{uid}). Este módulo centraliza os defaults,
  * a validação/normalização e a gravação, evitando que a interface manipule
  * os dados diretamente.
  *
@@ -91,7 +91,7 @@
     }
 
     /**
-     * Atualiza uma única preferência no Firestore.
+     * Atualiza uma única preferência no Supabase PostgreSQL.
      * @param {string} uid
      * @param {string} key
      * @param {*} value
@@ -102,12 +102,12 @@
             return null;
         }
 
-        // Grava no Firestore usando caminho com ponto (não sobrescreve as demais)
+        // Grava no Supabase PostgreSQL usando caminho com ponto (não sobrescreve as demais)
         var patch = {};
         patch["preferences." + key] = value;
 
-        if (window.AuthModules.firestoreUser) {
-            await window.AuthModules.firestoreUser.updateUserDoc(uid, patch);
+        if (window.AuthModules.Supabase account-dataUser) {
+            await window.AuthModules.Supabase account-dataUser.updateUserDoc(uid, patch);
         }
 
         if (window.AuthModules.userEvents) {
@@ -121,7 +121,7 @@
     }
 
     /**
-     * Atualiza o objeto completo de preferências no Firestore.
+     * Atualiza o objeto completo de preferências no Supabase PostgreSQL.
      * @param {string} uid
      * @param {object} prefs
      * @returns {Promise<object>}
@@ -133,8 +133,8 @@
 
         var normalized = normalize(prefs);
 
-        if (window.AuthModules.firestoreUser) {
-            await window.AuthModules.firestoreUser.updateUserDoc(uid, {
+        if (window.AuthModules.Supabase account-dataUser) {
+            await window.AuthModules.Supabase account-dataUser.updateUserDoc(uid, {
                 preferences: normalized
             });
         }
