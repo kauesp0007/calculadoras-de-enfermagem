@@ -34,7 +34,7 @@
    var fb=await window.FirebaseInit.init(),auth=fb.auth;
    await new Promise(function(resolve){
      var done=false; function finish(){if(!done){done=true;resolve();}}
-     auth.onAuthStateChanged(function(user){_handleAuthState(user);finish();});
+     auth.onAuthStateChanged(function(user){Promise.resolve(_handleAuthState(user)).then(finish).catch(function(e){console.error("[Auth] Falha ao resolver estado de autenticação:",e);finish();});});
      setTimeout(finish,5000);
    });
    auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
