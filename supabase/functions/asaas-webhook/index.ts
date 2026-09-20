@@ -50,7 +50,7 @@ async function setFree(sub:any,reason:string){
   const now=new Date().toISOString();
   const u=await db().from("billing_subscriptions").update({status:"inactive",metadata:{...(sub.metadata||{}),last_reason:reason},updated_at:now}).eq("id",sub.id);
   if(u.error)throw u.error;
-  const {data:other,error}=await db().from("billing_subscriptions").select("id").eq("user_id",sub.user_id).eq("status","active").gt("current_period_end",now).limit(1);
+  const {data:other,error}=await db().from("billing_subscriptions").select("id").eq("user_id",sub.user_id).neq("id",sub.id).in("status",["active","past_due"]).gt("current_period_end",now).limit(1);
   if(error)throw error;
   if(!other?.length){
     const e=await db().from("user_entitlements").update({plan:"free",premium_expires_at:now,updated_at:now}).eq("user_id",sub.user_id);
@@ -108,6 +108,9 @@ serve(async req=>{
       const u=await db().from("billing_subscriptions").update({status:subscription?.status==="ACTIVE"?"active":String(subscription?.status||"active").toLowerCase(),metadata,provider_subscription_id:sid,current_period_end:expiry,updated_at:new Date().toISOString()}).eq("id",sub.id);
       if(u.error)throw u.error;
       if(metadata.checkout_paid===true&&String(subscription?.status||"").toUpperCase()==="ACTIVE")await setPremium({...sub,metadata},expiry,metadata);
+    }else if(event==="PAYMENT_OVERDUE"){
+      const u=await db().from("billing_subscriptions").update({status:"past_due",metadata,updated_at:new Date().toISOString()}).eq("id",sub.id);
+      if(u.error)throw u.error;
     }else if(event==="PAYMENT_CONFIRMED"||event==="PAYMENT_RECEIVED"){
       let expiry=addDays(30);
       const paymentSubId=String(payment?.subscription||metadata.provider_subscription_id||"");
