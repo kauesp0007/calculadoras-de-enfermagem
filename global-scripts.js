@@ -787,6 +787,15 @@ function _setupAuthorization() {
     if (!window.Access) {
       return;
     }
+
+    // Em páginas Premium, o conteúdo é entregue exclusivamente pelo
+    // premium-content-loader após a validação do billing-access. Não execute
+    // o guard genérico aqui: ele pode observar um estado transitório e mandar
+    // o próprio assinante para /conta/assinatura.html.
+    if (window.__IS_PREMIUM_ROUTE) {
+      return;
+    }
+
     if (window.Access.guard) {
       window.Access.guard();
     }
@@ -1032,8 +1041,14 @@ function updateAuthUI(user) {
       bindProfileListener();
       bindFavorites();
       bindHistory();
-      bindAuthorization();
-      bindAccess();
+
+      // Rotas Premium usam exclusivamente o premium-content-loader para
+      // decidir e entregar o conteúdo. O access-router legado não pode
+      // executar um segundo guard e redirecionar o assinante para assinatura.
+      if (!window.__IS_PREMIUM_ROUTE) {
+        bindAuthorization();
+        bindAccess();
+      }
     }
   }
 
