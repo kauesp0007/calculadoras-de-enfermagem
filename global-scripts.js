@@ -72,7 +72,7 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
   "use strict";
   var PREMIUM_PATHS = {
     "/braden.html":1,"/fugulin.html":1,"/dimensionamento.html":1,"/perroca.html":1,
-    "/medicacao.html":1,"/meem.html":1,"/moca.html":1,"/zarit.html":1,
+    "/medicacao.html":1,"/medicamentos.html":1,"/meem.html":1,"/moca.html":1,"/zarit.html":1,
     "/morse.html":1,"/elpo.html":1,"/glasgow.html":1,
     "/simulado-de-enfermagem.html":1,"/simulado-de-enfermagem2.html":1,
     "/simulado-de-enfermagem3.html":1,"/simulado-de-enfermagem4.html":1,
