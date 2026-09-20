@@ -67,6 +67,73 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
   return "/conta/login.html?lang=" + encodeURIComponent(lang) + "&returnUrl=" + encodeURIComponent(target);
 };
 
+
+// -----------------------------------------------------------------------------
+// Premium gate central: protege páginas e recursos que podem ser acessados
+// diretamente, inclusive por links da home/menu, e encaminha o usuário para
+// login/assinatura sem depender de alterações de conteúdo na própria página.
+// A autoridade do plano continua sendo window.Auth -> billing-access.
+// -----------------------------------------------------------------------------
+(function installPremiumRouteGate(window, document) {
+  "use strict";
+  var PREMIUM_PATHS = {
+    "/braden.html":1,"/fugulin.html":1,"/dimensionamento.html":1,"/perroca.html":1,
+    "/medicacao.html":1,"/meem.html":1,"/moca.html":1,"/zarit.html":1,
+    "/morse.html":1,"/elpo.html":1,"/glasgow.html":1,
+    "/simulado-de-enfermagem.html":1,"/simulado-de-enfermagem2.html":1,
+    "/simulado-de-enfermagem3.html":1,"/simulado-de-enfermagem4.html":1,
+    "/simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html":1,
+    "/simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html":1,
+    "/biblioteca-provas.html":1,
+    "/formularios_de_escalas_assistenciais.html":1,
+    "/formularios-em-branco-de-escalas.html":1
+  };
+
+  function normalizePath(path) {
+    var p = String(path || "/").replace(/\\/g, "/");
+    p = p.replace(/\/+/g, "/");
+    if (p.length > 1 && p.charAt(p.length - 1) === "/") p = p.slice(0, -1);
+    return p;
+  }
+
+  function isPremiumPath() {
+    var path = normalizePath(window.location.pathname);
+    return !!PREMIUM_PATHS[path];
+  }
+
+  function loginUrl() {
+    if (typeof window.__ACCOUNT_LOGIN_URL === "function") {
+      return window.__ACCOUNT_LOGIN_URL(window.location.pathname + window.location.search + window.location.hash);
+    }
+    return "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+  }
+
+  function subscriptionUrl() {
+    if (typeof window.__ACCOUNT_PAGE_URL === "function") {
+      var u = window.__ACCOUNT_PAGE_URL("/conta/assinatura.html");
+      return u + "&returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+    }
+    return "/conta/assinatura.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+  }
+
+  function canEnter() {
+    if (!isPremiumPath()) return true;
+    var auth = window.Auth;
+    if (!auth || !auth.isInitialized || !auth.isInitialized()) return true;
+    var user = auth.currentUser ? auth.currentUser() : null;
+    if (!user) {
+      window.location.replace(loginUrl());
+      return false;
+    }
+    if (auth.hasPlan && auth.hasPlan("premium")) return true;
+    window.location.replace(subscriptionUrl());
+    return false;
+  }
+
+  window.__PREMIUM_PATHS = PREMIUM_PATHS;
+  window.__PREMIUM_ROUTE_GATE = canEnter;
+})(window, document);
+
 window.__ACCOUNT_PAGE_URL = function (path) {
   var separator = path.indexOf("?") === -1 ? "?" : "&";
   return path + separator + "lang=" + encodeURIComponent(window.__LANG || "pt");
@@ -431,7 +498,11 @@ function initializeAuthMenu() {
   /**
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
-  function _setupAuthorization() {
+  
+window.__RUN_PREMIUM_ROUTE_GATE = function () {
+  try { return window.__PREMIUM_ROUTE_GATE ? window.__PREMIUM_ROUTE_GATE() : true; } catch (e) { console.warn("[PremiumGate] falha:", e); return false; }
+};
+function _setupAuthorization() {
     if (!window.Authorization) {
       return;
     }
@@ -442,6 +513,7 @@ function initializeAuthMenu() {
       window.Authorization.guard();
     }
     if (window.Auth && window.Auth.isInitialized()) {
+      if (window.__RUN_PREMIUM_ROUTE_GATE && !window.__RUN_PREMIUM_ROUTE_GATE()) return;
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
