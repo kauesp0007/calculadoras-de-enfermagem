@@ -191,7 +191,17 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
 
 window.__ACCOUNT_PAGE_URL = function (path) {
   var separator = path.indexOf("?") === -1 ? "?" : "&";
-  return path + separator + "lang=" + encodeURIComponent(window.__LANG || "pt");
+  var lang = "pt-BR";
+  try {
+    if (window.AccountI18n && typeof window.AccountI18n.getLanguage === "function") {
+      lang = window.AccountI18n.getLanguage() || "pt-BR";
+    } else {
+      lang = window.__LANG || "pt-BR";
+    }
+  } catch (_) {
+    lang = "pt-BR";
+  }
+  return path + separator + "lang=" + encodeURIComponent(lang);
 };
 
 // Corrige links relativos em conteúdo injetado (menu-global, footer) para que

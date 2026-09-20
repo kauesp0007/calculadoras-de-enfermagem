@@ -21,7 +21,7 @@
     var file = page || "login.html";
     var lang = normalizeLanguage(language || currentLanguage());
     var params = new URLSearchParams(query || "");
-    if (lang !== "pt") params.set("lang", lang);
+    // A área de contas usa pt-BR como identificador canônico do português.\n    // Mantemos o idioma explícito também no português para evitar que links internos\n    // dependam de estado residual de localStorage ou de __LANG.\n    params.set("lang", lang === "pt" ? "pt-BR" : lang);
     var suffix = params.toString();
     return "/conta/" + file + (suffix ? "?" + suffix : "");
   }
