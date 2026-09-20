@@ -531,12 +531,8 @@
     // área da conta, e não ser devolvido silenciosamente à página inicial.
     // Destinos explícitos (por exemplo, uma calculadora Premium) continuam
     // tendo prioridade.
-    var lang = window.__LANG || "pt";
-    var accountPath = "/conta/perfil.html?lang=" + encodeURIComponent(lang);
-    var targetUrl = accountPath;
+    var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
     if (returnUrl && returnUrl.indexOf("/") === 0 && returnUrl.indexOf("//") !== 0 && returnUrl.indexOf("\\") === -1 && returnUrl.indexOf("/conta/login.html") !== 0) {
-      // Se o retorno for apenas a home, isso não agrega contexto de navegação;
-      // nesse caso, a área da conta é o destino padrão pós-login.
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
       if (normalizedReturn !== "/" && normalizedReturn !== localizedHome) {
