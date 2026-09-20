@@ -20,32 +20,19 @@ const ROOT=process.cwd();
 const SUPABASE_URL=process.env.SUPABASE_URL||"";
 const SERVICE_KEY=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
 const DRY=process.argv.includes("--dry-run");
-const MANIFEST=process.argv.find(a=>a.startsWith("--manifest="))?.slice("--manifest=".length)||"premium-content-manifest.json";
+const MANIFEST=process.argv.find(a=>a.startsWith("--manifest="))?.slice("--manifest=".length)||"premium-content-inventory.json";
 const ALLOW_SHELL_REWRITE=process.argv.includes("--apply");
-const LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
+const CATALOG=JSON.parse(await fs.readFile(path.join(ROOT,"premium-content-manifest.json"),"utf8"));
+const LANGS=new Set(CATALOG.scope.languages);
 
 function isEligible(rel){
   if(!rel.endsWith(".html")) return false;
   const parts=rel.split(path.sep).join("/").split("/");
   if(parts.length>1 && (parts.length!==2 || !LANGS.has(parts[0]))) return false;
   const f=parts.at(-1).toLowerCase();
-  return /^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|perroca|medicacao|medicamentos|meem|moca|zarit|morse|elpo|glasgow|balancohidrico)\.html$/i.test(f);
-}
-function shellify(html){
-  const body=html.match(/<body\b[^>]*>/i)?.[0]||"<body>";
-  const headEnd=html.toLowerCase().lastIndexOf("</head>");
-  if(headEnd<0) throw new Error("missing </head>");
-  const head=html.slice(0,headEnd);
-  return head+'<script src="/js/access/premium-content-loader.js" defer></script>\n</head>\n'+body+'\n<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>\n</body>\n</html>';
-}
-async function walk(dir,out=[]){
-  for(const e of await fs.readdir(dir,{withFileTypes:true})){
-    if([".git","node_modules","downloads","biblioteca","blog","blog-templates","locales","fonts","public","img","automacoes","assets","css","font","js","admin","src","dist",".vscode","institucionais"].includes(e.name)) continue;
-    const abs=path.join(dir,e.name);
-    if(e.isDirectory()) await walk(abs,out);
-    else if(e.isFile()) out.push(path.relative(ROOT,abs));
-  }
-  return out;
+  const exact=new Set(CATALOG.exact.map(x=>x.toLowerCase()));
+  const patterns=CATALOG.patterns.map(x=>new RegExp(x,"i"));
+  return exact.has(f)||patterns.some(re=>re.test(f));
 }
 async function upsert(rel,content){
   const res=await fetch(SUPABASE_URL+"/rest/v1/premium_content_pages?on_conflict=path",{
