@@ -17,20 +17,22 @@ async function firebaseUser(req:Request){
  const uid=String(payload.sub||"").trim(); if(!uid) throw new Error("unauthorized");
  return {uid,email:payload.email?String(payload.email):null};
 }
-async function identity(uid:string,email:string|null){
+async function identity(uid:string){
  const sb=db();
- const {data,error}=await sb.from("billing_identities").upsert({provider:"firebase",external_subject:uid,email,updated_at:new Date().toISOString()},{onConflict:"provider,external_subject"}).select("id").single();
- if(error||!data) throw new Error("identity_unavailable");
- return data.id as string;
+ const {data,error}=await sb.from("billing_identities").select("id").eq("provider","firebase").eq("external_subject",uid).maybeSingle();
+ if(error) throw new Error("identity_unavailable");
+ return data?.id ? String(data.id) : null;
 }
 serve(async req=>{
  if(req.method==="OPTIONS") return new Response(null,{status:204,headers:H});
  if(req.method!=="GET") return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
  try{
-  const u=await firebaseUser(req); const identityId=await identity(u.uid,u.email); const sb=db();
-  let {data:ent,error}=await sb.from("user_entitlements").select("plan,premium_expires_at,provider,provider_customer_id,provider_subscription_id").eq("user_id",identityId).maybeSingle();
+  const u=await firebaseUser(req); const identityId=await identity(u.uid); const sb=db();
+  // A consulta de acesso é estritamente somente-leitura. Identidade/entitlement
+  // só podem ser criados ou alterados por checkout/webhooks administrativos.
+  if(!identityId) return new Response(JSON.stringify({plan:"free",premium_expires_at:null}),{status:200,headers:H});
+  const {data:ent,error}=await sb.from("user_entitlements").select("plan,premium_expires_at,provider,provider_customer_id,provider_subscription_id").eq("user_id",identityId).maybeSingle();
   if(error) throw error;
-  if(!ent){const ins=await sb.from("user_entitlements").insert({user_id:identityId,plan:"free"}).select("plan,premium_expires_at,provider,provider_customer_id,provider_subscription_id").single(); if(ins.error) throw ins.error; ent=ins.data;}
   const active=ent.plan==="premium" && (!ent.premium_expires_at || new Date(ent.premium_expires_at)>new Date());
   return new Response(JSON.stringify({plan:active?"premium":"free",premium_expires_at:ent.premium_expires_at||null,provider:active?ent.provider:null,provider_customer_id:active?ent.provider_customer_id:null,provider_subscription_id:active?ent.provider_subscription_id:null}),{status:200,headers:H});
  }catch(e){const msg=String((e as Error)?.message||e);return new Response(JSON.stringify({error:msg==="unauthorized"?"unauthorized":"billing_access_unavailable"}),{status:msg==="unauthorized"?401:500,headers:H});}
