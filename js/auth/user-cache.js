@@ -1,11 +1,11 @@
 /**
  * js/auth/user-cache.js
  *
- * RESPONSABILIDADE: Cache temporário do perfil do usuário (espelho do Firestore).
+ * RESPONSABILIDADE: Cache temporário do perfil do usuário (espelho do Supabase PostgreSQL).
  *
- * O Firestore é SEMPRE a fonte oficial dos dados.
+ * O Supabase PostgreSQL é SEMPRE a fonte oficial dos dados.
  * Este cache serve apenas para resposta instantânea na UI enquanto o
- * Firestore responde (evita "flash" de dados vazios).
+ * Supabase PostgreSQL responde (evita "flash" de dados vazios).
  *
  * ATENÇÃO: armazena apenas dados NÃO SENSÍVEIS (nunca tokens, senhas, pagamentos).
  * As chaves usam o prefixo "auth_" para que auth-session.js (clearCache)
