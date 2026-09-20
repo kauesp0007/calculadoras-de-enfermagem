@@ -1,6 +1,6 @@
 (function(window){"use strict";window.AccessModules=window.AccessModules||{};var PREMIUM_PAGE_IDS={
   "braden":1,"fugulin":1,"dimensionamento":1,"perroca":1,"medicacao":1,
-  "meem":1,"moca":1,"zarit":1,"morse":1,"elpo":1,"glasgow":1
+  "meem":1,"moca":1,"zarit":1,"morse":1,"elpo":1,"glasgow":1,"medicamentos":1
 };
 var PREMIUM_PAGE_TYPES={
   simulados:1,
