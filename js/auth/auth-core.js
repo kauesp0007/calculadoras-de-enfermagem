@@ -29,7 +29,7 @@
  }
  function applyBilling(profile,billing){
    var p=Object.assign({},profile||{});
-   p.plan=billing&&billing.plan==="premium"?"premium":"free";
+   p.plan=billing&&billing.plan==="premium"?"premium":(billing&&billing.plan==="verifying"?"verifying":"free");
    p.premiumExpiresAt=billing&&billing.premium_expires_at||null;
    p.billingProvider=billing&&billing.provider||null;
    p.billingCustomerId=billing&&billing.provider_customer_id||null;
@@ -127,7 +127,7 @@
        await new Promise(function(resolve){setTimeout(resolve,50);});
      }
      if(!ready){
-       await _handleAuthState(signedUser);
+       await _hydrateUser(signedUser);
      }
    }
    return result;
