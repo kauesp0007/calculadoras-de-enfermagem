@@ -44,7 +44,16 @@
            finish();
          });
        });
-       // Não liberar a inicialização comercial por timeout enquanto o entitlement\n       // ainda está sendo resolvido. Um timeout aqui pode transformar um Premium\n       // temporariamente lento em falso FREE e redirecioná-lo para o checkout.\n       setTimeout(function(){\n         if (!done) {\n           console.error("[Auth] Timeout ao aguardar o estado de autenticação.");\n           finish();\n         }\n       },10000);
+       // Não liberar a inicialização comercial por timeout enquanto o entitlement
+       // ainda está sendo resolvido. Um timeout aqui pode transformar um Premium
+       // temporariamente lento em falso FREE e redirecioná-lo para o checkout.
+       setTimeout(function(){
+         if (!done) {
+           console.error("[Auth] Timeout ao aguardar o estado de autenticação.");
+           _billing=Object.assign({},_billing,{billingUnavailable:true,resolved:true});
+           finish();
+         }
+       },10000);
      });
      auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
      _initialized=true;
