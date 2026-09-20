@@ -14,7 +14,12 @@
     "/js/auth/auth-user-profile.js",
     "/js/auth/auth-core.js"
   ];
-  function pathKey(){return window.location.pathname.replace(/^\/+/, "");}
+  function pathKey(){
+    var parts=window.location.pathname.replace(/^\/+/, "").split("/").filter(Boolean);
+    var langs={en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
+    if(parts.length>1&&langs[parts[0]]) parts.shift();
+    return parts.join("/");
+  }
   function returnUrl(){return window.location.pathname+window.location.search+window.location.hash;}
   function login(){
     var u=returnUrl();
