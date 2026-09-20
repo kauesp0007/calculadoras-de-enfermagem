@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260920-231500";
+const CACHE_VERSION = "20260920-022506";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -1328,14 +1328,15 @@ self.addEventListener("fetch", (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // Nunca interceptar/cachear recursos de outras origens nem requisições
-  // autenticadas. Conteúdo Premium é personalizado por usuário e sua
-  // resposta jamais pode entrar no Cache API do domínio.
+  // Intercepta apenas requisições HTTP/HTTPS normais de GET.
+  if (!url.protocol.startsWith("http") || req.method !== "GET") return;
+
+  // Nunca interceptar recursos de outras origens nem requisições autenticadas.
+  // Conteúdo Premium é personalizado por usuário e sua resposta jamais pode
+  // entrar no Cache API do domínio. Esta regra também evita que o Service
+  // Worker interfira nas Edge Functions do Supabase.
   if (url.origin !== self.location.origin) return;
   if (req.headers.has("Authorization")) return;
-
-  // Intercepta apenas requisições HTTP/HTTPS normais de GET
-  if (!url.protocol.startsWith("http") || req.method !== "GET") return;
 
   // ESTRATÉGIA EXCEÇÃO: Bloqueadores de Anúncios (Ad Blockers)
   // Evita o erro "Failed to convert value to 'Response'" interceptando as falhas do AdSense
@@ -1352,7 +1353,7 @@ self.addEventListener("fetch", (event) => {
   // ESTRATÉGIA 1: PÁGINAS HTML (Network First -> Cache Fallback -> Offline Fallback)
   if (
     req.mode === "navigate" ||
-    req.headers.get("accept").includes("text/html")
+    (req.headers.get("accept") || "").includes("text/html")
   ) {
     // 1. Cria uma URL temporária com o Cache Buster para forçar a rede a entregar o arquivo fresco
     const bypassUrl = new URL(req.url);
