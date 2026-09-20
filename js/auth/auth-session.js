@@ -29,8 +29,20 @@
 
   // ─── Constantes ────────────────────────────────────────────────
   var STORAGE_PREFIX = "auth_";
-  var PROFILE_KEY = STORAGE_PREFIX + "profile";
-  var LAST_LOGIN_KEY = STORAGE_PREFIX + "last_login";
+  function profileKey(uid) {
+    return STORAGE_PREFIX + "profile_" + encodeURIComponent(String(uid || ""));
+  }
+  function lastLoginKey(uid) {
+    return STORAGE_PREFIX + "last_login_" + encodeURIComponent(String(uid || ""));
+  }
+  function currentUid() {
+    try {
+      var auth = window.FirebaseInit && window.FirebaseInit.getAuthSync ? window.FirebaseInit.getAuthSync() : null;
+      return auth && auth.currentUser ? String(auth.currentUser.uid || "") : "";
+    } catch (e) {
+      return "";
+    }
+  }
   var SESSION_EXPIRY_DAYS = 30; // Sessão expira após 30 dias de inatividade
 
   // ─── API Pública ────────────────────────────────────────────────
@@ -48,17 +60,24 @@
       return;
     }
 
+    var uid = String(profileData.uid || currentUid() || "").trim();
+    if (!uid) {
+      // Nunca manter cache de identidade sem saber a qual conta ele pertence.
+      return;
+    }
+
     try {
       // Filtra apenas campos seguros para cache local
       var safeProfile = {
+        uid: uid,
         displayName: profileData.displayName || "",
         photoURL: profileData.photoURL || "",
         language: profileData.language || "pt",
         cachedAt: Date.now()
       };
 
-      localStorage.setItem(PROFILE_KEY, JSON.stringify(safeProfile));
-      localStorage.setItem(LAST_LOGIN_KEY, String(Date.now()));
+      localStorage.setItem(profileKey(uid), JSON.stringify(safeProfile));
+      localStorage.setItem(lastLoginKey(uid), String(Date.now()));
     } catch (e) {
       console.warn("[Session] Não foi possível persistir o perfil:", e);
     }
@@ -70,14 +89,26 @@
    * 
    * @returns {object|null} Perfil em cache ou null.
    */
-  function getCachedProfile() {
+  function getCachedProfile(uid) {
     try {
-      var raw = localStorage.getItem(PROFILE_KEY);
+      uid = String(uid || currentUid() || "").trim();
+      if (!uid) {
+        return null;
+      }
+
+      var raw = localStorage.getItem(profileKey(uid));
       if (!raw) {
         return null;
       }
 
       var profile = JSON.parse(raw);
+
+      // O cache é válido somente para a conta que o Firebase acabou de autenticar.
+      if (String(profile.uid || "") !== uid) {
+        localStorage.removeItem(profileKey(uid));
+        localStorage.removeItem(lastLoginKey(uid));
+        return null;
+      }
 
       // Verifica se o cache ainda é válido (30 dias)
       var age = Date.now() - (profile.cachedAt || 0);
@@ -100,8 +131,8 @@
    * 
    * @returns {boolean}
    */
-  function hasCachedSession() {
-    return getCachedProfile() !== null;
+  function hasCachedSession(uid) {
+    return getCachedProfile(uid) !== null;
   }
 
   /**
@@ -133,9 +164,11 @@
    * Retorna a data do último login (timestamp).
    * @returns {number|null}
    */
-  function getLastLogin() {
+  function getLastLogin(uid) {
     try {
-      var ts = localStorage.getItem(LAST_LOGIN_KEY);
+      uid = String(uid || currentUid() || "").trim();
+      if (!uid) return null;
+      var ts = localStorage.getItem(lastLoginKey(uid));
       return ts ? parseInt(ts, 10) : null;
     } catch (e) {
       return null;
@@ -162,6 +195,7 @@
         // Usuário logou: garante que há cache
         if (!getCachedProfile()) {
           persistProfile({
+            uid: user.uid,
             displayName: user.displayName,
             photoURL: user.photoURL,
             email: user.email
