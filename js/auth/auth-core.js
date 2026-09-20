@@ -6,6 +6,7 @@
  "use strict";
  window.AuthModules=window.AuthModules||{};
  var _initialized=false,_initPromise=null,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
+ var _hydrationGeneration=0;
  var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
@@ -47,6 +48,7 @@
        var done=false;
        function finish(){if(!done){done=true;resolve();}}
        function handle(user){
+         var generation=++_hydrationGeneration;
          _currentUser=user||null;
          if(!user){
            _userProfile=null;
@@ -61,10 +63,13 @@
          _notifyProfileListeners(_userProfile);
          _notifyListeners(user);
          finish();
-         _hydrateUser(user);
+         _hydrateUser(user,generation);
        }
        auth.onAuthStateChanged(handle);
-       if(auth.currentUser) handle(auth.currentUser);
+       // onAuthStateChanged já entrega o estado atual ao registrar o listener.
+       // Invocar handle(auth.currentUser) em paralelo criava duas hidratações
+       // concorrentes de billing, permitindo que uma falha tardia substituísse
+       // um estado Premium válido por "billingUnavailable".
        setTimeout(function(){
          if(!done){
            var fallback=auth.currentUser||null;
@@ -82,28 +87,36 @@
    })().catch(function(e){_initPromise=null;throw e;});
    return _initPromise;
  }
- async function _hydrateUser(user){
+ async function _hydrateUser(user,generation){
    if(!user)return;
    try{
      var billing=await loadBilling(user);
+     if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
      _billing=Object.assign({},billing,{resolved:true,billingUnavailable:false});
    }catch(e){
+     if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
      console.error("[Auth] Billing state unavailable; access resolution is pending.",e);
      _billing={plan:"verifying",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:true,resolved:true};
    }
+   if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
    var base={uid:user.uid,email:user.email||"",role:"user",displayName:user.displayName||"",photoURL:user.photoURL||""};
    if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
      try{
        var profile=await window.AuthModules.userProfile.loadProfile(user.uid);
+       if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
        _userProfile=applyBilling(profile||base,_billing);
      }catch(e){
+       if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
        _userProfile=applyBilling(_userProfile||base,_billing);
        console.warn("[Auth] Profile unavailable; retaining current account identity.",e);
      }
    }else{
+     if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return;
      _userProfile=applyBilling(_userProfile||base,_billing);
    }
-   _notifyProfileListeners(_userProfile);
+   if(generation===_hydrationGeneration&&_currentUser&&_currentUser.uid===user.uid){
+     _notifyProfileListeners(_userProfile);
+   }
  }
  function onAuthChange(cb){if(typeof cb==="function")_listeners.push(cb);}
  function onProfileChange(cb){if(typeof cb==="function")_profileListeners.push(cb);}
@@ -126,7 +139,7 @@
      _userProfile=applyBilling({uid:signedUser.uid,email:signedUser.email||"",role:"user",displayName:signedUser.displayName||"",photoURL:signedUser.photoURL||""},_billing);
      _notifyProfileListeners(_userProfile);
      _notifyListeners(signedUser);
-     _hydrateUser(signedUser);
+     // A mudança de autenticação será processada pelo onAuthStateChanged.
    }
    return result;
  }
@@ -141,8 +154,13 @@
  }
  async function refreshProfile(){
    if(!_currentUser)return null;
-   _billing=Object.assign({},await loadBilling(_currentUser),{resolved:true,billingUnavailable:false});
-   var p=window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile?await window.AuthModules.userProfile.loadProfile(_currentUser.uid):_userProfile;
+   var user=_currentUser;
+   var generation=++_hydrationGeneration;
+   var billing=await loadBilling(user);
+   if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return _userProfile;
+   _billing=Object.assign({},billing,{resolved:true,billingUnavailable:false});
+   var p=window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile?await window.AuthModules.userProfile.loadProfile(user.uid):_userProfile;
+   if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return _userProfile;
    _userProfile=applyBilling(p||_userProfile||{},_billing);_notifyProfileListeners(_userProfile);return _userProfile;
  }
  window.Auth={init,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},billingStatus:billingStatus,refreshProfile};
