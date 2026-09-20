@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
 
-const URL=Deno.env.get("SUPABASE_URL")??"";
+const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
 const STRIPE=Deno.env.get("STRIPE_SECRET_KEY")??"";
 const FB=Deno.env.get("FIREBASE_PROJECT_ID")??"calculadoras-enfermagem";
@@ -11,7 +11,7 @@ const INTERNATIONAL=["en","es","fr","de","it","hi","zh","ja","ru","ko","tr","nl"
 const EUR=["tr","nl","pl","ru","fr","es","de","it","uk","sv"];
 const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com.br","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
-const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const db=()=>createClient(SUPABASE_URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 
 async function firebaseUser(req:Request){
   const h=req.headers.get("Authorization")||"";if(!h.startsWith("Bearer "))throw new Error("unauthorized");
