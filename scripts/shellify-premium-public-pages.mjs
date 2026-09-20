@@ -35,7 +35,7 @@ function shellify(html){
   }
   const head=source.slice(0,headEnd)
     .replace(/<script\b[^>]*src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
-    .replace(/<div\b[^>]*id=["']premium-content-placeholder["'][^>]*>[\\s\\S]*?<\/div>/gi,"");
+    .replace(/<div\b[^>]*id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
   const body=source.match(/<body\b[^>]*>/i)?.[0]||"<body>";
   return head+"\n"+LOADER+"\n</head>\n"+body+"\n"+PLACEHOLDER+"\n</body>\n</html>";
 }
