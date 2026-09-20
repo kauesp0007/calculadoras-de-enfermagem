@@ -307,6 +307,51 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   }
 })(window, document);
 
+// -----------------------------------------------------------------------------
+// Multiplex audit ad placement.
+// The occasional ad must remain in normal document flow below the global
+// navigation/language bars. It must never cover the menu.
+// -----------------------------------------------------------------------------
+(function positionMultiplexAuditAd(document, window) {
+  "use strict";
+  var finished = false;
+  var observer = null;
+
+  function place() {
+    if (finished) return;
+    var ad = document.getElementById("multiplex-ad-reserved");
+    if (!ad) return;
+
+    var anchor =
+      document.getElementById("language-selector-placeholder") ||
+      document.getElementById("global-header-container");
+
+    if (!anchor || !anchor.parentNode) return;
+
+    if (anchor.nextElementSibling !== ad) {
+      anchor.parentNode.insertBefore(ad, anchor.nextElementSibling);
+    }
+
+    ad.style.position = "relative";
+    ad.style.zIndex = "1";
+    finished = true;
+    if (observer) observer.disconnect();
+  }
+
+  if (window.MutationObserver) {
+    observer = new MutationObserver(place);
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", place, { once: true });
+  } else {
+    place();
+  }
+
+  window.addEventListener("load", place, { once: true });
+})(document, window);
+
 // Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").then(e => {
