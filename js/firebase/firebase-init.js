@@ -19,14 +19,21 @@
   const FIREBASE_APP_URL="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js";
   const FIREBASE_AUTH_URL="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js";
 
-  function loadScript(url){
+  function loadScript(url,timeoutMs){
     return new Promise(function(resolve,reject){
       var existing=document.querySelector('script[src="'+url+'"]');
-      if(existing){resolve();return;}
+      if(existing){
+        if(existing.dataset.firebaseLoaded==="1"){resolve();return;}
+        var existingTimer=setTimeout(function(){reject(new Error("firebase_script_timeout"));},timeoutMs||10000);
+        existing.addEventListener("load",function(){clearTimeout(existingTimer);existing.dataset.firebaseLoaded="1";resolve();},{once:true});
+        existing.addEventListener("error",function(){clearTimeout(existingTimer);reject(new Error("firebase_script_load_failed"));},{once:true});
+        return;
+      }
       var script=document.createElement("script");
       script.src=url;script.async=true;
-      script.onload=resolve;
-      script.onerror=function(){reject(new Error("Falha ao carregar script Firebase: "+url));};
+      var timer=setTimeout(function(){reject(new Error("firebase_script_timeout"));},timeoutMs||10000);
+      script.onload=function(){clearTimeout(timer);script.dataset.firebaseLoaded="1";resolve();};
+      script.onerror=function(){clearTimeout(timer);reject(new Error("firebase_script_load_failed"));};
       document.head.appendChild(script);
     });
   }
@@ -37,14 +44,17 @@
     _loading=true;
     _loadPromise=(async function(){
       try{
-        await loadScript(FIREBASE_APP_URL);
-        await loadScript(FIREBASE_AUTH_URL);
-        if(!window.firebase||!window.firebase.initializeApp)throw new Error("Firebase SDK não foi carregado corretamente.");
+        await loadScript(FIREBASE_APP_URL,10000);
+        await loadScript(FIREBASE_AUTH_URL,10000);
+        if(!window.firebase||!window.firebase.initializeApp)throw new Error("firebase_sdk_unavailable");
         _app=window.firebase.apps&&window.firebase.apps.length?window.firebase.app():window.firebase.initializeApp(firebaseConfig);
         _auth=window.firebase.auth();
         try{
           if(_auth&&_auth.setPersistence&&window.firebase.auth.Auth.Persistence.LOCAL){
-            await _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+            await Promise.race([
+              _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL),
+              new Promise(function(_,reject){setTimeout(function(){reject(new Error("firebase_persistence_timeout"));},5000);})
+            ]);
             console.log("[Firebase] Persistência LOCAL do Auth configurada.");
           }
         }catch(e){console.warn("[Firebase] Persistência LOCAL indisponível:",e);}
