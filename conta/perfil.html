@@ -22,14 +22,43 @@
  */
 async function bootProfile(){
   var loading=document.getElementById("profile-loading");
+  var finished=false;
+  function finishLoading(){if(finished)return;finished=true;if(loading)loading.style.display="none";}
+  function fallbackUser(){
+    try{
+      var a=window.FirebaseInit&&window.FirebaseInit.getAuthSync?window.FirebaseInit.getAuthSync():null;
+      return a&&a.currentUser?a.currentUser:null;
+    }catch(_){return null;}
+  }
+  function renderIdentity(user){
+    if(!user)return false;
+    render({
+      uid:user.uid,email:user.email||"",displayName:user.displayName||"",
+      photoURL:user.photoURL||"",plan:"verifying",
+      provider:user.providerData&&user.providerData[0]?user.providerData[0].providerId:""
+    },user);
+    finishLoading();
+    return true;
+  }
+  async function withTimeout(promise,ms,label){
+    return Promise.race([
+      promise,
+      new Promise(function(_,reject){setTimeout(function(){reject(new Error(label||"timeout"));},ms);})
+    ]);
+  }
   try{
-    await window.FirebaseInit.init();
-    var auth=window.FirebaseInit.getAuthSync();
+    if(!window.FirebaseInit||typeof window.FirebaseInit.init!=="function"){
+      throw new Error("firebase_init_unavailable");
+    }
+
+    // Nunca deixe a página de perfil presa indefinidamente na etapa de bootstrap.
+    var fb=await withTimeout(window.FirebaseInit.init(),6000,"firebase_init_timeout");
+    var auth=fb&&fb.auth?fb.auth:window.FirebaseInit.getAuthSync();
     if(!auth)throw new Error("firebase_auth_unavailable");
 
     var user=auth.currentUser;
     if(!user){
-      user=await new Promise(function(resolve){
+      user=await withTimeout(new Promise(function(resolve){
         var settled=false;
         var unsub=auth.onAuthStateChanged(function(u){
           if(settled)return;
@@ -37,70 +66,54 @@ async function bootProfile(){
           try{if(unsub)unsub();}catch(_){}
           resolve(u||null);
         });
-        setTimeout(function(){
-          if(!settled){
-            settled=true;
-            try{if(unsub)unsub();}catch(_){}
-            resolve(null);
-          }
-        },5000);
-      });
+      }),4000,"auth_state_timeout");
     }
 
     if(!user){
-      window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search);
+      finishLoading();
+      var login=window.AccountI18n&&typeof window.AccountI18n.buildLoginUrl==="function"
+        ?window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search)
+        :"/conta/login.html";
+      window.location.href=login;
       return;
     }
 
-    // Firebase Auth é a fonte imediata de identidade. A UI nunca depende do
-    // Supabase/billing para deixar a página utilizável.
-    render({
-      uid:user.uid,email:user.email||"",displayName:user.displayName||"",
-      photoURL:user.photoURL||"",plan:"verifying",
-      provider:user.providerData&&user.providerData[0]?user.providerData[0].providerId:""
-    },user);
+    renderIdentity(user);
 
-    // Registra listeners antes da hidratação para não perder atualizações.
-    window.Auth.onProfileChange(function(p){render(p,window.Auth.currentUser()||user);});
-    window.Auth.onAuthChange(function(u){
-      if(!u)window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search);
-    });
+    if(window.Auth&&typeof window.Auth.onProfileChange==="function"){
+      window.Auth.onProfileChange(function(p){render(p,window.Auth.currentUser()||user);});
+    }
+    if(window.Auth&&typeof window.Auth.onAuthChange==="function"){
+      window.Auth.onAuthChange(function(u){
+        if(!u){
+          var login=window.AccountI18n&&typeof window.AccountI18n.buildLoginUrl==="function"
+            ?window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search)
+            :"/conta/login.html";
+          window.location.href=login;
+        }
+      });
+    }
 
-    // Hidratação totalmente desacoplada: uma falha/lentidão do billing ou
-    // account-data não pode manter spinner nem bloquear os botões.
-    var hydration=Promise.resolve().then(function(){return window.Auth.init();});
-    await Promise.race([
-      hydration,
-      new Promise(function(resolve){setTimeout(resolve,9000);})
-    ]);
-
-    var current=window.Auth.currentUser()||user;
-    var profile=window.Auth.profile();
-    if(profile)render(profile,current);
-    else render({
-      uid:user.uid,email:user.email||"",displayName:user.displayName||"",
-      photoURL:user.photoURL||"",plan:"verifying",
-      provider:user.providerData&&user.providerData[0]?user.providerData[0].providerId:""
-    },current);
+    // Hidratação é auxiliar: nunca controla o spinner da página.
+    if(window.Auth&&typeof window.Auth.init==="function"){
+      window.Auth.init().catch(function(e){
+        console.warn("[Profile] Hidratação da conta indisponível:",e);
+      });
+    }
   }catch(e){
     console.error("[Profile] Inicialização da conta:",e);
-    // Sessão Firebase já confirmada: não transformar uma falha auxiliar
-    // em tela congelada. Se a identidade ainda não foi confirmada, redireciona.
-    var auth=window.FirebaseInit&&window.FirebaseInit.getAuthSync?window.FirebaseInit.getAuthSync():null;
-    var user=auth&&auth.currentUser?auth.currentUser:null;
-    if(user){
-      render({
-        uid:user.uid,email:user.email||"",displayName:user.displayName||"",
-        photoURL:user.photoURL||"",plan:"verifying",
-        provider:user.providerData&&user.providerData[0]?user.providerData[0].providerId:""
-      },user);
-      showMessage("Sua sessão está ativa, mas alguns dados da conta estão temporariamente indisponíveis. A página continua utilizável.",true);
-    }else{
-      window.location.href=window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search);
+    var user=fallbackUser();
+    if(!renderIdentity(user)){
+      finishLoading();
+      var login=window.AccountI18n&&typeof window.AccountI18n.buildLoginUrl==="function"
+        ?window.AccountI18n.buildLoginUrl(window.location.pathname+window.location.search)
+        :"/conta/login.html";
+      window.location.href=login;
       return;
     }
+    showMessage("Sua sessão está em verificação. A página continua disponível enquanto os dados da conta são sincronizados.",true);
   }finally{
-    if(loading)loading.style.display="none";
+    finishLoading();
   }
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bootProfile);else bootProfile();})();</script>
