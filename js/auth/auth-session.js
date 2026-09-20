@@ -54,8 +54,6 @@
         displayName: profileData.displayName || "",
         photoURL: profileData.photoURL || "",
         language: profileData.language || "pt",
-        plan: profileData.plan || "free",
-        permissions: profileData.permissions || {},
         cachedAt: Date.now()
       };
 
