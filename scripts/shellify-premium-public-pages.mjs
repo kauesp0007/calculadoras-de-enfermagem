@@ -4,7 +4,7 @@ import path from "node:path";
 
 const ROOT=process.cwd();
 const LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
-const RE=/^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|medicacao|meem|moca|zarit|morse|elpo|glasgow)\.html$/i;
+const RE=/^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|perroca|medicacao|medicamentos|meem|moca|zarit|morse|elpo|glasgow)\.html$/i;
 const LOADER='<script src="/js/access/premium-content-loader.js" defer></script>';
 const PLACEHOLDER='<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>';
 
