@@ -1,61 +1,63 @@
-// Stripe Checkout do Premium Júnior (internacional).
-// O usuário é autenticado pelo Firebase; o UID é carregado na sessão e nos metadados.
-// Regra canônica: pt-BR usa Asaas; todos os 18 idiomas internacionais usam Stripe.
-// Proteções: lock transacional por usuário/provedor + bloqueio de assinaturas existentes.
-// IMPORTANTE: esta função é PRODUÇÃO. Nunca deve usar Price de Sandbox como fallback.
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
 
-const STRIPE_SECRET_KEY = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-const STRIPE_API = "https://api.stripe.com/v1";
-const SITE_URL = "https://www.calculadorasdeenfermagem.com.br";
-const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-// Firebase publica certificados x509, mas a Web Crypto API importa diretamente JWK.
-// Usamos o endpoint JWK oficial para evitar tentar importar um certificado como SPKI.
-const FIREBASE_JWK_URL = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
-const INTERNATIONAL_LANGS = ["en", "es", "fr", "de", "it", "hi", "zh", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk", "ar"];
-const EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
-const PRICE_ID = Deno.env.get("STRIPE_PRICE_ID") ?? "";
-const USD_PRICE_ID = Deno.env.get("STRIPE_PRICE_USD") ?? "";
-const EUR_PRICE_ID = Deno.env.get("STRIPE_PRICE_EUR") ?? "";
+const URL=Deno.env.get("SUPABASE_URL")??"";
+const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
+const STRIPE=Deno.env.get("STRIPE_SECRET_KEY")??"";
+const FB=Deno.env.get("FIREBASE_PROJECT_ID")??"calculadoras-enfermagem";
+const SITE="https://www.calculadorasdeenfermagem.com.br";
+const INTERNATIONAL=["en","es","fr","de","it","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"];
+const EUR=["tr","nl","pl","ru","fr","es","de","it","uk","sv"];
+const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
+const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com.br","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
+const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
 
-let firebaseJwkCache: Record<string, JsonWebKey> | null = null;
-let firebaseJwkCacheAt = 0;
-const FIREBASE_JWK_CACHE_MS = 5 * 60 * 1000;
-
-function corsHeaders() { return { "Access-Control-Allow-Origin": "*", "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, apikey, Content-Type", "Content-Type": "application/json; charset=utf-8" }; }
-function b64urlDecode(input:string):Uint8Array{const b64=input.replace(/-/g,"+").replace(/_/g,"/");const padded=b64+"=".repeat((4-(b64.length%4))%4);const bin=atob(padded);const bytes=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)bytes[i]=bin.charCodeAt(i);return bytes;}
-async function loadFirebaseJwks(forceRefresh=false):Promise<Record<string, JsonWebKey>>{
-  const now=Date.now();
-  if(!forceRefresh&&firebaseJwkCache&&now-firebaseJwkCacheAt<FIREBASE_JWK_CACHE_MS)return firebaseJwkCache;
-  const response=await fetch(FIREBASE_JWK_URL,{headers:{"Accept":"application/json"}});
-  if(!response.ok)throw new Error("google_keys_unavailable");
-  const payload=await response.json();
-  const keys=Array.isArray(payload?.keys)?payload.keys:[];
-  const map:Record<string,JsonWebKey>={};
-  for(const key of keys){if(key?.kid)map[String(key.kid)]=key as JsonWebKey;}
-  if(Object.keys(map).length===0)throw new Error("google_keys_empty");
-  firebaseJwkCache=map;
-  firebaseJwkCacheAt=now;
-  return map;
+async function firebaseUser(req:Request){
+  const h=req.headers.get("Authorization")||"";if(!h.startsWith("Bearer "))throw new Error("unauthorized");
+  const {payload}=await jwtVerify(h.slice(7).trim(),JWKS,{algorithms:["RS256"],issuer:`https://securetoken.google.com/${FB}`,audience:FB});
+  const uid=String(payload.sub||"").trim();if(!uid)throw new Error("unauthorized");
+  return {uid,email:payload.email?String(payload.email).trim().toLowerCase():null};
 }
-async function getFirebaseCryptoKey(kid:string):Promise<CryptoKey>{
-  let keys=await loadFirebaseJwks(false);
-  let jwk=keys[kid];
-  if(!jwk){keys=await loadFirebaseJwks(true);jwk=keys[kid];}
-  if(!jwk)throw new Error("unknown_key_id");
-  return crypto.subtle.importKey("jwk",jwk,{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["verify"]);
+async function identity(u:{uid:string,email:string|null}){
+  const {data,error}=await db().from("billing_identities").upsert({provider:"firebase",external_subject:u.uid,email:u.email,updated_at:new Date().toISOString()},{onConflict:"provider,external_subject"}).select("id").single();
+  if(error||!data)throw new Error("identity_unavailable");return String(data.id);
 }
-async function verifyFirebaseToken(idToken:string):Promise<{uid:string;email:string;name:string}>{const parts=idToken.split(".");if(parts.length!==3)throw new Error("invalid_token");const[h,p,s]=parts;let header:any,payload:any;try{header=JSON.parse(new TextDecoder().decode(b64urlDecode(h)));payload=JSON.parse(new TextDecoder().decode(b64urlDecode(p)));}catch{throw new Error("invalid_token");}if(header.alg!=="RS256"||!header.kid)throw new Error("invalid_token");const now=Math.floor(Date.now()/1000);if(Number(payload.exp||0)<=now)throw new Error("token_expired");if(Number(payload.iat||0)>now+60)throw new Error("token_not_yet_valid");if(Number(payload.auth_time||0)>now+60)throw new Error("auth_time_invalid");if(payload.aud!==FIREBASE_PROJECT_ID)throw new Error("invalid_audience");if(payload.iss!==`https://securetoken.google.com/${FIREBASE_PROJECT_ID}`)throw new Error("invalid_issuer");const key=await getFirebaseCryptoKey(String(header.kid));const valid=await crypto.subtle.verify("RSASSA-PKCS1-v1_5",key,b64urlDecode(s),new TextEncoder().encode(`${h}.${p}`));if(!valid)throw new Error("invalid_signature");const uid=String(payload.sub||"");const email=String(payload.email||"").trim().toLowerCase();const name=String(payload.name||"").trim();if(!uid||!email)throw new Error("user_email_missing");return{uid,email,name};}
-function normalizeLanguage(value:unknown):string{return String(value||"").trim().toLowerCase();}
-function isSupportedInternational(lang:string):boolean{return INTERNATIONAL_LANGS.indexOf(lang)!==-1;}
-function selectedPriceId(lang:string):string{if(USD_PRICE_ID&&EUR_PRICE_ID)return EUR_LANGS.indexOf(lang)!==-1?EUR_PRICE_ID:USD_PRICE_ID;return PRICE_ID;}
-async function claimCheckout(uid:string):Promise<boolean>{if(!SUPABASE_URL||!SUPABASE_SERVICE_ROLE_KEY)throw new Error("checkout_lock_not_configured");const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/claim_billing_checkout`,{method:"POST",headers:{apikey:SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({p_provider:"stripe",p_user_id:uid,p_lease_seconds:1800})});const d=await r.json().catch(()=>null);if(!r.ok)throw new Error(`checkout_lock_failed:${r.status}`);return d===true||d==="true"||(Array.isArray(d)&&d[0]===true);}
-async function completeCheckout(uid:string):Promise<void>{const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/complete_billing_checkout`,{method:"POST",headers:{apikey:SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({p_provider:"stripe",p_user_id:uid})});if(!r.ok)throw new Error(`checkout_complete_failed:${r.status}`);}
-async function releaseCheckout(uid:string,message:string):Promise<void>{try{await fetch(`${SUPABASE_URL}/rest/v1/rpc/release_billing_checkout`,{method:"POST",headers:{apikey:SUPABASE_SERVICE_ROLE_KEY,Authorization:`Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,"Content-Type":"application/json"},body:JSON.stringify({p_provider:"stripe",p_user_id:uid,p_error:message.slice(0,2000)})});}catch(_){} }
-async function stripeGet(path:string):Promise<any>{const r=await fetch(`${STRIPE_API}${path}`,{headers:{Authorization:`Bearer ${STRIPE_SECRET_KEY}`}});const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(`stripe_api_${r.status}`);return d;}
-async function hasExistingSubscription(email:string):Promise<boolean>{const customers=await stripeGet(`/customers?email=${encodeURIComponent(email)}&limit=20`);for(const customer of (customers?.data||[])){const subs=await stripeGet(`/subscriptions?customer=${encodeURIComponent(String(customer.id))}&status=all&limit=100`);for(const sub of (subs?.data||[])){const status=String(sub?.status||"");if(["active","trialing","past_due","unpaid","incomplete"].indexOf(status)!==-1)return true;}}return false;}
-
-serve(async(req)=>{if(req.method==="OPTIONS")return new Response("",{status:204,headers:corsHeaders()});if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:corsHeaders()});if(!STRIPE_SECRET_KEY)return new Response(JSON.stringify({error:"not_configured"}),{status:500,headers:corsHeaders()});let uidForLock="";let claimHeld=false;try{const body=await req.json();const uid=String(body?.uid||"");const lang=normalizeLanguage(body?.lang);if(!uid)return new Response(JSON.stringify({error:"missing_uid"}),{status:400,headers:corsHeaders()});if(!isSupportedInternational(lang))return new Response(JSON.stringify({error:"unsupported_international_language"}),{status:400,headers:corsHeaders()});const authHeader=req.headers.get("Authorization")||"";const idToken=authHeader.startsWith("Bearer ")?authHeader.slice(7):"";const user=idToken?await verifyFirebaseToken(idToken):null;if(!user||user.uid!==uid)return new Response(JSON.stringify({error:"unauthorized"}),{status:401,headers:corsHeaders()});uidForLock=uid;claimHeld=await claimCheckout(uid);if(!claimHeld)return new Response(JSON.stringify({error:"checkout_already_in_progress"}),{status:409,headers:corsHeaders()});if(await hasExistingSubscription(user.email)){await releaseCheckout(uid,"existing_subscription");claimHeld=false;return new Response(JSON.stringify({error:"already_subscribed"}),{status:409,headers:corsHeaders()});}const priceId=selectedPriceId(lang);if(!priceId)throw new Error("stripe_price_not_configured");const successUrl=`${SITE_URL}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=success`;const cancelUrl=`${SITE_URL}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=cancel`;const form=new URLSearchParams({mode:"subscription","line_items[0][price]":priceId,"line_items[0][quantity]":"1",client_reference_id:uid,"metadata[uid]":uid,"metadata[lang]":lang,"metadata[payment_provider]":"stripe","subscription_data[metadata][uid]":uid,"subscription_data[metadata][lang]":lang,"subscription_data[metadata][payment_provider]":"stripe",customer_email:user.email,locale:"auto",success_url:successUrl,cancel_url:cancelUrl});const res=await fetch(`${STRIPE_API}/checkout/sessions`,{method:"POST",headers:{Authorization:`Bearer ${STRIPE_SECRET_KEY}`,"Content-Type":"application/x-www-form-urlencoded"},body:form});const session=await res.json();if(!res.ok||!session.url)throw new Error(session?.error?.message||"checkout_creation_failed");await completeCheckout(uid);claimHeld=false;return new Response(JSON.stringify({url:session.url}),{status:200,headers:corsHeaders()});}catch(err){const message=String((err as Error)?.message||err);if(claimHeld&&uidForLock)await releaseCheckout(uidForLock,message);console.error("[stripe-checkout]",err);return new Response(JSON.stringify({error:message}),{status:500,headers:corsHeaders()});}});
+async function stripe(path:string,init:RequestInit={}){
+  if(!STRIPE)throw new Error("stripe_not_configured");
+  const r=await fetch("https://api.stripe.com/v1"+path,{...init,headers:{Authorization:`Bearer ${STRIPE}`,"Content-Type":"application/x-www-form-urlencoded",...(init.headers||{})}});
+  const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d?.error?.message||`stripe_${r.status}`);return d;
+}
+function priceFor(lang:string){const id=EUR.includes(lang)?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");if(!id)throw new Error("stripe_price_not_configured");return id;}
+serve(async req=>{
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});
+  if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
+  try{
+    const u=await firebaseUser(req);const id=await identity(u);
+    const body=await req.json().catch(()=>({}));const lang=String(body?.lang||"").toLowerCase();
+    if(!INTERNATIONAL.includes(lang))throw new Error("unsupported_international_language");
+    const {data:ent}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
+    if(ent?.plan==="premium"&&(!ent.premium_expires_at||new Date(ent.premium_expires_at)>new Date()))throw new Error("already_premium");
+    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
+    if(existing?.length)throw new Error("active_billing_flow");
+    const price=priceFor(lang);
+    const ref="premium_"+crypto.randomUUID();
+    const ins=await db().from("billing_subscriptions").insert({user_id:id,provider:"stripe",external_id:ref,status:"checkout_pending",plan:"premium",currency:null,metadata:{lang,external_reference:ref,price_id:price}});
+    if(ins.error)throw ins.error;
+    const form=new URLSearchParams({
+      mode:"subscription","line_items[0][price]":price,"line_items[0][quantity]":"1",
+      client_reference_id:id,"metadata[user_id]":id,"metadata[firebase_uid]":u.uid,"metadata[lang]":lang,"metadata[plan]":"premium",
+      "subscription_data[metadata][user_id]":id,"subscription_data[metadata][firebase_uid]":u.uid,"subscription_data[metadata][lang]":lang,"subscription_data[metadata][plan]":"premium",
+      customer_email:String(u.email||""),locale:"auto",
+      success_url:`${SITE}/boas_vindas_assinante.html?lang=${encodeURIComponent(lang)}&provider=stripe&payment=success`,
+      cancel_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=cancel`
+    });
+    const session=await stripe("/checkout/sessions",{method:"POST",body:form});
+    if(!session?.id||!session?.url)throw new Error("checkout_creation_failed");
+    const upd=await db().from("billing_subscriptions").update({external_id:String(session.subscription||ref),metadata:{lang,external_reference:ref,price_id:price,checkout_session_id:String(session.id)},updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",ref);
+    if(upd.error)throw upd.error;
+    return new Response(JSON.stringify({url:session.url,id:session.id}),{status:200,headers:H});
+  }catch(e){
+    return new Response(JSON.stringify({error:String((e as Error)?.message||e)}),{status:400,headers:H});
+  }
+});

@@ -101,7 +101,6 @@
       createdAt: serverTs || new Date().toISOString(),
       lastLoginAt: serverTs || new Date().toISOString(),
       role: "user",
-      plan: "free",
       status: "active",
       preferences: prefs,
       permissions: {
@@ -174,6 +173,7 @@
   function _ensureProfileShape(profile, uid) {
     var out = Object.assign({}, profile || {});
     out.uid = out.uid || uid;
+    out.plan = "free";
     out.permissions = out.permissions || {
       canAccessPremium: false,
       canDownload: false,

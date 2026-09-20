@@ -19,7 +19,7 @@
     }
     function _redirectTo(path) {
         var returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
-        var target = path === "/conta/login.html" ? _loginUrl(returnUrl) : path === "/conta/assinatura.html" ? _accountPage(path) + "&returnUrl=" + returnUrl : path + "?returnUrl=" + returnUrl;
+        var target = path === "/conta/login.html" ? _loginUrl(window.location.pathname + window.location.search) : path === "/conta/assinatura.html" ? _accountPage(path) + "&returnUrl=" + returnUrl : path + "?returnUrl=" + returnUrl;
         window.location.href = target;
     }
     function guard() {
@@ -28,13 +28,14 @@
         if (result.allowed) return true;
         switch (result.reason) {
             case "required-role":
-                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else window.location.href = "/";
+                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else _redirectTo("/conta/assinatura.html");
                 break;
             case "required-permission":
             case "required-license":
             case "required-feature":
+            case "required-plan":
             default:
-                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else window.location.href = "/";
+                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else _redirectTo("/conta/assinatura.html");
                 break;
         }
         return false;

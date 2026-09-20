@@ -523,7 +523,7 @@
   function _redirectAfterLogin() {
     // Verifica se há uma URL de retorno nos parâmetros
     var params = new URLSearchParams(window.location.search);
-    var returnUrl = params.get("returnUrl");
+    var returnUrl = params.get("returnUrl") || params.get("redirect");
 
     // Valida que a URL de retorno é do mesmo domínio (segurança)
     var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";

@@ -1,0 +1,41 @@
+name: Premium Public Shell Guard
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: premium-shell-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  shellify:
+    if: github.event.pull_request.head.repo.full_name == github.repository && startsWith(github.event.pull_request.head.ref, 'refactor/contas-free-premium')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 1
+
+      - name: Shellify Premium pages
+        run: node scripts/shellify-premium-public-pages.mjs
+
+      - name: Commit generated shells
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "No premium shell changes required."
+            exit 0
+          fi
+          git add -- '*.html'
+          git commit -m "chore(access): protect Premium public pages [skip ci]"
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+
+# Deterministic guard: rerun on every PR synchronization.

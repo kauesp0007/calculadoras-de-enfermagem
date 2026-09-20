@@ -67,6 +67,127 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
   return "/conta/login.html?lang=" + encodeURIComponent(lang) + "&returnUrl=" + encodeURIComponent(target);
 };
 
+
+// -----------------------------------------------------------------------------
+// Premium gate central: protege páginas e recursos que podem ser acessados
+// diretamente, inclusive por links da home/menu, e encaminha o usuário para
+// login/assinatura sem depender de alterações de conteúdo na própria página.
+// A autoridade do plano continua sendo window.Auth -> billing-access.
+// -----------------------------------------------------------------------------
+(function installPremiumRouteGate(window, document) {
+  "use strict";
+  var PREMIUM_PATHS = {
+    "/braden.html":1,"/fugulin.html":1,"/dimensionamento.html":1,"/perroca.html":1,
+    "/medicacao.html":1,"/meem.html":1,"/moca.html":1,"/zarit.html":1,
+    "/morse.html":1,"/elpo.html":1,"/glasgow.html":1,
+    "/simulado-de-enfermagem.html":1,"/simulado-de-enfermagem2.html":1,
+    "/simulado-de-enfermagem3.html":1,"/simulado-de-enfermagem4.html":1,
+    "/simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html":1,
+    "/simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html":1,
+    "/biblioteca-provas.html":1,
+    "/formularios_de_escalas_assistenciais.html":1,
+    "/formularios-em-branco-de-escalas.html":1,
+    "/formulario_meem.html":1,"/formulario_morse.html":1,"/formulario_de_fugulin.html":1,
+    "/formulario_escala_de_elpo.html":1,"/formulario_escala_curb65.html":1,
+    "/formulario_escala_de_fast.html":1,"/formulario_escala_de_four.html":1,
+    "/formulario_escala_de_flacc.html":1,"/formulario_escala_de_downton.html":1,
+    "/formulario_escala_cincinnati.html":1,"/formulario_bps.html":1,
+    "/formulario_cam.html":1
+  };
+
+  function normalizePath(path) {
+    var p = String(path || "/").replace(/\\/g, "/");
+    p = p.replace(/\/+/g, "/");
+    if (p.length > 1 && p.charAt(p.length - 1) === "/") p = p.slice(0, -1);
+    return p;
+  }
+
+  function isPremiumPath() {
+    var path = normalizePath(window.location.pathname);
+    var parts = path.split("/").filter(Boolean);
+    var langs = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
+    if (parts.length > 1 && langs[parts[0]]) path = "/" + parts.slice(1).join("/");
+    if (PREMIUM_PATHS[path]) return true;
+    var file = parts.length ? parts[parts.length - 1].toLowerCase() : "";
+    if (/^simulado(?:[-_]|\.|$)/i.test(file)) return true;
+    if (/^flashcards_quiz\.html$/i.test(file)) return true;
+    if (/^fotmulario_.*\.html$/i.test(file)) return true;
+    if (/^formulario(?:[-_].*)?\.html$/i.test(file)) return true;
+    if (/^formularios-em-branco-de-escalas\.html$/i.test(file)) return true;
+    if (/^biblioteca-provas\.html$/i.test(file)) return true;
+    return false;
+  }
+
+  function loginUrl() {
+    if (typeof window.__ACCOUNT_LOGIN_URL === "function") {
+      return window.__ACCOUNT_LOGIN_URL(window.location.pathname + window.location.search + window.location.hash);
+    }
+    return "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+  }
+
+  function subscriptionUrl() {
+    if (typeof window.__ACCOUNT_PAGE_URL === "function") {
+      var u = window.__ACCOUNT_PAGE_URL("/conta/assinatura.html");
+      return u + "&returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+    }
+    return "/conta/assinatura.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
+  }
+
+  var _premiumGateCheckScheduled = false;
+  function scheduleResolvedCheck() {
+    var auth = window.Auth;
+    if (_premiumGateCheckScheduled || !auth || !isPremiumPath()) return;
+    _premiumGateCheckScheduled = true;
+    var run = function () {
+      _premiumGateCheckScheduled = false;
+      try { canEnter(true); } catch (e) { console.warn("[PremiumGate] resolução tardia falhou:", e); }
+    };
+    if (auth.onAuthChange) auth.onAuthChange(run);
+    if (auth.onProfileChange) auth.onProfileChange(run);
+  }
+
+  function showBillingRetry() {
+    if (document.getElementById("premium-billing-retry")) return;
+    var box = document.createElement("div");
+    box.id = "premium-billing-retry";
+    box.setAttribute("role","alert");
+    box.setAttribute("style","position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(255,255,255,.98);font-family:inherit;");
+    box.innerHTML = '<div style="max-width:520px;text-align:center"><h1 style="font-size:1.25rem;font-weight:700;margin:0 0 10px">Não foi possível verificar sua assinatura</h1><p style="margin:0 0 18px;color:#475569">Sua conta não foi transformada em conta gratuita. O serviço de assinatura está temporariamente indisponível.</p><button id="premium-billing-retry-btn" type="button" style="padding:10px 18px;border-radius:8px;border:0;background:#1A3E74;color:#fff;font-weight:600;cursor:pointer">Tentar novamente</button></div>';
+    document.body.appendChild(box);
+    document.getElementById("premium-billing-retry-btn").addEventListener("click",function(){
+      box.remove();
+      if (window.Auth && window.Auth.refreshProfile) window.Auth.refreshProfile().then(function(){canEnter(true);}).catch(function(){showBillingRetry();});
+      else showBillingRetry();
+    });
+  }
+
+  function canEnter(forceCheck) {
+    if (!isPremiumPath()) return true;
+    var auth = window.Auth;
+    if (!auth || !auth.isInitialized || !auth.isInitialized()) {
+      scheduleResolvedCheck();
+      if (forceCheck) return false;
+      return true;
+    }
+    var user = auth.currentUser ? auth.currentUser() : null;
+    if (!user) {
+      window.location.replace(loginUrl());
+      return false;
+    }
+    var billing = auth.billingStatus ? auth.billingStatus() : null;
+    if (billing && billing.unavailable) {
+      showBillingRetry();
+      return false;
+    }
+    if (auth.hasPlan && auth.hasPlan("premium")) return true;
+    window.location.replace(subscriptionUrl());
+    return false;
+  }
+
+  window.__PREMIUM_PATHS = PREMIUM_PATHS;
+  window.__PREMIUM_ROUTE_GATE = canEnter;
+})(window, document);
+
 window.__ACCOUNT_PAGE_URL = function (path) {
   var separator = path.indexOf("?") === -1 ? "?" : "&";
   return path + separator + "lang=" + encodeURIComponent(window.__LANG || "pt");
@@ -431,7 +552,11 @@ function initializeAuthMenu() {
   /**
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
-  function _setupAuthorization() {
+  
+window.__RUN_PREMIUM_ROUTE_GATE = function (forceCheck) {
+  try { return window.__PREMIUM_ROUTE_GATE ? window.__PREMIUM_ROUTE_GATE(!!forceCheck) : true; } catch (e) { console.warn("[PremiumGate] falha:", e); return false; }
+};
+function _setupAuthorization() {
     if (!window.Authorization) {
       return;
     }
@@ -442,6 +567,7 @@ function initializeAuthMenu() {
       window.Authorization.guard();
     }
     if (window.Auth && window.Auth.isInitialized()) {
+      if (window.__RUN_PREMIUM_ROUTE_GATE && !window.__RUN_PREMIUM_ROUTE_GATE(true)) return;
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
@@ -473,7 +599,10 @@ function initializeAuthMenu() {
       "/js/access/content-policy.js",
       "/js/access/access-analytics.js",
       "/js/access/content-access.js",
-      "/js/access/access-router.js"
+      "/js/access/access-router.js",
+      "/js/access/benefit-engine.js",
+      "/js/access/premium-widgets.js",
+      "/js/access/premium-banner-manager.js"
     ];
 
     var loaded = 0;
@@ -501,6 +630,9 @@ function initializeAuthMenu() {
     }
     if (window.Access.guard) {
       window.Access.guard();
+    }
+    if (window.AccessModules.bannerManager && !/^\/conta\//.test(window.location.pathname || "")) {
+      window.AccessModules.bannerManager.mount({plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free"});
     }
   }
 
@@ -537,7 +669,27 @@ function initializeAuthMenu() {
 
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
-  function updateAuthUI(user) {
+  function _premiumSubscribeUrl() {
+  var base = typeof window.__ACCOUNT_PAGE_URL === "function"
+    ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
+    : "/conta/assinatura.html?lang=" + encodeURIComponent(window.__LANG || "pt");
+  return base;
+}
+
+function _premiumCtaHtml(isLoggedIn) {
+  var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
+  var href = isPremium
+    ? _premiumSubscribeUrl()
+    : (isLoggedIn
+      ? _premiumSubscribeUrl()
+      : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
+          ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
+          : "/conta/assinatura.html"));
+  var label = isPremium ? "Premium" : "Assine já";
+  return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
+}
+
+function updateAuthUI(user) {
     var desktopLink = document.getElementById("menu-auth-link-desktop");
     var desktopItem = document.getElementById("menu-auth-desktop");
     var mobileLink = document.getElementById("menu-auth-link-mobile");
@@ -574,6 +726,7 @@ function initializeAuthMenu() {
           '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
           '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
           '<li><a href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          _premiumCtaHtml(isLoggedIn) +
           _extraMenuItems(false) +
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
           "</ul>";
@@ -597,7 +750,8 @@ function initializeAuthMenu() {
           '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
-          "</a>";
+          "</a>" +
+          _premiumCtaHtml(isLoggedIn);
       }
     }
 
@@ -617,6 +771,7 @@ function initializeAuthMenu() {
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
+          _premiumCtaHtml(isLoggedIn) +
           _extraMenuItems(true) +
           '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
 
@@ -639,7 +794,8 @@ function initializeAuthMenu() {
           '<a role="menuitem" href="' + window.__ACCOUNT_LOGIN_URL() + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           "Entrar" +
-          "</a>";
+          "</a>" +
+          _premiumCtaHtml(isLoggedIn);
       }
     }
 

@@ -1,44 +1,139 @@
-// Asaas webhook do Premium Júnior.
-// O claim transacional no Postgres ocorre antes de qualquer efeito financeiro.
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 
-const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
-const FIREBASE_SERVICE_ACCOUNT = Deno.env.get("FIREBASE_SERVICE_ACCOUNT") ?? "";
-const ASAAS_API_TOKEN = Deno.env.get("ASAAS_API_TOKEN") ?? "";
-const ASAAS_WEBHOOK_TOKEN = Deno.env.get("ASAAS_WEBHOOK_TOKEN") ?? "";
-const ASAAS_API_BASE = "https://api.asaas.com/v3";
-const PREMIUM_DAYS = 30;
-const INITIAL_PAYMENT_GRACE_MS = 48 * 60 * 60 * 1000;
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const URL=Deno.env.get("SUPABASE_URL")??"";
+const KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
+const TOKEN=Deno.env.get("ASAAS_WEBHOOK_TOKEN")??"";
+const ASAAS=Deno.env.get("ASAAS_API_TOKEN")??"";
+const H={"Content-Type":"application/json; charset=utf-8"};
+const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const iso=(d:any)=>d?new Date(d).toISOString():null;
+const addDays=(n:number)=>new Date(Date.now()+n*86400000).toISOString();
 
-function responseHeaders() { return { "Content-Type": "application/json; charset=utf-8" }; }
-function pemToArrayBuffer(pem: string): ArrayBuffer { const b64 = pem.replace(/-----BEGIN PRIVATE KEY-----/, "").replace(/-----END PRIVATE KEY-----/, "").replace(/\s+/g, ""); const bin = atob(b64); const out = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i); return out.buffer; }
-function b64url(input: string | ArrayBuffer): string { const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input); let bin = ""; bytes.forEach((b) => bin += String.fromCharCode(b)); return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, ""); }
-async function firestoreAccessToken(): Promise<string> { if (!FIREBASE_SERVICE_ACCOUNT) throw new Error("FIREBASE_SERVICE_ACCOUNT_not_configured"); const sa = JSON.parse(FIREBASE_SERVICE_ACCOUNT); const now = Math.floor(Date.now() / 1000); const claims = { iss: sa.client_email, scope: "https://www.googleapis.com/auth/datastore", aud: sa.token_uri, iat: now, exp: now + 3600 }; const input = `${b64url(JSON.stringify({ alg: "RS256", typ: "JWT" }))}.${b64url(JSON.stringify(claims))}`; const key = await crypto.subtle.importKey("pkcs8", pemToArrayBuffer(sa.private_key), { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" }, false, ["sign"]); const sig = await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(input)); const response = await fetch(sa.token_uri, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: new URLSearchParams({ grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer", assertion: `${input}.${b64url(sig)}` }) }); const data = await response.json(); if (!response.ok || !data.access_token) throw new Error("FIREBASE_TOKEN_ERROR"); return data.access_token; }
-function firestoreUrl(path: string, updateFields?: string[], updateTime?: string): string { let url = `https://firestore.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/databases/(default)/documents/${path}`; const params: string[] = []; if (updateFields?.length) params.push(...updateFields.map((f) => `updateMask.fieldPaths=${encodeURIComponent(f)}`)); if (updateTime) params.push(`currentDocument.updateTime=${encodeURIComponent(updateTime)}`); if (params.length) url += "?" + params.join("&"); return url; }
-function stringValue(v: string) { return { stringValue: v }; }
-function booleanValue(v: boolean) { return { booleanValue: v }; }
-function timestampValue(v: string) { return { timestampValue: v }; }
-function mapValue(value: Record<string, unknown>) { const fields: Record<string, unknown> = {}; for (const [key, item] of Object.entries(value)) fields[key] = typeof item === "boolean" ? booleanValue(item) : stringValue(String(item)); return { mapValue: { fields } }; }
-function decodeField(field: any): any { if (!field) return null; if (field.stringValue !== undefined) return field.stringValue; if (field.timestampValue !== undefined) return field.timestampValue; if (field.booleanValue !== undefined) return field.booleanValue; if (field.doubleValue !== undefined) return Number(field.doubleValue); if (field.integerValue !== undefined) return Number(field.integerValue); if (field.mapValue?.fields) { const out: Record<string, any> = {}; for (const [key, value] of Object.entries(field.mapValue.fields)) out[key] = decodeField(value); return out; } return null; }
-function decodeDocument(doc: any): Record<string, any> { const out: Record<string, any> = {}; for (const [key, value] of Object.entries(doc?.fields || {})) out[key] = decodeField(value); return out; }
-async function firestoreGetMeta(path: string, token: string): Promise<{ data: Record<string, any>; updateTime?: string } | null> { const response = await fetch(firestoreUrl(path), { headers: { Authorization: `Bearer ${token}` } }); if (response.status === 404) return null; if (!response.ok) throw new Error(`FIRESTORE_GET_${response.status}`); const doc = await response.json(); return { data: decodeDocument(doc), updateTime: doc.updateTime }; }
-async function firestoreGet(path: string, token: string): Promise<Record<string, any> | null> { const result = await firestoreGetMeta(path, token); return result?.data ?? null; }
-async function firestorePatch(path: string, fields: Record<string, unknown>, token: string, updateTime?: string): Promise<void> { const response = await fetch(firestoreUrl(path, Object.keys(fields), updateTime), { method: "PATCH", headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields }) }); if (!response.ok) throw new Error(`FIRESTORE_PATCH_${response.status}:${await response.text()}`); }
-async function asaasGet(path: string): Promise<any> { if (!ASAAS_API_TOKEN) throw new Error("ASAAS_API_TOKEN_not_configured"); const response = await fetch(`${ASAAS_API_BASE}${path}`, { headers: { access_token: ASAAS_API_TOKEN } }); const data = await response.json(); if (!response.ok) throw new Error(`ASAAS_GET_${response.status}:${JSON.stringify(data)}`); return data; }
-function extractOrderId(reference: string): string { const value = String(reference || ""); return value.indexOf("premium_junior_") === 0 ? value.slice("premium_junior_".length) : ""; }
-async function saveEvent(eventId: string, event: string, status: string, token: string, errorMessage?: string): Promise<void> { const now = new Date().toISOString(); const fields: Record<string, unknown> = { event: stringValue(event), status: stringValue(status), updatedAt: timestampValue(now) }; if (status === "received") fields.receivedAt = timestampValue(now); if (status === "processed") fields.processedAt = timestampValue(now); if (status === "error") fields.error = stringValue(String(errorMessage || "unknown_error")); await firestorePatch(`asaasEvents/${eventId}`, fields, token); }
-async function markPaymentProcessed(paymentId: string, uid: string, subscriptionId: string, event: string, token: string): Promise<void> { if (!paymentId) return; const now = new Date().toISOString(); await firestorePatch(`asaasPayments/${paymentId}`, { paymentId: stringValue(paymentId), uid: stringValue(uid), subscriptionId: stringValue(subscriptionId || ""), event: stringValue(event), status: stringValue("processed"), processedAt: timestampValue(now), updatedAt: timestampValue(now) }, token); }
-async function claimWebhook(provider: string, eventId: string): Promise<boolean> { if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) throw new Error("SUPABASE_CLAIM_NOT_CONFIGURED"); const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } }); const { data, error } = await admin.rpc("claim_billing_webhook", { p_provider: provider, p_event_id: eventId, p_lease_seconds: 300 }); if (error) throw new Error(`SUPABASE_CLAIM_${error.code || "ERROR"}:${error.message}`); return data === true; }
-async function completeWebhook(provider: string, eventId: string): Promise<void> { const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } }); const { error } = await admin.rpc("complete_billing_webhook", { p_provider: provider, p_event_id: eventId }); if (error) throw new Error(`SUPABASE_COMPLETE_${error.code || "ERROR"}:${error.message}`); }
-async function failWebhook(provider: string, eventId: string, message: string): Promise<void> { const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, { auth: { persistSession: false, autoRefreshToken: false } }); const { error } = await admin.rpc("fail_billing_webhook", { p_provider: provider, p_event_id: eventId, p_error: message }); if (error) throw new Error(`SUPABASE_FAIL_${error.code || "ERROR"}:${error.message}`); }
-async function setPlan(token: string, uid: string, plan: "free" | "junior", subscriptionId: string, extend: boolean, paymentId?: string): Promise<void> { const meta = await firestoreGetMeta(`users/${uid}`, token); const existing = meta?.data ?? null; if (plan === "free") { if (existing?.lifetime === true) return; const now = new Date().toISOString(); await firestorePatch(`users/${uid}`, { plan: stringValue("free"), planUpdatedAt: timestampValue(now), planExpiresAt: timestampValue(now) }, token); if (subscriptionId) await firestorePatch(`users/${uid}/subscriptions/${subscriptionId}`, { planId: stringValue("free"), status: stringValue("cancelled"), provider: stringValue("asaas"), providerSubscriptionId: stringValue(subscriptionId), updatedAt: timestampValue(now) }, token); return; } if (existing?.lifetime === true) return; const processed: Record<string, unknown> = existing?.processedAsaasPayments && typeof existing.processedAsaasPayments === "object" ? { ...existing.processedAsaasPayments } : {}; if (paymentId && processed[paymentId] === true) return; const currentExpiry = existing?.planExpiresAt ? new Date(existing.planExpiresAt) : null; const validExpiry = currentExpiry && !Number.isNaN(currentExpiry.getTime()) && currentExpiry.getTime() > Date.now(); const base = extend && validExpiry ? currentExpiry.getTime() : Date.now(); const expiresAt = new Date(base + PREMIUM_DAYS * 24 * 60 * 60 * 1000).toISOString(); const now = new Date().toISOString(); if (paymentId) processed[paymentId] = true; const fields: Record<string, unknown> = { plan: stringValue("junior"), planUpdatedAt: timestampValue(now), planExpiresAt: timestampValue(expiresAt), lastAsaasActivationAt: timestampValue(now), lastAsaasSubscriptionId: stringValue(subscriptionId || "") }; if (paymentId) fields.processedAsaasPayments = mapValue(processed); await firestorePatch(`users/${uid}`, fields, token, meta?.updateTime); if (subscriptionId) await firestorePatch(`users/${uid}/subscriptions/${subscriptionId}`, { planId: stringValue("junior"), status: stringValue("active"), userId: stringValue(uid), provider: stringValue("asaas"), providerSubscriptionId: stringValue(subscriptionId), updatedAt: timestampValue(now) }, token); }
-async function processCheckout(event: string, checkout: any, token: string): Promise<void> { const checkoutId = String(checkout?.id || ""); const orderId = extractOrderId(String(checkout?.externalReference || "")); if (!checkoutId || !orderId) throw new Error("CHECKOUT_REFERENCE_MISSING"); const order = await firestoreGet(`premiumOrders/${orderId}`, token); if (!order) throw new Error("ORDER_NOT_FOUND"); const uid = String(order.uid || ""); if (!uid) throw new Error("ORDER_UID_MISSING"); const now = new Date().toISOString(); await firestorePatch(`premiumOrders/${orderId}`, { status: stringValue(event === "CHECKOUT_PAID" ? "paid" : event === "CHECKOUT_CANCELED" ? "canceled" : "expired"), checkoutStatus: stringValue(String(checkout.status || "")), checkoutId: stringValue(checkoutId), customerId: stringValue(String(checkout.customer || "")), updatedAt: timestampValue(now) }, token); const customerId = String(checkout.customer || ""); if (customerId) await firestorePatch(`asaasCustomers/${customerId}`, { customerId: stringValue(customerId), uid: stringValue(uid), email: stringValue(String(order.email || "")), name: stringValue(String(order.name || "")), updatedAt: timestampValue(now) }, token); if (event === "CHECKOUT_PAID") { const subscriptionId = String(order.kind || "") === "monthly_card" ? String(checkout.subscription || "") : ""; await setPlan(token, uid, "junior", subscriptionId, false); await firestorePatch(`asaasSubscribers/${orderId}`, { name: stringValue(String(order.name || "")), email: stringValue(String(order.email || "")), planId: stringValue("junior"), provider: stringValue("asaas"), orderId: stringValue(orderId), checkoutId: stringValue(checkoutId), providerSubscriptionId: stringValue(subscriptionId), createdAt: timestampValue(now) }, token); } }
-async function processSubscriptionCreated(subscription: any, token: string): Promise<void> { const subId = String(subscription?.id || ""); const orderId = extractOrderId(String(subscription?.externalReference || "")); if (!subId || !orderId) return; const order = await firestoreGet(`premiumOrders/${orderId}`, token); if (!order) return; const uid = String(order.uid || ""); if (!uid) return; const customerId = String(subscription.customer || ""); const now = new Date().toISOString(); if (customerId) await firestorePatch(`asaasCustomers/${customerId}`, { customerId: stringValue(customerId), uid: stringValue(uid), email: stringValue(String(order.email || "")), name: stringValue(String(order.name || "")), updatedAt: timestampValue(now) }, token); await firestorePatch(`users/${uid}/subscriptions/${subId}`, { planId: stringValue("junior"), status: stringValue(String(subscription.status || "active")), userId: stringValue(uid), provider: stringValue("asaas"), providerSubscriptionId: stringValue(subId), updatedAt: timestampValue(now) }, token); }
-async function processPayment(event: string, paymentId: string, payload: any, token: string): Promise<void> { if (!paymentId) throw new Error("PAYMENT_ID_MISSING"); const previous = await firestoreGet(`asaasPayments/${paymentId}`, token); if (previous?.status === "processed") return; const payment = await asaasGet(`/payments/${paymentId}`); const subscriptionId = String(payment.subscription || payload?.payment?.subscription || ""); if (!subscriptionId) return; const subscription = await asaasGet(`/subscriptions/${subscriptionId}`); const orderId = extractOrderId(String(payment.externalReference || subscription.externalReference || "")); if (!orderId) throw new Error("PAYMENT_REFERENCE_MISSING"); const order = await firestoreGet(`premiumOrders/${orderId}`, token); if (!order) throw new Error("ORDER_NOT_FOUND"); const uid = String(order.uid || ""); if (!uid) throw new Error("ORDER_UID_MISSING"); const existing = await firestoreGet(`users/${uid}`, token); const lastActivation = existing?.lastAsaasActivationAt ? new Date(existing.lastAsaasActivationAt).getTime() : 0; const isInitial = lastActivation > 0 && Date.now() - lastActivation < INITIAL_PAYMENT_GRACE_MS; if (!isInitial && (event === "PAYMENT_CONFIRMED" || event === "PAYMENT_RECEIVED")) await setPlan(token, uid, "junior", subscriptionId, true, paymentId); await markPaymentProcessed(paymentId, uid, subscriptionId, event, token); }
-async function processSubscriptionCancel(subscriptionId: string, payload: any, token: string): Promise<void> { if (!subscriptionId) return; const subscription = payload?.subscription || await asaasGet(`/subscriptions/${subscriptionId}`); const orderId = extractOrderId(String(subscription?.externalReference || "")); let uid = ""; if (orderId) { const order = await firestoreGet(`premiumOrders/${orderId}`, token); uid = String(order?.uid || ""); } if (!uid && subscription?.customer) { const mapping = await firestoreGet(`asaasCustomers/${String(subscription.customer)}`, token); uid = String(mapping?.uid || ""); } if (uid) await setPlan(token, uid, "free", subscriptionId, false); }
-async function processEvent(event: string, payload: any, token: string): Promise<void> { if (["CHECKOUT_CREATED", "CHECKOUT_PAID", "CHECKOUT_CANCELED", "CHECKOUT_EXPIRED"].includes(event)) return processCheckout(event, payload.checkout || {}, token); if (event === "SUBSCRIPTION_CREATED") return processSubscriptionCreated(payload.subscription || {}, token); if (["PAYMENT_CONFIRMED", "PAYMENT_RECEIVED"].includes(event)) return processPayment(event, String(payload?.payment?.id || ""), payload, token); if (["SUBSCRIPTION_DELETED", "SUBSCRIPTION_INACTIVATED"].includes(event)) return processSubscriptionCancel(String(payload?.subscription?.id || ""), payload, token); }
-serve(async (req) => { if (req.method !== "POST") return new Response(JSON.stringify({ error: "method_not_allowed" }), { status: 405, headers: responseHeaders() }); if (!FIREBASE_SERVICE_ACCOUNT || !ASAAS_API_TOKEN || !ASAAS_WEBHOOK_TOKEN || !SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) return new Response(JSON.stringify({ error: "not_configured" }), { status: 500, headers: responseHeaders() }); const provided = req.headers.get("asaas-access-token") || ""; if (provided !== ASAAS_WEBHOOK_TOKEN) return new Response(JSON.stringify({ error: "invalid_token" }), { status: 401, headers: responseHeaders() }); let eventId = ""; try { const payload = await req.json(); eventId = String(payload?.id || ""); const event = String(payload?.event || ""); if (!eventId || !event) return new Response(JSON.stringify({ error: "invalid_event" }), { status: 400, headers: responseHeaders() }); const claimed = await claimWebhook("asaas", eventId); if (!claimed) return new Response(JSON.stringify({ ok: true, duplicate: true }), { status: 200, headers: responseHeaders() }); const token = await firestoreAccessToken(); await saveEvent(eventId, event, "received", token); try { await processEvent(event, payload, token); await saveEvent(eventId, event, "processed", token); await completeWebhook("asaas", eventId); return new Response(JSON.stringify({ ok: true, processed: true }), { status: 200, headers: responseHeaders() }); } catch (error) { console.error("[asaas-webhook] process", error); try { await saveEvent(eventId, event, "error", token, String((error as Error)?.message || error)); } catch (saveError) { console.error("[asaas-webhook] save-error", saveError); } try { await failWebhook("asaas", eventId, String((error as Error)?.message || error)); } catch (claimError) { console.error("[asaas-webhook] claim-error", claimError); } return new Response(JSON.stringify({ error: "webhook_processing_failed" }), { status: 500, headers: responseHeaders() }); } } catch (error) { console.error("[asaas-webhook] receive", error); return new Response(JSON.stringify({ error: "webhook_receive_failed" }), { status: 500, headers: responseHeaders() }); } });
+async function asaasGet(path:string){
+  if(!ASAAS)throw new Error("asaas_not_configured");
+  const r=await fetch("https://api.asaas.com/v3"+path,{headers:{access_token:ASAAS}});
+  const d=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error("asaas_"+r.status);
+  return d;
+}
+async function findSub(ref:string,providerSubId:string,customerId:string){
+  if(ref){
+    const a=await db().from("billing_subscriptions").select("*").eq("provider","asaas").eq("external_id",ref).maybeSingle();
+    if(a.error)throw a.error;if(a.data)return a.data;
+  }
+  if(providerSubId){
+    const a=await db().from("billing_subscriptions").select("*").eq("provider","asaas").eq("metadata->>provider_subscription_id",providerSubId).maybeSingle();
+    if(a.error)throw a.error;if(a.data)return a.data;
+  }
+  if(customerId){
+    const a=await db().from("billing_subscriptions").select("*").eq("provider","asaas").in("status",["checkout_pending","active","past_due"]).eq("metadata->>asaas_customer_id",customerId).order("created_at",{ascending:false}).limit(1).maybeSingle();
+    if(a.error)throw a.error;if(a.data)return a.data;
+  }
+  return null;
+}
+async function setPremium(sub:any,expires:string,extra:any={}){
+  const now=new Date().toISOString();
+  const metadata={...(sub.metadata||{}),...extra};
+  const u=await db().from("billing_subscriptions").update({
+    status:"active",current_period_end:expires,metadata,updated_at:now
+  }).eq("id",sub.id);
+  if(u.error)throw u.error;
+  const e=await db().from("user_entitlements").upsert({
+    user_id:sub.user_id,plan:"premium",premium_expires_at:expires,provider:"asaas",
+    provider_customer_id:metadata.asaas_customer_id||null,
+    provider_subscription_id:metadata.provider_subscription_id||null,updated_at:now
+  },{onConflict:"user_id"});
+  if(e.error)throw e.error;
+}
+async function setFree(sub:any,reason:string){
+  const now=new Date().toISOString();
+  const u=await db().from("billing_subscriptions").update({status:"inactive",metadata:{...(sub.metadata||{}),last_reason:reason},updated_at:now}).eq("id",sub.id);
+  if(u.error)throw u.error;
+  const {data:other,error}=await db().from("billing_subscriptions").select("id").eq("user_id",sub.user_id).neq("id",sub.id).in("status",["active","past_due"]).gt("current_period_end",now).limit(1);
+  if(error)throw error;
+  if(!other?.length){
+    const e=await db().from("user_entitlements").update({plan:"free",premium_expires_at:now,updated_at:now}).eq("user_id",sub.user_id);
+    if(e.error)throw e.error;
+  }
+}
+serve(async req=>{
+  if(req.method!=="POST")return new Response("method_not_allowed",{status:405,headers:H});
+  if(!TOKEN||req.headers.get("asaas-access-token")!==TOKEN)return new Response("unauthorized",{status:401,headers:H});
+  try{
+    const e=await req.json();
+    const event=String(e?.event||"");
+    const eventId=String(e?.id||"");
+    if(!event||!eventId)return new Response(JSON.stringify({ok:true,ignored:true}),{status:200,headers:H});
+    const claim=await db().rpc("claim_billing_webhook",{p_provider:"asaas",p_event_id:eventId,p_lease_seconds:300});
+    if(claim.error)throw claim.error;
+    if(claim.data!==true)return new Response(JSON.stringify({ok:true,duplicate:true}),{status:200,headers:H});
+
+    const checkout=e?.checkout||{};
+    const payment=e?.payment||{};
+    const subscription=e?.subscription||{};
+    const ref=String(checkout?.externalReference||payment?.externalReference||subscription?.externalReference||"");
+    const providerSubId=String(payment?.subscription||subscription?.id||"");
+    const customerId=String(checkout?.customer||payment?.customer||subscription?.customer||"");
+    const sub=await findSub(ref,providerSubId,customerId);
+    if(!sub){
+      await db().rpc("fail_billing_webhook",{p_provider:"asaas",p_event_id:eventId,p_error:"billing_subscription_not_found"});
+      return new Response(JSON.stringify({ok:true,ignored:true}),{status:200,headers:H});
+    }
+
+    const metadata={...(sub.metadata||{}),last_event:event,last_event_id:eventId};
+    if(customerId)metadata.asaas_customer_id=customerId;
+
+    if(event==="CHECKOUT_CREATED"){
+      const u=await db().from("billing_subscriptions").update({status:"checkout_pending",metadata,updated_at:new Date().toISOString()}).eq("id",sub.id);
+      if(u.error)throw u.error;
+    }else if(event==="CHECKOUT_PAID"){
+      const kind=String(metadata.kind||"pix_30d");
+      let expiry=addDays(30);
+      if(kind==="monthly_card"){
+        const subId=String(subscription?.id||metadata.provider_subscription_id||"");
+        if(subId){
+          const remote=await asaasGet(`/subscriptions/${encodeURIComponent(subId)}`);
+          if(remote?.nextDueDate)expiry=iso(remote.nextDueDate+"T23:59:59-03:00")||expiry;
+          metadata.provider_subscription_id=subId;
+        }
+      }
+      metadata.checkout_paid=true;
+      await setPremium({...sub,metadata},expiry,{...metadata});
+    }else if(event==="SUBSCRIPTION_CREATED"||event==="SUBSCRIPTION_UPDATED"){
+      const sid=String(subscription?.id||"");
+      metadata.provider_subscription_id=sid;
+      metadata.asaas_customer_id=String(subscription?.customer||customerId||"");
+      const expiry=subscription?.nextDueDate?iso(String(subscription.nextDueDate)+"T23:59:59-03:00"):addDays(30);
+      const u=await db().from("billing_subscriptions").update({status:subscription?.status==="ACTIVE"?"active":String(subscription?.status||"active").toLowerCase(),metadata,provider_subscription_id:sid,current_period_end:expiry,updated_at:new Date().toISOString()}).eq("id",sub.id);
+      if(u.error)throw u.error;
+      if(metadata.checkout_paid===true&&String(subscription?.status||"").toUpperCase()==="ACTIVE")await setPremium({...sub,metadata},expiry,metadata);
+    }else if(event==="PAYMENT_OVERDUE"){
+      const u=await db().from("billing_subscriptions").update({status:"past_due",metadata,updated_at:new Date().toISOString()}).eq("id",sub.id);
+      if(u.error)throw u.error;
+    }else if(event==="PAYMENT_CONFIRMED"||event==="PAYMENT_RECEIVED"){
+      let expiry=addDays(30);
+      const paymentSubId=String(payment?.subscription||metadata.provider_subscription_id||"");
+      if(paymentSubId){
+        const remote=await asaasGet(`/subscriptions/${encodeURIComponent(paymentSubId)}`);
+        if(remote?.nextDueDate)expiry=iso(String(remote.nextDueDate)+"T23:59:59-03:00")||expiry;
+        metadata.provider_subscription_id=paymentSubId;
+        metadata.asaas_customer_id=String(remote?.customer||customerId||metadata.asaas_customer_id||"");
+      }
+      await setPremium({...sub,metadata},expiry,metadata);
+    }else if(["CHECKOUT_CANCELED","CHECKOUT_EXPIRED"].includes(event)){
+      await setFree({...sub,metadata},event);
+    }else if(["SUBSCRIPTION_INACTIVATED","SUBSCRIPTION_DELETED"].includes(event)){
+      await setFree({...sub,metadata},event);
+    }else if(["PAYMENT_REFUNDED","PAYMENT_PARTIALLY_REFUNDED","PAYMENT_CHARGEBACK_REQUESTED","PAYMENT_CHARGEBACK_DISPUTE"].includes(event)){
+      await setFree({...sub,metadata},event);
+    }
+
+    const done=await db().rpc("complete_billing_webhook",{p_provider:"asaas",p_event_id:eventId});
+    if(done.error)throw done.error;
+    return new Response(JSON.stringify({ok:true}),{status:200,headers:H});
+  }catch(e){
+    console.error("[asaas-webhook]",e);
+    return new Response(JSON.stringify({error:"webhook_processing_failed"}),{status:500,headers:H});
+  }
+});
