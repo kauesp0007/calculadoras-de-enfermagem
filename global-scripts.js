@@ -718,7 +718,8 @@ function _setupAuthorization() {
         safeUpdateUI(window.Auth.currentUser());
       }
       hideAdsForPremium();
-      bindAccess();
+      // Não carregue o access-router/premium-banner-manager em uma rota Premium.
+      // O premium-content-loader é o único gate de entrega dessas páginas.
       return;
     }
 
