@@ -114,22 +114,32 @@ def reserve(text: str) -> tuple[str, str]:
         configured = ad_block(ADS_LOADER_FRAGMENT not in outside)
         configured = configured.replace("\n", newline_for(text))
         return text[:start] + configured + text[end:], "configuracao_centralizada"
-    footer = FOOTER.search(text)
-    if footer:
-        position = footer.start()
-        method = "antes_footer"
+
+    language = re.search(
+        r'<div\b[^>]*\bid\s*=\s*["\']language-selector-placeholder["\'][^>]*>',
+        text,
+        re.IGNORECASE,
+    )
+    if language:
+        position = language.end()
+        method = "apos_seletor_idioma"
     else:
-        main_matches = list(MAIN_CLOSE.finditer(text))
-        if not main_matches:
-            return text, "sem_ancora_segura"
-        position = main_matches[-1].end()
-        method = "apos_main_sem_footer"
+        footer = FOOTER.search(text)
+        if footer:
+            position = footer.start()
+            method = "antes_footer"
+        else:
+            main_matches = list(MAIN_CLOSE.finditer(text))
+            if not main_matches:
+                return text, "sem_ancora_segura"
+            position = main_matches[-1].end()
+            method = "apos_main_sem_footer"
+
     nl = newline_for(text)
     block = ad_block(ADS_LOADER_FRAGMENT not in text).replace("\n", nl)
     before = text[:position].rstrip()
     after = text[position:].lstrip("\r\n")
     return before + nl * 2 + block + nl * 2 + after, method
-
 
 def remove_reservation(text: str) -> tuple[str, str]:
     pattern = re.compile(
