@@ -704,14 +704,28 @@ function _setupAuthorization() {
     if (!window.Authorization) {
       return;
     }
+
     if (window.Authorization.ready) {
       window.Authorization.ready();
     }
+
+    // Rotas Premium têm uma única autoridade de acesso: o bootstrap de Auth +
+    // billing-access + premium-content. O Access.guard()/route-gate legado não
+    // deve decidir a rota antes do entitlement estar confirmado, pois isso
+    // pode transformar um estado transitório em redirecionamento para assinatura.
+    if (window.__IS_PREMIUM_ROUTE) {
+      if (window.Auth && window.Auth.isInitialized()) {
+        safeUpdateUI(window.Auth.currentUser());
+      }
+      hideAdsForPremium();
+      bindAccess();
+      return;
+    }
+
     if (window.Authorization.guard) {
       window.Authorization.guard();
     }
     if (window.Auth && window.Auth.isInitialized()) {
-      if (window.__RUN_PREMIUM_ROUTE_GATE && !window.__RUN_PREMIUM_ROUTE_GATE(true)) return;
       safeUpdateUI(window.Auth.currentUser());
     }
     hideAdsForPremium();
