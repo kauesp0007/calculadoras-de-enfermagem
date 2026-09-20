@@ -84,34 +84,16 @@
       cache:"no-store"
     });
   }
-  async function waitForBillingResolution(auth){
-    if(!auth||typeof auth.billingStatus!=="function") return null;
-    for(var i=0;i<100;i++){
-      var status=auth.billingStatus();
-      if(status&&status.resolved) return status;
-      await new Promise(function(resolve){setTimeout(resolve,100);});
-    }
-    return auth.billingStatus();
-  }
   async function load(){
     try{
       await ensureAuth();
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
 
-      // Auth.init() conclui a identidade Firebase antes de terminar a hidratação
-      // comercial. Aguarde o billing-access resolver o plano para que um usuário
-      // Premium jamais seja tratado provisoriamente como Free.
-      var billing=await waitForBillingResolution(auth);
-      if(!billing||!billing.resolved){
-        showError("Não foi possível concluir a verificação do plano. Sua assinatura não foi alterada.");
-        return;
-      }
-      if(billing.unavailable){
-        showError("O serviço de assinatura está temporariamente indisponível. Sua assinatura não foi alterada.");
-        return;
-      }
-
+      // A Edge Function premium-content é a autoridade final de entrega.
+      // Ela valida diretamente token + identidade de billing + entitlement.
+      // Uma falha transitória em billing-access não pode bloquear um assinante
+      // válido antes que a própria entrega protegida seja consultada.
       var token=await user.getIdToken(false);
       var currentKey=pathKey();
       var canonicalKey=canonicalPathKey();
@@ -132,23 +114,26 @@
         }
       }
       if(res.status===403){
-        // 403 só deve virar redirecionamento quando o estado comercial
-        // resolvido disser explicitamente que a conta é Free.
-        billing=auth.billingStatus();
-        if(billing&&billing.resolved&&billing.plan==="premium"){
-          if(typeof auth.refreshProfile==="function"){
-            try{
-              await auth.refreshProfile();
-              token=await user.getIdToken(true);
-              res=await request(token);
-            }catch(_){}
-          }
-          if(res.status===403){
+        // A Edge Function negou o entitlement. Faça uma última sincronização
+        // do estado local/token antes de concluir que a conta é Free.
+        var billing=auth&&auth.billingStatus?auth.billingStatus():null;
+        if(typeof auth.refreshProfile==="function"){
+          try{
+            await auth.refreshProfile();
+            token=await user.getIdToken(true);
+            res=await request(token,currentKey);
+            if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
+              res=await request(token,canonicalKey);
+            }
+          }catch(_){}
+        }
+        if(res.status===403){
+          billing=auth&&auth.billingStatus?auth.billingStatus():billing;
+          if(billing&&billing.resolved&&billing.plan==="premium"){
             showError("Seu acesso Premium foi reconhecido, mas o conteúdo protegido não foi entregue pelo serviço. Tente novamente.");
-            return;
+          }else{
+            subscription();
           }
-        }else{
-          subscription();
           return;
         }
       }
