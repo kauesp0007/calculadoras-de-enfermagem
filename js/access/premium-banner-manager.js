@@ -18,6 +18,8 @@
 
     var _mounted = false;
     var _root = null;
+    var _promoRoot = null;
+    var _promoTimers = [];
     var ADS_CLIENT = "ca-pub-6472730056006847";
     var _adsenseLoading = false;
 
@@ -103,6 +105,10 @@
         if (auth.onAuthChange) {
             auth.onAuthChange(function () {
                 syncAds();
+                if (auth.hasPlan && auth.hasPlan("premium") && _promoRoot) {
+                    if (_promoRoot.parentNode) _promoRoot.parentNode.removeChild(_promoRoot);
+                    _promoRoot = null;
+                }
             });
         }
 
@@ -118,7 +124,9 @@
     }
 
     function mountSubscriptionPromo() {
-        if (_root || (window.location.pathname || "").indexOf("/conta/") === 0) return;
+        if (_promoRoot || (window.location.pathname || "").indexOf("/conta/") === 0) return;
+        var auth = window.Auth;
+        if (auth && auth.isInitialized && auth.isInitialized() && auth.hasPlan && auth.hasPlan("premium")) return;
         var root = document.createElement("div");
         root.id = "premium-promo-banner";
         root.setAttribute("role", "complementary");
@@ -134,17 +142,18 @@
             '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:0;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;">Fechar</button>' +
             '</div></div>';
         document.body.appendChild(root);
-        setTimeout(function(){
+        _promoRoot = root;
+        _promoTimers.push(setTimeout(function(){
             root.style.display = "block";
             requestAnimationFrame(function(){
                 if (root) root.style.opacity = "1";
             });
-        }, 4000);
-        setTimeout(function(){ if (root && root.parentNode) root.parentNode.removeChild(root); }, 11000);
+        }, 4000));
+        _promoTimers.push(setTimeout(function(){ if (root && root.parentNode) root.parentNode.removeChild(root); if (_promoRoot === root) _promoRoot = null; }, 11000));
         root.querySelector("[data-premium-promo-close]").addEventListener("click", function(){
             if (root && root.parentNode) root.parentNode.removeChild(root);
+            if (_promoRoot === root) _promoRoot = null;
         });
-        _root = root;
     }
 
     function _getRoot() {
