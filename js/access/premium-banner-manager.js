@@ -131,7 +131,7 @@
         root.id = "premium-promo-banner";
         root.setAttribute("role", "complementary");
         root.setAttribute("aria-label", "Assinatura Premium");
-        root.style.cssText = "position:fixed;top:16px;right:16px;width:min(300px,calc(100vw - 32px));aspect-ratio:1/1;z-index:9998;display:none;";
+        root.style.cssText = "position:fixed;top:16px;right:16px;width:min(300px,calc(100vw - 32px));aspect-ratio:1/1;z-index:100010;display:none;";
         root.innerHTML =
             '<div style="height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:20px;border-radius:18px;box-sizing:border-box;background:#ffffff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.16);text-align:left;">' +
             '<div><p style="margin:0 0 8px;font-size:12px;line-height:1.2;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1A3E74;">Comunidade de enfermagem</p>' +
