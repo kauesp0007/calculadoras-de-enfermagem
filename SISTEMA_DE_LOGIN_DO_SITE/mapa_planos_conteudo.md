@@ -1,6 +1,6 @@
 ================================================================================
   MAPA DE PLANOS × CONTEÚDO — CALCULADORAS DE ENFERMAGEM
-  Fonte canônica de acesso.
+  Fonte canônica de acesso. O modelo comercial atual possui somente FREE e PREMIUM.
   Atualizado: 13/09/2026
 ================================================================================
 
@@ -8,7 +8,7 @@ A decisão técnica de acesso fica em:
   js/access/content-policy.js -> RESTRICTED_CONTENT
 
 A regra fundamental é simples: usuários gratuitos continuam navegando normalmente
-no conteúdo público. Somente conteúdos marcados como premium exigem o plano Júnior.
+no conteúdo público. Somente conteúdos marcados como premium exigem o plano Premium.
 
 -------------------------------------------------------------------------------
 1. PLANOS
@@ -16,7 +16,7 @@ no conteúdo público. Somente conteúdos marcados como premium exigem o plano J
 | ID      | Nome     | Anúncios | Disponibilidade |
 |---------|----------|----------|-----------------|
 | free    | Gratuito | Sim      | Ativo           |
-| junior  | Júnior   | Não      | Ativo           |
+| premium | Premium  | Sim      | Ativo           |
 
 Não existem mais planos `pleno` ou `senior`.
 
@@ -26,11 +26,11 @@ Não existem mais planos `pleno` ou `senior`.
 free (Gratuito):
   - Acesso normal ao conteúdo público/gratuito.
   - Exibe anúncios.
-  - Ao tentar abrir conteúdo premium, recebe a tela/banner de acesso premium.
+  - Ao tentar abrir conteúdo premium, recebe a proteção de acesso premium.
 
-junior (Júnior):
-  - Acesso ao conteúdo gratuito e a todo conteúdo marcado com `junior`.
-  - Sem anúncios enquanto `planExpiresAt` estiver válido ou `lifetime=true`.
+premium (Premium):
+  - Acesso ao conteúdo gratuito e a todo conteúdo marcado como `premium`.
+  - Anúncios permanecem ativos; o acesso Premium é válido enquanto o entitlement comercial estiver ativo.
 
 Não existe redirecionamento global de todo usuário gratuito para a página de
 assinatura.
@@ -45,7 +45,7 @@ Exemplos atualmente marcados para `junior`:
   medicamentos, glasgow e formulários identificados pela regra canônica.
 
 Para adicionar um conteúdo premium:
-  "nome-do-arquivo": "junior"
+  o arquivo deve entrar na política Premium e no catálogo privado `premium_content_pages`.
 
 Não criar novas categorias de plano sem alterar primeiro a arquitetura de
 autorização e a documentação central.
@@ -70,7 +70,7 @@ O plano somente é concedido por webhook/serviço de backend.
 -------------------------------------------------------------------------------
 - Autenticação/perfil: `js/auth/auth-core.js` + `js/auth/auth-user-profile.js`
 - Planos: `js/auth/plan-service.js`
-- Plano efetivo/expiração: `js/auth/authorization.js`
+- Plano efetivo/expiração: `js/auth/auth-core.js` + `js/auth/authorization.js`
 - Política do conteúdo: `js/access/content-policy.js`
 - Roteamento de acesso: `js/access/access-router.js`
 - Remoção de anúncios: `global-scripts.js`
