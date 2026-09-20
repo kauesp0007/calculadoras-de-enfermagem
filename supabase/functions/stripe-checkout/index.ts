@@ -49,7 +49,7 @@ serve(async req=>{
       client_reference_id:id,"metadata[user_id]":id,"metadata[firebase_uid]":u.uid,"metadata[lang]":lang,"metadata[plan]":"premium",
       "subscription_data[metadata][user_id]":id,"subscription_data[metadata][firebase_uid]":u.uid,"subscription_data[metadata][lang]":lang,"subscription_data[metadata][plan]":"premium",
       customer_email:String(u.email||""),locale:"auto",
-      success_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=success`,
+      success_url:`${SITE}/boas_vindas_assinante.html?lang=${encodeURIComponent(lang)}&provider=stripe&payment=success`,
       cancel_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=cancel`
     });
     const session=await stripe("/checkout/sessions",{method:"POST",body:form});
