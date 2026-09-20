@@ -173,8 +173,7 @@
   function _ensureProfileShape(profile, uid) {
     var out = Object.assign({}, profile || {});
     out.uid = out.uid || uid;
-    out.plan = "free";
-    out.permissions = out.permissions || {
+    // O plano comercial NÃO pertence ao perfil Firestore/cache.\n    // A autoridade canônica é o billing-access (Supabase), aplicado pelo auth-core.\n    out.permissions = out.permissions || {
       canAccessPremium: false,
       canDownload: false,
       canViewCertificates: false,

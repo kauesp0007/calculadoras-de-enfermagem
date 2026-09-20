@@ -169,6 +169,12 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
       return false;
     }
     var billing = auth.billingStatus ? auth.billingStatus() : null;
+    // Nunca tratar estado ainda não resolvido como FREE. Em rota Premium,
+    // aguarde o entitlement canônico ou mostre indisponibilidade.
+    if (billing && !billing.resolved) {
+      scheduleResolvedCheck();
+      return false;
+    }
     if (billing && billing.unavailable) {
       showBillingRetry();
       return false;
