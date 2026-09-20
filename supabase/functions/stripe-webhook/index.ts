@@ -51,8 +51,12 @@ async function setFree(sub:any,reason:string){
   const now=new Date().toISOString();
   const u=await db().from("billing_subscriptions").update({status:"cancelled",metadata:{...(sub.metadata||{}),last_reason:reason},updated_at:now}).eq("id",sub.id);
   if(u.error)throw u.error;
-  const e=await db().from("user_entitlements").update({plan:"free",premium_expires_at:now,updated_at:now}).eq("user_id",sub.user_id);
-  if(e.error)throw e.error;
+  const {data:other,error}=await db().from("billing_subscriptions").select("id").eq("user_id",sub.user_id).neq("id",sub.id).in("status",["active","past_due"]).gt("current_period_end",now).limit(1);
+  if(error)throw error;
+  if(!other?.length){
+    const e=await db().from("user_entitlements").update({plan:"free",premium_expires_at:now,updated_at:now}).eq("user_id",sub.user_id);
+    if(e.error)throw e.error;
+  }
 }
 serve(async req=>{
   if(req.method!=="POST")return new Response("method_not_allowed",{status:405,headers:H});
@@ -99,7 +103,9 @@ serve(async req=>{
       const status=String(o?.status||"");
       const end=o?.current_period_end?new Date(Number(o.current_period_end)*1000).toISOString():null;
       if(["active","trialing"].includes(status)&&end)await setPremium({...sub,metadata:meta},end,meta,status);
-      else if(["canceled","unpaid"].includes(status))await setFree({...sub,metadata:meta},status);
+      else if(["canceled","unpaid"].includes(status)){
+        const u=await db().from("billing_subscriptions").update({status,metadata:meta,updated_at:new Date().toISOString()}).eq("id",sub.id);if(u.error)throw u.error;
+      }
       else{
         const u=await db().from("billing_subscriptions").update({status,metadata:meta,updated_at:new Date().toISOString()}).eq("id",sub.id);if(u.error)throw u.error;
       }
