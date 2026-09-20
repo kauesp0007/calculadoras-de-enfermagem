@@ -28,7 +28,7 @@
         if (result.allowed) return true;
         switch (result.reason) {
             case "required-role":
-                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else window.location.href = "/";
+                if (!_isLoggedIn()) _redirectTo("/conta/login.html"); else _redirectTo("/conta/assinatura.html");
                 break;
             case "required-permission":
             case "required-license":
