@@ -169,7 +169,11 @@
       await window.Auth.init();
 
       if (window.Auth.isLoggedIn()) {
-        console.log("[AuthUI] Sessão existente detectada. Redirecionando...");
+        // Se o usuário chegou ao login a partir de uma página específica
+        // (por exemplo, /conta/assinatura.html), preserva esse destino.
+        // Sem isso, uma sessão já existente era enviada sempre para a home,
+        // impedindo o fluxo "Assinar" de retornar à assinatura.
+        console.log("[AuthUI] Sessão existente detectada. Redirecionando para o destino solicitado...");
         _redirectAfterLogin();
       }
     } catch (error) {
