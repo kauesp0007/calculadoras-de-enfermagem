@@ -810,91 +810,106 @@ function updateAuthUI(user) {
   }
 
   // ── Carrega scripts de auth sob demanda ──
+  var _authBootstrapPromise = null;
+
+  function _afterAuthReady() {
+    bindProfileListener();
+    bindFavorites();
+    bindHistory();
+    bindAuthorization();
+    safeUpdateUI(window.Auth.currentUser());
+    window.Auth.onAuthChange(function (user) {
+      safeUpdateUI(user);
+    });
+  }
+
   function loadAuthScripts() {
-    if (window.Auth) {
-      _useExistingAuth();
-      return;
-    }
+    if (_authBootstrapPromise) return _authBootstrapPromise;
 
-    var scripts = [
-      "/js/firebase/firebase-init.js",
-      "/js/auth/auth-session.js",
-      "/js/auth/auth-providers.js",
-      "/js/auth/auth-permissions.js",
-      "/js/auth/firestore-user.js",
-      "/js/auth/user-cache.js",
-      "/js/auth/user-events.js",
-      "/js/auth/preferences.js",
-      "/js/auth/auth-user-profile.js",
-      "/js/auth/auth-core.js"
-    ];
+    _authBootstrapPromise = (async function () {
+      if (!window.Auth) {
+        var scripts = [
+          "/js/firebase/firebase-init.js",
+          "/js/auth/auth-session.js",
+          "/js/auth/auth-providers.js",
+          "/js/auth/auth-permissions.js",
+          "/js/auth/firestore-user.js",
+          "/js/auth/user-cache.js",
+          "/js/auth/user-events.js",
+          "/js/auth/preferences.js",
+          "/js/auth/auth-user-profile.js",
+          "/js/auth/auth-core.js"
+        ];
 
-    var loaded = 0;
+        for (var i = 0; i < scripts.length; i++) {
+          await new Promise(function (resolve, reject) {
+            var src = scripts[i];
+            var existing = document.querySelector('script[src="' + src + '"]');
+            if (existing) {
+              // O script pode já ter sido carregado por outra inicialização.
+              // Nunca aguardar um evento load que já ocorreu.
+              if (src.indexOf("/auth-core.js") !== -1 && window.Auth) {
+                resolve();
+                return;
+              }
+              if (existing.dataset && existing.dataset.authLoaded === "true") {
+                resolve();
+                return;
+              }
+              existing.addEventListener("load", function () {
+                if (existing.dataset) existing.dataset.authLoaded = "true";
+                resolve();
+              }, { once: true });
+              existing.addEventListener("error", function () {
+                reject(new Error("auth_script_load_failed:" + src));
+              }, { once: true });
+              return;
+            }
 
-    function loadNext() {
-      if (loaded >= scripts.length) {
-        if (window.Auth && window.Auth.init) {
-          window.Auth.init().then(function () {
-            bindProfileListener();
-            bindFavorites();
-            bindHistory();
-            bindAuthorization();
-            safeUpdateUI(window.Auth.currentUser());
-            window.Auth.onAuthChange(function (user) {
-              safeUpdateUI(user);
-            });
-          }).catch(function () { });
-        }
-        return;
-      }
-
-      var script = document.createElement("script");
-      script.src = scripts[loaded];
-      script.async = false;
-      script.onload = function () { loaded++; loadNext(); };
-      script.onerror = function () { loaded++; loadNext(); };
-      document.head.appendChild(script);
-    }
-
-    loadNext();
-  }
-
-  // ── Reutiliza Auth já carregado ──
-  function _useExistingAuth() {
-    function waitAndUpdate() {
-      if (window.Auth.isInitialized()) {
-        bindProfileListener();
-        bindFavorites();
-        bindHistory();
-        bindAuthorization();
-        safeUpdateUI(window.Auth.currentUser());
-        window.Auth.onAuthChange(function (user) {
-          safeUpdateUI(user);
-        });
-      } else {
-        window.Auth.init().then(function () {
-          bindProfileListener();
-          bindFavorites();
-          bindHistory();
-          bindAuthorization();
-          safeUpdateUI(window.Auth.currentUser());
-          window.Auth.onAuthChange(function (user) {
-            safeUpdateUI(user);
+            var script = document.createElement("script");
+            script.src = src;
+            script.async = false;
+            script.dataset.authLoader = "true";
+            script.onload = function () {
+              if (script.dataset) script.dataset.authLoaded = "true";
+              resolve();
+            };
+            script.onerror = function () {
+              reject(new Error("auth_script_load_failed:" + src));
+            };
+            document.head.appendChild(script);
           });
-        }).catch(function () { });
+        }
       }
-    }
-    waitAndUpdate();
+
+      if (!window.Auth || typeof window.Auth.init !== "function") {
+        throw new Error("auth_bootstrap_failed");
+      }
+
+      await window.Auth.init();
+      _afterAuthReady();
+      return window.Auth;
+    })().catch(function (e) {
+      _authBootstrapPromise = null;
+      console.error("[Auth] Falha no bootstrap compartilhado:", e);
+      throw e;
+    });
+
+    return _authBootstrapPromise;
   }
 
-  // Adia o carregamento de Firebase/Auth (~138 KB) para depois do primeiro
-  // paint, liberando a thread principal (melhora LCP/TBT). A funcionalidade
-  // do menu de login é preservada (o avatar aparece logo em seguida).
+  // Loader de conteúdo protegido e demais módulos usam exatamente o mesmo
+  // bootstrap. Isso impede duas cadeias concorrentes de carregar Firebase/Auth.
+  window.__ENSURE_AUTH = loadAuthScripts;
+
+  // Adia o carregamento normal de Firebase/Auth para depois do primeiro paint.
+  // Uma página Premium pode chamar __ENSURE_AUTH imediatamente sem criar uma
+  // segunda instância ou uma segunda cadeia de carregamento.
   var _authDeferred = false;
   function _deferAuth() {
     if (_authDeferred) return;
     _authDeferred = true;
-    loadAuthScripts();
+    loadAuthScripts().catch(function () {});
   }
   if ("requestIdleCallback" in window) {
     requestIdleCallback(_deferAuth, { timeout: 3000 });
@@ -902,7 +917,6 @@ function updateAuthUI(user) {
     setTimeout(_deferAuth, 300);
   }
 }
-
 function inicializarTooltips() {
   document.querySelectorAll("[data-tooltip]").forEach(e => {
     const o = e.getAttribute("data-tooltip"),
