@@ -5,7 +5,7 @@
 (function(window){
  "use strict";
  window.AuthModules=window.AuthModules||{};
- var _initialized=false,_currentUser=null,_userProfile=null;
+ var _initialized=false,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
  var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
