@@ -43,18 +43,12 @@
   var _ttsMap = { en: "en-US", es: "es-ES", de: "de-DE", it: "it-IT", fr: "fr-FR", hi: "hi-IN", zh: "zh-CN", ar: "ar-SA", ja: "ja-JP", ru: "ru-RU", ko: "ko-KR", tr: "tr-TR", nl: "nl-NL", pl: "pl-PL", sv: "sv-SE", id: "id-ID", vi: "vi-VN", uk: "uk-UA", pt: "pt-BR" };
   window.__TTS_LANG = _ttsMap[window.__LANG] || "pt-BR";
 
-  // Prefixo para fetches: calculado conforme a profundidade da página dentro da
-  // pasta de idioma (ex.: "en/escalas-de-enfermagem/centro-cirurgico/" → "../../"),
-  // para menu-global.html, global-body-elements.html e footer.html carregarem em
-  // qualquer nível. Na raiz do site (pt-BR), mantém o prefixo absoluto "/".
-  if (window.__IS_LANG_FOLDER) {
-    var _parts = _path.slice(_match[0].length).split("/").filter(function (s) { return s; });
-    var _depth = _parts.length;
-    if (_depth > 0 && _parts[_parts.length - 1].indexOf(".") !== -1) _depth -= 1;
-    window.__FETCH_PREFIX = _depth > 0 ? new Array(_depth + 1).join("../") : "";
-  } else {
-    window.__FETCH_PREFIX = "/";
-  }
+  // Os componentes globais (menu, elementos do body e footer) vivem na
+  // raiz do site. Portanto, o prefixo deve ser absoluto em TODAS as páginas,
+  // inclusive nas 18 pastas de idioma e em páginas aninhadas. Usar "" ou "../"
+  // aqui faria o navegador procurar /en/menu-global.html, /en/foo/menu-global.html,
+  // etc., que não existem, deixando o cabeçalho e a área da conta ausentes.
+  window.__FETCH_PREFIX = "/";
 })();
 
 window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
