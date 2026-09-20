@@ -29,7 +29,7 @@ function isEligible(rel){
   const parts=rel.split(path.sep).join("/").split("/");
   if(parts.length>1 && (parts.length!==2 || !LANGS.has(parts[0]))) return false;
   const f=parts.at(-1).toLowerCase();
-  return /^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|perroca|medicacao|medicamentos|meem|moca|zarit|morse|elpo|glasgow)\.html$/i.test(f);
+  return /^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|perroca|medicacao|medicamentos|meem|moca|zarit|morse|elpo|glasgow|balancohidrico)\.html$/i.test(f);
 }
 function shellify(html){
   const body=html.match(/<body\b[^>]*>/i)?.[0]||"<body>";
