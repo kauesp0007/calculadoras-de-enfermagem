@@ -203,6 +203,94 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   });
 };
 
+// -----------------------------------------------------------------------------
+// Bootstrap canônico de autenticação.
+// Deve existir antes do DOMContentLoaded porque páginas Premium carregam seu
+// loader como <script defer>. Assim, o loader nunca precisa criar uma segunda
+// cadeia concorrente de Firebase/Auth.
+// -----------------------------------------------------------------------------
+(function installAuthBootstrap(window, document) {
+  "use strict";
+  var promise = null;
+
+  function loadScript(src) {
+    return new Promise(function(resolve, reject) {
+      var existing = document.querySelector('script[src="' + src + '"]');
+      if (existing) {
+        if (existing.dataset && existing.dataset.authBootstrapLoaded === "true") {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", function() {
+          if (existing.dataset) existing.dataset.authBootstrapLoaded = "true";
+          resolve();
+        }, { once: true });
+        existing.addEventListener("error", function() {
+          reject(new Error("auth_script_load_failed:" + src));
+        }, { once: true });
+        return;
+      }
+      var script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+      script.dataset.authBootstrap = "true";
+      script.onload = function() {
+        if (script.dataset) script.dataset.authBootstrapLoaded = "true";
+        resolve();
+      };
+      script.onerror = function() {
+        reject(new Error("auth_script_load_failed:" + src));
+      };
+      document.head.appendChild(script);
+    });
+  }
+
+  function ensureAuth() {
+    if (promise) return promise;
+    promise = (async function() {
+      var scripts = [
+        "/js/firebase/firebase-init.js",
+        "/js/auth/auth-session.js",
+        "/js/auth/auth-providers.js",
+        "/js/auth/auth-permissions.js",
+        "/js/auth/firestore-user.js",
+        "/js/auth/user-cache.js",
+        "/js/auth/user-events.js",
+        "/js/auth/preferences.js",
+        "/js/auth/auth-user-profile.js",
+        "/js/auth/auth-core.js"
+      ];
+
+      for (var i = 0; i < scripts.length; i++) {
+        if (window.Auth && typeof window.Auth.init === "function") break;
+        await loadScript(scripts[i]);
+      }
+
+      if (!window.Auth || typeof window.Auth.init !== "function") {
+        throw new Error("auth_bootstrap_failed");
+      }
+
+      await window.Auth.init();
+      return window.Auth;
+    })().catch(function(e) {
+      promise = null;
+      console.error("[Auth] Bootstrap canônico falhou:", e);
+      throw e;
+    });
+    return promise;
+  }
+
+  window.__ENSURE_AUTH = ensureAuth;
+
+  // Em uma rota Premium, começa imediatamente. Não espera menu, DOMContentLoaded
+  // nem requestIdleCallback para resolver a identidade e o entitlement.
+  if (window.__IS_PREMIUM_ROUTE) {
+    ensureAuth().catch(function(e) {
+      console.error("[PremiumGate] Falha no bootstrap antecipado:", e);
+    });
+  }
+})(window, document);
+
 // Registra o Service Worker
 "serviceWorker" in navigator && window.addEventListener("load", () => {
   navigator.serviceWorker.register("/sw.js").then(e => {
@@ -811,108 +899,20 @@ function updateAuthUI(user) {
   }
 
   // ── Carrega scripts de auth sob demanda ──
-  var _authBootstrapPromise = null;
-
-  function _afterAuthReady() {
-    bindProfileListener();
-    bindFavorites();
-    bindHistory();
-    bindAuthorization();
-    safeUpdateUI(window.Auth.currentUser());
-    window.Auth.onAuthChange(function (user) {
-      safeUpdateUI(user);
-    });
-  }
-
   function loadAuthScripts() {
-    if (_authBootstrapPromise) return _authBootstrapPromise;
+    if (typeof window.__ENSURE_AUTH !== "function") {
+      console.error("[Auth] Bootstrap canônico não disponível.");
+      return Promise.reject(new Error("auth_bootstrap_unavailable"));
+    }
 
-    _authBootstrapPromise = (async function () {
-      if (!window.Auth) {
-        var scripts = [
-          "/js/firebase/firebase-init.js",
-          "/js/auth/auth-session.js",
-          "/js/auth/auth-providers.js",
-          "/js/auth/auth-permissions.js",
-          "/js/auth/firestore-user.js",
-          "/js/auth/user-cache.js",
-          "/js/auth/user-events.js",
-          "/js/auth/preferences.js",
-          "/js/auth/auth-user-profile.js",
-          "/js/auth/auth-core.js"
-        ];
-
-        for (var i = 0; i < scripts.length; i++) {
-          await new Promise(function (resolve, reject) {
-            var src = scripts[i];
-            var existing = document.querySelector('script[src="' + src + '"]');
-            if (existing) {
-              // O script pode já ter sido carregado por outra inicialização.
-              // Nunca aguardar um evento load que já ocorreu.
-              if (src.indexOf("/auth-core.js") !== -1 && window.Auth) {
-                resolve();
-                return;
-              }
-              if (existing.dataset && existing.dataset.authLoaded === "true") {
-                resolve();
-                return;
-              }
-              existing.addEventListener("load", function () {
-                if (existing.dataset) existing.dataset.authLoaded = "true";
-                resolve();
-              }, { once: true });
-              existing.addEventListener("error", function () {
-                reject(new Error("auth_script_load_failed:" + src));
-              }, { once: true });
-              return;
-            }
-
-            var script = document.createElement("script");
-            script.src = src;
-            script.async = false;
-            script.dataset.authLoader = "true";
-            script.onload = function () {
-              if (script.dataset) script.dataset.authLoaded = "true";
-              resolve();
-            };
-            script.onerror = function () {
-              reject(new Error("auth_script_load_failed:" + src));
-            };
-            document.head.appendChild(script);
-          });
-        }
-      }
-
-      if (!window.Auth || typeof window.Auth.init !== "function") {
-        throw new Error("auth_bootstrap_failed");
-      }
-
-      await window.Auth.init();
+    return window.__ENSURE_AUTH().then(function() {
       _afterAuthReady();
       return window.Auth;
-    })().catch(function (e) {
-      _authBootstrapPromise = null;
-      console.error("[Auth] Falha no bootstrap compartilhado:", e);
-      throw e;
     });
-
-    return _authBootstrapPromise;
   }
 
-  // Loader de conteúdo protegido e demais módulos usam exatamente o mesmo
-  // bootstrap. Isso impede duas cadeias concorrentes de carregar Firebase/Auth.
-  window.__ENSURE_AUTH = loadAuthScripts;
-
-  // Em rotas Premium, a autorização é resolvida imediatamente pela mesma
-  // promessa compartilhada usada pelo loader. Em páginas públicas, o Auth
-  // continua lazy para preservar desempenho.
-  if (window.__IS_PREMIUM_ROUTE) {
-    window.__ENSURE_AUTH()
-      .then(function () { window.__PREMIUM_ROUTE_GATE(true); })
-      .catch(function (e) {
-        console.error("[PremiumGate] Falha no bootstrap de autenticação:", e);
-      });
-  }
+  // O bootstrap de Auth é compartilhado com o loader Premium.
+  // Este trecho apenas conecta os listeners da interface do menu.
 
   // Adia o carregamento normal de Firebase/Auth para depois do primeiro paint.
   // Uma página Premium pode chamar __ENSURE_AUTH imediatamente sem criar uma
