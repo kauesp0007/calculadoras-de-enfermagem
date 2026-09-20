@@ -118,24 +118,15 @@
    if(!_initialized)await init();
    var p=window.AuthModules.providers&&window.AuthModules.providers.getProvider?window.AuthModules.providers.getProvider(providerName):null;
    if(!p)throw new Error("Provedor não disponível: "+providerName);
-
-   // Não redirecionar imediatamente após o Firebase retornar o credential.
-   // O listener onAuthStateChanged pode ainda estar resolvendo o perfil e o
-   // entitlement. A área da conta precisa receber um estado completo.
    var result=await p.signIn(options);
    var signedUser=result&&result.user?result.user:_currentUser;
-   if(signedUser){
-     var ready=false;
-     for(var attempt=0;attempt<40;attempt++){
-       if(_currentUser&&_currentUser.uid===signedUser.uid&&_billing.resolved&&_userProfile){
-         ready=true;
-         break;
-       }
-       await new Promise(function(resolve){setTimeout(resolve,50);});
-     }
-     if(!ready){
-       await _hydrateUser(signedUser);
-     }
+   if(signedUser&&(!_currentUser||_currentUser.uid!==signedUser.uid)){
+     _currentUser=signedUser;
+     _billing={plan:"verifying",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
+     _userProfile=applyBilling({uid:signedUser.uid,email:signedUser.email||"",role:"user",displayName:signedUser.displayName||"",photoURL:signedUser.photoURL||""},_billing);
+     _notifyProfileListeners(_userProfile);
+     _notifyListeners(signedUser);
+     _hydrateUser(signedUser);
    }
    return result;
  }
