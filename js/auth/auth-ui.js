@@ -169,8 +169,10 @@
       await window.Auth.init();
 
       if (window.Auth.isLoggedIn()) {
-        console.log("[AuthUI] Sessão existente detectada. Redirecionando...");
-        _redirectAfterLogin();
+        // Não redirecionar automaticamente. Uma sessão Firebase existente
+        // não significa que o usuário não possa querer trocar de conta.
+        // O formulário de login deve permanecer utilizável.
+        console.log("[AuthUI] Sessão existente detectada. Página de login permanece disponível.");
       }
     } catch (error) {
       // Se falhar a inicialização, permite continuar na página
