@@ -31,18 +31,29 @@ async function asaas(path:string,init:RequestInit={}){
   if(!ASAAS)throw new Error("asaas_not_configured");
   const r=await fetch("https://api.asaas.com/v3"+path,{...init,headers:{access_token:ASAAS,"Content-Type":"application/json",...(init.headers||{})}});
   const d=await r.json().catch(()=>({}));
-  if(!r.ok)throw new Error("asaas_"+r.status);
+  if(!r.ok){
+    const details=Array.isArray(d?.errors)
+      ? d.errors.map((x:any)=>String(x?.code||"error")+":"+String(x?.description||"")).join(" | ")
+      : "";
+    throw new Error("asaas_"+r.status+(details?"_"+details:""));
+  }
   return d;
 }
 serve(async req=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});
   if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
+  let ref="";
+  let checkoutId="";
+  let attemptKind="";
+  let attemptLang="";
   try{
     const u=await firebaseUser(req);
     const id=await identity(u);
     const body=await req.json().catch(()=>({}));
     const kind=String(body?.kind||"");
     const lang=String(body?.lang||"").toLowerCase();
+    attemptKind=kind;
+    attemptLang=lang;
     if(lang!=="pt")throw new Error("asaas_somente_pt_br");
     if(kind!=="monthly_card"&&kind!=="pix_30d")throw new Error("tipo_checkout_invalido");
     if(!Number.isFinite(PRICE_BRL)||PRICE_BRL<=0)throw new Error("asaas_price_not_configured");
@@ -52,7 +63,7 @@ serve(async req=>{
     const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
     if(existing?.length)throw new Error("active_billing_flow");
 
-    const ref="premium_"+crypto.randomUUID();
+    ref="premium_"+crypto.randomUUID();
     const isRecurring=kind==="monthly_card";
     const now=new Date();
     const firstDue=new Date(now.getTime()+24*60*60*1000);
@@ -74,14 +85,16 @@ serve(async req=>{
         expiredUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=expired`,
         successUrl:`${SITE}/boas_vindas_assinante.html?lang=pt&provider=asaas&payment=success`
       },
-      items:[{name:"Premium",description:isRecurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}],
-      // Não enviar customerData parcial: o Asaas valida CPF/endereço/telefone
-      // quando esse objeto é informado. O Checkout coleta esses dados do pagador.
+      items:[{name:"Premium",description:isRecurring?"Assinatura Premium mensal":"Acesso Premium por 30 dias",quantity:1,value:PRICE_BRL}]
     };
+    // Não enviar customerData parcial: em Produção o Asaas valida campos
+    // cadastrais obrigatórios quando esse objeto é informado. O Checkout
+    // coleta os dados do pagador diretamente, evitando rejeição por CPF/endereço
+    // ausentes no perfil Firebase.
     if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate};
 
     const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
-    const checkoutId=String(checkout?.id||"");
+    checkoutId=String(checkout?.id||"");
     if(!checkoutId)throw new Error("checkout_id_missing");
     const checkoutUrl=String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`);
     const upd=await db().from("billing_subscriptions").update({
@@ -92,6 +105,21 @@ serve(async req=>{
     return new Response(JSON.stringify({url:checkoutUrl,checkoutId,externalReference:ref}),{status:200,headers:H});
   }catch(e){
     const msg=String((e as Error)?.message||e);
-    return new Response(JSON.stringify({error:msg}),{status:400,headers:H});
+    if(ref && !checkoutId){
+      try{
+        await db().from("billing_subscriptions")
+          .update({
+            status:"checkout_failed",
+            metadata:{kind:attemptKind,lang:attemptLang,external_reference:ref,error:msg.slice(0,1000)},
+            updated_at:new Date().toISOString()
+          })
+          .eq("provider","asaas")
+          .eq("external_id",ref)
+          .eq("status","checkout_pending");
+      }catch(_cleanup){}
+    }
+    console.error("[asaas-checkout]",msg);
+    const safeCode=msg.startsWith("asaas_")?msg:"checkout_failed";
+    return new Response(JSON.stringify({error:safeCode}),{status:400,headers:H});
   }
 });
