@@ -29,7 +29,7 @@
  }
  function applyBilling(profile,billing){
    var p=Object.assign({},profile||{});
-   p.plan=billing&&billing.plan==="premium"?"premium":"free";
+   p.plan=billing&&billing.plan==="premium"?"premium":(billing&&billing.plan==="verifying"?"verifying":"free");
    p.premiumExpiresAt=billing&&billing.premium_expires_at||null;
    p.billingProvider=billing&&billing.provider||null;
    p.billingCustomerId=billing&&billing.provider_customer_id||null;
@@ -46,57 +46,64 @@
      await new Promise(function(resolve){
        var done=false;
        function finish(){if(!done){done=true;resolve();}}
-       auth.onAuthStateChanged(function(user){
-         Promise.resolve(_handleAuthState(user)).then(finish).catch(function(e){
-           console.error("[Auth] Falha ao resolver estado de autenticação:",e);
+       function handle(user){
+         _currentUser=user||null;
+         if(!user){
+           _userProfile=null;
+           _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:true};
+           _clearLocalCache();
+           _notifyListeners(null);
            finish();
-         });
-       });
-       // Não liberar a inicialização comercial por timeout enquanto o entitlement
-       // ainda está sendo resolvido. Um timeout aqui pode transformar um Premium
-       // temporariamente lento em falso FREE e redirecioná-lo para o checkout.
-       setTimeout(function(){
-         if (!done) {
-           console.error("[Auth] Timeout ao aguardar o estado de autenticação.");
-           _billing=Object.assign({},_billing,{billingUnavailable:true,resolved:true});
-           finish();
+           return;
          }
-       },10000);
+         _billing={plan:"verifying",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
+         _userProfile=applyBilling({uid:user.uid,email:user.email||"",role:"user",displayName:user.displayName||"",photoURL:user.photoURL||""},_billing);
+         _notifyProfileListeners(_userProfile);
+         _notifyListeners(user);
+         finish();
+         _hydrateUser(user);
+       }
+       auth.onAuthStateChanged(handle);
+       if(auth.currentUser) handle(auth.currentUser);
+       setTimeout(function(){
+         if(!done){
+           var fallback=auth.currentUser||null;
+           if(fallback) handle(fallback);
+           else {
+             console.error("[Auth] Timeout ao aguardar o estado de autenticação.");
+             _billing=Object.assign({},_billing,{billingUnavailable:true,resolved:true});
+             finish();
+           }
+         }
+       },5000);
      });
-     auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
+     try{await auth.getRedirectResult();}catch(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);}
      _initialized=true;
-   })().catch(function(e){
-     _initPromise=null;
-     throw e;
-   });
+   })().catch(function(e){_initPromise=null;throw e;});
    return _initPromise;
  }
- async function _handleAuthState(user){
-   _currentUser=user||null;
-   if(!user){_userProfile=null;_billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:true};_clearLocalCache();_notifyListeners(null);return;}
-   _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
+ async function _hydrateUser(user){
+   if(!user)return;
    try{
-     _billing=Object.assign({},await loadBilling(user),{resolved:true,billingUnavailable:false});
+     var billing=await loadBilling(user);
+     _billing=Object.assign({},billing,{resolved:true,billingUnavailable:false});
    }catch(e){
      console.error("[Auth] Billing state unavailable; access resolution is pending.",e);
-     _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:true,resolved:true};
+     _billing={plan:"verifying",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:true,resolved:true};
    }
-   var base={uid:user.uid,email:user.email||"",role:"user"};
+   var base={uid:user.uid,email:user.email||"",role:"user",displayName:user.displayName||"",photoURL:user.photoURL||""};
    if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
      try{
        var profile=await window.AuthModules.userProfile.loadProfile(user.uid);
        _userProfile=applyBilling(profile||base,_billing);
-       _notifyProfileListeners(_userProfile);
      }catch(e){
-       _userProfile=applyBilling(base,_billing);
-       console.warn("[Auth] Profile unavailable; using minimal profile.",e);
-       _notifyProfileListeners(_userProfile);
+       _userProfile=applyBilling(_userProfile||base,_billing);
+       console.warn("[Auth] Profile unavailable; retaining current account identity.",e);
      }
    }else{
-     _userProfile=applyBilling(base,_billing);
-     _notifyProfileListeners(_userProfile);
+     _userProfile=applyBilling(_userProfile||base,_billing);
    }
-   _notifyListeners(user);
+   _notifyProfileListeners(_userProfile);
  }
  function onAuthChange(cb){if(typeof cb==="function")_listeners.push(cb);}
  function onProfileChange(cb){if(typeof cb==="function")_profileListeners.push(cb);}
@@ -111,24 +118,15 @@
    if(!_initialized)await init();
    var p=window.AuthModules.providers&&window.AuthModules.providers.getProvider?window.AuthModules.providers.getProvider(providerName):null;
    if(!p)throw new Error("Provedor não disponível: "+providerName);
-
-   // Não redirecionar imediatamente após o Firebase retornar o credential.
-   // O listener onAuthStateChanged pode ainda estar resolvendo o perfil e o
-   // entitlement. A área da conta precisa receber um estado completo.
    var result=await p.signIn(options);
    var signedUser=result&&result.user?result.user:_currentUser;
-   if(signedUser){
-     var ready=false;
-     for(var attempt=0;attempt<40;attempt++){
-       if(_currentUser&&_currentUser.uid===signedUser.uid&&_billing.resolved&&_userProfile){
-         ready=true;
-         break;
-       }
-       await new Promise(function(resolve){setTimeout(resolve,50);});
-     }
-     if(!ready){
-       await _handleAuthState(signedUser);
-     }
+   if(signedUser&&(!_currentUser||_currentUser.uid!==signedUser.uid)){
+     _currentUser=signedUser;
+     _billing={plan:"verifying",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
+     _userProfile=applyBilling({uid:signedUser.uid,email:signedUser.email||"",role:"user",displayName:signedUser.displayName||"",photoURL:signedUser.photoURL||""},_billing);
+     _notifyProfileListeners(_userProfile);
+     _notifyListeners(signedUser);
+     _hydrateUser(signedUser);
    }
    return result;
  }
