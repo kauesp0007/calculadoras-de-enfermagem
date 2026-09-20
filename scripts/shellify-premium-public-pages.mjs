@@ -3,8 +3,10 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const ROOT=process.cwd();
-const LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
-const RE=/^(simulado(?:[-_].*)?|flashcards_quiz|biblioteca-provas|formularios-em-branco-de-escalas|formularios_de_escalas_assistenciais|formulario(?:[-_].*)?|fotmulario_.*|braden|fugulin|dimensionamento|perroca|medicacao|medicamentos|meem|moca|zarit|morse|elpo|glasgow|balancohidrico)\.html$/i;
+const CATALOG=JSON.parse(await fs.readFile(path.join(ROOT,"premium-content-manifest.json"),"utf8"));
+const LANGS=new Set(CATALOG.scope.languages);
+const EXACT=new Set(CATALOG.exact.map(x=>x.toLowerCase()));
+const RE=CATALOG?.patterns ? new RegExp("(?:"+CATALOG.patterns.join("|")+")","i") : /^$/;
 const LOADER='<script src="/js/access/premium-content-loader.js" defer></script>';
 const PLACEHOLDER='<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>';
 
@@ -19,7 +21,8 @@ async function walk(dir,out=[]){
 }
 function eligible(rel){
   const p=rel.split(path.sep).join("/").split("/");
-  return (p.length===1||(p.length===2&&LANGS.has(p[0])))&&RE.test(p.at(-1));
+  const file=p.at(-1).toLowerCase();
+  return (p.length===1||(p.length===2&&LANGS.has(p[0])))&&(EXACT.has(file)||RE.test(file));
 }
 function shellify(html){
   const source=String(html||"");
@@ -30,8 +33,6 @@ function shellify(html){
   const headEnd=lower.indexOf("</head>",headStart);
   if(headEnd<0) throw new Error("missing </head>");
   const headSource=source.slice(headStart,headEnd);
-  // Corrige apenas o fragmento órfão "</h" que algumas versões legadas deixaram
-  // dentro do <head>. Não mexemos em outros elementos do documento.
   const cleanedHeadSource=headSource.replace(/<\/h(?=\s*(?:\r?\n|$))/gi,"");
   const head=source.slice(0,headStart)+cleanedHeadSource
     .replace(/<script\b[^>]*src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
