@@ -110,8 +110,8 @@
   avaliar MCP apenas se surgir integração que exija protocolo (ex.: GitHub/Firebase via MCP).
 - **GitHub Pages (deploy):** `.github/workflows/deploy.yml` (gera sitemap + SW + upload).
 - **Firebase (login):** Fases 1–5 concluídas (`js/firebase/`, `js/auth/`); Fase 6 planejada.
-  `firestore.rules` com regras por coleção (PENDENTE aplicar no Console).
-- **Supabase:** `@supabase/supabase-js` referenciado em 4 páginas; uso pontual.
+  `Supabase PostgreSQL.rules` mantido apenas como referência histórica; não faz parte da arquitetura atual.
+- **Supabase: backend central de dados da conta, billing, entitlements, favoritos e histórico, via PostgreSQL + Edge Functions.
 - **Cloudflare / Google Cloud:** sem integração ativa; avaliar somente sob necessidade.
 
 ---
@@ -120,7 +120,7 @@
 
 | Nível | Componentes | Regra de alteração |
 |---|---|---|
-| **NÍVEL 1 — CRÍTICO** | `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`, `copilot-instructions.md`, `firestore.rules`, módulos `js/auth/` e `js/firebase/`, `sw-template.js`/`gerar-sw.js`, `deploy.yml`, componentes globais (`footer.html`, `menu-global.html`, `global-body-elements.html`), hooks `security-git` e `block-protected-files` | **AGORA IMPOSTO** por hook `deny` (regras canônicas, MCP, segredos, login/deploy/SW) — não depende mais da memória do agente. |
+| **NÍVEL 1 — CRÍTICO** | `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`, `copilot-instructions.md`, `Supabase PostgreSQL.rules`, módulos `js/auth/` e `js/firebase/`, `sw-template.js`/`gerar-sw.js`, `deploy.yml`, componentes globais (`footer.html`, `menu-global.html`, `global-body-elements.html`), hooks `security-git` e `block-protected-files` | **AGORA IMPOSTO** por hook `deny` (regras canônicas, MCP, segredos, login/deploy/SW) — não depende mais da memória do agente. |
 | **NÍVEL 2 — IMPORTANTE** | Catálogos canônicos, hooks de build/validação, `banco_nanda*.json`/`banco_nic_*.json`, `/knowledge/*.json`, `governance/*` | Exige backup + teste antes de alterar. |
 | **NÍVEL 3 — NORMAL** | Páginas HTML individuais, scripts utilitários | Backup automático (hook) + build obrigatório. |
 | **NÍVEL 4 — AUXILIAR** | `backups-temporarios/`, `reports/`, `logs/` | Sem restrição (descartáveis). |
