@@ -43,6 +43,11 @@
     }
 
     function guard() {
+        // Defesa absoluta: páginas Premium não podem ser redirecionadas pelo
+        // roteador legado. O premium-content-loader é a única autoridade de
+        // entrega/bloqueio dessas páginas.
+        if (window.__IS_PREMIUM_ROUTE === true) return true;
+
         if (!window.Access.evaluate) return true;
 
         // O estado comercial pode ficar temporariamente "verifying" depois que
