@@ -579,7 +579,10 @@ function _setupAuthorization() {
       "/js/access/content-policy.js",
       "/js/access/access-analytics.js",
       "/js/access/content-access.js",
-      "/js/access/access-router.js"
+      "/js/access/access-router.js",
+      "/js/access/benefit-engine.js",
+      "/js/access/premium-widgets.js",
+      "/js/access/premium-banner-manager.js"
     ];
 
     var loaded = 0;
@@ -607,6 +610,9 @@ function _setupAuthorization() {
     }
     if (window.Access.guard) {
       window.Access.guard();
+    }
+    if (window.AccessModules.bannerManager && !/^\/conta\//.test(window.location.pathname || "")) {
+      window.AccessModules.bannerManager.mount({plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free"});
     }
   }
 
