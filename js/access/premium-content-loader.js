@@ -36,8 +36,6 @@
       await waitAuth();
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
-      if(auth.refreshProfile) { try { await auth.refreshProfile(); } catch(e) { console.warn("[PremiumContent] billing refresh failed",e); } }
-      if(!auth.hasPlan||!auth.hasPlan("premium")){subscription();return;}
       var token=await user.getIdToken(false);
       var res=await request(token);
       if(res.status===401){
