@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import fs from "node:fs";
+const fs = require("node:fs");
 
 const auth=fs.readFileSync("js/auth/auth-core.js","utf8");
 const loader=fs.readFileSync("js/access/premium-content-loader.js","utf8");
