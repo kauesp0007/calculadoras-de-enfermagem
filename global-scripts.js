@@ -626,12 +626,16 @@ function _setupAuthorization() {
 }
 
 function _premiumCtaHtml(isLoggedIn) {
-  var href = isLoggedIn
+  var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
+  var href = isPremium
     ? _premiumSubscribeUrl()
-    : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
-        ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
-        : "/conta/assinatura.html");
-  return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">Assine já</a>';
+    : (isLoggedIn
+      ? _premiumSubscribeUrl()
+      : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
+          ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
+          : "/conta/assinatura.html"));
+  var label = isPremium ? "Premium" : "Assine já";
+  return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
 }
 
 function updateAuthUI(user) {
