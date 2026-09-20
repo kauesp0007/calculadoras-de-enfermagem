@@ -106,8 +106,8 @@
         var patch = {};
         patch["preferences." + key] = value;
 
-        if (window.AuthModules.Supabase account-dataUser) {
-            await window.AuthModules.Supabase account-dataUser.updateUserDoc(uid, patch);
+        if (window.AuthModules.accountData) {
+            await window.AuthModules.accountData.updateUserDoc(uid, patch);
         }
 
         if (window.AuthModules.userEvents) {
@@ -133,8 +133,8 @@
 
         var normalized = normalize(prefs);
 
-        if (window.AuthModules.Supabase account-dataUser) {
-            await window.AuthModules.Supabase account-dataUser.updateUserDoc(uid, {
+        if (window.AuthModules.accountData) {
+            await window.AuthModules.accountData.updateUserDoc(uid, {
                 preferences: normalized
             });
         }
