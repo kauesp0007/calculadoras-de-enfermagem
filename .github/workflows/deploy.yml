@@ -6,7 +6,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 
@@ -41,6 +41,18 @@ jobs:
 
       - name: 🔒 Gerar shells das páginas Premium
         run: node scripts/shellify-premium-public-pages.mjs
+
+      - name: 🔐 Persistir shells Premium no repositório
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- '*.html'; then
+            echo "Nenhuma página Premium precisou ser shellificada."
+            exit 0
+          fi
+          git add -- '*.html'
+          git commit -m "chore(access): proteger páginas Premium públicas"
+          git push origin HEAD:main
 
       - name: ⚙️ Gerar Service Worker
         run: node gerar-sw.js
