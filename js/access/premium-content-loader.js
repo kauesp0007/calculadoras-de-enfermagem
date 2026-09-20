@@ -76,18 +76,61 @@
       cache:"no-store"
     });
   }
+  async function waitForBillingResolution(auth){
+    if(!auth||typeof auth.billingStatus!=="function") return null;
+    for(var i=0;i<100;i++){
+      var status=auth.billingStatus();
+      if(status&&status.resolved) return status;
+      await new Promise(function(resolve){setTimeout(resolve,100);});
+    }
+    return auth.billingStatus();
+  }
   async function load(){
     try{
       await ensureAuth();
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
+
+      // Auth.init() conclui a identidade Firebase antes de terminar a hidratação
+      // comercial. Aguarde o billing-access resolver o plano para que um usuário
+      // Premium jamais seja tratado provisoriamente como Free.
+      var billing=await waitForBillingResolution(auth);
+      if(!billing||!billing.resolved){
+        showError("Não foi possível concluir a verificação do plano. Sua assinatura não foi alterada.");
+        return;
+      }
+      if(billing.unavailable){
+        showError("O serviço de assinatura está temporariamente indisponível. Sua assinatura não foi alterada.");
+        return;
+      }
+
       var token=await user.getIdToken(false);
       var res=await request(token);
       if(res.status===401){
         token=await user.getIdToken(true);
         res=await request(token);
       }
-      if(res.status===403){subscription();return;}
+      if(res.status===403){
+        // 403 só deve virar redirecionamento quando o estado comercial
+        // resolvido disser explicitamente que a conta é Free.
+        billing=auth.billingStatus();
+        if(billing&&billing.resolved&&billing.plan==="premium"){
+          if(typeof auth.refreshProfile==="function"){
+            try{
+              await auth.refreshProfile();
+              token=await user.getIdToken(true);
+              res=await request(token);
+            }catch(_){}
+          }
+          if(res.status===403){
+            showError("Seu acesso Premium foi reconhecido, mas o conteúdo protegido não foi entregue pelo serviço. Tente novamente.");
+            return;
+          }
+        }else{
+          subscription();
+          return;
+        }
+      }
       if(res.status>=500){
         for(var attempt=2;attempt<=MAX_ATTEMPTS&&res.status>=500;attempt++){
           await new Promise(function(resolve){setTimeout(resolve,500*attempt);});
@@ -95,7 +138,15 @@
         }
       }
       if(res.status===401){login();return;}
-      if(res.status===403){subscription();return;}
+      if(res.status===403){
+        var finalBilling=auth.billingStatus?auth.billingStatus():null;
+        if(finalBilling&&finalBilling.resolved&&finalBilling.plan==="premium"){
+          showError("Seu acesso Premium foi reconhecido, mas o conteúdo protegido não foi entregue pelo serviço. Tente novamente.");
+        }else{
+          subscription();
+        }
+        return;
+      }
       if(res.status===404) throw new Error("premium_content_404");
       if(!res.ok) throw new Error("premium_content_"+res.status);
       var html=await res.text();
