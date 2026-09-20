@@ -6,7 +6,7 @@
  "use strict";
  window.AuthModules=window.AuthModules||{};
  var _initialized=false,_initPromise=null,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
- var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false};
+ var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
  async function loadBilling(user){
@@ -15,8 +15,9 @@
    var res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},cache:"no-store"});
    if(!res.ok) throw new Error("billing_access_"+res.status);
    var data=await res.json();
-   if(data&&data.plan==="premium") return data;
-   return {plan:"free",premium_expires_at:data&&data.premium_expires_at||null,provider:null,provider_customer_id:null,provider_subscription_id:null};
+   if(!data || (data.plan!=="premium" && data.plan!=="free")) throw new Error("billing_access_invalid_response");
+   if(data.plan==="premium") return data;
+   return {plan:"free",premium_expires_at:data.premium_expires_at||null,provider:data.provider||null,provider_customer_id:data.provider_customer_id||null,provider_subscription_id:data.provider_subscription_id||null};
  }
  function applyBilling(profile,billing){
    var p=Object.assign({},profile||{});
@@ -43,7 +44,7 @@
            finish();
          });
        });
-       setTimeout(finish,5000);
+       // Não liberar a inicialização comercial por timeout enquanto o entitlement\n       // ainda está sendo resolvido. Um timeout aqui pode transformar um Premium\n       // temporariamente lento em falso FREE e redirecioná-lo para o checkout.\n       setTimeout(function(){\n         if (!done) {\n           console.error("[Auth] Timeout ao aguardar o estado de autenticação.");\n           finish();\n         }\n       },10000);
      });
      auth.getRedirectResult().catch(function(e){if(e&&e.code!=="auth/no-redirect-result")console.warn("[Auth] redirect:",e);});
      _initialized=true;
@@ -55,12 +56,13 @@
  }
  async function _handleAuthState(user){
    _currentUser=user||null;
-   if(!user){_userProfile=null;_billing={plan:"free",billingUnavailable:false,resolved:true};_clearLocalCache();_notifyListeners(null);return;}
+   if(!user){_userProfile=null;_billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:true};_clearLocalCache();_notifyListeners(null);return;}
+   _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
    try{
      _billing=Object.assign({},await loadBilling(user),{resolved:true,billingUnavailable:false});
    }catch(e){
      console.error("[Auth] Billing state unavailable; access resolution is pending.",e);
-     _billing={plan:"free",billingUnavailable:true,resolved:true};
+     _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:true,resolved:true};
    }
    var base={uid:user.uid,email:user.email||"",role:"user"};
    if(window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile){
@@ -105,7 +107,7 @@
  }
  async function refreshProfile(){
    if(!_currentUser)return null;
-   _billing=await loadBilling(_currentUser);
+   _billing=Object.assign({},await loadBilling(_currentUser),{resolved:true,billingUnavailable:false});
    var p=window.AuthModules.userProfile&&window.AuthModules.userProfile.loadProfile?await window.AuthModules.userProfile.loadProfile(_currentUser.uid):_userProfile;
    _userProfile=applyBilling(p||_userProfile||{},_billing);_notifyProfileListeners(_userProfile);return _userProfile;
  }
