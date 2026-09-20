@@ -1,5 +1,6 @@
 (function(){
   "use strict";
+  window.__IS_PREMIUM_ROUTE = true;
   var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/premium-content";
   var MAX_ATTEMPTS=3;
   var AUTH_SCRIPTS=[

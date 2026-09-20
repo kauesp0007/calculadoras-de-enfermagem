@@ -63,133 +63,11 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
 
 
 // -----------------------------------------------------------------------------
-// Premium gate central: protege páginas e recursos que podem ser acessados
-// diretamente, inclusive por links da home/menu, e encaminha o usuário para
-// login/assinatura sem depender de alterações de conteúdo na própria página.
-// A autoridade do plano continua sendo window.Auth -> billing-access.
+// Premium routes are identified by the protected-content loader itself.
+// There is intentionally no Premium page-name catalog or subscription redirect
+// in this global file. Entitlement and protected-content delivery are backend
+// responsibilities handled by premium-content-loader.js + Supabase.
 // -----------------------------------------------------------------------------
-(function installPremiumRouteGate(window, document) {
-  "use strict";
-  var PREMIUM_PATHS = {
-    "/braden.html":1,"/fugulin.html":1,"/dimensionamento.html":1,"/perroca.html":1,
-    "/medicacao.html":1,"/medicamentos.html":1,"/meem.html":1,"/moca.html":1,"/zarit.html":1,
-    "/balancohidrico.html":1,
-    "/morse.html":1,"/elpo.html":1,"/glasgow.html":1,
-    "/simulado-de-enfermagem.html":1,"/simulado-de-enfermagem2.html":1,
-    "/simulado-de-enfermagem3.html":1,"/simulado-de-enfermagem4.html":1,
-    "/simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html":1,
-    "/simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html":1,
-    "/biblioteca-provas.html":1,
-    "/formularios_de_escalas_assistenciais.html":1,
-    "/formularios-em-branco-de-escalas.html":1,
-    "/formulario_meem.html":1,"/formulario_morse.html":1,"/formulario_de_fugulin.html":1,
-    "/formulario_escala_de_elpo.html":1,"/formulario_escala_curb65.html":1,
-    "/formulario_escala_de_fast.html":1,"/formulario_escala_de_four.html":1,
-    "/formulario_escala_de_flacc.html":1,"/formulario_escala_de_downton.html":1,
-    "/formulario_escala_cincinnati.html":1,"/formulario_bps.html":1,
-    "/formulario_cam.html":1
-  };
-
-  function normalizePath(path) {
-    var p = String(path || "/").replace(/\\/g, "/");
-    p = p.replace(/\/+/g, "/");
-    if (p.length > 1 && p.charAt(p.length - 1) === "/") p = p.slice(0, -1);
-    return p;
-  }
-
-  function isPremiumPath() {
-    var path = normalizePath(window.location.pathname);
-    var parts = path.split("/").filter(Boolean);
-    var langs = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
-    if (parts.length > 1 && langs[parts[0]]) path = "/" + parts.slice(1).join("/");
-    if (PREMIUM_PATHS[path]) return true;
-    var file = parts.length ? parts[parts.length - 1].toLowerCase() : "";
-    if (/^simulado(?:[-_]|\.|$)/i.test(file)) return true;
-    if (/^flashcards_quiz\.html$/i.test(file)) return true;
-    if (/^fotmulario_.*\.html$/i.test(file)) return true;
-    if (/^formulario(?:[-_].*)?\.html$/i.test(file)) return true;
-    if (/^formularios-em-branco-de-escalas\.html$/i.test(file)) return true;
-    if (/^biblioteca-provas\.html$/i.test(file)) return true;
-    return false;
-  }
-
-  function loginUrl() {
-    if (typeof window.__ACCOUNT_LOGIN_URL === "function") {
-      return window.__ACCOUNT_LOGIN_URL(window.location.pathname + window.location.search + window.location.hash);
-    }
-    return "/conta/login.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-  }
-
-  function subscriptionUrl() {
-    if (typeof window.__ACCOUNT_PAGE_URL === "function") {
-      var u = window.__ACCOUNT_PAGE_URL("/conta/assinatura.html");
-      return u + "&returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-    }
-    return "/conta/assinatura.html?returnUrl=" + encodeURIComponent(window.location.pathname + window.location.search + window.location.hash);
-  }
-
-  var _premiumGateCheckScheduled = false;
-  function scheduleResolvedCheck() {
-    var auth = window.Auth;
-    if (_premiumGateCheckScheduled || !auth || !isPremiumPath()) return;
-    _premiumGateCheckScheduled = true;
-    var run = function () {
-      _premiumGateCheckScheduled = false;
-      try { canEnter(true); } catch (e) { console.warn("[PremiumGate] resolução tardia falhou:", e); }
-    };
-    if (auth.onAuthChange) auth.onAuthChange(run);
-    if (auth.onProfileChange) auth.onProfileChange(run);
-  }
-
-  function showBillingRetry() {
-    if (document.getElementById("premium-billing-retry")) return;
-    var box = document.createElement("div");
-    box.id = "premium-billing-retry";
-    box.setAttribute("role","alert");
-    box.setAttribute("style","position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(255,255,255,.98);font-family:inherit;");
-    box.innerHTML = '<div style="max-width:520px;text-align:center"><h1 style="font-size:1.25rem;font-weight:700;margin:0 0 10px">Não foi possível verificar sua assinatura</h1><p style="margin:0 0 18px;color:#475569">Sua conta não foi transformada em conta gratuita. O serviço de assinatura está temporariamente indisponível.</p><button id="premium-billing-retry-btn" type="button" style="padding:10px 18px;border-radius:8px;border:0;background:#1A3E74;color:#fff;font-weight:600;cursor:pointer">Tentar novamente</button></div>';
-    document.body.appendChild(box);
-    document.getElementById("premium-billing-retry-btn").addEventListener("click",function(){
-      box.remove();
-      if (window.Auth && window.Auth.refreshProfile) window.Auth.refreshProfile().then(function(){canEnter(true);}).catch(function(){showBillingRetry();});
-      else showBillingRetry();
-    });
-  }
-
-  function canEnter(forceCheck) {
-    if (!isPremiumPath()) return true;
-    var auth = window.Auth;
-
-    // Este gate é apenas informativo. Ele NÃO navega para login/assinatura.
-    // A decisão de acesso de uma rota Premium pertence exclusivamente ao
-    // premium-content-loader, depois da validação do entitlement no backend.
-    if (!auth || !auth.isInitialized || !auth.isInitialized()) {
-      scheduleResolvedCheck();
-      return false;
-    }
-
-    var user = auth.currentUser ? auth.currentUser() : null;
-    if (!user) return false;
-
-    var billing = auth.billingStatus ? auth.billingStatus() : null;
-    if (billing && !billing.resolved) {
-      scheduleResolvedCheck();
-      return false;
-    }
-
-    if (billing && billing.unavailable) {
-      showBillingRetry();
-      return false;
-    }
-
-    return !!(auth.hasPlan && auth.hasPlan("premium"));
-  }
-
-  window.__PREMIUM_PATHS = PREMIUM_PATHS;
-  window.__IS_PREMIUM_ROUTE = isPremiumPath();
-  window.__PREMIUM_ROUTE_GATE = canEnter;
-})(window, document);
-
 window.__ACCOUNT_PAGE_URL = function (path) {
   var separator = path.indexOf("?") === -1 ? "?" : "&";
   var lang = "pt-BR";
@@ -220,93 +98,9 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   });
 };
 
-// -----------------------------------------------------------------------------
-// Bootstrap canônico de autenticação.
-// Deve existir antes do DOMContentLoaded porque páginas Premium carregam seu
-// loader como <script defer>. Assim, o loader nunca precisa criar uma segunda
-// cadeia concorrente de Firebase/Auth.
-// -----------------------------------------------------------------------------
-(function installAuthBootstrap(window, document) {
-  "use strict";
-  var promise = null;
-
-  function loadScript(src) {
-    return new Promise(function(resolve, reject) {
-      var existing = document.querySelector('script[src="' + src + '"]');
-      if (existing) {
-        if (existing.dataset && existing.dataset.authBootstrapLoaded === "true") {
-          resolve();
-          return;
-        }
-        existing.addEventListener("load", function() {
-          if (existing.dataset) existing.dataset.authBootstrapLoaded = "true";
-          resolve();
-        }, { once: true });
-        existing.addEventListener("error", function() {
-          reject(new Error("auth_script_load_failed:" + src));
-        }, { once: true });
-        return;
-      }
-      var script = document.createElement("script");
-      script.src = src;
-      script.async = false;
-      script.dataset.authBootstrap = "true";
-      script.onload = function() {
-        if (script.dataset) script.dataset.authBootstrapLoaded = "true";
-        resolve();
-      };
-      script.onerror = function() {
-        reject(new Error("auth_script_load_failed:" + src));
-      };
-      document.head.appendChild(script);
-    });
-  }
-
-  function ensureAuth() {
-    if (promise) return promise;
-    promise = (async function() {
-      var scripts = [
-        "/js/firebase/firebase-init.js",
-        "/js/auth/auth-session.js",
-        "/js/auth/auth-providers.js",
-        "/js/auth/auth-permissions.js",
-        "/js/auth/firestore-user.js",
-        "/js/auth/user-cache.js",
-        "/js/auth/user-events.js",
-        "/js/auth/preferences.js",
-        "/js/auth/auth-user-profile.js",
-        "/js/auth/auth-core.js"
-      ];
-
-      for (var i = 0; i < scripts.length; i++) {
-        if (window.Auth && typeof window.Auth.init === "function") break;
-        await loadScript(scripts[i]);
-      }
-
-      if (!window.Auth || typeof window.Auth.init !== "function") {
-        throw new Error("auth_bootstrap_failed");
-      }
-
-      await window.Auth.init();
-      return window.Auth;
-    })().catch(function(e) {
-      promise = null;
-      console.error("[Auth] Bootstrap canônico falhou:", e);
-      throw e;
-    });
-    return promise;
-  }
-
-  window.__ENSURE_AUTH = ensureAuth;
-
-  // Em uma rota Premium, começa imediatamente. Não espera menu, DOMContentLoaded
-  // nem requestIdleCallback para resolver a identidade e o entitlement.
-  if (window.__IS_PREMIUM_ROUTE) {
-    ensureAuth().catch(function(e) {
-      console.error("[PremiumGate] Falha no bootstrap antecipado:", e);
-    });
-  }
-})(window, document);
+// Premium pages bootstrap authentication through premium-content-loader.js.
+// The former second global Firebase bootstrap was removed to prevent competing
+// auth initialization paths and transient Free decisions.
 
 // -----------------------------------------------------------------------------
 // Multiplex audit ad placement.
@@ -698,9 +492,6 @@ function initializeAuthMenu() {
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
   
-window.__RUN_PREMIUM_ROUTE_GATE = function (forceCheck) {
-  try { return window.__PREMIUM_ROUTE_GATE ? window.__PREMIUM_ROUTE_GATE(!!forceCheck) : true; } catch (e) { console.warn("[PremiumGate] falha:", e); return false; }
-};
 function _setupAuthorization() {
     if (!window.Authorization) {
       return;

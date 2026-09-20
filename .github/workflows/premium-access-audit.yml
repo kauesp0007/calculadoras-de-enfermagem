@@ -1,0 +1,52 @@
+name: Premium Access Audit
+
+on:
+  pull_request:
+    paths:
+      - "premium-content-manifest.json"
+      - "global-scripts.js"
+      - "js/access/**"
+      - "js/auth/**"
+      - "scripts/**"
+      - "supabase/functions/premium-content/**"
+      - "*.html"
+      - "en/*.html"
+      - "es/*.html"
+      - "fr/*.html"
+      - "it/*.html"
+      - "de/*.html"
+      - "hi/*.html"
+      - "zh/*.html"
+      - "ja/*.html"
+      - "ru/*.html"
+      - "ko/*.html"
+      - "tr/*.html"
+      - "nl/*.html"
+      - "pl/*.html"
+      - "sv/*.html"
+      - "id/*.html"
+      - "vi/*.html"
+      - "uk/*.html"
+      - "ar/*.html"
+  push:
+    branches:
+      - main
+
+jobs:
+  premium-access-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: JavaScript syntax checks
+        run: |
+          node --check global-scripts.js
+          node --check js/access/premium-content-loader.js
+          node --check js/access/content-policy.js
+          node --check js/access/access-router.js
+          node --check js/auth/route-guard.js
+          node --check scripts/auditar-bloqueio-escalas.js
+      - name: Premium triple audit
+        run: node scripts/auditar-premium-triplo.mjs
