@@ -86,7 +86,13 @@ window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
     "/simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html":1,
     "/biblioteca-provas.html":1,
     "/formularios_de_escalas_assistenciais.html":1,
-    "/formularios-em-branco-de-escalas.html":1
+    "/formularios-em-branco-de-escalas.html":1,
+    "/formulario_meem.html":1,"/formulario_morse.html":1,"/formulario_de_fugulin.html":1,
+    "/formulario_escala_de_elpo.html":1,"/formulario_escala_curb65.html":1,
+    "/formulario_escala_de_fast.html":1,"/formulario_escala_de_four.html":1,
+    "/formulario_escala_de_flacc.html":1,"/formulario_escala_de_downton.html":1,
+    "/formulario_escala_cincinnati.html":1,"/formulario_bps.html":1,
+    "/formulario_cam.html":1
   };
 
   function normalizePath(path) {
