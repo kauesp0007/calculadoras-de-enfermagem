@@ -128,6 +128,21 @@
         _app = window.firebase.initializeApp(firebaseConfig);
         _auth = window.firebase.auth();
 
+        // A conta do site deve sobreviver à navegação e ao fechamento do navegador.
+        // Definimos LOCAL explicitamente para não herdar uma persistência SESSION/NONE
+        // de uma sessão anterior e para garantir que o login continue disponível
+        // ao abrir /conta/perfil.html, /conta/assinatura.html etc.
+        try {
+          if (_auth && _auth.setPersistence && window.firebase.auth.Auth.Persistence.LOCAL) {
+            await _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+            console.log("[Firebase] Persistência LOCAL do Auth configurada.");
+          }
+        } catch (persistenceError) {
+          // Não impede a autenticação se o navegador bloquear o armazenamento local.
+          // O erro fica registrado para diagnóstico.
+          console.warn("[Firebase] Não foi possível configurar persistência LOCAL:", persistenceError);
+        }
+
         // 3. Inicializa o Firestore (única fonte de dados do usuário)
         if (window.firebase.firestore) {
           _db = window.firebase.firestore();
