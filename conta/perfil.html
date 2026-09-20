@@ -72,6 +72,17 @@
 </main>
 <div id="footer-placeholder"></div>
 <script src="/js/firebase/firebase-init.js"></script>
-<script src="/js/account/profile-page.js"></script>
-</body>
+<script>
+(function(){
+"use strict";
+var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",BILL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
+function $(id){return document.getElementById(id)} function timeout(p,ms){return Promise.race([p,new Promise(function(_,r){setTimeout(function(){r(new Error("timeout"))},ms)})])}
+async function session(){await timeout(window.FirebaseInit.init(),10000);var a=window.FirebaseInit.getAuthSync();if(a&&a.currentUser)return a.currentUser;return await timeout(new Promise(function(res){var u=a.onAuthStateChanged(function(x){u();res(x)});}),8000)}
+async function req(url,u,method,body){var t=await timeout(u.getIdToken(false),5000),ctl=new AbortController(),tm=setTimeout(function(){ctl.abort()},7000);try{var r=await fetch(url,{method:method||"GET",headers:{Authorization:"Bearer "+t,Accept:"application/json","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,cache:"no-store",signal:ctl.signal});var d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||"request_"+r.status);return d}finally{clearTimeout(tm)}}
+function show(v){$("profile-loading").style.display="none";$("profile-content").style.display="block";if(v){$("profile-name").textContent=v.displayName||v.email||"—";$("profile-email").textContent=v.email||"—";$("edit-name-input").value=v.displayName||"";$("profile-plan").textContent=v.plan==="premium"?"Premium":v.plan==="verifying"?"Verificando…":"Gratuito";$("profile-language").textContent=v.language||"pt";$("profile-country").textContent=v.country||"BR";$("profile-provider").textContent=v.provider||"—";$("profile-created").textContent=v.createdAt?new Date(v.createdAt).toLocaleString("pt-BR"):"—";$("profile-lastlogin").textContent=v.lastLoginAt?new Date(v.lastLoginAt).toLocaleString("pt-BR"):"—";}}
+function msg(s,e){var x=$("profile-message");x.textContent=s;x.style.display="block";x.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(e?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200")}
+async function boot(){try{var u=await session();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return}var base={uid:u.uid,email:u.email||"",displayName:u.displayName||"",provider:u.providerData&&u.providerData[0]?u.providerData[0].providerId:"",language:"pt",country:"BR",plan:"verifying"};show(base);Promise.allSettled([req(DATA+"?resource=profile",u),req(BILL,u)]).then(function(a){var p=a[0].status==="fulfilled"?(a[0].value.profile||{}):{},b=a[1].status==="fulfilled"?a[1].value:{};show(Object.assign({},base,p,{plan:b.plan||"verifying",premium_expires_at:b.premium_expires_at||null}))});$("btn-save-name").onclick=async function(){var n=$("edit-name-input").value.trim();if(n.length<2){msg("Informe um nome válido.",true);return}var b=$("btn-save-name");b.disabled=true;try{var d=await req(DATA+"?resource=profile",u,"PATCH",{displayName:n});show(Object.assign({},base,d.profile||{}, {plan: $("profile-plan").textContent}));msg("Nome atualizado com sucesso.",false)}catch(e){msg("Não foi possível salvar. Tente novamente.",true)}finally{b.disabled=false}};$("btn-sair").onclick=async function(){try{var a=window.FirebaseInit.getAuthSync();if(a)await timeout(a.signOut(),6000)}finally{location.href="/"}}}catch(e){console.error(e);$("profile-loading").textContent="Não foi possível carregar sua conta. Tente novamente."}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+})();
+</script></body>
 </html>
