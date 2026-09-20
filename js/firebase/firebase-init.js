@@ -61,9 +61,6 @@
     "https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js";
   const FIREBASE_AUTH_URL =
     "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js";
-  const FIREBASE_FIRESTORE_URL =
-    "https://www.gstatic.com/firebasejs/10.14.0/firebase-firestore-compat.js";
-
   /**
    * Carrega um script externo sob demanda.
    * @param {string} url - URL do script.
@@ -143,11 +140,8 @@
           console.warn("[Firebase] Não foi possível configurar persistência LOCAL:", persistenceError);
         }
 
-        // 3. Inicializa o Firestore (única fonte de dados do usuário)
-        if (window.firebase.firestore) {
-          _db = window.firebase.firestore();
-          console.log("[Firebase] Firestore inicializado.");
-        }
+        // Firestore foi retirado do caminho de dados da aplicação.
+        // Os dados de conta, favoritos e histórico vivem no Supabase.
 
         // 4. Configura idioma da interface Firebase (emails, etc.)
         if (_auth && _auth.useDeviceLanguage) {
@@ -184,24 +178,7 @@
    * @returns {Promise<object>} Instância do Firestore.
    */
   async function getFirestore() {
-    if (_db) {
-      return _db;
-    }
-    await initFirebase();
-    if (!_db) {
-      throw new Error(
-        "Firestore não disponível. Verifique se o SDK Firestore foi carregado."
-      );
-    }
-    return _db;
-  }
-
-  /**
-   * Retorna a instância do Firestore sem inicializar.
-   * @returns {object|null}
-   */
-  function getDbSync() {
-    return _db;
+    throw new Error("[Firebase] Firestore removido: dados da aplicação são mantidos no Supabase.");
   }
 
   // ─── Exportação para o escopo global ───────────────────────────
