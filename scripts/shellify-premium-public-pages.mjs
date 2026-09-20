@@ -23,7 +23,10 @@ function eligible(rel){
 }
 function shellify(html){
   const source=String(html||"");
-  const headEnd=source.toLowerCase().lastIndexOf("</head>");
+  const headOpen=source.match(/<head\b[^>]*>/i);
+  if(!headOpen) throw new Error("missing <head>");
+  const headStart=headOpen.index;
+  const headEnd=source.toLowerCase().indexOf("</head>",headStart);
   if(headEnd<0) throw new Error("missing </head>");
   const head=source.slice(0,headEnd)
     .replace(/<script\b[^>]*src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
