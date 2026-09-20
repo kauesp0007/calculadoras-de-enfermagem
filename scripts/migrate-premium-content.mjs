@@ -20,6 +20,8 @@ const ROOT=process.cwd();
 const SUPABASE_URL=process.env.SUPABASE_URL||"";
 const SERVICE_KEY=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
 const DRY=process.argv.includes("--dry-run");
+const MANIFEST=process.argv.find(a=>a.startsWith("--manifest="))?.slice("--manifest=".length)||"premium-content-manifest.json";
+const ALLOW_SHELL_REWRITE=process.argv.includes("--apply");
 const LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
 
 function isEligible(rel){
@@ -53,18 +55,25 @@ async function upsert(rel,content){
   });
   if(!res.ok) throw new Error("Supabase "+res.status+" for "+rel+": "+await res.text());
 }
+if(!DRY && !ALLOW_SHELL_REWRITE){
+  console.error("Refusing public shell rewrite without --apply. Use --dry-run for audit only.");
+  process.exit(3);
+}
 if(!SUPABASE_URL||!SERVICE_KEY){
   console.error("Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY.");
   process.exit(2);
 }
 const all=await walk(ROOT);
 const files=all.filter(isEligible);
+const manifest={generatedAt:new Date().toISOString(),count:files.length,paths:files.map(x=>x.replaceAll(path.sep,"/")).sort()};
+await fs.writeFile(path.join(ROOT,MANIFEST),JSON.stringify(manifest,null,2)+"\n","utf8");
 console.log(`Eligible Premium HTML: ${files.length}${DRY?" (dry-run)":""}`);
+if(DRY) process.exit(0);
 for(const rel of files){
   const abs=path.join(ROOT,rel);
   const original=await fs.readFile(abs,"utf8");
   if(original.includes('id="premium-content-placeholder"')) continue;
-  if(!DRY) await upsert(rel.replaceAll(path.sep,"/"),original);
-  if(!DRY) await fs.writeFile(abs,shellify(original),"utf8");
+  await upsert(rel.replaceAll(path.sep,"/"),original);
+  await fs.writeFile(abs,shellify(original),"utf8");
   console.log((DRY?"CHECK ":"MIGRATED ")+rel);
 }
