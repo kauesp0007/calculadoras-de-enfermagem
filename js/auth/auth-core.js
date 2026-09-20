@@ -12,7 +12,15 @@
  async function loadBilling(user){
    if(!user||typeof user.getIdToken!=="function") return {plan:"free"};
    var token=await user.getIdToken(false);
-   var res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},cache:"no-store"});
+   var controller=new AbortController();
+   var timeout=setTimeout(function(){controller.abort();},8000);
+   var res;
+   try{
+     res=await fetch(BILLING_ACCESS_URL,{headers:{Authorization:"Bearer "+token,Accept:"application/json"},cache:"no-store",signal:controller.signal});
+   }catch(e){
+     if(e&&e.name==="AbortError") throw new Error("billing_access_timeout");
+     throw e;
+   }finally{clearTimeout(timeout);}
    if(!res.ok) throw new Error("billing_access_"+res.status);
    var data=await res.json();
    if(!data || (data.plan!=="premium" && data.plan!=="free")) throw new Error("billing_access_invalid_response");
