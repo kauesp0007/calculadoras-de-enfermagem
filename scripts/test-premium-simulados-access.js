@@ -78,6 +78,40 @@ if (missingCore.length) {
   console.warn("[PremiumSimulados] aviso: links de simulados não encontrados no submenu:", missingCore.join(", "));
 }
 
+// Regra estrutural crítica: em páginas legadas, o primeiro </head> pode aparecer
+// dentro de um template JavaScript de impressão depois do <body>. O shell Premium
+// não pode usar esse </head> falso, pois o loader acabaria dentro de uma string e
+// nunca seria executado, deixando o usuário preso no placeholder.
+function assertPremiumShell(name) {
+  const source = read(name);
+  const lower = source.toLowerCase();
+  const headEnd = lower.indexOf("</head>");
+  const bodyPos = lower.indexOf("<body");
+  const loaderText = "/js/access/premium-content-loader.js";
+  const loaderPos = source.indexOf(loaderText);
+  const loaderTagPos = loaderPos >= 0 ? source.lastIndexOf("<script", loaderPos) : -1;
+  const loaderCount = (source.match(/premium-content-loader\\.js/gi) || []).length;
+  const placeholderCount = (source.match(/premium-content-placeholder/gi) || []).length;
+
+  if (headEnd < 0 || bodyPos < 0) fail(name + ": shell sem <head>/<body> estrutural");
+  if (bodyPos < headEnd) fail(name + ": <body> apareceu antes de </head> no shell");
+  if (loaderPos < 0 || loaderTagPos < 0) fail(name + ": Premium loader não encontrado");
+  if (loaderTagPos > headEnd) fail(name + ": Premium loader ficou depois de </head>");
+  const opensBeforeLoader = (source.slice(0, loaderTagPos).match(/<script\\b/gi) || []).length;
+  const closesBeforeLoader = (source.slice(0, loaderTagPos).match(/<\\/script>/gi) || []).length;
+  if (opensBeforeLoader !== closesBeforeLoader) fail(name + ": Premium loader está dentro de outro <script>/string template");
+  if (loaderCount !== 1) fail(name + ": quantidade inesperada de loaders: " + loaderCount);
+  if (placeholderCount !== 1) fail(name + ": quantidade inesperada de placeholders: " + placeholderCount);
+}
+
+// Valida todos os simulados realmente publicados no menu. Isso cobre tanto o
+// primeiro bloco que sofreu com a fronteira </head> falsa quanto os demais.
+const menuSimuladoFiles = [...menu.matchAll(/href=["']\\/((?:simulado[^"']*|flashcards_quiz)\\.html)["']/gi)]
+  .map(m => m[1]);
+const uniqueSimuladoFiles = [...new Set(menuSimuladoFiles)];
+if (!uniqueSimuladoFiles.length) fail("nenhum arquivo Premium de simulado identificado no menu");
+for (const name of uniqueSimuladoFiles) assertPremiumShell(name);
+
 console.log(JSON.stringify({
   ok: true,
   simulatedMenuLinks: links.length,
