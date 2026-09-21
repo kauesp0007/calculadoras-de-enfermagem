@@ -460,8 +460,11 @@ async function loadAccount(){
     await timeout(window.Auth.init(),10000);
     user=window.Auth.currentUser?window.Auth.currentUser():null;
     if(!user){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return;}
-    var results=await Promise.all([api("profile"),api("favorites"),api("history",{},{limit:"1000"}),billingApi()]);
-    profile=results[0].profile||{};favorites=results[1].items||[];history=results[2].items||[];billing=results[3]||{plan:"free"};
+    var results=await Promise.allSettled([api("profile"),api("favorites"),api("history","GET",undefined,{limit:"1000"}),billingApi()]);
+    profile=results[0].status==="fulfilled"&&results[0].value.profile?results[0].value.profile:{};
+    favorites=results[1].status==="fulfilled"&&results[1].value.items?results[1].value.items:[];
+    history=results[2].status==="fulfilled"&&results[2].value.items?results[2].value.items:[];
+    billing=results[3].status==="fulfilled"&&results[3].value?results[3].value:{plan:"verifying"};
     renderIdentity();renderBilling();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
     $("stat-favorites").textContent=String(favorites.length);$("stat-history").textContent=String(history.length);
     $("edit-name-input").value=profile.displayName||"";
