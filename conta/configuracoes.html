@@ -60,7 +60,7 @@
 <div class="flex flex-wrap gap-2 mt-3">
 <label for="professional-avatar" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl bg-[#1A3E74] text-white text-xs font-black cursor-pointer hover:bg-[#204F8F]">Selecionar foto</label>
 <input id="professional-avatar" type="file" accept="image/jpeg,image/png,image/webp" class="sr-only">
-<button id="btn-remove-avatar" type="button" class="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 text-xs font-black hover:bg-slate-200">Remover</button>
+<span class="inline-flex items-center px-4 py-2.5 rounded-xl bg-slate-100 text-slate-500 text-xs font-black">Troque a foto quando quiser</span>
 </div>
 </div>
 </div>
@@ -192,10 +192,6 @@ async function uploadAvatar(file){
  }catch(e){console.error(e);label.textContent="Falha ao enviar a foto.";msg("Não foi possível atualizar a foto do perfil. Tente novamente.",true);}
  finally{input.value="";}
 }
-async function removeAvatar(){
- if(!profile||!profile.photoURL){$("avatar-file-name").textContent="Nenhuma foto selecionada";return;}
- msg("Para segurança, a remoção da foto será tratada como troca e ficará disponível novamente após o próximo upload.",false);
-}
 function calcProfilePreview(){
  var p=professional(),name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:"Seu nome"),g=p.gender==="enfermeira"?"Olá enfermeira":p.gender==="enfermeiro"?"Olá enfermeiro":"Olá, profissional de enfermagem";
  $("preview-greeting").textContent=g+(name?" "+name:"");$("preview-name").textContent=name;
@@ -245,7 +241,7 @@ async function boot(){
    $("settings-loading").style.display="none";$("settings-content").style.display="block";
  }catch(e){console.error("[Configurações]",e);$("settings-loading").textContent="Não foi possível carregar suas configurações. Tente novamente."}
 }
-$("btn-save-professional").addEventListener("click",saveProfessional);$("professional-avatar").addEventListener("change",function(e){uploadAvatar(e.target.files&&e.target.files[0]);});$("btn-remove-avatar").addEventListener("click",removeAvatar);
+$("btn-save-professional").addEventListener("click",saveProfessional);$("professional-avatar").addEventListener("change",function(e){uploadAvatar(e.target.files&&e.target.files[0]);});
 $("btn-save-settings").addEventListener("click",savePreferences);
 ["professional-workplace","professional-position","professional-specialty","professional-gender","professional-institution","professional-course","professional-graduation-year","professional-city","professional-state","professional-admission-date","professional-graduation-date"].forEach(function(id){$(id).addEventListener("input",calcProfilePreview);$(id).addEventListener("change",calcProfilePreview);});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){loadChrome();boot();},{once:true});else{loadChrome();boot();}
