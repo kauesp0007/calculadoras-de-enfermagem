@@ -621,7 +621,6 @@ function initializeAuthMenu() {
       if (window.Auth && window.Auth.isInitialized()) {
         safeUpdateUI(window.Auth.currentUser());
       }
-      hideAdsForPremium();
       // Não carregue o access-router/premium-banner-manager em uma rota Premium.
       // O premium-content-loader é o único gate de entrega dessas páginas.
       return;
@@ -633,14 +632,12 @@ function initializeAuthMenu() {
     if (window.Auth && window.Auth.isInitialized()) {
       safeUpdateUI(window.Auth.currentUser());
     }
-    hideAdsForPremium();
     if (window.Authorization.onChange) {
       window.Authorization.onChange(function () {
         if (window.Auth) {
           safeUpdateUI(window.Auth.currentUser());
         }
-        hideAdsForPremium();
-      });
+        });
     }
     bindAccess();
   }
@@ -1476,24 +1473,18 @@ function ativarModoDislexia() {
 })();
 
 /* =========================
-   Controle de anúncios (premium removido — todos os usuários são free)
+   Controle de anúncios
    ========================= */
-// Stubs mantidos como no-op por compatibilidade com demais call sites.
-// Nenhum usuário é premium; todos veem os anúncios.
-function isPremiumSubscriber() {
-  return false;
-}
-
-function hideAdsForPremium() {
-  // Nada a fazer: não há mais assinantes premium.
-}
+// O plano Premium não é decidido por stubs locais.
+// A assinatura é resolvida pelo Auth + billing-access; o módulo de anúncios
+// permanece independente do entitlement para não transformar publicidade em
+// mecanismo de autorização.
 
 /* =========================
    Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
    ========================= */
 function initializeMultiplexAds() {
-  if (isPremiumSubscriber()) return;
-  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
+    document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
     if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
     ad.dataset.multiplexInitialized = "true";
     try {
