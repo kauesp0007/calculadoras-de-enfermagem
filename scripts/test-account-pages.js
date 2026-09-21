@@ -49,17 +49,16 @@ for (const file of PAGES) {
     fail(`${file}: referências JS sem elemento HTML: ${[...missingRefs].join(", ")}`);
   }
 
-  const scripts = [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
-    .map(m => m[1])
-    .filter(s => s.trim());
+  const scripts = [...html.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)]
+    .map((m, i) => ({ attrs: m[1], source: m[2], index: i }))
+    .filter(x => x.source.trim());
 
-  for (let i = 0; i < scripts.length; i++) {
-    const source = scripts[i];
-    if (/type\s*=\s*["']application\/ld\+json["']/i.test(source)) continue;
+  for (const item of scripts) {
+    if (/type\s*=\s*["']application\/ld\+json["']/i.test(item.attrs)) continue;
     try {
-      new vm.Script(source, { filename: `conta/${file}#inline-${i}` });
+      new vm.Script(item.source, { filename: `conta/${file}#inline-${item.index}` });
     } catch (error) {
-      fail(`${file}: JavaScript inline inválido no bloco ${i}: ${error.message}`);
+      fail(`${file}: JavaScript inline inválido no bloco ${item.index}: ${error.message}`);
     }
   }
 }
