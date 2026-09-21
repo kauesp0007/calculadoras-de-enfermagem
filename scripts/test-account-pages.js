@@ -51,6 +51,25 @@ for (const rel of PAGES) {
   if (!/account-data/.test(source) && rel !== "conta/perfil.html") {
     fail(rel + ": não referencia account-data");
   }
+  if (rel === "conta/perfil.html") {
+    const required = [
+      "profile-greeting","profile-name","full-date","calendar-grid",
+      "continue-list","favorite-list","perf-sim-count","collection-list",
+      "plan-goal","achievement-list","personal-note","focus-timer",
+      "professional-gender","btn-save-treatment","btn-save-name"
+    ];
+    for (const id of required) {
+      if (!new RegExp("id=[\\\"']" + id + "[\\\"']", "i").test(source)) {
+        fail(rel + ": recurso/controle ausente: " + id);
+      }
+    }
+    if (/[😀-🫿]/u.test(source)) {
+      fail(rel + ": emojis não são permitidos no painel do assinante");
+    }
+    if (!/billing-access/.test(source)) fail(rel + ": não verifica o estado Premium");
+    if (!/professionalGender/.test(source)) fail(rel + ": tratamento enfermeiro/enfermeira não está persistido");
+    if (!/toLocaleDateString\("pt-BR"/.test(source)) fail(rel + ": calendário/data não usa formatação pt-BR");
+  }
 }
 
 if (process.exitCode === 1) process.exit(1);
