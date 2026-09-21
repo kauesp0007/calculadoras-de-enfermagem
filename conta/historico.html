@@ -45,7 +45,7 @@
 var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",items=[],user,page=1,pageSize=16;
 function $(id){return document.getElementById(id);}
 function race(p,m){var timer;return Promise.race([p,new Promise(function(_,r){timer=setTimeout(function(){r(new Error("timeout"));},m);})]).finally(function(){clearTimeout(timer);});}
-async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race(window.Auth.init(),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
+async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race((window.Auth.whenReady?window.Auth.whenReady():window.Auth.init()),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
 async function api(method,body,query){var token=await race(user.getIdToken(false),6000),q=new URLSearchParams({resource:"history"});Object.keys(query||{}).forEach(function(k){q.set(k,query[k]);});var r=await fetch(DATA+"?"+q.toString(),{method:method,headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"}),d=await r.json().catch(function(){return{};});if(!r.ok)throw new Error(d.error||"request_"+r.status);return d;}
 function esc(s){return String(s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c];});}
 function dateObj(v){var d=new Date(v||0);return isNaN(d.getTime())?null:d;}
