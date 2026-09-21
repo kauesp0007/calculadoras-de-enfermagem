@@ -69,6 +69,7 @@
     Array.prototype.forEach.call(document.querySelectorAll(".favorite-actions button[data-remove]"),function(el){el.setAttribute("title",t("removeItem","Remover item"));el.setAttribute("aria-label",t("removeItem","Remover item"));});
     Array.prototype.forEach.call(document.querySelectorAll(".history-actions a.action-btn"),function(el){el.setAttribute("title",t("openItem","Abrir item"));el.setAttribute("aria-label",t("openItem","Abrir item"));});
     Array.prototype.forEach.call(document.querySelectorAll(".history-actions button[data-delete]"),function(el){el.setAttribute("title",t("removeItem","Remover item"));el.setAttribute("aria-label",t("removeItem","Remover item"));});
+    Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){var kind=el.getAttribute("data-kind");el.setAttribute("aria-label",kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar"));});
   }
   if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",setup,{once:true});document.addEventListener("conta:languagechange",refreshDynamicLabels);}else{setup();document.addEventListener("conta:languagechange",refreshDynamicLabels);}
 })(window);
