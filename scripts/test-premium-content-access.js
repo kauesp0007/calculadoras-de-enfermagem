@@ -138,7 +138,7 @@ for (const lang of LANGS) {
       continue;
     }
     const html = fs.readFileSync(abs, "utf8");
-    if (!/<script[^>]+src=["'][^"']*premium-content-loader\\.js[^"']*["'][^>]*>/i.test(html) ||
+    if (!/<script[^>]+src=["'][^"']*premium-content-loader\.js[^"']*["'][^>]*>/i.test(html) ||
         !/id=["']premium-content-placeholder["']/i.test(html)) {
       localizedMissing.push(rel + ":shell");
     }
