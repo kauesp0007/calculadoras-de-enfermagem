@@ -1,37 +1,149 @@
 /**
  * js/account-routing.js
- * Canonical helpers for localized account navigation.
- * Account pages remain centralized under /conta/ and carry the language
- * explicitly as ?lang=xx; this avoids 18 duplicated account implementations.
+ * Autoridade canônica de roteamento da área de contas.
+ *
+ * A área /conta/ é única para todos os idiomas. O idioma é transportado
+ * explicitamente por ?lang=xx e nunca depende apenas de estado residual.
  */
 (function (window) {
   "use strict";
 
+  var ACCOUNT_FILES = {
+    "login.html": 1,
+    "perfil.html": 1,
+    "configuracoes.html": 1,
+    "favoritos.html": 1,
+    "historico.html": 1,
+    "assinatura.html": 1
+  };
+
+  var LANGUAGE_ALIASES = {
+    "pt": "pt", "pt-br": "pt", "pt_br": "pt",
+    "en": "en", "es": "es", "fr": "fr", "de": "de", "it": "it",
+    "hi": "hi", "zh": "zh", "zh-cn": "zh", "ja": "ja", "ru": "ru",
+    "ko": "ko", "tr": "tr", "nl": "nl", "pl": "pl", "sv": "sv",
+    "id": "id", "vi": "vi", "uk": "uk", "ar": "ar"
+  };
+
+  function normalizeLanguage(value) {
+    return LANGUAGE_ALIASES[String(value || "").trim().toLowerCase()] || null;
+  }
+
+  function languageFromUrl(value) {
+    if (!value) return null;
+    try {
+      var url = new URL(value, window.location && window.location.origin || "https://local.invalid");
+      return normalizeLanguage(url.searchParams.get("lang")) ||
+        normalizeLanguage(url.pathname.split("/").filter(Boolean)[0]) ||
+        null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   function getLanguage() {
+    var queryLanguage = null;
+    try {
+      queryLanguage = normalizeLanguage(
+        new URLSearchParams(window.location.search || "").get("lang")
+      );
+    } catch (_) {}
+
+    if (queryLanguage) return queryLanguage;
+
+    var returnLanguage = null;
+    try {
+      returnLanguage = languageFromUrl(
+        new URLSearchParams(window.location.search || "").get("returnUrl")
+      );
+    } catch (_) {}
+
+    if (returnLanguage) return returnLanguage;
+
     try {
       if (window.AccountI18n && typeof window.AccountI18n.getLanguage === "function") {
-        var value = String(window.AccountI18n.getLanguage() || "pt-BR").toLowerCase();
-        return value === "pt-br" ? "pt" : value;
+        var accountLanguage = normalizeLanguage(window.AccountI18n.getLanguage());
+        if (accountLanguage) return accountLanguage;
       }
     } catch (_) {}
-    var param = "pt";
-    try { param = new URLSearchParams(window.location.search).get("lang") || "pt"; } catch (_) {}
-    return String(param).toLowerCase() === "pt-br" ? "pt" : String(param).toLowerCase();
+
+    return normalizeLanguage(window.__ACCOUNT_LANG) ||
+      normalizeLanguage(window.__LANG) ||
+      "pt";
   }
 
   function page(file, extra) {
-    var url = "/conta/" + String(file || "login.html");
+    var filename = String(file || "login.html");
+    if (!ACCOUNT_FILES[filename]) filename = "login.html";
+
     var params = new URLSearchParams();
     params.set("lang", getLanguage());
+
     Object.keys(extra || {}).forEach(function (key) {
-      if (extra[key] !== undefined && extra[key] !== null && extra[key] !== "") params.set(key, extra[key]);
+      var value = extra[key];
+      if (key === "lang") return;
+      if (value !== undefined && value !== null && value !== "") {
+        params.set(key, value);
+      }
     });
-    return url + "?" + params.toString();
+
+    return "/conta/" + filename + "?" + params.toString();
   }
 
-  window.AccountRouting = {
+  function localizedHome(language) {
+    var lang = normalizeLanguage(language || getLanguage()) || "pt";
+    return lang === "pt" ? "/" : "/" + lang + "/";
+  }
+
+  function bindLinks(root) {
+    if (!window.document) return;
+    root = root || window.document;
+
+    var current = getLanguage();
+    var anchors = root.querySelectorAll ? root.querySelectorAll("a[href]") : [];
+
+    Array.prototype.forEach.call(anchors, function (anchor) {
+      var href = anchor.getAttribute("href");
+      if (!href || href.indexOf("#") === 0 ||
+          /^(mailto:|tel:|javascript:|data:)/i.test(href)) return;
+
+      var url;
+      try {
+        url = new URL(href, window.location.origin);
+      } catch (_) {
+        return;
+      }
+
+      if (url.origin !== window.location.origin) return;
+
+      var pathname = url.pathname.replace(/\/+$/, "");
+      if (!pathname) pathname = "/";
+
+      if (pathname === "/") {
+        url.pathname = localizedHome(current);
+        anchor.setAttribute("href", url.pathname + url.search + url.hash);
+        return;
+      }
+
+      var match = pathname.match(/^\/conta\/([^/]+)$/i);
+      if (!match || !ACCOUNT_FILES[match[1]]) return;
+
+      url.searchParams.set("lang", current);
+      anchor.setAttribute("href", url.pathname + "?" + url.searchParams.toString() + url.hash);
+    });
+  }
+
+  function init() {
+    bindLinks();
+  }
+
+  var api = {
     getLanguage: getLanguage,
+    normalizeLanguage: normalizeLanguage,
+    languageFromUrl: languageFromUrl,
     page: page,
+    localizedHome: localizedHome,
+    bindLinks: bindLinks,
     login: function (returnUrl) { return page("login.html", { returnUrl: returnUrl || "" }); },
     profile: function () { return page("perfil.html"); },
     settings: function () { return page("configuracoes.html"); },
@@ -39,4 +151,18 @@
     history: function () { return page("historico.html"); },
     subscription: function () { return page("assinatura.html"); }
   };
+
+  window.AccountRouting = api;
+
+  if (window.document) {
+    if (window.document.readyState === "loading") {
+      window.document.addEventListener("DOMContentLoaded", init, { once: true });
+    } else {
+      init();
+    }
+
+    window.document.addEventListener("conta:languagechange", function () {
+      bindLinks();
+    });
+  }
 })(window);
