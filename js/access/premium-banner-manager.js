@@ -169,7 +169,7 @@
         root.id = "premium-promo-banner";
         root.setAttribute("role", "complementary");
         root.setAttribute("aria-label", "Assinatura Premium");
-        root.style.cssText = "position:fixed;top:calc(var(--global-ad-top, 140px));right:16px;width:min(300px,calc(100vw - 32px));aspect-ratio:1/1;z-index:100010;display:none;opacity:0;transition:opacity .18s ease;";
+        root.style.cssText = "position:fixed;top:calc(var(--global-ad-top, 140px));right:16px;width:min(360px,calc(100vw - 24px));z-index:100010;display:none;opacity:0;transition:opacity .18s ease;";
 
         function positionPromo() {
             var bottoms = [0];
@@ -183,18 +183,18 @@
                 if (rect && rect.bottom > 0) bottoms.push(rect.bottom);
             });
             var top = Math.max.apply(null, bottoms) + 12;
-            var maxTop = Math.max(12, window.innerHeight - 16 - Math.min(300, window.innerWidth - 32));
+            var maxTop = Math.max(12, window.innerHeight - 16 - Math.min(190, window.innerWidth - 24));
             top = Math.min(top, maxTop);
             document.documentElement.style.setProperty("--global-ad-top", Math.round(top) + "px");
         }
 
         root.innerHTML =
-            '<div style="height:100%;display:flex;flex-direction:column;justify-content:space-between;padding:20px;border-radius:18px;box-sizing:border-box;background:#ffffff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.16);text-align:left;">' +
+            '<div style="display:flex;flex-direction:column;gap:14px;padding:16px 17px;border-radius:16px;box-sizing:border-box;background:#ffffff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.16);text-align:left;">' +
             '<div><p style="margin:0 0 8px;font-size:12px;line-height:1.2;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1A3E74;">Acesso Premium</p>' +
-            '<p style="margin:0;font-size:20px;line-height:1.2;font-weight:900;color:#1A3E74;">Torne-se assinante Premium</p>' +
-            '<p style="margin:12px 0 0;font-size:14px;line-height:1.45;color:#475569;">Amplie seu acesso a conteúdos, escalas, formulários, simulados e outros recursos exclusivos para profissionais de enfermagem.</p></div>' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;"><a href="/conta/assinatura.html" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:38px;padding:9px 14px;border-radius:10px;background:linear-gradient(135deg,#1A3E74,#1E4D8C);color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 8px 18px rgba(15,23,42,.18);">Assinar agora</a>' +
-            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:0;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;">Fechar</button>' +
+            '<p style="margin:0;font-size:18px;line-height:1.2;font-weight:900;color:#1A3E74;">Torne-se assinante Premium</p>' +
+            '<p style="margin:8px 0 0;font-size:13px;line-height:1.45;color:#475569;">Amplie seu acesso a conteúdos, escalas, formulários, simulados e recursos exclusivos para profissionais de enfermagem.</p></div>' +
+            '<div style="display:flex;align-items:center;justify-content:flex-start;gap:10px;"><a href="/conta/assinatura.html" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 13px;border-radius:10px;background:linear-gradient(135deg,#1A3E74,#1E4D8C);color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 8px 18px rgba(15,23,42,.18);">Assinar agora</a>' +
+            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:0;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;padding:8px 6px;">Fechar</button>' +
             '</div></div>';
 
         var insertionAnchor =
