@@ -6,7 +6,7 @@
  "use strict";
  window.AuthModules=window.AuthModules||{};
  var _initialized=false,_initPromise=null,_currentUser=null,_userProfile=null,_listeners=[],_profileListeners=[];
- var _hydrationGeneration=0;
+ var _hydrationGeneration=0,_hydrationPromise=Promise.resolve();
  var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
@@ -63,7 +63,7 @@
          _notifyProfileListeners(_userProfile);
          _notifyListeners(user);
          finish();
-         _hydrateUser(user,generation);
+         _hydrationPromise=_hydrateUser(user,generation);
        }
        auth.onAuthStateChanged(handle);
        // onAuthStateChanged já entrega o estado atual ao registrar o listener.
@@ -118,6 +118,9 @@
      _notifyProfileListeners(_userProfile);
    }
  }
+ function whenReady(){
+   return init().then(function(){return _hydrationPromise||Promise.resolve();}).then(function(){return window.Auth;});
+ }
  function onAuthChange(cb){if(typeof cb==="function")_listeners.push(cb);}
  function onProfileChange(cb){if(typeof cb==="function")_profileListeners.push(cb);}
  function _notifyListeners(user){_listeners.slice().forEach(function(cb){try{cb(user);}catch(e){console.error("[Auth] listener:",e);}});}
@@ -163,6 +166,6 @@
    if(generation!==_hydrationGeneration||!_currentUser||_currentUser.uid!==user.uid)return _userProfile;
    _userProfile=applyBilling(p||_userProfile||{},_billing);_notifyProfileListeners(_userProfile);return _userProfile;
  }
- window.Auth={init,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},billingStatus:billingStatus,refreshProfile};
+ window.Auth={init,whenReady,isLoggedIn,currentUser,profile,hasPlan,hasPermission,signIn,signOut,onAuthChange,onProfileChange,isInitialized:function(){return _initialized;},billingStatus:billingStatus,refreshProfile};
  window.AuthModules.core=window.Auth;
 })(window);
