@@ -88,4 +88,22 @@ for (const required of [
   if (!profile.includes(required)) fail(`perfil.html: sincronização profissional ausente: ${required}`);
 }
 
-console.log("ACCOUNT PAGES TEST: PASS — estrutura, referências, scripts e persistência verificados.");
+const banner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
+for (const required of [
+  "var DISPLAY_MS = 5000;",
+  "var INTERVAL_MS = 20 * 60 * 1000;",
+  "mountSubscriptionPromo();",
+  'href="/conta/assinatura.html"',
+  'data-premium-promo-close'
+]) {
+  if (!banner.includes(required)) fail(`premium-banner-manager.js: regra do banner ausente: ${required}`);
+}
+const mountStart = banner.indexOf("function mount(opts)");
+const mountEnd = banner.indexOf("function unmount()", mountStart);
+if (mountStart < 0 || mountEnd < 0) fail("premium-banner-manager.js: função mount ausente.");
+const mountBody = banner.slice(mountStart, mountEnd);
+if (mountBody.includes("root.innerHTML") || mountBody.includes("premiumCard(")) {
+  fail("premium-banner-manager.js: o mount ainda injeta o antigo card global.");
+}
+
+console.log("ACCOUNT PAGES TEST: PASS — estrutura, referências, scripts, persistência e banner verificados.");
