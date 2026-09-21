@@ -83,7 +83,10 @@ for (const required of [
   "course:String(m.course",
   "city:String(m.city",
   "state:String(m.state",
-  "function setText(id,value)"
+  "function durationParts(value)",
+  "function durationFromDate(value)",
+  "function renderCareer()",
+  "metadata.professional"
 ]) {
   if (!profile.includes(required)) fail(`perfil.html: sincronização profissional ausente: ${required}`);
 }
