@@ -254,7 +254,7 @@
 var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data";
 var BILL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 var STORAGE="cePremiumDashboard";
-var user=null,profile=null,favorites=[],history=[],billing={plan:"verifying"},calendarDate=new Date(),focusSeconds=1500,focusTimer=null;
+var user=null,profile=null,favorites=[],history=[],billing={plan:"verifying"},calendarDate=new Date(),focusSeconds=1500,focusTimer=null,dashboardSaveQueue=Promise.resolve();
 
 function $(id){return document.getElementById(id);}
 function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]});}
@@ -359,9 +359,18 @@ function renderPerformance(){
   }
 }
 function loadStore(){
-  try{return JSON.parse(localStorage.getItem(STORAGE)||"{}")||{};}catch(_){return{};}
+  var local={};try{local=JSON.parse(localStorage.getItem(STORAGE)||"{}")||{};}catch(_){local={};}
+  var remote=profile&&profile.metadata&&profile.metadata.dashboard&&typeof profile.metadata.dashboard==="object"?profile.metadata.dashboard:{};
+  return Object.assign({},local,remote);
 }
-function saveStore(data){try{localStorage.setItem(STORAGE,JSON.stringify(data));}catch(_){}}
+function saveStore(data){
+  try{localStorage.setItem(STORAGE,JSON.stringify(data));}catch(_){}
+  if(user&&profile){
+    profile.metadata=Object.assign({},profile.metadata||{}, {dashboard:data});
+    var metadata=profile.metadata;
+    dashboardSaveQueue=dashboardSaveQueue.then(function(){return api("profile","PATCH",{metadata:metadata}).then(function(r){if(r&&r.profile)profile=r.profile;}).catch(function(e){console.warn("[Perfil] sincronização do painel:",e);});});
+  }
+}
 function renderCollections(){
   var store=loadStore(),cols=Array.isArray(store.collections)?store.collections:[],list=$("collection-list");
   if(!cols.length){cols=[{name:"Revisão",items:[]}];store.collections=cols;saveStore(store);}
@@ -443,7 +452,7 @@ async function saveName(){
   finally{button.disabled=false;}
 }
 async function saveTreatment(){
-  var value=$("professional-gender").value,s=(profile&&profile.metadata)||{};s=Object.assign({},s,{professionalGender:value});
+  var value=$("professional-gender").value,s=Object.assign({},(profile&&profile.metadata)||{}, {professionalGender:value, dashboard:(profile&&profile.metadata&&profile.metadata.dashboard)||loadStore()});
   var button=$("btn-save-treatment");button.disabled=true;
   try{var response=await api("profile","PATCH",{metadata:s});if(!response.profile)throw new Error("profile_update_empty");profile=response.profile;renderIdentity();showMessage("Forma de tratamento atualizada.",false);}
   catch(e){console.error(e);showMessage("Não foi possível salvar a forma de tratamento.",true);}
