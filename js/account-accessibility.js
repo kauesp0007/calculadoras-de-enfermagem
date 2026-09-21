@@ -34,7 +34,16 @@
     setAttr("settings-save-state",{"role":"status","aria-live":"polite"});
     setAttr("premium-status-chip",{"role":"status"});
     setAttr("dashboard-date-status",{"role":"status","aria-live":"polite"});
-    if(key==="assinatura"){\n      Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind");el.setAttribute("aria-label",kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar"));}});\n    }\n    if(key==="login"){\n      setAttr("btn-google-login",{"aria-label":t("google","Continuar com Google")});\n      setAttr("btn-microsoft-login",{"aria-label":t("microsoft","Continuar com Microsoft")});\n      setAttr("btn-apple-login",{"aria-label":t("apple","Continuar com Apple")});\n      setAttr("btn-email-submit",{"aria-label":t("signIn","Entrar")});\n    }\n    if(key==="configuracoes"){
+    if(key==="assinatura"){
+      Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind");el.setAttribute("aria-label",kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar"));}});
+    }
+    if(key==="login"){
+      setAttr("btn-google-login",{"aria-label":t("google","Continuar com Google")});
+      setAttr("btn-microsoft-login",{"aria-label":t("microsoft","Continuar com Microsoft")});
+      setAttr("btn-apple-login",{"aria-label":t("apple","Continuar com Apple")});
+      setAttr("btn-email-submit",{"aria-label":t("signIn","Entrar")});
+    }
+    if(key==="configuracoes"){
       var saveState=document.getElementById("settings-save-state");if(saveState)saveState.classList.add("account-save-state-spacer");
       var avatarLabel=document.querySelector('label[for="professional-avatar"]');if(avatarLabel)avatarLabel.setAttribute("aria-label",t("selectPhoto","Selecionar foto"));
     }
