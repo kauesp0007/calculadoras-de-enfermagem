@@ -110,15 +110,24 @@
       if (h1Node) {
         var section = h1Node.closest("section");
         if (section) {
-          var candidates = section.querySelectorAll("p,h2");
+          var candidates = section.querySelectorAll("h2,p");
+          var selected = null;
           for (var i = 0; i < candidates.length; i++) {
             var el = candidates[i];
-            var text = (el.textContent || "").trim();
-            if (text && !/^(PREMIUM|MINHA CONTA|SISTEMA DE CONTAS|PLANOS?)$/i.test(text)) {
-              mark(el, cfg.heroText);
+            if (el.compareDocumentPosition(h1Node) & Node.DOCUMENT_POSITION_FOLLOWING) {
+              selected = el;
               break;
             }
           }
+          if (!selected) {
+            for (var j = candidates.length - 1; j >= 0; j--) {
+              if (candidates[j] !== h1Node) {
+                selected = candidates[j];
+                break;
+              }
+            }
+          }
+          if (selected) mark(selected, cfg.heroText);
         }
       }
     }
