@@ -38,6 +38,26 @@
     if(typeof window.__ACCOUNT_PAGE_URL==="function") window.location.replace(window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")+"&returnUrl="+u);
     else window.location.replace("/conta/assinatura.html?returnUrl="+u);
   }
+  function showLoadingState(){
+    var placeholder=document.getElementById("premium-content-placeholder");
+    if(!placeholder) return;
+    placeholder.setAttribute("role","status");
+    placeholder.setAttribute("aria-live","polite");
+    placeholder.style.minHeight="60vh";
+    placeholder.style.display="flex";
+    placeholder.style.alignItems="center";
+    placeholder.style.justifyContent="center";
+    placeholder.style.padding="40px 20px";
+    placeholder.style.backgroundColor="#f9fafb";
+    placeholder.style.boxSizing="border-box";
+    placeholder.innerHTML='<section style="width:min(92%,520px);box-sizing:border-box;text-align:center;background:#fff;border:1px solid #dbe3ee;border-top:4px solid #1a3e74;padding:32px 28px;color:#1f2937;font-family:Inter,Arial,sans-serif;box-shadow:0 4px 14px rgba(26,62,116,.08)"><img src="/img/logotipo_website.webp" alt="Calculadoras de Enfermagem" width="180" height="auto" style="display:block;width:180px;max-width:80%;height:auto;margin:0 auto 22px"><div style="width:46px;height:3px;background:#f97316;margin:0 auto 20px"></div><h2 style="margin:0 0 8px;color:#1a3e74;font-size:24px;line-height:1.25;font-weight:700">Preparando seu conteúdo Premium</h2><p style="margin:0 0 22px;color:#4b5563;font-size:15px;line-height:1.6">Aguarde um instante enquanto liberamos este conteúdo para você.</p><div aria-hidden="true" style="width:34px;height:34px;margin:0 auto;border:3px solid #dbe3ee;border-top-color:#1a3e74;border-right-color:#f97316;border-radius:50%;animation:premiumContentSpin .9s linear infinite"></div></section>';
+    if(!document.getElementById("premium-content-loading-style")){
+      var style=document.createElement("style");
+      style.id="premium-content-loading-style";
+      style.textContent="@keyframes premiumContentSpin{to{transform:rotate(360deg)}}";
+      document.head.appendChild(style);
+    }
+  }
   function showError(message){
     document.body.innerHTML='<main style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif"><section style="max-width:620px;text-align:center"><h1>Conteúdo temporariamente indisponível</h1><p>'+message+'</p><button id="premium-retry" type="button">Tentar novamente</button></section></main>';
     var b=document.getElementById("premium-retry");if(b)b.addEventListener("click",load,{once:true});
@@ -101,6 +121,7 @@
   }
   async function load(){
     try{
+      showLoadingState();
       await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"auth_bootstrap");
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
