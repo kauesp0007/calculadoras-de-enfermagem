@@ -44,13 +44,18 @@ async function stripe(path:string,init:RequestInit={}){
   if(!r.ok) throw new Error(d?.error?.message||`stripe_${r.status}`);
   return d;
 }
-function priceFor(lang:string){
-  const currency=EUR.includes(lang)?"EUR":"USD";
-  const id=currency==="EUR"
-    ? Deno.env.get("STRIPE_PRICE_TEST_EUR")
-    : Deno.env.get("STRIPE_PRICE_TEST_USD");
-  if(!id?.startsWith("price_")) throw new Error("stripe_test_price_not_configured");
-  return {id,currency};
+
+function currencyFor(lang:string){
+  return EUR.includes(lang) ? "eur" : "usd";
+}
+
+function testPrice(){
+  // The Premium sandbox price is a single Stripe multi-currency Price.
+  // It supports EUR and USD; Stripe Checkout can select the requested
+  // currency explicitly through the Checkout Session currency parameter.
+  const id=Deno.env.get("STRIPE_PRICE_TEST_MULTI") ?? "";
+  if(!id.startsWith("price_")) throw new Error("stripe_test_multi_price_not_configured");
+  return id;
 }
 
 Deno.serve(async req=>{
@@ -62,10 +67,13 @@ Deno.serve(async req=>{
     const lang=String(body?.lang||"").toLowerCase();
     if(!INTERNATIONAL.includes(lang)) throw new Error("unsupported_international_language");
 
-    const price=priceFor(lang);
+    const priceId=testPrice();
+    const currency=currencyFor(lang);
+
     const form=new URLSearchParams({
       mode:"subscription",
-      "line_items[0][price]":price.id,
+      currency,
+      "line_items[0][price]":priceId,
       "line_items[0][quantity]":"1",
       client_reference_id:"stripe_test_"+u.uid,
       "metadata[test_mode]":"true",
@@ -80,6 +88,7 @@ Deno.serve(async req=>{
       success_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe_test=success`,
       cancel_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe_test=cancel`
     });
+
     const session=await stripe("/checkout/sessions",{method:"POST",body:form});
     if(!session?.id||!session?.url) throw new Error("checkout_creation_failed");
 
@@ -88,7 +97,7 @@ Deno.serve(async req=>{
       mode:"test",
       session_id:String(session.id),
       url:String(session.url),
-      currency:price.currency
+      currency
     }),{status:200,headers:H});
   }catch(e){
     const m=String((e as Error)?.message||e);
