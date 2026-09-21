@@ -49,15 +49,20 @@
         if(!window.firebase||!window.firebase.initializeApp)throw new Error("firebase_sdk_unavailable");
         _app=window.firebase.apps&&window.firebase.apps.length?window.firebase.app():window.firebase.initializeApp(firebaseConfig);
         _auth=window.firebase.auth();
-        // A persistência é importante, mas não pode bloquear a autenticação inicial.
-        // Disparamos a configuração em segundo plano e mantemos um fallback de 5s.
+        // A persistência LOCAL precisa estar configurada ANTES de liberar
+        // o bootstrap do Auth. Se ela for disparada em segundo plano, o usuário
+        // pode autenticar e ser redirecionado antes que a sessão seja persistida,
+        // fazendo a página seguinte parecer deslogada.
         try{
           if(_auth&&_auth.setPersistence&&window.firebase.auth.Auth.Persistence.LOCAL){
-            _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL)
-              .then(function(){console.log("[Firebase] Persistência LOCAL do Auth configurada.");})
-              .catch(function(e){console.warn("[Firebase] Persistência LOCAL indisponível:",e);});
+            await _auth.setPersistence(window.firebase.auth.Auth.Persistence.LOCAL);
+            console.log("[Firebase] Persistência LOCAL do Auth configurada antes do login.");
           }
-        }catch(e){console.warn("[Firebase] Persistência LOCAL indisponível:",e);}
+        }catch(e){
+          // A persistência padrão do Firebase continua válida quando disponível.
+          // Não bloqueamos o login por uma limitação de armazenamento do navegador.
+          console.warn("[Firebase] Persistência LOCAL indisponível; mantendo persistência padrão:",e);
+        }
         if(_auth&&_auth.useDeviceLanguage)_auth.useDeviceLanguage();
         console.log("[Firebase] Auth inicializado; banco de dados da aplicação: Supabase.");
         return{app:_app,auth:_auth};
