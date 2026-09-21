@@ -1620,7 +1620,6 @@ function initializeMultiplexAds() {
 
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
-  hideAdsForPremium();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
     new URLSearchParams(window.location.search).get('admin') === '1'
@@ -1678,7 +1677,7 @@ function initLazyLoadServices() {
     }
 
     function loadAdSenseOnce() {
-      if (adsBlocked || isPremiumSubscriber()) return;
+      if (adsBlocked) return;
 
       // Inicializa o multiplex imediatamente. O push({}) é seguro antes
       // ou depois do script carregar; o guard interno evita push duplicado.
