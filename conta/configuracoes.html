@@ -170,10 +170,12 @@ input[type="radio"],input[type="checkbox"]{accent-color:#1A3E74}
 
 <div id="footer-placeholder"></div>
 <script src="/js/firebase/firebase-init.js"></script><script src="/js/auth/auth-core.js"></script>
+<script src="/js/account-runtime-i18n.js"></script>
 <script>
 (function(){
 "use strict";
 var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",user=null,profile=null,autosaveTimer=null,autosaveReady=false,saveInFlight=false;
+var R=function(key,vars){return window.AccountRuntimeI18n?window.AccountRuntimeI18n.t(key,vars):key};
 function $(id){return document.getElementById(id);}
 function race(p,m){var timer;return Promise.race([p,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("timeout"));},m);})]).finally(function(){clearTimeout(timer);});}
 async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race(window.Auth.init(),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
@@ -206,10 +208,10 @@ function scheduleAutosave(){
    try{
     var p=professionalPayload(),pref=Object.assign({},(profile&&profile.preferences)||{}, {language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)});
     var ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
-    if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){saveState("Verifique as datas informadas",true);return;}
+    if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){saveState(R("futureDatesError"),true);return;}
     var d=await req("PATCH",{metadata:Object.assign({},(profile&&profile.metadata)||{}, {professional:p,professionalGender:$("professional-gender").value}),preferences:pref});
-    if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;clearLocalDraft();saveState("Salvo automaticamente",false);
-   }catch(e){console.error("[Configurações] autosave:",e);saveState("Não foi possível sincronizar agora — dados preservados",true);}
+    if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;clearLocalDraft();saveState(R("changesSaved"),false);
+   }catch(e){console.error("[Configurações] autosave:",e);saveState(R("syncUnavailable"),true);}
    finally{saveInFlight=false;}
  },900);
 }
@@ -227,44 +229,36 @@ function durationParts(startValue){
  if(months<0){years--;months+=12;}
  return {years:years,months:months,days:days,totalDays:Math.floor((new Date(end.getFullYear(),end.getMonth(),end.getDate())-new Date(start.getFullYear(),start.getMonth(),start.getDate()))/86400000)};
 }
-function durationText(d,detail){
- if(!d)return "Não informado";
- var out=[];
- if(d.years)out.push(d.years+" "+(d.years===1?"ano":"anos"));
- if(d.months)out.push(d.months+" "+(d.months===1?"mês":"meses"));
- if(d.days)out.push(d.days+" "+(d.days===1?"dia":"dias"));
- if(!out.length)return "Hoje";
- return out.join(" e ");
-}
+function durationText(d,detail){return d?window.AccountRuntimeI18n.duration((d.totalDays||0)*86400000):R("unknown");}
 function updateAvatarPreview(){
  var el=$("avatar-preview"),fileName=$("avatar-file-name"),name=profile&&profile.displayName?profile.displayName:"P";
  if(profile&&profile.photoURL){el.innerHTML='<img src="'+String(profile.photoURL).replace(/"/g,"&quot;")+'" alt="" class="w-full h-full object-cover">';}
  else {el.textContent=name.trim().charAt(0).toUpperCase()||"P";}
- if(fileName&&!profile.photoURL)fileName.textContent="Nenhuma foto selecionada";
+ if(fileName&&!profile.photoURL)fileName.textContent=R("photoNone");
 }
 async function uploadAvatar(file){
  var input=$("professional-avatar"),label=$("avatar-file-name");
  if(!file)return;
- if(!["image/jpeg","image/png","image/webp"].includes(file.type)){msg("Selecione uma imagem JPEG, PNG ou WebP.",true);input.value="";return;}
- if(file.size>5242880){msg("A foto deve ter no máximo 5 MB.",true);input.value="";return;}
- label.textContent="Enviando "+file.name+"…";
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)){msg(R("invalidImageType"),true);input.value="";return;}
+ if(file.size>5242880){msg(R("imageTooLarge"),true);input.value="";return;}
+ label.textContent=R("photoUploading")+" "+file.name+"…";
  try{
    var token=await race(user.getIdToken(false),6000),form=new FormData();form.append("file",file,file.name);
    var r=await fetch(DATA+"?resource=avatar",{method:"POST",headers:{Authorization:"Bearer "+token,Accept:"application/json"},body:form,cache:"no-store"});
    var d=await r.json().catch(function(){return{}});
    if(!r.ok||!d.profile)throw new Error(d.error||"avatar_upload_failed");
-   profile=d.profile;updateAvatarPreview();label.textContent="Foto atualizada";
+   profile=d.profile;updateAvatarPreview();label.textContent=R("photoUpdated");
    try{await race(user.updateProfile({photoURL:d.photoURL}),6000);}catch(_){}
-   msg("Foto de perfil atualizada com sucesso.",false);
- }catch(e){console.error(e);label.textContent="Falha ao enviar a foto.";msg("Não foi possível atualizar a foto do perfil. Tente novamente.",true);}
+   msg(R("photoUpdated"),false);
+ }catch(e){console.error(e);label.textContent=R("photoUploadFailed");msg(R("photoUploadFailed"),true);}
  finally{input.value="";}
 }
 function calcProfilePreview(){
- var p=professional(),name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:"Seu nome"),g=p.gender==="enfermeira"?"Olá enfermeira":p.gender==="enfermeiro"?"Olá enfermeiro":"Olá, profissional de enfermagem";
+ var p=professional(),name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:R("yourName")),g=p.gender==="enfermeira"?R("greetingFemale"):p.gender==="enfermeiro"?R("greetingMale"):R("greetingNeutral");
  $("preview-greeting").textContent=g+(name?" "+name:"");$("preview-name").textContent=name;
- $("preview-work").textContent=p.workplace?(p.position?p.position+" em "+p.workplace:p.workplace):"Local de trabalho não informado";
- $("preview-tenure").textContent=p.admissionDate?durationText(durationParts(p.admissionDate)):"Data de admissão não informada";
- $("preview-education-time").textContent=p.graduationDate?durationText(durationParts(p.graduationDate)):"Data de formação não informada";
+ $("preview-work").textContent=p.workplace?(p.position?p.position+" "+R("atIn")+" "+p.workplace:p.workplace):R("workplaceUnknown");
+ $("preview-tenure").textContent=p.admissionDate?durationText(durationParts(p.admissionDate)):R("enterAdmissionDate");
+ $("preview-education-time").textContent=p.graduationDate?durationText(durationParts(p.graduationDate)):R("enterFormationDate");
 }
 function loadForm(){
  var p=professional();
@@ -276,9 +270,9 @@ function professionalPayload(){
 }
 async function saveProfessional(){
  var b=$("btn-save-professional"),ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
- if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg("As datas profissionais não podem estar no futuro.",true);return;}
+ if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg(R("futureDatesError"),true);return;}
  var metadata=Object.assign({},(profile&&profile.metadata)||{}, {professional:professionalPayload(),professionalGender:$("professional-gender").value});
- b.disabled=true;try{var d=await req("PATCH",{metadata:metadata});if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;loadForm();msg("Dados profissionais salvos com sucesso.",false);}catch(e){console.error(e);msg("Não foi possível salvar os dados profissionais. Tente novamente.",true);}finally{b.disabled=false;}
+ b.disabled=true;try{var d=await req("PATCH",{metadata:metadata});if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;loadForm();msg("Dados profissionais salvos com sucesso.",false);}catch(e){console.error(e);msg(R("professionalSaveError"),true);}finally{b.disabled=false;}
 }
 async function savePreferences(){
  var b=$("btn-save-settings"),metadata=Object.assign({},(profile&&profile.metadata)||{});
@@ -289,13 +283,13 @@ async function savePreferences(){
    try{localStorage.setItem("fontSize",String(preferences.fontSize));localStorage.setItem("darkMode",String(preferences.theme==="dark"));}catch(_){}
    document.documentElement.classList.toggle("dark-mode",preferences.theme==="dark");
    if(window.AccountI18n&&window.AccountI18n.setLanguage)window.AccountI18n.setLanguage(preferences.language);
-   msg("Preferências salvas com sucesso.",false);
- }catch(e){console.error(e);msg("Não foi possível salvar as preferências. Tente novamente.",true);}finally{b.disabled=false;}
+   msg(R("preferencesSaveSuccess"),false);
+ }catch(e){console.error(e);msg(R("preferencesSaveError"),true);}finally{b.disabled=false;}
 }
 async function saveAll(){
  var all=$("btn-save-all"),professional=professionalPayload(),preferences=Object.assign({},(profile&&profile.preferences)||{}, {language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)});
  var ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
- if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg("As datas profissionais não podem estar no futuro.",true);saveState("Verifique as datas informadas",true);return;}
+ if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg(R("futureDatesError"),true);saveState(R("futureDatesError"),true);return;}
  all.disabled=true;saveState("Salvando…",false);saveLocalDraft();
  try{
   var metadata=Object.assign({},(profile&&profile.metadata)||{}, {professional:professional,professionalGender:$("professional-gender").value});
@@ -303,8 +297,8 @@ async function saveAll(){
   try{localStorage.setItem("fontSize",String(preferences.fontSize));localStorage.setItem("darkMode",String(preferences.theme==="dark"));}catch(_){}
   document.documentElement.classList.toggle("dark-mode",preferences.theme==="dark");
   if(window.AccountI18n&&window.AccountI18n.setLanguage)window.AccountI18n.setLanguage(preferences.language);
-  clearLocalDraft();saveState("Todas as alterações foram salvas",false);msg("Todas as alterações foram salvas com sucesso.",false);
- }catch(e){console.error(e);saveState("Falha ao salvar — dados preservados",true);msg("Não foi possível salvar todas as alterações. Seus preenchimentos foram preservados para nova tentativa.",true);}finally{all.disabled=false;}
+  clearLocalDraft();saveState(R("allChangesSaved"),false);msg(R("allChangesSaveSuccess"),false);
+ }catch(e){console.error(e);saveState("Falha ao salvar — dados preservados",true);msg(R("allChangesSaveError"),true);}finally{all.disabled=false;}
 }
 async function boot(){
  try{
@@ -315,9 +309,9 @@ async function boot(){
    loadForm();
    var recovered=restoreLocalDraft();
    autosaveReady=true;
-   if(recovered) scheduleAutosave(); else saveState("Alterações salvas",false);
+   if(recovered) scheduleAutosave(); else saveState(R("changesSaved"),false);
    $("settings-loading").style.display="none";$("settings-content").style.display="block";
- }catch(e){console.error("[Configurações]",e);$("settings-loading").textContent="Não foi possível carregar suas configurações. Tente novamente."}
+ }catch(e){console.error("[Configurações]",e);$("settings-loading").textContent=R("settingsLoadError")}
 }
 $("btn-save-professional").addEventListener("click",saveProfessional);$("professional-avatar").addEventListener("change",function(e){uploadAvatar(e.target.files&&e.target.files[0]);});
 $("btn-save-settings").addEventListener("click",savePreferences);$("btn-save-all").addEventListener("click",saveAll);
