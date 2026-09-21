@@ -1598,22 +1598,6 @@ function ativarModoDislexia() {
 // permanece independente do entitlement para não transformar publicidade em
 // mecanismo de autorização.
 
-/* =========================
-   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-   ========================= */
-function initializeMultiplexAds() {
-    document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
-    if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
-    ad.dataset.multiplexInitialized = "true";
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (error) {
-      delete ad.dataset.multiplexInitialized;
-      console.warn("Falha ao inicializar o AdSense Multiplex:", error);
-    }
-  });
-}
-
 /* =========================================================
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
    ========================================================= */
@@ -1635,8 +1619,7 @@ function initLazyLoadServices() {
     var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
 
     window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
+        window.dataLayer = window.dataLayer || [];
 
     function gtag() {
       dataLayer.push(arguments);
@@ -1676,43 +1659,18 @@ function initLazyLoadServices() {
       console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
     }
 
-    function loadAdSenseOnce() {
-      if (adsBlocked) return;
-
-      // Inicializa o multiplex imediatamente. O push({}) é seguro antes
-      // ou depois do script carregar; o guard interno evita push duplicado.
-      initializeMultiplexAds();
-
-      if (window.__adsenseLoaded) return;
-      window.__adsenseLoaded = true;
-
-      var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-      if (existingAdSense) return;
-
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      ad.addEventListener("load", function () {
-        initializeMultiplexAds();
-      }, { once: true });
-      document.head.appendChild(ad);
-      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
-    }
-
     // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
-    // Envolvemos o carregamento para não bloquear a Thread Principal
+    // O carregamento de analytics permanece adiado para não bloquear a interação.
+    // A plataforma não utiliza AdSense/Multi­plex neste modelo comercial.
     function executeServices() {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(function () {
           loadAnalytics();
-          loadAdSenseOnce();
         });
       } else {
         setTimeout(function () {
           loadAnalytics();
-          loadAdSenseOnce();
-        }, 100); // Pequeno atraso para liberar a interação
+        }, 100);
       }
     }
 
@@ -1751,17 +1709,12 @@ function initLazyLoadServices() {
 
     window.applyConsent = function (consent) {
       gtag("consent", "update", consent);
-      if (consent.ad_storage === "granted") {
-        adsBlocked = false;
+      if (consent.analytics_storage === "granted") {
         onUserInteraction();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle")
-          .forEach(ad => {
-            ad.style.display = "none";
-            ad.innerHTML = "";
-          });
       }
+      // AdSense/Multi­plex não é carregado pelo runtime atual. Mantemos a
+      // preferência ad_storage para compatibilidade com o modal de consentimento
+      // e integrações futuras, sem iniciar publicidade.
       localStorage.setItem("analytics_storage", consent.analytics_storage);
       localStorage.setItem("ad_storage", consent.ad_storage);
     }
