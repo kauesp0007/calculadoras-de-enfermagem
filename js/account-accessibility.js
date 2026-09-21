@@ -5,7 +5,7 @@
   function style(){
     if(document.getElementById("account-a11y-style"))return;
     var s=document.createElement("style");s.id="account-a11y-style";
-    s.textContent='html[dir="rtl"] .text-left{text-align:right!important}html[dir="rtl"] .text-right{text-align:left!important}.account-save-state-spacer{margin-inline-end:auto!important}.account-a11y-message[role="alert"]{outline:none}@media (prefers-reduced-motion:reduce){.account-page *,.account-page *::before,.account-page *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid currentColor;outline-offset:3px}';
+    s.textContent='html[dir="rtl"] .text-left{text-align:right!important}html[dir="rtl"] .text-right{text-align:left!important}.account-save-state-spacer{margin-inline-end:auto!important}.account-a11y-message[role="alert"]{outline:none}@media (prefers-reduced-motion:reduce){html,html * ,html *::before,html *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}`:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid currentColor;outline-offset:3px}`';
     document.head.appendChild(s);
   }
   function setup(){
@@ -35,9 +35,12 @@
     setAttr("premium-status-chip",{"role":"status"});
     setAttr("dashboard-date-status",{"role":"status","aria-live":"polite"});
     if(key==="assinatura"){
-      Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind");el.setAttribute("aria-label",kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar"));}});
+      function labelBillingButtons(){Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind"),fallback=(el.textContent||"").trim()||t(kind==="pix"?"payment":"subscribeAction",kind==="pix"?"Pagamento":"Assinar");el.setAttribute("aria-label",fallback);}});}
+      labelBillingButtons();
+      new MutationObserver(labelBillingButtons).observe(document.body,{subtree:true,childList:true});
     }
     if(key==="login"){
+      setAttr("auth-error",{"role":"alert","aria-live":"assertive"});
       setAttr("btn-google-login",{"aria-label":t("google","Continuar com Google")});
       setAttr("btn-microsoft-login",{"aria-label":t("microsoft","Continuar com Microsoft")});
       setAttr("btn-apple-login",{"aria-label":t("apple","Continuar com Apple")});
