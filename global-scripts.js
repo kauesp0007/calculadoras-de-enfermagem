@@ -95,6 +95,9 @@ window.__FIX_RELATIVE_LINKS = function (container) {
     if (/\/?conta\/login\.html(?:[?#]|$)/.test(a.getAttribute("href") || "")) {
       a.setAttribute("href", window.__ACCOUNT_LOGIN_URL());
     }
+    if (window.AccountRouting && typeof window.AccountRouting.bindLinks === "function") {
+      window.AccountRouting.bindLinks(a.parentElement || container);
+    }
   });
 };
 
