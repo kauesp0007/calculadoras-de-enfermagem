@@ -445,7 +445,7 @@ function renderPlan(){
 function updatePlanDays(){
   var val=$("plan-date").value;if(!val){$("plan-days").textContent=R("defineDate");return;}
   var target=new Date(val+"T23:59:59"),now=new Date();var diff=Math.ceil((target-now)/86400000);
-  $("plan-days").textContent=diff>0?diff+" dias":diff===0?"Hoje":Math.abs(diff)+" dias atrás";
+  $("plan-days").textContent=diff>0?new Intl.NumberFormat(window.AccountRuntimeI18n.locale(),{style:"unit",unit:"day",unitDisplay:"long"}).format(diff):diff===0?new Intl.RelativeTimeFormat(window.AccountRuntimeI18n.locale(),{numeric:"auto"}).format(0,"day"):new Intl.RelativeTimeFormat(window.AccountRuntimeI18n.locale(),{numeric:"auto"}).format(diff,"day")";
 }
 function savePlan(){
   var s=loadStore();s.plan={goal:($("plan-goal").value||"").trim().slice(0,100),date:$("plan-date").value};saveStore(s);updatePlanDays();showMessage(R("studyPlanSaved"),false);
@@ -454,13 +454,13 @@ function renderNote(){var s=loadStore();$("personal-note").value=s.note||"";}
 function saveNote(){var s=loadStore();s.note=($("personal-note").value||"").slice(0,2500);saveStore(s);showMessage(R("noteSaved"),false);}
 function renderAchievements(){
   var h=history.length,f=favorites.length,s=simulatorItems().length,ach=[
-    {title:"Primeiro acesso",ok:h>=1,desc:"Use o histórico da conta."},
-    {title:"Primeiro favorito",ok:f>=1,desc:"Salve um conteúdo."},
-    {title:"5 acessos",ok:h>=5,desc:"Explore o site."},
-    {title:"10 favoritos",ok:f>=10,desc:"Monte sua biblioteca."},
-    {title:"5 simulados",ok:s>=5,desc:"Pratique questões."}
+    {title:R("achievementFirstAccess"),ok:h>=1,desc:R("achievementFirstAccessDesc")},
+    {title:R("achievementFirstFavorite"),ok:f>=1,desc:R("achievementFirstFavoriteDesc")},
+    {title:R("achievementFiveVisits"),ok:h>=5,desc:R("achievementFiveVisitsDesc")},
+    {title:R("achievementTenFavorites"),ok:f>=10,desc:R("achievementTenFavoritesDesc")},
+    {title:R("achievementFiveQuizzes"),ok:s>=5,desc:R("achievementFiveQuizzesDesc")}
   ],unlocked=ach.filter(function(a){return a.ok}).length;
-  $("achievement-total").textContent=unlocked+" desbloqueadas";
+  $("achievement-total").textContent=unlocked+" "+R("achievementsUnlocked");
   $("achievement-list").innerHTML=ach.map(function(a){return '<div class="rounded-2xl border p-3.5 '+(a.ok?"border-[#C7D9EC] bg-[#F4F8FC]":"border-slate-200 bg-slate-50 opacity-75")+'"><span class="dash-icon '+(a.ok?"bg-[#1A3E74] text-white":"bg-white text-slate-400 border border-slate-200")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3.5 2.2 5.2 5.3.5-4 3.5 1.2 5.2-4.7-2.7-4.7 2.7 1.2-5.2-4-3.5 5.3-.5L12 3.5Z"/></svg></span><p class="text-xs font-black text-[#1A3E74] mt-2 leading-snug">'+escapeHtml(a.title)+'</p><p class="text-[10px] text-slate-500 mt-1 leading-snug">'+escapeHtml(a.desc)+'</p></div>'}).join("");
 }
 function fullDate(){
