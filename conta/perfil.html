@@ -274,6 +274,7 @@
 <div id="footer-placeholder"></div>
 
 <script src="/js/firebase/firebase-init.js"></script><script src="/js/auth/auth-core.js"></script>
+<script src="/js/account-runtime-i18n.js"></script>
 <script>
 (function(){
 "use strict";
@@ -281,6 +282,7 @@ var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data";
 var BILL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 var STORAGE="cePremiumDashboard";
 var user=null,profile=null,favorites=[],history=[],billing={plan:"verifying"},calendarDate=new Date(),focusSeconds=1500,focusTimer=null,dashboardSaveQueue=Promise.resolve();
+var R=function(key,vars){return window.AccountRuntimeI18n?window.AccountRuntimeI18n.t(key,vars):key};
 
 function $(id){return document.getElementById(id);}
 function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]});}
@@ -305,17 +307,9 @@ async function billingApi(){
     return data;
   }finally{clearTimeout(timer);}
 }
-function safeDate(value,withTime){
-  if(!value)return "—";var d=new Date(value);if(isNaN(d.getTime()))return "—";
-  return d.toLocaleDateString("pt-BR",withTime?{dateStyle:"short",timeStyle:"short"}:{dateStyle:"short"});
-}
+function safeDate(value,withTime){if(!value)return R("dataNotRecorded");var d=new Date(value);if(isNaN(d.getTime()))return R("dataNotRecorded");return withTime?window.AccountRuntimeI18n.dateTime(d):window.AccountRuntimeI18n.date(d,{dateStyle:"short"});}
 function titleCase(s){return s?String(s).charAt(0).toUpperCase()+String(s).slice(1):s;}
-function greetingText(){
-  var treatment=profile&&profile.metadata&&profile.metadata.professionalGender?profile.metadata.professionalGender:"";
-  var name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:"");
-  var label=treatment==="enfermeira"?"Olá enfermeira":treatment==="enfermeiro"?"Olá enfermeiro":"Olá, profissional de enfermagem";
-  return {prefix:label,name:name};
-}
+function greetingText(){var treatment=profile&&profile.metadata&&profile.metadata.professionalGender?profile.metadata.professionalGender:"";var key=treatment==="enfermeira"?"greetingFemale":treatment==="enfermeiro"?"greetingMale":"greetingNeutral";var name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:"");return {prefix:R(key),name:name};}
 function showMessage(text,error){
   var box=$("profile-message");if(!box)return;box.textContent=text;box.style.display="block";
   box.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(error?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");
@@ -354,49 +348,36 @@ function durationParts(value){
  return {years:Math.max(0,years),months:Math.max(0,months),days:Math.max(0,days),totalDays:totalDays};
 }
 function durationFromDate(value){return durationParts(value);}
-function durationLabel(d){
- if(!d)return "Não informado";var parts=[];
- if(d.years)parts.push(d.years+" "+(d.years===1?"ano":"anos"));
- if(d.months)parts.push(d.months+" "+(d.months===1?"mês":"meses"));
- if(d.days||!parts.length)parts.push(d.days+" "+(d.days===1?"dia":"dias"));
- return parts.join(" e ");
-}
+function durationLabel(d){if(!d)return R("unknown");var parts=[];var loc=window.AccountRuntimeI18n.locale();if(d.years)parts.push(new Intl.NumberFormat(loc,{style:"unit",unit:"year",unitDisplay:"long"}).format(d.years));if(d.months)parts.push(new Intl.NumberFormat(loc,{style:"unit",unit:"month",unitDisplay:"long"}).format(d.months));if(d.days||!parts.length)parts.push(new Intl.NumberFormat(loc,{style:"unit",unit:"day",unitDisplay:"long"}).format(d.days));return typeof Intl.ListFormat==="function"?new Intl.ListFormat(loc,{type:"conjunction",style:"long"}).format(parts):parts.join(" ");}
 function renderCareer(){
- var p=professionalData(),g=p.gender==="enfermeira"?"enfermeira":p.gender==="enfermeiro"?"enfermeiro":"profissional de enfermagem",name=profile&&profile.displayName?profile.displayName:"";
- var tenure=durationFromDate(p.admissionDate),education=durationFromDate(p.graduationDate);
- var greeting="Olá "+g+(name?" "+name:"")+".";
- var parts=[];
- if(tenure&&p.workplace)parts.push("Hoje você já soma "+tenure.totalDays+" "+(tenure.totalDays===1?"dia":"dias")+" de atuação em "+p.workplace+".");
- else if(tenure)parts.push("Hoje você já soma "+tenure.totalDays+" "+(tenure.totalDays===1?"dia":"dias")+" de atuação profissional.");
- else if(p.workplace)parts.push("Seu local de trabalho informado é "+p.workplace+".");
- if(education){
-   var formWord=p.gender==="enfermeira"?"formada":p.gender==="enfermeiro"?"formado":"formado(a)";
-   parts.push("Você está há "+durationLabel(education)+" "+formWord+".");
-   parts.push("Parabéns pela sua trajetória profissional!");
- }
- $("career-summary").textContent=parts.length?greeting+" "+parts.join(" "):greeting+" Complete seus dados profissionais em Configurações para personalizar sua trajetória.";
- $("career-tenure").textContent=tenure?durationLabel(tenure):"Não informado";
- $("career-tenure-days").textContent=tenure?tenure.totalDays+" dias desde a admissão":"Informe a data de admissão";
- $("career-education").textContent=education?durationLabel(education):"Não informado";
- $("career-education-days").textContent=education?education.totalDays+" dias desde a formação":"Informe a data de formação";
- $("career-workplace").textContent=p.workplace||"Não informado";
- $("career-position").textContent=(p.position||"Cargo não informado")+(p.specialty?" · "+p.specialty:"");
- $("career-formation").textContent=(p.course||"Formação não informada")+(p.institution?" · "+p.institution:"")+(p.graduationYear?" · "+p.graduationYear:"");
- $("career-location").textContent=p.city?(p.state?p.city+" · "+p.state:p.city):(p.state?p.state:"Localização não informada");
- $("career-workplace-top").textContent=p.workplace||"Não informado";
- $("career-position-top").textContent=(p.position||"Cargo não informado")+(p.specialty?" · "+p.specialty:"");
- $("career-education-top").textContent=(p.course||"Não informada")+(p.institution?" · "+p.institution:"")+(p.graduationYear?" · "+p.graduationYear:"");
- $("career-location-top").textContent=p.city?(p.state?p.city+" · "+p.state:p.city):(p.state?p.state:"Não informada");
+ var p=professionalData(),name=profile&&profile.displayName?profile.displayName:"",tenure=durationFromDate(p.admissionDate),education=durationFromDate(p.graduationDate),greeting=R(p.gender==="enfermeira"?"greetingFemale":p.gender==="enfermeiro"?"greetingMale":"greetingNeutral")+(name?" "+name:"")+".",parts=[];
+ if(tenure&&p.workplace)parts.push(R("workTenure",{days:tenure.totalDays,workplace:p.workplace}));
+ else if(tenure)parts.push(R("professionalTenure",{days:tenure.totalDays}));
+ else if(p.workplace)parts.push(R("workplaceStatement",{workplace:p.workplace}));
+ if(education){parts.push(R("educationTenure",{duration:durationLabel(education)}));parts.push(R("careerCongrats"));}
+ $("career-summary").textContent=parts.length?greeting+" "+parts.join(" "):greeting+" "+R("completeProfessionalData");
+ $("career-tenure").textContent=tenure?durationLabel(tenure):R("unknown");
+ $("career-tenure-days").textContent=tenure?R("daysSinceAdmission",{days:tenure.totalDays}):R("enterAdmissionDate");
+ $("career-education").textContent=education?durationLabel(education):R("unknown");
+ $("career-education-days").textContent=education?R("daysSinceFormation",{days:education.totalDays}):R("enterFormationDate");
+ $("career-workplace").textContent=p.workplace||R("workplaceUnknown");
+ $("career-position").textContent=(p.position||R("positionUnknown"))+(p.specialty?" · "+p.specialty:"");
+ $("career-formation").textContent=(p.course||R("educationUnknown"))+(p.institution?" · "+p.institution:"")+(p.graduationYear?" · "+p.graduationYear:"");
+ $("career-location").textContent=p.city?(p.state?p.city+" · "+p.state:p.city):(p.state?p.state:R("locationUnknown"));
+ $("career-workplace-top").textContent=p.workplace||R("workplaceUnknown");
+ $("career-position-top").textContent=(p.position||R("positionUnknown"))+(p.specialty?" · "+p.specialty:"");
+ $("career-education-top").textContent=(p.course||R("educationUnknown"))+(p.institution?" · "+p.institution:"")+(p.graduationYear?" · "+p.graduationYear:"");
+ $("career-location-top").textContent=p.city?(p.state?p.city+" · "+p.state:p.city):(p.state?p.state:R("locationUnknown"));
 }
 function renderBilling(){
   var chip=$("premium-status-chip"),access=$("stat-access");
   if(billing.plan==="premium"){
-    chip.textContent="Premium ativo";chip.className="premium-chip inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-wide";
-    access.textContent="Liberado";$("dashboard-date-status").textContent="Acesso Premium ativo";$("security-summary").textContent="A autenticação e o status da assinatura são verificados antes do acesso ao conteúdo Premium.";
+    chip.textContent=R("premiumActive");chip.className="premium-chip inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-[11px] font-black uppercase tracking-wide";
+    access.textContent=R("premiumUnlocked");$("dashboard-date-status").textContent=R("premiumAccessActive");$("security-summary").textContent=R("premiumSecurity");
   }else if(billing.plan==="verifying"){
-    chip.textContent="Verificando acesso";access.textContent="Verificando";$("dashboard-date-status").textContent="Validando assinatura";
+    chip.textContent=R("verifyingAccess");access.textContent=R("verifyingAccess");$("dashboard-date-status").textContent=R("validatingSubscription");
   }else{
-    chip.textContent="Plano gratuito";access.textContent="Plano gratuito";$("dashboard-date-status").textContent="Plano gratuito";
+    chip.textContent=R("freePlan");access.textContent=R("freePlan");$("dashboard-date-status").textContent=R("freePlan");
   }
 }
 function icon(type){
@@ -409,11 +390,11 @@ function icon(type){
 }
 function renderContinue(){
   var list=$("continue-list"),items=history.slice().sort(function(a,b){return new Date(b.visitedAt||b.createdAt||0)-new Date(a.visitedAt||a.createdAt||0)}).slice(0,4);
-  list.innerHTML=items.length?items.map(function(x){return '<a href="'+escapeHtml(x.url||"#")+'" class="dash-list-item p-3.5 no-underline hover:border-[#BED0E5] transition flex items-center gap-3"><span class="dash-icon bg-[#EEF4FB] text-[#1A3E74]">'+icon((/simulado|quiz|flashcard/i.test((x.title||"")+" "+(x.url||""))?"play":"history"))+'</span><span class="min-w-0"><span class="block text-sm font-black text-[#1A3E74] truncate">'+escapeHtml(x.title||"Conteúdo acessado")+'</span><span class="block text-[11px] text-slate-500 mt-0.5 truncate">'+escapeHtml([x.category,x.pageType].filter(Boolean).join(" · ")||"Acessado recentemente")+'</span></span></a>'}).join(""):'<div class="md:col-span-2 rounded-2xl border border-dashed border-[#C8D6E7] bg-[#FAFCFE] p-5 text-center"><p class="text-sm font-semibold text-slate-600">Seu histórico ainda está vazio.</p><a class="inline-block mt-2 text-xs font-bold text-[#1A3E74] hover:underline" href="/">Começar a navegar</a></div>';
+  list.innerHTML=items.length?items.map(function(x){return '<a href="'+escapeHtml(x.url||"#")+'" class="dash-list-item p-3.5 no-underline hover:border-[#BED0E5] transition flex items-center gap-3"><span class="dash-icon bg-[#EEF4FB] text-[#1A3E74]">'+icon((/simulado|quiz|flashcard/i.test((x.title||"")+" "+(x.url||""))?"play":"history"))+'</span><span class="min-w-0"><span class="block text-sm font-black text-[#1A3E74] truncate">'+escapeHtml(x.title||R("contentAccessed"))+'</span><span class="block text-[11px] text-slate-500 mt-0.5 truncate">'+escapeHtml([x.category,x.pageType].filter(Boolean).join(" · ")||R("recentlyAccessed"))+'</span></span></a>'}).join(""):'<div class="md:col-span-2 rounded-2xl border border-dashed border-[#C8D6E7] bg-[#FAFCFE] p-5 text-center"><p class="text-sm font-semibold text-slate-600">escapeHtml(R("historyEmpty"))</p><a class="inline-block mt-2 text-xs font-bold text-[#1A3E74] hover:underline" href="/">escapeHtml(R("startBrowsing"))</a></div>';
 }
 function renderFavorites(){
   var list=$("favorite-list"),items=favorites.slice(0,3);
-  list.innerHTML=items.length?items.map(function(x){return '<a href="'+escapeHtml(x.url||"#")+'" class="dash-list-item p-3.5 no-underline hover:border-[#BED0E5] transition"><span class="dash-icon bg-[#FFF4EA] text-[#C45A12]">'+icon("star")+'</span><p class="font-black text-sm text-[#1A3E74] mt-2 truncate">'+escapeHtml(x.title||"Favorito")+'</p><p class="text-[11px] text-slate-500 mt-1 truncate">'+escapeHtml(x.category||x.favoriteType||"Conteúdo salvo")+'</p></a>'}).join(""):'<div class="md:col-span-3 rounded-2xl border border-dashed border-[#C8D6E7] bg-[#FAFCFE] p-5 text-center"><p class="text-sm font-semibold text-slate-600">Nenhum favorito salvo ainda.</p><a class="inline-block mt-2 text-xs font-bold text-[#1A3E74] hover:underline" href="/conta/favoritos.html">Adicionar favoritos</a></div>';
+  list.innerHTML=items.length?items.map(function(x){return '<a href="'+escapeHtml(x.url||"#")+'" class="dash-list-item p-3.5 no-underline hover:border-[#BED0E5] transition"><span class="dash-icon bg-[#FFF4EA] text-[#C45A12]">'+icon("star")+'</span><p class="font-black text-sm text-[#1A3E74] mt-2 truncate">'+escapeHtml(x.title||R("favoriteFallback"))+'</p><p class="text-[11px] text-slate-500 mt-1 truncate">'+escapeHtml(x.category||x.favoriteType||R("savedContent"))+'</p></a>'}).join(""):'<div class="md:col-span-3 rounded-2xl border border-dashed border-[#C8D6E7] bg-[#FAFCFE] p-5 text-center"><p class="text-sm font-semibold text-slate-600">escapeHtml(R("noFavorites"))</p><a class="inline-block mt-2 text-xs font-bold text-[#1A3E74] hover:underline" href="/conta/favoritos.html">escapeHtml(R("addFavorites"))</a></div>';
 }
 function simulatorItems(){
   return history.filter(function(x){return /simulado|quiz|flashcard/i.test(String(x.title||"")+" "+String(x.url||""))});
@@ -429,9 +410,9 @@ function renderPerformance(){
   if(resultCount){
     var totalScore=results.reduce(function(n,r){return n+r.score},0),totalQ=results.reduce(function(n,r){return n+r.total},0);
     $("perf-percent").textContent=totalQ>0?(Math.round((totalScore/totalQ)*1000)/10).toFixed(1)+"%":"—";
-    $("perf-note").textContent="Percentual calculado somente a partir dos resultados encontrados no histórico da conta.";
+    $("perf-note").textContent=R("performanceCalculated");
   }else{
-    $("perf-percent").textContent="—";$("perf-note").textContent="O painel usa apenas resultados realmente registrados pelos simulados; quando não houver resultado salvo, nenhum percentual será inventado.";
+    $("perf-percent").textContent="—";$("perf-note").textContent=R("performanceNoResults");
   }
 }
 function loadStore(){
@@ -450,11 +431,11 @@ function saveStore(data){
 function renderCollections(){
   var store=loadStore(),cols=Array.isArray(store.collections)?store.collections:[],list=$("collection-list");
   if(!cols.length){cols=[{name:"Revisão",items:[]}];store.collections=cols;saveStore(store);}
-  list.innerHTML=cols.map(function(c,i){var count=Array.isArray(c.items)?c.items.length:0;return '<div class="dash-list-item p-3.5 flex items-center justify-between gap-3"><div><p class="font-black text-sm text-[#1A3E74] truncate">'+escapeHtml(c.name)+'</p><p class="text-[11px] text-slate-500 mt-1">'+count+" "+(count===1?"item":"itens")+'</p></div><button type="button" class="text-[10px] font-black text-[#C45A12] hover:underline" data-remove-collection="'+i+'">Excluir</button></div>'}).join("");
+  list.innerHTML=cols.map(function(c,i){var count=Array.isArray(c.items)?c.items.length:0;return '<div class="dash-list-item p-3.5 flex items-center justify-between gap-3"><div><p class="font-black text-sm text-[#1A3E74] truncate">'+escapeHtml(c.name)+'</p><p class="text-[11px] text-slate-500 mt-1">'+count+" "+(count===1?R("item"):R("items"))+'</p></div><button type="button" class="text-[10px] font-black text-[#C45A12] hover:underline" data-remove-collection="'+i+'">R("removeItem")</button></div>'}).join("");
   list.querySelectorAll("[data-remove-collection]").forEach(function(btn){btn.addEventListener("click",function(){var s=loadStore(),arr=Array.isArray(s.collections)?s.collections:[];arr.splice(Number(btn.dataset.removeCollection),1);s.collections=arr;saveStore(s);renderCollections();});});
 }
 function newCollection(){
-  var name=window.prompt("Nome da nova coleção:");
+  var name=window.prompt(R("collectionNamePrompt"));
   if(!name)return;name=name.trim().slice(0,60);if(!name)return;
   var s=loadStore();s.collections=Array.isArray(s.collections)?s.collections:[];s.collections.push({name:name,items:[]});saveStore(s);renderCollections();
 }
@@ -462,15 +443,15 @@ function renderPlan(){
   var s=loadStore(),p=s.plan||{};$("plan-goal").value=p.goal||"";$("plan-date").value=p.date||"";updatePlanDays();
 }
 function updatePlanDays(){
-  var val=$("plan-date").value;if(!val){$("plan-days").textContent="Defina a data";return;}
+  var val=$("plan-date").value;if(!val){$("plan-days").textContent=R("defineDate");return;}
   var target=new Date(val+"T23:59:59"),now=new Date();var diff=Math.ceil((target-now)/86400000);
   $("plan-days").textContent=diff>0?diff+" dias":diff===0?"Hoje":Math.abs(diff)+" dias atrás";
 }
 function savePlan(){
-  var s=loadStore();s.plan={goal:($("plan-goal").value||"").trim().slice(0,100),date:$("plan-date").value};saveStore(s);updatePlanDays();showMessage("Plano de estudos salvo neste dispositivo.",false);
+  var s=loadStore();s.plan={goal:($("plan-goal").value||"").trim().slice(0,100),date:$("plan-date").value};saveStore(s);updatePlanDays();showMessage(R("studyPlanSaved"),false);
 }
 function renderNote(){var s=loadStore();$("personal-note").value=s.note||"";}
-function saveNote(){var s=loadStore();s.note=($("personal-note").value||"").slice(0,2500);saveStore(s);showMessage("Anotação salva neste dispositivo.",false);}
+function saveNote(){var s=loadStore();s.note=($("personal-note").value||"").slice(0,2500);saveStore(s);showMessage(R("noteSaved"),false);}
 function renderAchievements(){
   var h=history.length,f=favorites.length,s=simulatorItems().length,ach=[
     {title:"Primeiro acesso",ok:h>=1,desc:"Use o histórico da conta."},
@@ -483,12 +464,12 @@ function renderAchievements(){
   $("achievement-list").innerHTML=ach.map(function(a){return '<div class="rounded-2xl border p-3.5 '+(a.ok?"border-[#C7D9EC] bg-[#F4F8FC]":"border-slate-200 bg-slate-50 opacity-75")+'"><span class="dash-icon '+(a.ok?"bg-[#1A3E74] text-white":"bg-white text-slate-400 border border-slate-200")+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="m12 3.5 2.2 5.2 5.3.5-4 3.5 1.2 5.2-4.7-2.7-4.7 2.7 1.2-5.2-4-3.5 5.3-.5L12 3.5Z"/></svg></span><p class="text-xs font-black text-[#1A3E74] mt-2 leading-snug">'+escapeHtml(a.title)+'</p><p class="text-[10px] text-slate-500 mt-1 leading-snug">'+escapeHtml(a.desc)+'</p></div>'}).join("");
 }
 function fullDate(){
-  var now=new Date(),weekday=titleCase(now.toLocaleDateString("pt-BR",{weekday:"long"})),month=titleCase(now.toLocaleDateString("pt-BR",{month:"long"})),dateText=weekday+", "+String(now.getDate()).padStart(2,"0")+" de "+month+" de "+now.getFullYear();
+  var now=new Date(),weekday=titleCase(now.new Intl.DateTimeFormat(window.AccountRuntimeI18n.locale(),{weekday:"long"}).format(now)),month=titleCase(now.new Intl.DateTimeFormat(window.AccountRuntimeI18n.locale(),{month:"long"}).format(now)),dateText=weekday+", "+String(now.getDate()).padStart(2,"0")+" de "+month+" de "+now.getFullYear();
   $("full-date").textContent=dateText;$("today-number").textContent=String(now.getDate()).padStart(2,"0");$("today-month-year").textContent=month+" de "+now.getFullYear();$("calendar-today-label").textContent=dateText;
 }
 function renderCalendar(){
   var y=calendarDate.getFullYear(),m=calendarDate.getMonth(),first=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate(),prevDays=new Date(y,m,0).getDate(),grid=$("calendar-grid");
-  $("calendar-label").textContent=titleCase(new Date(y,m,1).toLocaleDateString("pt-BR",{month:"long",year:"numeric"}));grid.innerHTML="";
+  $("calendar-label").textContent=titleCase(new Date(y,m,1).new Intl.DateTimeFormat(window.AccountRuntimeI18n.locale(),{month:"long",year:"numeric"}).format(new Date(y,m,1)));grid.innerHTML="";
   var today=new Date();
   for(var i=0;i<42;i++){
     var day=i-first+1,cell=document.createElement("div");cell.className="calendar-cell";
@@ -503,34 +484,34 @@ function setupCalendar(){
 }
 function renderFocus(){var m=Math.floor(focusSeconds/60),s=focusSeconds%60;$("focus-timer").textContent=String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");}
 function focusStart(){
-  if(focusTimer)return;$("focus-status").textContent="Em foco";document.body.classList.add("focus-ring");
-  focusTimer=setInterval(function(){if(focusSeconds>0){focusSeconds--;renderFocus();}else{clearInterval(focusTimer);focusTimer=null;$("focus-status").textContent="Sessão concluída";document.body.classList.remove("focus-ring");}},1000);
+  if(focusTimer)return;$("focus-status").textContent=R("focus");document.body.classList.add("focus-ring");
+  focusTimer=setInterval(function(){if(focusSeconds>0){focusSeconds--;renderFocus();}else{clearInterval(focusTimer);focusTimer=null;$("focus-status").textContent=R("sessionCompleted");document.body.classList.remove("focus-ring");}},1000);
 }
-function focusPause(){if(focusTimer){clearInterval(focusTimer);focusTimer=null;}$("focus-status").textContent="Pausado";document.body.classList.remove("focus-ring");}
-function focusReset(){if(focusTimer){clearInterval(focusTimer);focusTimer=null;}focusSeconds=1500;renderFocus();$("focus-status").textContent="Pronto";document.body.classList.remove("focus-ring");}
+function focusPause(){if(focusTimer){clearInterval(focusTimer);focusTimer=null;}$("focus-status").textContent=R("paused");document.body.classList.remove("focus-ring");}
+function focusReset(){if(focusTimer){clearInterval(focusTimer);focusTimer=null;}focusSeconds=1500;renderFocus();$("focus-status").textContent=R("ready");document.body.classList.remove("focus-ring");}
 async function saveName(){
   var input=$("edit-name-input"),button=$("btn-save-name"),name=(input.value||"").trim();
-  if(!user){showMessage("Não há uma sessão ativa.",true);return;}if(name.length<2){showMessage("Digite um nome válido (mínimo 2 caracteres).",true);input.focus();return;}
+  if(!user){showMessage(R("noActiveSession"),true);return;}if(name.length<2){showMessage(R("invalidName"),true);input.focus();return;}
   button.disabled=true;
   try{
     var currentMeta=(profile&&profile.metadata)||{},response=await api("profile","PATCH",{displayName:name,metadata:currentMeta});
     if(!response.profile)throw new Error("profile_update_empty");profile=response.profile;
     try{await timeout(user.updateProfile({displayName:name}),6000);}catch(_){}
-    renderIdentity();showMessage("Nome atualizado com sucesso.",false);
-  }catch(e){console.error(e);showMessage("Não foi possível salvar o nome. Tente novamente.",true);}
+    renderIdentity();showMessage(R("nameUpdated"),false);
+  }catch(e){console.error(e);showMessage(R("nameSaveError"),true);}
   finally{button.disabled=false;}
 }
 async function saveTreatment(){
   var value=$("professional-gender").value,s=Object.assign({},(profile&&profile.metadata)||{}, {professionalGender:value, dashboard:(profile&&profile.metadata&&profile.metadata.dashboard)||loadStore()});
   var button=$("btn-save-treatment");button.disabled=true;
-  try{var response=await api("profile","PATCH",{metadata:s});if(!response.profile)throw new Error("profile_update_empty");profile=response.profile;renderIdentity();showMessage("Forma de tratamento atualizada.",false);}
-  catch(e){console.error(e);showMessage("Não foi possível salvar a forma de tratamento.",true);}
+  try{var response=await api("profile","PATCH",{metadata:s});if(!response.profile)throw new Error("profile_update_empty");profile=response.profile;renderIdentity();showMessage(R("treatmentUpdated"),false);}
+  catch(e){console.error(e);showMessage(R("treatmentSaveError"),true);}
   finally{button.disabled=false;}
 }
 async function signOut(){
   var b=$("btn-sair");b.disabled=true;
   try{if(window.Auth&&window.Auth.signOut)await timeout(window.Auth.signOut(),6000);window.location.replace("/");}
-  catch(e){b.disabled=false;showMessage("Não foi possível sair da conta. Tente novamente.",true);}
+  catch(e){b.disabled=false;showMessage(R("signOutError"),true);}
 }
 async function loadAccount(){
   try{
@@ -550,7 +531,7 @@ async function loadAccount(){
   }catch(error){
     console.error("[Perfil] painel:",error);
     $("profile-loading").style.display="none";$("profile-content").style.display="block";
-    showMessage("Não foi possível carregar todos os dados da conta. Verifique a sessão e tente novamente.",true);
+    showMessage(R("accountLoadError"),true);
     profile=profile||{};favorites=favorites||[];history=history||[];billing=billing||{plan:"verifying"};renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
   }
 }
