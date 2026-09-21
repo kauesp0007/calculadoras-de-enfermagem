@@ -687,6 +687,7 @@ function initializeAuthMenu() {
   /**
    * Inicializa a camada de acesso e aplica a proteção de conteúdo.
    */
+  var _accessBillingListenerBound = false;
   function _setupAccess() {
     if (!window.Access) {
       return;
@@ -698,6 +699,26 @@ function initializeAuthMenu() {
     // o próprio assinante para /conta/assinatura.html.
     if (window.__IS_PREMIUM_ROUTE) {
       return;
+    }
+
+    // Em uma sessão autenticada, não converta "verifying" em Free para fins
+    // de banner/CTA. Aguarde o resultado comercial real.
+    var auth = window.Auth;
+    if (auth && auth.isLoggedIn && auth.isLoggedIn() && auth.billingStatus) {
+      var billing = auth.billingStatus();
+      if (billing && !billing.resolved) {
+        if (!_accessBillingListenerBound && auth.onProfileChange) {
+          _accessBillingListenerBound = true;
+          auth.onProfileChange(function () {
+            _setupAccess();
+          });
+        }
+        return;
+      }
+      // Em indisponibilidade de billing, não exiba um estado Free enganoso.
+      if (billing && billing.unavailable) {
+        return;
+      }
     }
 
     if (window.Access.guard) {
@@ -749,6 +770,15 @@ function initializeAuthMenu() {
   }
 
   function _premiumCtaHtml(isLoggedIn) {
+    // Nunca exibir um CTA baseado em uma decisão comercial ainda não resolvida.
+    // Isso evita mostrar "Assine já" a um assinante durante a hidratação do billing.
+    var billing = window.Auth && typeof window.Auth.billingStatus === "function"
+      ? window.Auth.billingStatus()
+      : null;
+    if (isLoggedIn && billing && !billing.resolved) {
+      return "";
+    }
+
     var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
     var href = isPremium
       ? _premiumSubscribeUrl()
