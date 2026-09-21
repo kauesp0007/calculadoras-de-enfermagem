@@ -133,8 +133,8 @@
         if (window.__premiumPromoController) return;
 
         var STORAGE_KEY = "premiumPromoLastShownAt";
-        var DISPLAY_MS = 8500;
-        var INTERVAL_MS = 30 * 60 * 1000;
+        var DISPLAY_MS = 5000;
+        var INTERVAL_MS = 20 * 60 * 1000;
         var INITIAL_DELAY_MS = 1500;
 
         function readLastShown() {
@@ -247,12 +247,10 @@
     }
 
     function mount(opts) {
-        mountSubscriptionPromo();
-
         opts = opts || {};
-        var root = _getRoot();
-        var widget = window.AccessModules.widgets ? window.AccessModules.widgets.premiumCard(opts) : "";
-        root.innerHTML = widget;
+        // O manager exibe exclusivamente o banner promocional flutuante.
+        // O antigo premiumCard/benefit-card não deve mais ser injetado abaixo do menu global.
+        mountSubscriptionPromo();
         _mounted = true;
         if (window.AccessEvents) window.AccessEvents.emit(window.AccessEvents.EVENTS.BANNER_MOUNTED, opts);
     }
