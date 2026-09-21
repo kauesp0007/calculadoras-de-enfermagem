@@ -69,7 +69,7 @@ serve(async req=>{
     return new Response(JSON.stringify({url:session.url,id:session.id}),{status:200,headers:H});
   }catch(e){
     const message=String((e as Error)?.message||e);
-    if(checkoutRef)await db().from("billing_subscriptions").update({status:"checkout_failed",metadata:{error:message.slice(0,1000)},updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",checkoutRef);
+    if(checkoutRef)await db().from("billing_subscriptions").update({status:"checkout_failed",updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",checkoutRef);
     if(lockClaimed&&identityId)await releaseCheckout("stripe",identityId,message);
     return new Response(JSON.stringify({error:message}),{status:400,headers:H});
   }
