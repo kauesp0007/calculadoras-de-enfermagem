@@ -100,7 +100,15 @@
     root = root || window.document;
 
     var current = getLanguage();
-    var anchors = root.querySelectorAll ? root.querySelectorAll("a[href]") : [];
+    var anchors = [];
+    if (root && root.nodeType === 1 && String(root.tagName || "").toLowerCase() === "a" && root.hasAttribute("href")) {
+      anchors.push(root);
+    }
+    if (root && root.querySelectorAll) {
+      Array.prototype.forEach.call(root.querySelectorAll("a[href]"), function (anchor) {
+        if (anchors.indexOf(anchor) === -1) anchors.push(anchor);
+      });
+    }
 
     Array.prototype.forEach.call(anchors, function (anchor) {
       var href = anchor.getAttribute("href");
