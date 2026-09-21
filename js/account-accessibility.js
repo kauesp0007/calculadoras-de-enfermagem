@@ -35,9 +35,9 @@
     setAttr("premium-status-chip",{"role":"status"});
     setAttr("dashboard-date-status",{"role":"status","aria-live":"polite"});
     if(key==="assinatura"){
-      function labelBillingButtons(){Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind"),fallback=(el.textContent||"").trim()||t(kind==="pix"?"payment":"subscribeAction",kind==="pix"?"Pagamento":"Assinar");el.setAttribute("aria-label",fallback);}});}
+      function labelBillingButtons(){Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){var kind=el.getAttribute("data-kind"),fallback=kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar");el.setAttribute("aria-label",fallback);});}
       labelBillingButtons();
-      new MutationObserver(labelBillingButtons).observe(document.body,{subtree:true,childList:true});
+      if(!global.__accountBillingA11yObserver){global.__accountBillingA11yObserver=new MutationObserver(labelBillingButtons);global.__accountBillingA11yObserver.observe(document.body,{subtree:true,childList:true});}
     }
     if(key==="login"){
       setAttr("auth-error",{"role":"alert","aria-live":"assertive"});
@@ -56,5 +56,19 @@
     var newsletter=document.getElementById("setting-newsletter");if(newsletter)newsletter.setAttribute("aria-label",t("newsletter","Receber novidades"));
     var avatarFile=document.getElementById("professional-avatar");if(avatarFile)avatarFile.setAttribute("tabindex","0");
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",setup,{once:true});else setup();
+  function refreshDynamicLabels(){
+    setAttr("account-language-select",{"aria-label":t("siteLanguage","Idioma do site")});
+    setAttr("cal-prev",{"aria-label":t("previous","Anterior"),"title":t("previous","Anterior")});
+    setAttr("cal-next",{"aria-label":t("next","Próxima"),"title":t("next","Próxima")});
+    setAttr("history-prev",{"aria-label":t("previous","Anterior"),"title":t("previous","Anterior")});
+    setAttr("history-next",{"aria-label":t("next","Próxima"),"title":t("next","Próxima")});
+    setAttr("btn-clear-history",{"aria-label":t("deleteHistory","Excluir histórico")});
+    setAttr("fav-search",{"aria-label":t("searchFavorites","Pesquisar favoritos")});
+    setAttr("history-search",{"aria-label":t("searchHistory","Pesquisar histórico")});
+    Array.prototype.forEach.call(document.querySelectorAll(".favorite-actions a.action-btn"),function(el){el.setAttribute("title",t("openItem","Abrir item"));el.setAttribute("aria-label",t("openItem","Abrir item"));});
+    Array.prototype.forEach.call(document.querySelectorAll(".favorite-actions button[data-remove]"),function(el){el.setAttribute("title",t("removeItem","Remover item"));el.setAttribute("aria-label",t("removeItem","Remover item"));});
+    Array.prototype.forEach.call(document.querySelectorAll(".history-actions a.action-btn"),function(el){el.setAttribute("title",t("openItem","Abrir item"));el.setAttribute("aria-label",t("openItem","Abrir item"));});
+    Array.prototype.forEach.call(document.querySelectorAll(".history-actions button[data-delete]"),function(el){el.setAttribute("title",t("removeItem","Remover item"));el.setAttribute("aria-label",t("removeItem","Remover item"));});
+  }
+  if(document.readyState==="loading"){document.addEventListener("DOMContentLoaded",setup,{once:true});document.addEventListener("conta:languagechange",refreshDynamicLabels);}else{setup();document.addEventListener("conta:languagechange",refreshDynamicLabels);}
 })(window);
