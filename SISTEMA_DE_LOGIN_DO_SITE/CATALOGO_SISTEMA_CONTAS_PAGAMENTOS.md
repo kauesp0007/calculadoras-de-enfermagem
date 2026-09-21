@@ -111,24 +111,58 @@ O webhook Stripe valida assinatura e timestamp. O webhook Asaas valida o token p
 
 ## 7. Estado de produção nesta etapa
 
-Já implantado:
+Implantado e ativo no projeto Supabase:
 
-- `billing-access` (v2)
-- `billing-admin` (v2)
-- `grant-access` legado desativado com HTTP 410
-- `asaas-admin` legado desativado com HTTP 410
-- endpoints experimentais `stripe-checkout-test` e `stripe-webhook-test` desativados com HTTP 410
+- `billing-access`
+- `billing-admin`
+- `asaas-checkout`
+- `asaas-webhook`
+- `stripe-checkout`
+- `stripe-webhook`
+- `premium-content`
+- `account-data`
 
-Ainda não implantado:
+Desativados/legados:
 
-- novo `asaas-checkout`
-- novo `asaas-webhook`
-- novo `stripe-checkout`
-- novo `stripe-webhook`
+- `grant-access` — HTTP 410
+- `asaas-admin` — endpoint legado
+- `stripe-checkout-test` — sandbox/endpoint experimental
+- `stripe-webhook-test` — sandbox/endpoint experimental
 
-Essas quatro funções permanecem como código de branch até que secrets, preços, endpoints de webhook e testes E2E sejam comprovados.
+O botão de assinatura em `conta/assinatura.html` está ativo. O cartão brasileiro envia `monthly_card` ao Asaas; o Pix envia `pix_30d`; os 18 idiomas internacionais enviam `stripe` ao Stripe.
 
-## 8. Gate de produção
+As validações técnicas concluídas nesta etapa incluem: sintaxe do JavaScript da assinatura, correspondência entre os tipos de botão e os contratos das Edge Functions, presença dos eventos de confirmação/cancelamento/estorno, idempotência de Webhooks, autoridade exclusiva de `user_entitlements` e coerência entre entitlement Premium e assinatura ativa no banco.
+
+Permanece como limitação de validação operacional a compra real Stripe ponta a ponta em navegador autenticado; o ambiente de execução não fornece uma sessão Firebase real do comprador para concluir essa contra-prova.
+
+## 8. Estado de fechamento
+
+O checkout não está mais bloqueado por código no frontend. O estado efetivo é controlado pelos backends de Asaas/Stripe e pelos Webhooks.
+
+Critérios técnicos de fechamento:
+
+1. Secrets permanecem somente no ambiente Supabase.
+2. Price IDs e moeda/recorrência permanecem definidos no backend.
+3. Webhook Asaas valida `asaas-access-token`.
+4. Webhook Stripe valida `Stripe-Signature`.
+5. Checkout valida Firebase ID token no servidor.
+6. Free e Premium são determinados pelo entitlement server-side.
+7. Duplicidade de webhook é recusada pelo ledger de idempotência.
+8. Pagamento não confirmado não deve conceder Premium.
+9. Callback de retorno não é a autoridade de acesso.
+10. Conteúdo Premium é entregue somente após validação server-side.
+
+## 9. Pós-ativação
+
+Após uma primeira compra real, conferir no navegador e no provedor:
+
+1. Checkout concluído.
+2. Webhook recebido.
+3. `billing_subscriptions` atualizado.
+4. `user_entitlements` atualizado para Premium.
+5. Página Premium liberada sem novo login.
+6. Perfil e assinatura refletindo Premium.
+7. Cancelamento/estorno retirando o acesso conforme o período e evento.
 
 Antes do deploy dos quatro fluxos:
 

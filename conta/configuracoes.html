@@ -3,13 +3,17 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+
+<link rel="prefetch" href="/global-body-elements.html"/>
+<link rel="prefetch" href="/footer.html"/>
 <title>Configurações - Calculadoras de Enfermagem</title>
 <meta content="noindex, follow" name="robots"/>
 <style id="critical-fonts">@font-face{font-family:"Inter";src:url("/fonts/inter/inter-regular.woff2") format("woff2");font-weight:400;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-600.woff2") format("woff2");font-weight:600;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-700.woff2") format("woff2");font-weight:700;font-display:swap;size-adjust:98%}@font-face{font-family:"Inter";src:url("/fonts/inter/inter-900.woff2") format("woff2");font-weight:900;font-display:swap;size-adjust:98%}</style>
 <link href="/public/output.css" rel="stylesheet">
 <link href="/global-styles.css" rel="stylesheet">
 <link rel="preload" href="/img/icontopbar1-calculadoras-de-enfermagem.webp" as="image" type="image/webp" fetchpriority="high">
-<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}.settings-main{max-width:1240px;margin:0 auto}.settings-card{background:#fff;border:1px solid #E3EAF3;border-radius:18px;box-shadow:0 10px 28px rgba(15,43,77,.07)}.settings-icon{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center}.settings-icon svg{width:20px;height:20px}.field-label{display:block;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#64748B;margin-bottom:6px}.field-input{width:100%;padding:11px 13px;border:2px solid #E4EAF2;border-radius:12px;outline:none;background:#fff;color:#1E293B;font-size:14px;font-weight:600}.field-input:focus{border-color:#1A3E74;box-shadow:0 0 0 3px rgba(26,62,116,.08)}.save-button{background:linear-gradient(135deg,#1A3E74 0%,#275FA0 100%);box-shadow:0 9px 20px rgba(26,62,116,.18)}.section-kicker{color:#F97316;font-size:10px;font-weight:900;letter-spacing:.15em;text-transform:uppercase}</style>
+<style id="anti-cls-placeholders">#global-header-container{display:block;width:100%;min-height:96px;background:transparent}@media(max-width:768px){#global-header-container{min-height:60px}}#language-selector-placeholder{display:block;width:100%;min-height:46px;background:transparent}#footer-placeholder{display:block;min-height:520px;background:transparent}@media(min-width:768px){#footer-placeholder{min-height:277px}}</style>
+<script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
 <script src="/js/conta-i18n.js" defer></script>
 <script src="/js/account-page-localizer.js" defer></script>
@@ -20,7 +24,7 @@
 <div id="global-header-container"></div>
 <div id="language-selector-placeholder"></div>
 
-<main class="settings-main p-4 sm:p-6 lg:p-8">
+<main class="settings-main w-full flex-grow px-4 py-2 sm:px-8 sm:py-3">
 <nav class="flex text-xs sm:text-sm mb-5 no-print" aria-label="Breadcrumb">
 <ol class="flex items-center gap-2 text-slate-500">
 <li><a href="/" class="text-[#1A3E74] font-semibold hover:underline">Início</a></li>
@@ -225,12 +229,6 @@ async function savePreferences(){
    msg("Preferências salvas com sucesso.",false);
  }catch(e){console.error(e);msg("Não foi possível salvar as preferências. Tente novamente.",true);}finally{b.disabled=false;}
 }
-async function loadChrome(){
- var header=$("global-header-container"),footer=$("footer-placeholder"),jobs=[];
- if(header&&!header.innerHTML.trim())jobs.push(race(fetch("/menu-global.html",{cache:"no-store"}),4000).then(function(r){if(r.ok)return r.text();}).then(function(html){if(html)header.innerHTML=html;}).catch(function(e){console.warn("[Configurações] menu:",e);}));
- if(footer&&!footer.innerHTML.trim())jobs.push(race(fetch("/footer.html",{cache:"no-store"}),4000).then(function(r){if(r.ok)return r.text();}).then(function(html){if(html)footer.innerHTML=html;}).catch(function(e){console.warn("[Configurações] footer:",e);}));
- await Promise.allSettled(jobs);try{if(window.initializeNavigationMenu)window.initializeNavigationMenu();}catch(_){}
-}
 async function boot(){
  try{
    user=await session();if(!user){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return;}
@@ -244,8 +242,9 @@ async function boot(){
 $("btn-save-professional").addEventListener("click",saveProfessional);$("professional-avatar").addEventListener("change",function(e){uploadAvatar(e.target.files&&e.target.files[0]);});
 $("btn-save-settings").addEventListener("click",savePreferences);
 ["professional-workplace","professional-position","professional-specialty","professional-gender","professional-institution","professional-course","professional-graduation-year","professional-city","professional-state","professional-admission-date","professional-graduation-date"].forEach(function(id){$(id).addEventListener("input",calcProfilePreview);$(id).addEventListener("change",calcProfilePreview);});
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){loadChrome();boot();},{once:true});else{loadChrome();boot();}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){boot();},{once:true});else{boot();}
 })();
 </script>
+<script>document.addEventListener("DOMContentLoaded",function(){setTimeout(function(){fetch("/footer.html",{cache:"no-store"}).then(function(r){return r.ok?r.text():Promise.reject(new Error("footer_http_"+r.status));}).then(function(html){var el=document.getElementById("footer-placeholder");if(el)el.innerHTML=html;}).catch(function(e){console.warn("[Conta] footer:",e);});},150);});</script>
 </body>
 </html>
