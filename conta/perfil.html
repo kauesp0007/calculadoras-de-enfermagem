@@ -517,7 +517,7 @@ async function signOut(){
 async function loadAccount(){
   try{
     if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");
-    await timeout(window.Auth.init(),10000);
+    await timeout((window.Auth.whenReady?window.Auth.whenReady():window.Auth.init()),10000);
     user=window.Auth.currentUser?window.Auth.currentUser():null;
     if(!user){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return;}
     var results=await Promise.allSettled([api("profile"),api("favorites"),api("history","GET",undefined,{limit:"1000"}),billingApi()]);
