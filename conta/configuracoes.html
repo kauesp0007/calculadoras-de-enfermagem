@@ -157,8 +157,8 @@ function professionalPayload(){
  return {workplace:clampText($("professional-workplace").value,160),position:clampText($("professional-position").value,120),specialty:clampText($("professional-specialty").value,120),admissionDate:isoDate($("professional-admission-date").value),graduationDate:isoDate($("professional-graduation-date").value)};
 }
 async function saveProfessional(){
- var b=$("btn-save-professional"),ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value;
- if(ad&&gr&&new Date(ad+"T00:00:00")<new Date(gr+"T00:00:00")){msg("A data de admissão não pode ser anterior à data de formação.",true);return;}
+ var b=$("btn-save-professional"),ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
+ if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg("As datas profissionais não podem estar no futuro.",true);return;}
  var metadata=Object.assign({},(profile&&profile.metadata)||{}, {professional:professionalPayload(),professionalGender:$("professional-gender").value});
  b.disabled=true;try{var d=await req("PATCH",{metadata:metadata});if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;loadForm();msg("Dados profissionais salvos com sucesso.",false);}catch(e){console.error(e);msg("Não foi possível salvar os dados profissionais. Tente novamente.",true);}finally{b.disabled=false;}
 }
