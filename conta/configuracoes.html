@@ -18,6 +18,7 @@
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
 <script src="/js/conta-i18n.js" defer></script>
+<script src="/js/account-accessibility.js" defer></script>
 <script src="/js/account-page-localizer.js" defer></script>
 <script src="/js/conta-menu-localizer.js" defer></script>
 <script src="/js/access/route-localizer.js" defer></script>
@@ -164,7 +165,7 @@ input[type="radio"],input[type="checkbox"]{accent-color:#1A3E74}
 </section>
 </aside>
 </div>
-<div class="settings-savebar"><span id="settings-save-state" class="text-xs font-bold text-slate-500 mr-auto">Alterações salvas</span><button type="button" id="btn-save-all" class="settings-save-all">Salvar todas as alterações</button></div>
+<div class="settings-savebar"><span id="settings-save-state" class="text-xs font-bold text-slate-500 account-save-state-spacer">Alterações salvas</span><button type="button" id="btn-save-all" class="settings-save-all">Salvar todas as alterações</button></div>
 </div>
 </main>
 
@@ -180,7 +181,7 @@ function $(id){return document.getElementById(id);}
 function race(p,m){var timer;return Promise.race([p,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("timeout"));},m);})]).finally(function(){clearTimeout(timer);});}
 async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race(window.Auth.init(),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
 async function req(method,body){var token=await race(user.getIdToken(false),6000),controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);try{var r=await fetch(DATA+"?resource=profile",{method:method||"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal}),d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||"request_"+r.status);return d;}finally{clearTimeout(timer);}}
-function saveState(text,error){var x=$("settings-save-state");if(!x)return;x.textContent=text;x.className="text-xs font-bold mr-auto "+(error?"text-red-600":"text-slate-500");}
+function saveState(text,error){var x=$("settings-save-state");if(!x)return;x.textContent=text;x.className="text-xs font-bold account-save-state-spacer "+(error?"text-red-600":"text-slate-500");}
 function draftKey(){return user?"accountSettingsDraft:"+String(user.uid):"accountSettingsDraft";}
 function draftPayload(){
  return {savedAt:Date.now(),professional:professionalPayload(),professionalGender:$("professional-gender").value,preferences:{language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)}};
@@ -215,7 +216,7 @@ function scheduleAutosave(){
    finally{saveInFlight=false;}
  },900);
 }
-function msg(s,e){var x=$("settings-message");x.textContent=s;x.style.display="block";x.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(e?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");}
+function msg(s,e){var x=$("settings-message");x.setAttribute("role",e?"alert":"status");x.setAttribute("aria-live",e?"assertive":"polite");x.textContent=s;x.style.display="block";x.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(e?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");}
 function clampText(v,n){return String(v||"").trim().slice(0,n);}
 function isoDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||""))?String(value):"";}
 function professional(){
