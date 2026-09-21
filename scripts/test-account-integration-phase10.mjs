@@ -26,7 +26,9 @@ function assert(condition, message) {
 }
 
 function extractInlineScripts(html) {
-  return [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)].map((m) => m[1]);
+  return [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)]
+    .filter((m) => !/<script\b[^>]*type=["'](?:application\/ld\+json|application\/json)["']/i.test(m[0]))
+    .map((m) => m[1]);
 }
 
 const auth = read("js/auth/auth-core.js");
