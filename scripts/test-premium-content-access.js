@@ -19,6 +19,12 @@ const EXACT_PREMIUM = new Set([
   "formularios_de_escalas_assistenciais.html"
 ]);
 
+const LOCALIZED_CORE = [
+  "balancohidrico.html","braden.html","elpo.html","formulario-saep-enfermagem.html",
+  "fugulin.html","glasgow.html","medicamentos.html","meem.html","moca.html","morse.html",
+  "perroca.html","zarit.html"
+];
+
 function isPremiumFile(rel) {
   const normalized = rel.split(path.sep).join("/");
   const parts = normalized.split("/");
@@ -117,6 +123,30 @@ for (const rel of premiumFiles) {
   }
 }
 if (shellFailures) fail(shellFailures + " arquivos Premium não estão protegidos de forma consistente");
+
+// Regra de consistência internacional: as 12 rotas Premium traduzidas
+// devem existir como shell em todas as 18 pastas de idioma. O conteúdo final
+// é entregue pelo backend e pode usar fallback para a raiz somente quando a
+// linha traduzida não existir no catálogo privado.
+const localizedMissing = [];
+for (const lang of LANGS) {
+  for (const file of LOCALIZED_CORE) {
+    const rel = path.join(lang, file);
+    const abs = path.join(ROOT, rel);
+    if (!fs.existsSync(abs)) {
+      localizedMissing.push(rel);
+      continue;
+    }
+    const html = fs.readFileSync(abs, "utf8");
+    if (!/<script[^>]+src=["'][^"']*premium-content-loader\\.js[^"']*["'][^>]*>/i.test(html) ||
+        !/id=["']premium-content-placeholder["']/i.test(html)) {
+      localizedMissing.push(rel + ":shell");
+    }
+  }
+}
+if (localizedMissing.length) {
+  fail("rotas Premium traduzidas ausentes/inconsistentes (" + localizedMissing.length + "): " + localizedMissing.slice(0, 20).join(", "));
+}
 
 console.log(JSON.stringify({
   ok: process.exitCode !== 1,
