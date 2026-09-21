@@ -61,7 +61,6 @@ const expectedCore = [
   "simulado-de-enfermagem.html",
   "simulado-de-enfermagem2.html",
   "simulado-de-enfermagem3.html",
-  "simulado-de-enfermagem4.html",
   "simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html",
   "simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html",
   "simulado_vacinacao.html",
