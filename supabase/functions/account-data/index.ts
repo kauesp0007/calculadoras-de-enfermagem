@@ -68,6 +68,32 @@ serve(async req=>{
       }
     }
 
+    if(resource==="avatar"){
+      if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
+      const form=await req.formData(),file=form.get("file");
+      if(!(file instanceof File))throw new Error("avatar_file_required");
+      const allowed=["image/jpeg","image/png","image/webp"];
+      if(!allowed.includes(file.type))throw new Error("avatar_type_not_allowed");
+      if(file.size>5242880)throw new Error("avatar_too_large");
+      const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
+      const profile=await ensureProfile(u),timestamp=Date.now(),path=`avatars/${u.uid}/${timestamp}.${ext}`;
+      const storage=db().storage.from("avatars-assinantes");
+      const bytes=new Uint8Array(await file.arrayBuffer());
+      const {data:upload,error:uploadError}=await storage.upload(path,bytes,{contentType:file.type,cacheControl:"31536000",upsert:false});
+      if(uploadError)throw uploadError;
+      const publicUrl=`${SUPABASE_URL}/storage/v1/object/public/avatars-assinantes/${upload.path}`;
+      const metadata=Object.assign({},profile.metadata||{},{avatar:{path:upload.path,updatedAt:new Date().toISOString()}});
+      const {data:updated,error:updateError}=await db().from("account_profiles").update({photo_url:publicUrl,metadata}).eq("firebase_uid",u.uid).select("*").single();
+      if(updateError)throw updateError;
+      const oldUrl=String(profile.photo_url||"");
+      const marker="/storage/v1/object/public/avatars-assinantes/";
+      if(oldUrl.includes(marker)){
+        const oldPath=oldUrl.split(marker)[1].split("?")[0];
+        if(oldPath&&oldPath!==upload.path)await storage.remove([oldPath]).catch(()=>{});
+      }
+      return new Response(JSON.stringify({profile:profileOut(updated),photoURL:publicUrl}),{status:200,headers:H});
+    }
+
     if(resource==="favorites"){
       if(req.method==="GET"){
         const {data,error}=await sb.from("account_favorites").select("*").eq("firebase_uid",u.uid).order("updated_at",{ascending:false});
