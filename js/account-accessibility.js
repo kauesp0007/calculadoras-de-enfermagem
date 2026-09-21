@@ -5,7 +5,7 @@
   function style(){
     if(document.getElementById("account-a11y-style"))return;
     var s=document.createElement("style");s.id="account-a11y-style";
-    s.textContent='html[dir="rtl"] .text-left{text-align:right!important}html[dir="rtl"] .text-right{text-align:left!important}.account-save-state-spacer{margin-inline-end:auto!important}.account-a11y-message[role="alert"]{outline:none}@media (prefers-reduced-motion:reduce){html,html * ,html *::before,html *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}`:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid currentColor;outline-offset:3px}`';
+    s.textContent='html[dir="rtl"] .text-left{text-align:right!important}html[dir="rtl"] .text-right{text-align:left!important}.account-save-state-spacer{margin-inline-end:auto!important}.account-a11y-message[role="alert"]{outline:none}@media (prefers-reduced-motion:reduce){html,html * ,html *::before,html *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}:where(a,button,input,select,textarea,[tabindex]):focus-visible{outline:3px solid currentColor;outline-offset:3px}`';
     document.head.appendChild(s);
   }
   function setup(){
