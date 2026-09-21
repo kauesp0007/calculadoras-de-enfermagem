@@ -229,15 +229,7 @@ function durationParts(startValue){
  if(months<0){years--;months+=12;}
  return {years:years,months:months,days:days,totalDays:Math.floor((new Date(end.getFullYear(),end.getMonth(),end.getDate())-new Date(start.getFullYear(),start.getMonth(),start.getDate()))/86400000)};
 }
-function durationText(d,detail){
- if(!d)return "Não informado";
- var out=[];
- if(d.years)out.push(d.years+" "+(d.years===1?"ano":"anos"));
- if(d.months)out.push(d.months+" "+(d.months===1?"mês":"meses"));
- if(d.days)out.push(d.days+" "+(d.days===1?"dia":"dias"));
- if(!out.length)return "Hoje";
- return out.join(" e ");
-}
+function durationText(d,detail){return d?window.AccountRuntimeI18n.duration((d.totalDays||0)*86400000):R("unknown");}
 function updateAvatarPreview(){
  var el=$("avatar-preview"),fileName=$("avatar-file-name"),name=profile&&profile.displayName?profile.displayName:"P";
  if(profile&&profile.photoURL){el.innerHTML='<img src="'+String(profile.photoURL).replace(/"/g,"&quot;")+'" alt="" class="w-full h-full object-cover">';}
@@ -247,9 +239,9 @@ function updateAvatarPreview(){
 async function uploadAvatar(file){
  var input=$("professional-avatar"),label=$("avatar-file-name");
  if(!file)return;
- if(!["image/jpeg","image/png","image/webp"].includes(file.type)){msg("Selecione uma imagem JPEG, PNG ou WebP.",true);input.value="";return;}
- if(file.size>5242880){msg("A foto deve ter no máximo 5 MB.",true);input.value="";return;}
- label.textContent="Enviando "+file.name+"…";
+ if(!["image/jpeg","image/png","image/webp"].includes(file.type)){msg(R("invalidImageType"),true);input.value="";return;}
+ if(file.size>5242880){msg(R("imageTooLarge"),true);input.value="";return;}
+ label.textContent=R("photoUploading")+" "+file.name+"…";
  try{
    var token=await race(user.getIdToken(false),6000),form=new FormData();form.append("file",file,file.name);
    var r=await fetch(DATA+"?resource=avatar",{method:"POST",headers:{Authorization:"Bearer "+token,Accept:"application/json"},body:form,cache:"no-store"});
@@ -257,14 +249,14 @@ async function uploadAvatar(file){
    if(!r.ok||!d.profile)throw new Error(d.error||"avatar_upload_failed");
    profile=d.profile;updateAvatarPreview();label.textContent=R("photoUpdated");
    try{await race(user.updateProfile({photoURL:d.photoURL}),6000);}catch(_){}
-   msg("Foto de perfil atualizada com sucesso.",false);
+   msg(R("photoUpdated"),false);
  }catch(e){console.error(e);label.textContent=R("photoUploadFailed");msg(R("photoUploadFailed"),true);}
  finally{input.value="";}
 }
 function calcProfilePreview(){
- var p=professional(),name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:"Seu nome"),g=p.gender==="enfermeira"?R("greetingFemale"):p.gender==="enfermeiro"?R("greetingMale"):R("greetingNeutral");
+ var p=professional(),name=profile&&profile.displayName?profile.displayName:(profile&&profile.email?profile.email.split("@")[0]:R("yourName")),g=p.gender==="enfermeira"?R("greetingFemale"):p.gender==="enfermeiro"?R("greetingMale"):R("greetingNeutral");
  $("preview-greeting").textContent=g+(name?" "+name:"");$("preview-name").textContent=name;
- $("preview-work").textContent=p.workplace?(p.position?p.position+" em "+p.workplace:p.workplace):R("workplaceUnknown");
+ $("preview-work").textContent=p.workplace?(p.position?p.position+" "+R("atIn")+" "+p.workplace:p.workplace):R("workplaceUnknown");
  $("preview-tenure").textContent=p.admissionDate?durationText(durationParts(p.admissionDate)):R("enterAdmissionDate");
  $("preview-education-time").textContent=p.graduationDate?durationText(durationParts(p.graduationDate)):R("enterFormationDate");
 }
