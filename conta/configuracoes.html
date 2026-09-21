@@ -162,7 +162,7 @@ input[type="radio"],input[type="checkbox"]{accent-color:#1A3E74}
 </section>
 </aside>
 </div>
-<div class="settings-savebar"><button type="button" id="btn-save-all" class="settings-save-all">Salvar todas as alterações</button></div>
+<div class="settings-savebar"><span id="settings-save-state" class="text-xs font-bold text-slate-500 mr-auto">Alterações salvas</span><button type="button" id="btn-save-all" class="settings-save-all">Salvar todas as alterações</button></div>
 </div>
 </main>
 
@@ -171,11 +171,46 @@ input[type="radio"],input[type="checkbox"]{accent-color:#1A3E74}
 <script>
 (function(){
 "use strict";
-var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",user=null,profile=null;
+var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",user=null,profile=null,autosaveTimer=null,autosaveReady=false,saveInFlight=false;
 function $(id){return document.getElementById(id);}
 function race(p,m){var timer;return Promise.race([p,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("timeout"));},m);})]).finally(function(){clearTimeout(timer);});}
 async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race(window.Auth.init(),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
 async function req(method,body){var token=await race(user.getIdToken(false),6000),controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);try{var r=await fetch(DATA+"?resource=profile",{method:method||"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal}),d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||"request_"+r.status);return d;}finally{clearTimeout(timer);}}
+function saveState(text,error){var x=$("settings-save-state");if(!x)return;x.textContent=text;x.className="text-xs font-bold mr-auto "+(error?"text-red-600":"text-slate-500");}
+function draftKey(){return user?"accountSettingsDraft:"+String(user.uid):"accountSettingsDraft";}
+function draftPayload(){
+ return {savedAt:Date.now(),professional:professionalPayload(),professionalGender:$("professional-gender").value,preferences:{language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)}};
+}
+function saveLocalDraft(){try{if(user)localStorage.setItem(draftKey(),JSON.stringify(draftPayload()));}catch(_){}}
+function clearLocalDraft(){try{if(user)localStorage.removeItem(draftKey());}catch(_){}}
+function restoreLocalDraft(){
+ try{
+  if(!user)return false;var raw=localStorage.getItem(draftKey());if(!raw)return false;var d=JSON.parse(raw);if(!d||Date.now()-Number(d.savedAt||0)>86400000)return false;
+  var p=d.professional||{},pref=d.preferences||{};
+  $("professional-workplace").value=p.workplace||"";$("professional-position").value=p.position||"";$("professional-specialty").value=p.specialty||"";$("professional-gender").value=d.professionalGender||p.gender||"";
+  $("professional-admission-date").value=p.admissionDate||"";$("professional-graduation-date").value=p.graduationDate||"";$("professional-institution").value=p.institution||"";$("professional-course").value=p.course||"";$("professional-graduation-year").value=p.graduationYear||"";$("professional-city").value=p.city||"";$("professional-state").value=p.state||"";
+  if(pref.language)$("setting-language").value=pref.language;if(pref.fontSize)$("setting-fontsize").value=String(pref.fontSize);$("setting-newsletter").checked=!!pref.newsletter;
+  document.querySelectorAll("input[name='setting-theme']").forEach(function(x){x.checked=x.value===(pref.theme==="dark"?"dark":"light");});
+  calcProfilePreview();saveState("Rascunho recuperado — sincronizando…",false);return true;
+ }catch(e){return false;}
+}
+function scheduleAutosave(){
+ if(!autosaveReady)return;
+ saveLocalDraft();saveState("Salvando automaticamente…",false);
+ clearTimeout(autosaveTimer);
+ autosaveTimer=setTimeout(async function(){
+   if(saveInFlight){scheduleAutosave();return;}
+   saveInFlight=true;
+   try{
+    var p=professionalPayload(),pref=Object.assign({},(profile&&profile.preferences)||{}, {language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)});
+    var ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
+    if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){saveState("Verifique as datas informadas",true);return;}
+    var d=await req("PATCH",{metadata:Object.assign({},(profile&&profile.metadata)||{}, {professional:p,professionalGender:$("professional-gender").value}),preferences:pref});
+    if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;clearLocalDraft();saveState("Salvo automaticamente",false);
+   }catch(e){console.error("[Configurações] autosave:",e);saveState("Não foi possível sincronizar agora — dados preservados",true);}
+   finally{saveInFlight=false;}
+ },900);
+}
 function msg(s,e){var x=$("settings-message");x.textContent=s;x.style.display="block";x.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(e?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");}
 function clampText(v,n){return String(v||"").trim().slice(0,n);}
 function isoDate(value){return /^\d{4}-\d{2}-\d{2}$/.test(String(value||""))?String(value):"";}
@@ -258,16 +293,16 @@ async function savePreferences(){
 async function saveAll(){
  var all=$("btn-save-all"),professional=professionalPayload(),preferences=Object.assign({},(profile&&profile.preferences)||{}, {language:$("setting-language").value,theme:(document.querySelector("input[name='setting-theme']:checked")||{}).value||"light",newsletter:$("setting-newsletter").checked,fontSize:Math.min(Math.max(parseInt($("setting-fontsize").value,10)||1,1),5)});
  var ad=$("professional-admission-date").value,gr=$("professional-graduation-date").value,now=new Date();
- if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg("As datas profissionais não podem estar no futuro.",true);return;}
- all.disabled=true;
+ if((ad&&new Date(ad+"T00:00:00")>now)||(gr&&new Date(gr+"T00:00:00")>now)){msg("As datas profissionais não podem estar no futuro.",true);saveState("Verifique as datas informadas",true);return;}
+ all.disabled=true;saveState("Salvando…",false);saveLocalDraft();
  try{
   var metadata=Object.assign({},(profile&&profile.metadata)||{}, {professional:professional,professionalGender:$("professional-gender").value});
   var d=await req("PATCH",{metadata:metadata,preferences:preferences});if(!d.profile)throw new Error("profile_update_empty");profile=d.profile;loadForm();
   try{localStorage.setItem("fontSize",String(preferences.fontSize));localStorage.setItem("darkMode",String(preferences.theme==="dark"));}catch(_){}
   document.documentElement.classList.toggle("dark-mode",preferences.theme==="dark");
   if(window.AccountI18n&&window.AccountI18n.setLanguage)window.AccountI18n.setLanguage(preferences.language);
-  msg("Todas as alterações foram salvas com sucesso.",false);
- }catch(e){console.error(e);msg("Não foi possível salvar todas as alterações. Tente novamente.",true);}finally{all.disabled=false;}
+  clearLocalDraft();saveState("Todas as alterações foram salvas",false);msg("Todas as alterações foram salvas com sucesso.",false);
+ }catch(e){console.error(e);saveState("Falha ao salvar — dados preservados",true);msg("Não foi possível salvar todas as alterações. Seus preenchimentos foram preservados para nova tentativa.",true);}finally{all.disabled=false;}
 }
 async function boot(){
  try{
@@ -276,12 +311,16 @@ async function boot(){
    var pref=profile.preferences||{};$("setting-language").value=pref.language||profile.language||"pt";$("setting-newsletter").checked=!!pref.newsletter;$("setting-fontsize").value=String(pref.fontSize||1);
    document.querySelectorAll("input[name='setting-theme']").forEach(function(x){x.checked=x.value===(pref.theme==="dark"?"dark":"light");});
    loadForm();
+   var recovered=restoreLocalDraft();
+   autosaveReady=true;
+   if(recovered) scheduleAutosave(); else saveState("Alterações salvas",false);
    $("settings-loading").style.display="none";$("settings-content").style.display="block";
  }catch(e){console.error("[Configurações]",e);$("settings-loading").textContent="Não foi possível carregar suas configurações. Tente novamente."}
 }
 $("btn-save-professional").addEventListener("click",saveProfessional);$("professional-avatar").addEventListener("change",function(e){uploadAvatar(e.target.files&&e.target.files[0]);});
 $("btn-save-settings").addEventListener("click",savePreferences);$("btn-save-all").addEventListener("click",saveAll);
-["professional-workplace","professional-position","professional-specialty","professional-gender","professional-institution","professional-course","professional-graduation-year","professional-city","professional-state","professional-admission-date","professional-graduation-date"].forEach(function(id){$(id).addEventListener("input",calcProfilePreview);$(id).addEventListener("change",calcProfilePreview);});
+["professional-workplace","professional-position","professional-specialty","professional-gender","professional-institution","professional-course","professional-graduation-year","professional-city","professional-state","professional-admission-date","professional-graduation-date","setting-language","setting-fontsize","setting-newsletter"].forEach(function(id){$(id).addEventListener("input",function(){calcProfilePreview();scheduleAutosave();});$(id).addEventListener("change",function(){calcProfilePreview();scheduleAutosave();});});
+document.querySelectorAll("input[name=\"setting-theme\"]").forEach(function(x){x.addEventListener("change",scheduleAutosave);});
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){boot();},{once:true});else{boot();}
 })();
 </script>
