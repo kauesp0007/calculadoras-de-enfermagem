@@ -39,7 +39,8 @@ async function findSub(uid:string,subId:string,sessionId:string){
 async function setPremium(sub:any,expires:string,meta:any,status="active"){
   const now=new Date().toISOString();
   const metadata={...(sub.metadata||{}),...(meta||{})};
-  const u=await db().from("billing_subscriptions").update({status,current_period_end:expires,metadata,updated_at:now}).eq("id",sub.id);
+  const currency=String(metadata.currency||"").toUpperCase();
+  const u=await db().from("billing_subscriptions").update({status,current_period_end:expires,metadata,currency:currency==="EUR"||currency==="USD"?currency:undefined,updated_at:now}).eq("id",sub.id);
   if(u.error)throw u.error;
   const e=await db().from("user_entitlements").upsert({
     user_id:sub.user_id,plan:"premium",premium_expires_at:expires,provider:"stripe",
@@ -90,6 +91,8 @@ serve(async req=>{
 
     const meta={...(sub.metadata||{}),event_id:eventId};
     const customerId=String(o?.customer||subRemote?.customer||"");if(customerId)meta.customer_id=customerId;
+    const remoteCurrency=String(subRemote?.items?.data?.[0]?.price?.currency||o?.items?.data?.[0]?.price?.currency||"").toUpperCase();
+    if(remoteCurrency)meta.currency=remoteCurrency;
     if(subId)meta.provider_subscription_id=subId;
 
     if(type==="checkout.session.completed"){
