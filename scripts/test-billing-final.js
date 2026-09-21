@@ -23,7 +23,7 @@ const billingAccess=read("supabase/functions/billing-access/index.ts");
 const premium=read("supabase/functions/premium-content/index.ts");
 const plans=read("js/auth/plan-service.js");
 
-assert(page.includes("var DEV_CHECKOUT_BLOCKED=true"),"checkout deve permanecer bloqueado até a ativação deliberada.");
+assert(page.includes("var DEV_CHECKOUT_BLOCKED=false"),"checkout final deve estar ativado.");
 assert(page.includes('data-kind="monthly_card" class="billing-button billing-button-primary">Assinar com cartão'),"cartão brasileiro deve chamar monthly_card.");
 assert(page.includes('data-kind="pix" class="billing-button billing-button-pix">Pagar com Pix'),"Pix brasileiro deve chamar pix.");
 assert(page.includes('data-kind="stripe" class="billing-button billing-button-primary">Assinar com cartão'),"cartão internacional deve chamar stripe.");
