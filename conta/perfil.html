@@ -75,6 +75,19 @@
 <div id="profile-loading" class="dash-card p-10 text-center text-slate-500 font-semibold mb-5">Preparando seu painel Premium…</div>
 
 <div id="profile-content" style="display:none">
+<section class="dash-card mb-5 overflow-hidden">
+<div class="p-4 sm:p-5 bg-gradient-to-r from-[#F7FAFD] via-white to-[#FFF9F3] border-b border-[#E7EDF5]">
+<div class="flex items-start gap-3">
+<span class="dash-icon bg-[#EEF4FB] text-[#1A3E74]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3.5 14 8l5 .5-3.8 3.4 1.1 5.1L12 14.5 7.7 17l1.1-5.1L5 8.5 10 8l2-4.5Z"/></svg></span>
+<div class="min-w-0"><p class="text-[10px] uppercase tracking-[0.15em] font-black text-[#F97316]">TRAJETÓRIA PROFISSIONAL</p><h2 class="text-lg sm:text-xl font-black text-[#1A3E74] mt-1">Sua caminhada na enfermagem</h2><p id="career-summary" class="text-sm text-slate-600 mt-1 leading-relaxed">Complete seus dados profissionais em Configurações para personalizar esta área.</p></div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-3 p-4 sm:p-5">
+<div class="rounded-2xl bg-[#F6F9FC] border border-[#E5ECF4] p-4"><p class="text-[10px] uppercase tracking-wide font-black text-slate-400">Tempo de atuação</p><p id="career-tenure" class="text-xl font-black text-[#1A3E74] mt-1">—</p><p id="career-tenure-days" class="text-xs text-slate-500 mt-1">—</p></div>
+<div class="rounded-2xl bg-[#F6F9FC] border border-[#E5ECF4] p-4"><p class="text-[10px] uppercase tracking-wide font-black text-slate-400">Tempo desde a formação</p><p id="career-education" class="text-xl font-black text-[#1A3E74] mt-1">—</p><p id="career-education-days" class="text-xs text-slate-500 mt-1">—</p></div>
+<div class="rounded-2xl bg-[#F6F9FC] border border-[#E5ECF4] p-4"><p class="text-[10px] uppercase tracking-wide font-black text-slate-400">Local de trabalho</p><p id="career-workplace" class="text-sm font-black text-[#1A3E74] mt-2">Não informado</p><p id="career-position" class="text-xs text-slate-500 mt-1">Cargo não informado</p></div>
+</div>
+</section>
 <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5">
 <div class="dash-card stat-card p-4">
 <div class="flex items-center gap-3"><span class="dash-icon bg-[#EEF4FB] text-[#1A3E74]"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20.8 8.6c0 5.4-8.8 11-8.8 11s-8.8-5.6-8.8-11A5.2 5.2 0 0 1 8.5 3.5c1.5 0 2.8.7 3.5 1.8a4.3 4.3 0 0 1 3.5-1.8 5.2 5.2 0 0 1 5.3 5.1Z"/></svg></span><div><p class="text-[10px] uppercase tracking-wide font-black text-slate-400">Favoritos</p><p id="stat-favorites" class="text-2xl font-black text-[#1A3E74] leading-tight">0</p></div></div>
@@ -312,6 +325,43 @@ function renderIdentity(){
     avatar.textContent=name.trim().charAt(0).toUpperCase()||"P";
   }
 }
+function professionalData(){var m=profile&&profile.metadata&&profile.metadata.professional||{};return {workplace:String(m.workplace||"").trim(),position:String(m.position||"").trim(),specialty:String(m.specialty||"").trim(),admissionDate:/^\d{4}-\d{2}-\d{2}$/.test(String(m.admissionDate||""))?m.admissionDate:"",graduationDate:/^\d{4}-\d{2}-\d{2}$/.test(String(m.graduationDate||""))?m.graduationDate:"",gender:(profile&&profile.metadata&&profile.metadata.professionalGender)||""};}
+function durationFromDate(value){
+ if(!value)return null;var start=new Date(value+"T00:00:00"),now=new Date();if(isNaN(start.getTime())||start>now)return null;
+ var end=new Date(now.getFullYear(),now.getMonth(),now.getDate()),cursor=new Date(start.getFullYear(),start.getMonth(),start.getDate());
+ var years=end.getFullYear()-cursor.getFullYear(),months=end.getMonth()-cursor.getMonth(),days=end.getDate()-cursor.getDate();
+ if(days<0){months--;var last=new Date(end.getFullYear(),end.getMonth(),0).getDate();days+=last;}
+ if(months<0){years--;months+=12;}
+ var totalDays=Math.floor((end-cursor)/86400000);return {years:years,months:months,days:days,totalDays:totalDays};
+}
+function durationLabel(d){
+ if(!d)return "Não informado";var parts=[];
+ if(d.years)parts.push(d.years+" "+(d.years===1?"ano":"anos"));
+ if(d.months)parts.push(d.months+" "+(d.months===1?"mês":"meses"));
+ if(d.days||!parts.length)parts.push(d.days+" "+(d.days===1?"dia":"dias"));
+ return parts.join(" e ");
+}
+function renderCareer(){
+ var p=professionalData(),g=p.gender==="enfermeira"?"enfermeira":p.gender==="enfermeiro"?"enfermeiro":"profissional de enfermagem",name=profile&&profile.displayName?profile.displayName:"";
+ var tenure=durationFromDate(p.admissionDate),education=durationFromDate(p.graduationDate);
+ var greeting="Olá "+g+(name?" "+name:"")+".";
+ var parts=[];
+ if(tenure&&p.workplace)parts.push("Hoje você já soma "+tenure.totalDays+" "+(tenure.totalDays===1?"dia":"dias")+" de atuação em "+p.workplace+".");
+ else if(tenure)parts.push("Hoje você já soma "+tenure.totalDays+" "+(tenure.totalDays===1?"dia":"dias")+" de atuação profissional.");
+ else if(p.workplace)parts.push("Seu local de trabalho informado é "+p.workplace+".");
+ if(education){
+   var formWord=p.gender==="enfermeira"?"formada":p.gender==="enfermeiro"?"formado":"formado(a)";
+   parts.push("Você está há "+durationLabel(education)+" "+formWord+".");
+   parts.push("Parabéns pela sua trajetória profissional!");
+ }
+ $("career-summary").textContent=parts.length?greeting+" "+parts.join(" "):greeting+" Complete seus dados profissionais em Configurações para personalizar sua trajetória.";
+ $("career-tenure").textContent=tenure?durationLabel(tenure):"Não informado";
+ $("career-tenure-days").textContent=tenure?tenure.totalDays+" dias desde a admissão":"Informe a data de admissão";
+ $("career-education").textContent=education?durationLabel(education):"Não informado";
+ $("career-education-days").textContent=education?education.totalDays+" dias desde a formação":"Informe a data de formação";
+ $("career-workplace").textContent=p.workplace||"Não informado";
+ $("career-position").textContent=(p.position||"Cargo não informado")+(p.specialty?" · "+p.specialty:"");
+}
 function renderBilling(){
   var chip=$("premium-status-chip"),access=$("stat-access");
   if(billing.plan==="premium"){
@@ -474,7 +524,7 @@ async function loadAccount(){
     favorites=results[1].status==="fulfilled"&&results[1].value.items?results[1].value.items:[];
     history=results[2].status==="fulfilled"&&results[2].value.items?results[2].value.items:[];
     billing=results[3].status==="fulfilled"&&results[3].value?results[3].value:{plan:"verifying"};
-    renderIdentity();renderBilling();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
+    renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
     $("stat-favorites").textContent=String(favorites.length);$("stat-history").textContent=String(history.length);
     $("edit-name-input").value=profile.displayName||"";
     $("profile-loading").style.display="none";$("profile-content").style.display="block";
@@ -482,7 +532,7 @@ async function loadAccount(){
     console.error("[Perfil] painel:",error);
     $("profile-loading").style.display="none";$("profile-content").style.display="block";
     showMessage("Não foi possível carregar todos os dados da conta. Verifique a sessão e tente novamente.",true);
-    profile=profile||{};favorites=favorites||[];history=history||[];billing=billing||{plan:"verifying"};renderIdentity();renderBilling();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
+    profile=profile||{};favorites=favorites||[];history=history||[];billing=billing||{plan:"verifying"};renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
   }
 }
 function boot(){
