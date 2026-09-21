@@ -1599,7 +1599,7 @@ function ativarModoDislexia() {
 // mecanismo de autorização.
 
 /* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
+   MODO ADMIN + GOOGLE TAG + CONSENT (OTIMIZADO PARA INP)
    ========================================================= */
 
 // Função que engloba toda a lógica que estava nos HTMLs
@@ -1616,7 +1616,7 @@ function initLazyLoadServices() {
     var savedConsent = localStorage.getItem("cookieConsent");
     var isRefused = (savedConsent === "refused");
     var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+    var analyticsBlocked = isRefused || (isManaged && localStorage.getItem("analytics_storage") === "denied");
 
     window.__metricsLoaded = false;
         window.dataLayer = window.dataLayer || [];
@@ -1631,7 +1631,7 @@ function initLazyLoadServices() {
       window.__metricsLoaded = true;
 
       var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
+      var adState = "denied";
 
       var s = document.createElement("script");
       s.async = true;
@@ -1661,7 +1661,7 @@ function initLazyLoadServices() {
 
     // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
     // O carregamento de analytics permanece adiado para não bloquear a interação.
-    // A plataforma não utiliza AdSense/Multi­plex neste modelo comercial.
+    // O carregamento de analytics permanece separado da publicidade, que está desativada.
     function executeServices() {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(function () {
@@ -1686,7 +1686,7 @@ function initLazyLoadServices() {
     // Verifica se é o robô do Lighthouse/PageSpeed analisando o site
     const isPageSpeed = navigator.userAgent.includes("Lighthouse") || navigator.userAgent.includes("Chrome-Lighthouse") || navigator.userAgent.includes("Googlebot");
 
-    if (!adsBlocked) {
+    if (!analyticsBlocked) {
       window.addEventListener("scroll", onUserInteraction, {
         passive: true
       });
@@ -1712,9 +1712,8 @@ function initLazyLoadServices() {
       if (consent.analytics_storage === "granted") {
         onUserInteraction();
       }
-      // AdSense/Multi­plex não é carregado pelo runtime atual. Mantemos a
-      // preferência ad_storage para compatibilidade com o modal de consentimento
-      // e integrações futuras, sem iniciar publicidade.
+      // A preferência ad_storage continua registrada para compatibilidade com o
+      // modal de consentimento, mas o runtime atual não inicia publicidade.
       localStorage.setItem("analytics_storage", consent.analytics_storage);
       localStorage.setItem("ad_storage", consent.ad_storage);
     }
