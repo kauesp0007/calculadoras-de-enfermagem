@@ -65,6 +65,8 @@ const expectedCore = [
   "simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html",
   "simulado_vacinacao.html",
   "simulado_pcr.html",
+  "simulado_ibam_bebedouro_enfermeiro_2024.html",
+  "simulado_ibam_guarulhos_enfermeiro_2024.html",
   "simulado_ibam_guarulhos_enfermeiro_esf_2024.html",
   "simulado_ibam_japaratuba_sergipe_enfermeiro_2014.html",
   "simulado_lei_organica_do_sus_8080-90.html",
