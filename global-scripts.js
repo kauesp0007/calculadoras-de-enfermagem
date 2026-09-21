@@ -154,7 +154,7 @@ window.__FIX_RELATIVE_LINKS = function (container) {
         settled = true;
         try {
           if (script.dataset) script.dataset.authBootstrapLoaded = "1";
-        } catch (_) {}
+        } catch (_) { }
         resolve();
       }
 
@@ -223,16 +223,11 @@ window.__FIX_RELATIVE_LINKS = function (container) {
     var ad = document.getElementById("multiplex-ad-reserved");
     if (!ad) return;
 
-    var anchor =
-      document.getElementById("language-selector-placeholder") ||
-      document.getElementById("global-header-container");
-
-    if (!anchor || !anchor.parentNode) return;
-
-    if (anchor.nextElementSibling !== ad) {
-      anchor.parentNode.insertBefore(ad, anchor.nextElementSibling);
-    }
-
+    // Correção: o anúncio multiplex deve PERMANECER em sua posição natural
+    // (antes do rodapé), em fluxo normal. O código anterior movia o anúncio
+    // para logo após o seletor de idioma (topo da página), empurrando todo o
+    // conteúdo para baixo e fazendo a página "começar no meio". Mantemos
+    // apenas o z-index baixo para que ele nunca cubra o menu.
     ad.style.position = "relative";
     ad.style.zIndex = "1";
     finished = true;
@@ -597,8 +592,8 @@ function initializeAuthMenu() {
   /**
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
-  
-function _setupAuthorization() {
+
+  function _setupAuthorization() {
     if (!window.Authorization) {
       return;
     }
@@ -698,7 +693,7 @@ function _setupAuthorization() {
       window.Access.guard();
     }
     if (window.AccessModules.bannerManager && !/^\/conta\//.test(window.location.pathname || "")) {
-      window.AccessModules.bannerManager.mount({plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free"});
+      window.AccessModules.bannerManager.mount({ plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free" });
     }
   }
 
@@ -736,26 +731,26 @@ function _setupAuthorization() {
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function _premiumSubscribeUrl() {
-  var base = typeof window.__ACCOUNT_PAGE_URL === "function"
-    ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
-    : "/conta/assinatura.html?lang=" + encodeURIComponent(window.__LANG || "pt");
-  return base;
-}
+    var base = typeof window.__ACCOUNT_PAGE_URL === "function"
+      ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
+      : "/conta/assinatura.html?lang=" + encodeURIComponent(window.__LANG || "pt");
+    return base;
+  }
 
-function _premiumCtaHtml(isLoggedIn) {
-  var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
-  var href = isPremium
-    ? _premiumSubscribeUrl()
-    : (isLoggedIn
+  function _premiumCtaHtml(isLoggedIn) {
+    var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
+    var href = isPremium
       ? _premiumSubscribeUrl()
-      : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
+      : (isLoggedIn
+        ? _premiumSubscribeUrl()
+        : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
           ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
           : "/conta/assinatura.html"));
-  var label = isPremium ? "Premium" : "Assine já";
-  return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
-}
+    var label = isPremium ? "Premium" : "Assine já";
+    return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
+  }
 
-function updateAuthUI(user) {
+  function updateAuthUI(user) {
     var desktopLink = document.getElementById("menu-auth-link-desktop");
     var desktopItem = document.getElementById("menu-auth-desktop");
     var mobileLink = document.getElementById("menu-auth-link-mobile");
@@ -957,7 +952,7 @@ function updateAuthUI(user) {
       return Promise.reject(new Error("auth_bootstrap_unavailable"));
     }
 
-    return window.__ENSURE_AUTH().then(function() {
+    return window.__ENSURE_AUTH().then(function () {
       _afterAuthReady();
       return window.Auth;
     });
@@ -973,7 +968,7 @@ function updateAuthUI(user) {
   function _deferAuth() {
     if (_authDeferred) return;
     _authDeferred = true;
-    loadAuthScripts().catch(function () {});
+    loadAuthScripts().catch(function () { });
   }
   if ("requestIdleCallback" in window) {
     requestIdleCallback(_deferAuth, { timeout: 3000 });
