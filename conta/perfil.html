@@ -340,6 +340,9 @@ function renderIdentity(){
   }
 }
 function professionalData(){var m=profile&&profile.metadata&&profile.metadata.professional||{};return {workplace:String(m.workplace||"").trim(),position:String(m.position||"").trim(),specialty:String(m.specialty||"").trim(),institution:String(m.institution||"").trim(),course:String(m.course||"").trim(),graduationYear:parseInt(m.graduationYear,10)||0,admissionDate:/^\d{4}-\d{2}-\d{2}$/.test(String(m.admissionDate||""))?m.admissionDate:"",graduationDate:/^\d{4}-\d{2}-\d{2}$/.test(String(m.graduationDate||""))?m.graduationDate:"",city:String(m.city||"").trim(),state:String(m.state||"").trim().toUpperCase(),gender:(profile&&profile.metadata&&profile.metadata.professionalGender)||""};}
+function durationFromDate(value){
+ var d=durationParts(value);return d?d:null;
+}
 function durationLabel(d){
  if(!d)return "Não informado";var parts=[];
  if(d.years)parts.push(d.years+" "+(d.years===1?"ano":"anos"));
@@ -349,7 +352,7 @@ function durationLabel(d){
 }
 function renderCareer(){
  var p=professionalData(),g=p.gender==="enfermeira"?"enfermeira":p.gender==="enfermeiro"?"enfermeiro":"profissional de enfermagem",name=profile&&profile.displayName?profile.displayName:"";
- var tenure=durationFromDate(p.admissionDate),education=durationFromDate(p.graduationDate);
+ var tenure=null,education=null;try{tenure=durationFromDate(p.admissionDate);education=durationFromDate(p.graduationDate);}catch(e){console.error("[Perfil] trajetória:",e);}
  var greeting="Olá "+g+(name?" "+name:"")+".";
  var parts=[];
  if(tenure&&p.workplace)parts.push("Hoje você já soma "+tenure.totalDays+" "+(tenure.totalDays===1?"dia":"dias")+" de atuação em "+p.workplace+".");
@@ -529,7 +532,15 @@ async function loadAccount(){
     favorites=results[1].status==="fulfilled"&&results[1].value.items?results[1].value.items:[];
     history=results[2].status==="fulfilled"&&results[2].value.items?results[2].value.items:[];
     billing=results[3].status==="fulfilled"&&results[3].value?results[3].value:{plan:"verifying"};
-    renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
+    renderIdentity();renderBilling();
+    try{renderCareer();}catch(e){console.error("[Perfil] carreira:",e);}
+    try{renderContinue();}catch(e){console.error("[Perfil] continuar:",e);}
+    try{renderFavorites();}catch(e){console.error("[Perfil] favoritos:",e);}
+    try{renderPerformance();}catch(e){console.error("[Perfil] desempenho:",e);}
+    try{renderCollections();}catch(e){console.error("[Perfil] coleções:",e);}
+    try{renderPlan();}catch(e){console.error("[Perfil] plano:",e);}
+    try{renderNote();}catch(e){console.error("[Perfil] notas:",e);}
+    try{renderAchievements();}catch(e){console.error("[Perfil] conquistas:",e);}
     $("stat-favorites").textContent=String(favorites.length);$("stat-history").textContent=String(history.length);
     $("edit-name-input").value=profile.displayName||"";
     $("profile-loading").style.display="none";$("profile-content").style.display="block";
@@ -537,7 +548,17 @@ async function loadAccount(){
     console.error("[Perfil] painel:",error);
     $("profile-loading").style.display="none";$("profile-content").style.display="block";
     showMessage("Não foi possível carregar todos os dados da conta. Verifique a sessão e tente novamente.",true);
-    profile=profile||{};favorites=favorites||[];history=history||[];billing=billing||{plan:"verifying"};renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();
+    profile=profile||{};favorites=favorites||[];history=history||[];billing=billing||{plan:"verifying"};
+    try{renderIdentity();}catch(e){console.error("[Perfil] identidade:",e);}
+    try{renderBilling();}catch(e){console.error("[Perfil] cobrança:",e);}
+    try{renderCareer();}catch(e){console.error("[Perfil] carreira:",e);}
+    try{renderContinue();}catch(e){console.error("[Perfil] continuar:",e);}
+    try{renderFavorites();}catch(e){console.error("[Perfil] favoritos:",e);}
+    try{renderPerformance();}catch(e){console.error("[Perfil] desempenho:",e);}
+    try{renderCollections();}catch(e){console.error("[Perfil] coleções:",e);}
+    try{renderPlan();}catch(e){console.error("[Perfil] plano:",e);}
+    try{renderNote();}catch(e){console.error("[Perfil] notas:",e);}
+    try{renderAchievements();}catch(e){console.error("[Perfil] conquistas:",e);}
   }
 }
 function boot(){
