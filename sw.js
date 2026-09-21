@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260921-004145";
+const CACHE_VERSION = "20260921-054611";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -863,6 +863,8 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-20T16-58-11.json',
   'relatorios/cwv-gate/2026-09-20T22-47-23.json',
   'relatorios/cwv-gate/2026-09-21T01-25-09.json',
+  'relatorios/cwv-gate/2026-09-21T08-37-31.json',
+  'relatorios/cwv-gate/2026-09-21T08-39-34.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1204,6 +1206,8 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-20T16-58-12.json',
   'relatorios/impacto/2026-09-20T22-47-23.json',
   'relatorios/impacto/2026-09-21T01-25-09.json',
+  'relatorios/impacto/2026-09-21T08-37-32.json',
+  'relatorios/impacto/2026-09-21T08-39-34.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
