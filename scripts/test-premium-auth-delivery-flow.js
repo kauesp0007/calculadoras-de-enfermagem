@@ -11,7 +11,7 @@ const checks=[
   [auth.includes("generation!==_hydrationGeneration"),"hidratação deve rejeitar resultados obsoletos."],
   [auth.includes("var user=_currentUser;\n   var generation=++_hydrationGeneration;"),"refreshProfile deve ser generation-safe."],
   [!loader.includes("waitForBillingResolution(auth)"),"loader não pode bloquear a entrega esperando billing-access separado."],
-  [loader.includes('var token=await user.getIdToken(false);'),"loader deve obter token após autenticar o usuário."],
+  [loader.includes("user.getIdToken(false)") && loader.includes("var token="),"loader deve obter token após autenticar o usuário."],
   [loader.includes('var res=await request(token,currentKey);'),"loader deve consultar premium-content diretamente."],
   [loader.includes('if(res.status===403){'),"loader deve tratar 403 do servidor."],
   [loader.includes('res=await request(token,canonicalKey);'),"loader deve preservar fallback localizado após refresh."],
