@@ -51,6 +51,24 @@ for (const rel of PAGES) {
   if (!/account-data/.test(source) && rel !== "conta/perfil.html") {
     fail(rel + ": não referencia account-data");
   }
+  if (rel === "conta/configuracoes.html") {
+    const required = [
+      "professional-workplace","professional-position","professional-specialty",
+      "professional-gender","professional-admission-date","professional-graduation-date",
+      "btn-save-professional","btn-save-settings","preview-tenure","preview-education-time"
+    ];
+    for (const id of required) {
+      if (!new RegExp("id=[\\\"']" + id + "[\\\"']", "i").test(source)) {
+        fail(rel + ": dado profissional/controle ausente: " + id);
+      }
+    }
+    if (!/metadata/.test(source) || !/professional/.test(source)) {
+      fail(rel + ": dados profissionais não estão persistidos em metadata");
+    }
+    if (!/new Date\(ad\+"T00:00:00"\)>now/.test(source)) {
+      fail(rel + ": validação de datas profissionais ausente");
+    }
+  }
   if (rel === "conta/perfil.html") {
     const required = [
       "profile-greeting","profile-name","full-date","calendar-grid",
