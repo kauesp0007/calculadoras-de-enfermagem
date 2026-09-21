@@ -100,7 +100,15 @@
     root = root || window.document;
 
     var current = getLanguage();
-    var anchors = root.querySelectorAll ? root.querySelectorAll("a[href]") : [];
+    var anchors = [];
+    if (root && root.nodeType === 1 && String(root.tagName || "").toLowerCase() === "a" && root.hasAttribute("href")) {
+      anchors.push(root);
+    }
+    if (root && root.querySelectorAll) {
+      Array.prototype.forEach.call(root.querySelectorAll("a[href]"), function (anchor) {
+        if (anchors.indexOf(anchor) === -1) anchors.push(anchor);
+      });
+    }
 
     Array.prototype.forEach.call(anchors, function (anchor) {
       var href = anchor.getAttribute("href");
@@ -154,11 +162,30 @@
 
   window.AccountRouting = api;
 
+  function observeDynamicLinks() {
+    if (!window.document || !window.MutationObserver || !window.document.body) return;
+    if (window.__ACCOUNT_ROUTING_OBSERVER) return;
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        Array.prototype.forEach.call(mutation.addedNodes || [], function (node) {
+          if (!node || node.nodeType !== 1) return;
+          bindLinks(node);
+        });
+      });
+    });
+    observer.observe(window.document.body, { childList: true, subtree: true });
+    window.__ACCOUNT_ROUTING_OBSERVER = observer;
+  }
+
   if (window.document) {
     if (window.document.readyState === "loading") {
-      window.document.addEventListener("DOMContentLoaded", init, { once: true });
+      window.document.addEventListener("DOMContentLoaded", function () {
+        init();
+        observeDynamicLinks();
+      }, { once: true });
     } else {
       init();
+      observeDynamicLinks();
     }
 
     window.document.addEventListener("conta:languagechange", function () {

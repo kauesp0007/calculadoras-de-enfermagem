@@ -92,10 +92,21 @@ window.__FIX_RELATIVE_LINKS = function (container) {
     if (href && href.charAt(0) !== "#" && href.charAt(0) !== "/" && href.indexOf(":") === -1) {
       a.setAttribute("href", window.__FETCH_PREFIX + href);
     }
-    if (/\/?conta\/login\.html(?:[?#]|$)/.test(a.getAttribute("href") || "")) {
+    var accountHref = a.getAttribute("href") || "";
+    if (/\/?conta\/login\.html(?:[?#]|$)/.test(accountHref)) {
       a.setAttribute("href", window.__ACCOUNT_LOGIN_URL());
+    } else if (/^\/conta\/[^/?#]+(?:\?|#|$)/i.test(accountHref)) {
+      try {
+        var accountUrl = new URL(accountHref, window.location.origin);
+        var lang = window.__LANG || "pt";
+        accountUrl.searchParams.set("lang", lang);
+        a.setAttribute("href", accountUrl.pathname + (accountUrl.search ? accountUrl.search : "") + (accountUrl.hash ? accountUrl.hash : ""));
+      } catch (_) {}
     }
   });
+  if (window.AccountRouting && typeof window.AccountRouting.bindLinks === "function") {
+    window.AccountRouting.bindLinks(container);
+  }
 };
 
 // Premium pages bootstrap authentication through premium-content-loader.js.
