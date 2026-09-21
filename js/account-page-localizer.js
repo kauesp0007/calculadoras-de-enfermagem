@@ -1,94 +1,255 @@
-(function (window) {
+/**
+ * js/account-page-localizer.js
+ * Internacionalização semântica da área de contas.
+ *
+ * A página é identificada por sua rota e os elementos são associados a chaves
+ * estáveis do AccountI18n. Não há varredura por texto em português.
+ */
+(function (window, document) {
   "use strict";
 
-  var MAP = {
-    "pt-BR": {
-      home: "Início", account: "Minha Conta", profile: "Meu Perfil", settings: "Configurações", favorites: "Favoritos", history: "Histórico",
-      profileHero: "Gerencie suas informações pessoais e preferências de conta.", settingsHero: "Ajuste suas preferências de conta, notificações e privacidade.", favoritesHero: "Acesse rapidamente suas calculadoras, escalas e materiais favoritos.", historyHero: "Consulte e acesse novamente todos os seus cálculos e laudos anteriores.",
-      loadingProfile: "Carregando seu perfil…", loadingSettings: "Carregando suas preferências…", loadingFavorites: "Carregando seus favoritos…", loadingHistory: "Carregando seu histórico…",
-      preferences: "Preferências", siteLanguage: "Idioma do site", theme: "Tema", light: "Claro", dark: "Escuro", newsletter: "Receber novidades", newsletterHelp: "Enviaremos atualizações e novos recursos por e-mail (opcional).", fontSize: "Tamanho da fonte", savePreferences: "Salvar preferências", account: "Conta",
-      searchFavorites: "Pesquisar favoritos…", searchHistory: "Pesquisar histórico…", allCategories: "Todas as categorias", allTypes: "Todos os tipos", allLanguages: "Todos os idiomas", sortFavorites: "Ordenar favoritos", sortHistory: "Ordenar histórico", recent: "Mais recentes", oldest: "Mais antigos", alpha: "Ordem alfabética", visits: "Visitas", uniquePages: "Páginas únicas", totalTime: "Tempo total", deleteHistory: "Excluir histórico", previous: "← Anterior", next: "Próxima →",
-      clearHistoryConfirm: "Excluir todo o histórico? Essa ação não pode ser desfeita.", saved: "Preferências salvas com sucesso!", deleted: "Histórico excluído com sucesso.", retry: "tente novamente.", saveError: "Erro ao salvar:", loadError: "Erro ao carregar:", deleteError: "Erro ao excluir:", editName: "Editar nome", displayName: "Nome de exibição", fullName: "Nome completo", saveName: "Salvar nome", country: "País", signInMethod: "Método de login", registrationDate: "Data de cadastro", lastAccess: "Último acesso", signOut: "Sair da conta", saveNameSuccess: "Nome atualizado com sucesso!", invalidName: "Digite um nome válido (mínimo 2 caracteres)."
+  var PAGE_CONFIG = {
+    "login.html": {
+      h1: "myAccount",
+      heroText: "accountHero",
+      fields: {
+        "input-displayname": { label: "fullName", placeholder: "fullNamePlaceholder" },
+        "input-email": { label: "email" },
+        "input-password": { label: "password", placeholder: "passwordPlaceholder" }
+      },
+      buttons: {
+        "btn-google-login": "google",
+        "btn-microsoft-login": "microsoft",
+        "btn-apple-login": "apple",
+        "btn-email-submit": "signIn"
+      }
     },
-    en: { home: "Home", account: "My Account", profile: "My Profile", settings: "Settings", favorites: "Favorites", history: "History", profileHero: "Manage your personal information and account preferences.", settingsHero: "Adjust your account, notification, and privacy preferences.", favoritesHero: "Quickly access your favorite calculators, scales, and materials.", historyHero: "Review and reopen your previous calculations and reports.", loadingProfile: "Loading your profile…", loadingSettings: "Loading your preferences…", loadingFavorites: "Loading your favorites…", loadingHistory: "Loading your history…", preferences: "Preferences", siteLanguage: "Site language", theme: "Theme", light: "Light", dark: "Dark", newsletter: "Receive updates", newsletterHelp: "We may send updates and new features by email (optional).", fontSize: "Font size", savePreferences: "Save preferences", account: "Account", searchFavorites: "Search favorites…", searchHistory: "Search history…", allCategories: "All categories", allTypes: "All types", allLanguages: "All languages", sortFavorites: "Sort favorites", sortHistory: "Sort history", recent: "Most recent", oldest: "Oldest", alpha: "Alphabetical order", visits: "Visits", uniquePages: "Unique pages", totalTime: "Total time", deleteHistory: "Delete history", previous: "← Previous", next: "Next →", clearHistoryConfirm: "Delete all history? This action cannot be undone.", saved: "Preferences saved successfully!", deleted: "History deleted successfully.", retry: "try again.", saveError: "Error saving:", loadError: "Error loading:", deleteError: "Error deleting:", editName: "Edit name", displayName: "Display name", fullName: "Full name", saveName: "Save name", country: "Country", signInMethod: "Sign-in method", registrationDate: "Registration date", lastAccess: "Last access", signOut: "Sign out", saveNameSuccess: "Name updated successfully!", invalidName: "Enter a valid name (at least 2 characters)." },
-    es: { home: "Inicio", account: "Mi cuenta", profile: "Mi perfil", settings: "Configuración", favorites: "Favoritos", history: "Historial", profileHero: "Gestiona tu información personal y preferencias de cuenta.", settingsHero: "Ajusta tus preferencias de cuenta, notificaciones y privacidad.", favoritesHero: "Accede rápidamente a tus calculadoras, escalas y materiales favoritos.", historyHero: "Consulta y vuelve a abrir tus cálculos e informes anteriores.", loadingProfile: "Cargando tu perfil…", loadingSettings: "Cargando tus preferencias…", loadingFavorites: "Cargando tus favoritos…", loadingHistory: "Cargando tu historial…", preferences: "Preferencias", siteLanguage: "Idioma del sitio", theme: "Tema", light: "Claro", dark: "Oscuro", newsletter: "Recibir novedades", newsletterHelp: "Te enviaremos actualizaciones y nuevas funciones por correo electrónico (opcional).", fontSize: "Tamaño de fuente", savePreferences: "Guardar preferencias", account: "Cuenta", searchFavorites: "Buscar favoritos…", searchHistory: "Buscar historial…", allCategories: "Todas las categorías", allTypes: "Todos los tipos", allLanguages: "Todos los idiomas", sortFavorites: "Ordenar favoritos", sortHistory: "Ordenar historial", recent: "Más recientes", oldest: "Más antiguos", alpha: "Orden alfabético", visits: "Visitas", uniquePages: "Páginas únicas", totalTime: "Tiempo total", deleteHistory: "Eliminar historial", previous: "← Anterior", next: "Siguiente →", clearHistoryConfirm: "¿Eliminar todo el historial? Esta acción no se puede deshacer.", saved: "¡Preferencias guardadas correctamente!", deleted: "Historial eliminado correctamente.", retry: "inténtalo de nuevo.", saveError: "Error al guardar:", loadError: "Error al cargar:", deleteError: "Error al eliminar:", editName: "Editar nombre", displayName: "Nombre para mostrar", fullName: "Nombre completo", saveName: "Guardar nombre", country: "País", signInMethod: "Método de inicio de sesión", registrationDate: "Fecha de registro", lastAccess: "Último acceso", signOut: "Cerrar sesión", saveNameSuccess: "¡Nombre actualizado correctamente!", invalidName: "Introduce un nombre válido (mínimo 2 caracteres)." },
-    fr: { home: "Accueil", account: "Mon compte", profile: "Mon profil", settings: "Paramètres", favorites: "Favoris", history: "Historique", profileHero: "Gérez vos informations personnelles et vos préférences.", settingsHero: "Réglez vos préférences de compte, de notification et de confidentialité.", favoritesHero: "Accédez rapidement à vos calculateurs, échelles et documents favoris.", historyHero: "Consultez et rouvrez vos calculs et rapports précédents.", loadingProfile: "Chargement de votre profil…", loadingSettings: "Chargement de vos préférences…", loadingFavorites: "Chargement de vos favoris…", loadingHistory: "Chargement de votre historique…", preferences: "Préférences", siteLanguage: "Langue du site", theme: "Thème", light: "Clair", dark: "Sombre", newsletter: "Recevoir les nouveautés", newsletterHelp: "Nous pouvons vous envoyer des mises à jour et de nouvelles fonctions par e-mail (facultatif).", fontSize: "Taille de police", savePreferences: "Enregistrer les préférences", account: "Compte", searchFavorites: "Rechercher dans les favoris…", searchHistory: "Rechercher dans l’historique…", allCategories: "Toutes les catégories", allTypes: "Tous les types", allLanguages: "Toutes les langues", sortFavorites: "Trier les favoris", sortHistory: "Trier l’historique", recent: "Plus récents", oldest: "Plus anciens", alpha: "Ordre alphabétique", visits: "Visites", uniquePages: "Pages uniques", totalTime: "Temps total", deleteHistory: "Supprimer l’historique", previous: "← Précédent", next: "Suivant →", clearHistoryConfirm: "Supprimer tout l’historique ? Cette action est irréversible.", saved: "Préférences enregistrées avec succès !", deleted: "Historique supprimé avec succès.", retry: "réessayez.", saveError: "Erreur lors de l’enregistrement :", loadError: "Erreur lors du chargement :", deleteError: "Erreur lors de la suppression :", editName: "Modifier le nom", displayName: "Nom affiché", fullName: "Nom complet", saveName: "Enregistrer le nom", country: "Pays", signInMethod: "Méthode de connexion", registrationDate: "Date d’inscription", lastAccess: "Dernier accès", signOut: "Se déconnecter", saveNameSuccess: "Nom mis à jour avec succès !", invalidName: "Saisissez un nom valide (au moins 2 caractères)." },
-    de: { home: "Startseite", account: "Mein Konto", profile: "Mein Profil", settings: "Einstellungen", favorites: "Favoriten", history: "Verlauf", profileHero: "Verwalten Sie Ihre persönlichen Daten und Kontoeinstellungen.", settingsHero: "Passen Sie Ihre Konto-, Benachrichtigungs- und Datenschutzeinstellungen an.", favoritesHero: "Greifen Sie schnell auf Ihre bevorzugten Rechner, Skalen und Materialien zu.", historyHero: "Sehen Sie Ihre bisherigen Berechnungen und Berichte ein und öffnen Sie sie erneut.", loadingProfile: "Ihr Profil wird geladen…", loadingSettings: "Ihre Einstellungen werden geladen…", loadingFavorites: "Ihre Favoriten werden geladen…", loadingHistory: "Ihr Verlauf wird geladen…", preferences: "Einstellungen", siteLanguage: "Website-Sprache", theme: "Design", light: "Hell", dark: "Dunkel", newsletter: "Neuigkeiten erhalten", newsletterHelp: "Wir senden optional Updates und neue Funktionen per E-Mail.", fontSize: "Schriftgröße", savePreferences: "Einstellungen speichern", account: "Konto", searchFavorites: "Favoriten durchsuchen…", searchHistory: "Verlauf durchsuchen…", allCategories: "Alle Kategorien", allTypes: "Alle Typen", allLanguages: "Alle Sprachen", sortFavorites: "Favoriten sortieren", sortHistory: "Verlauf sortieren", recent: "Neueste", oldest: "Älteste", alpha: "Alphabetisch", visits: "Besuche", uniquePages: "Eindeutige Seiten", totalTime: "Gesamtzeit", deleteHistory: "Verlauf löschen", previous: "← Zurück", next: "Weiter →", clearHistoryConfirm: "Gesamten Verlauf löschen? Diese Aktion kann nicht rückgängig gemacht werden.", saved: "Einstellungen erfolgreich gespeichert.", deleted: "Verlauf erfolgreich gelöscht.", retry: "versuchen Sie es erneut.", saveError: "Fehler beim Speichern:", loadError: "Fehler beim Laden:", deleteError: "Fehler beim Löschen:", editName: "Namen bearbeiten", displayName: "Anzeigename", fullName: "Vollständiger Name", saveName: "Namen speichern", country: "Land", signInMethod: "Anmeldemethode", registrationDate: "Registrierungsdatum", lastAccess: "Letzter Zugriff", signOut: "Abmelden", saveNameSuccess: "Name erfolgreich aktualisiert.", invalidName: "Geben Sie einen gültigen Namen ein (mindestens 2 Zeichen)." },
-    it: { home: "Home", account: "Il mio account", profile: "Il mio profilo", settings: "Impostazioni", favorites: "Preferiti", history: "Cronologia", profileHero: "Gestisci le tue informazioni personali e le preferenze dell’account.", settingsHero: "Regola le preferenze dell’account, delle notifiche e della privacy.", favoritesHero: "Accedi rapidamente ai tuoi calcolatori, alle scale e ai materiali preferiti.", historyHero: "Consulta e riapri i tuoi calcoli e report precedenti.", loadingProfile: "Caricamento del profilo…", loadingSettings: "Caricamento delle preferenze…", loadingFavorites: "Caricamento dei preferiti…", loadingHistory: "Caricamento della cronologia…", preferences: "Preferenze", siteLanguage: "Lingua del sito", theme: "Tema", light: "Chiaro", dark: "Scuro", newsletter: "Ricevi novità", newsletterHelp: "Possiamo inviare aggiornamenti e nuove funzioni via e-mail (facoltativo).", fontSize: "Dimensione carattere", savePreferences: "Salva preferenze", account: "Account", searchFavorites: "Cerca nei preferiti…", searchHistory: "Cerca nella cronologia…", allCategories: "Tutte le categorie", allTypes: "Tutti i tipi", allLanguages: "Tutte le lingue", sortFavorites: "Ordina preferiti", sortHistory: "Ordina cronologia", recent: "Più recenti", oldest: "Più vecchi", alpha: "Ordine alfabetico", visits: "Visite", uniquePages: "Pagine uniche", totalTime: "Tempo totale", deleteHistory: "Elimina cronologia", previous: "← Precedente", next: "Successivo →", clearHistoryConfirm: "Eliminare tutta la cronologia? L’azione non può essere annullata.", saved: "Preferenze salvate con successo!", deleted: "Cronologia eliminata con successo.", retry: "riprovare.", saveError: "Errore durante il salvataggio:", loadError: "Errore durante il caricamento:", deleteError: "Errore durante l’eliminazione:", editName: "Modifica nome", displayName: "Nome visualizzato", fullName: "Nome completo", saveName: "Salva nome", country: "Paese", signInMethod: "Metodo di accesso", registrationDate: "Data di registrazione", lastAccess: "Ultimo accesso", signOut: "Esci", saveNameSuccess: "Nome aggiornato con successo!", invalidName: "Inserisci un nome valido (almeno 2 caratteri)." },
-    ja: { home: "ホーム", account: "マイアカウント", profile: "マイプロフィール", settings: "設定", favorites: "お気に入り", history: "履歴", profileHero: "個人情報とアカウント設定を管理します。", settingsHero: "アカウント、通知、プライバシーの設定を調整します。", favoritesHero: "お気に入りの計算機、スケール、資料へすばやくアクセスできます。", historyHero: "以前の計算結果やレポートを確認して再度開くことができます。", loadingProfile: "プロフィールを読み込んでいます…", loadingSettings: "設定を読み込んでいます…", loadingFavorites: "お気に入りを読み込んでいます…", loadingHistory: "履歴を読み込んでいます…", preferences: "設定", siteLanguage: "サイトの言語", theme: "テーマ", light: "ライト", dark: "ダーク", newsletter: "新着情報を受け取る", newsletterHelp: "更新や新機能をメールでお知らせします（任意）。", fontSize: "文字サイズ", savePreferences: "設定を保存", account: "アカウント", searchFavorites: "お気に入りを検索…", searchHistory: "履歴を検索…", allCategories: "すべてのカテゴリー", allTypes: "すべての種類", allLanguages: "すべての言語", sortFavorites: "お気に入りを並べ替え", sortHistory: "履歴を並べ替え", recent: "新しい順", oldest: "古い順", alpha: "アルファベット順", visits: "訪問数", uniquePages: "ユニークページ", totalTime: "合計時間", deleteHistory: "履歴を削除", previous: "← 前へ", next: "次へ →", clearHistoryConfirm: "履歴をすべて削除しますか？この操作は元に戻せません。", saved: "設定を保存しました。", deleted: "履歴を削除しました。", retry: "もう一度お試しください。", saveError: "保存エラー：", loadError: "読み込みエラー：", deleteError: "削除エラー：", editName: "名前を編集", displayName: "表示名", fullName: "氏名", saveName: "名前を保存", country: "国", signInMethod: "ログイン方法", registrationDate: "登録日", lastAccess: "最終アクセス", signOut: "ログアウト", saveNameSuccess: "名前を更新しました。", invalidName: "有効な名前を2文字以上で入力してください。" },
-    zh: { home: "首页", account: "我的账户", profile: "我的个人资料", settings: "设置", favorites: "收藏夹", history: "历史记录", profileHero: "管理您的个人信息和账户偏好设置。", settingsHero: "调整您的账户、通知和隐私偏好。", favoritesHero: "快速访问您收藏的计算器、量表和资料。", historyHero: "查看并重新打开您之前的计算和报告。", loadingProfile: "正在加载您的个人资料…", loadingSettings: "正在加载您的偏好设置…", loadingFavorites: "正在加载您的收藏夹…", loadingHistory: "正在加载您的历史记录…", preferences: "偏好设置", siteLanguage: "网站语言", theme: "主题", light: "浅色", dark: "深色", newsletter: "接收更新", newsletterHelp: "我们可以通过电子邮件发送更新和新功能（可选）。", fontSize: "字体大小", savePreferences: "保存偏好设置", account: "账户", searchFavorites: "搜索收藏夹…", searchHistory: "搜索历史记录…", allCategories: "所有类别", allTypes: "所有类型", allLanguages: "所有语言", sortFavorites: "排序收藏夹", sortHistory: "排序历史记录", recent: "最新", oldest: "最早", alpha: "按字母排序", visits: "访问次数", uniquePages: "唯一页面", totalTime: "总时间", deleteHistory: "删除历史记录", previous: "← 上一页", next: "下一页 →", clearHistoryConfirm: "删除全部历史记录？此操作无法撤销。", saved: "偏好设置已保存。", deleted: "历史记录已删除。", retry: "请重试。", saveError: "保存错误：", loadError: "加载错误：", deleteError: "删除错误：", editName: "编辑姓名", displayName: "显示名称", fullName: "姓名", saveName: "保存姓名", country: "国家", signInMethod: "登录方式", registrationDate: "注册日期", lastAccess: "上次访问", signOut: "退出登录", saveNameSuccess: "姓名更新成功。", invalidName: "请输入有效姓名（至少2个字符）。" },
-    hi: { home: "होम", account: "मेरा खाता", profile: "मेरी प्रोफ़ाइल", settings: "सेटिंग्स", favorites: "पसंदीदा", history: "इतिहास", profileHero: "अपनी व्यक्तिगत जानकारी और खाता प्राथमिकताएँ प्रबंधित करें।", settingsHero: "अपनी खाता, सूचनाओं और गोपनीयता प्राथमिकताएँ समायोजित करें।", favoritesHero: "अपने पसंदीदा कैलकुलेटर, स्केल और सामग्री तक तुरंत पहुँचें।", historyHero: "अपने पिछले हिसाब और रिपोर्ट देखें और फिर से खोलें।", loadingProfile: "आपकी प्रोफ़ाइल लोड हो रही है…", loadingSettings: "आपकी प्राथमिकताएँ लोड हो रही हैं…", loadingFavorites: "आपके पसंदीदा लोड हो रहे हैं…", loadingHistory: "आपका इतिहास लोड हो रहा है…", preferences: "प्राथमिकताएँ", siteLanguage: "साइट की भाषा", theme: "थीम", light: "लाइट", dark: "डार्क", newsletter: "अपडेट प्राप्त करें", newsletterHelp: "हम वैकल्पिक रूप से ईमेल द्वारा अपडेट और नई सुविधाएँ भेज सकते हैं।", fontSize: "फ़ॉन्ट आकार", savePreferences: "प्राथमिकताएँ सहेजें", account: "खाता", searchFavorites: "पसंदीदा खोजें…", searchHistory: "इतिहास खोजें…", allCategories: "सभी श्रेणियाँ", allTypes: "सभी प्रकार", allLanguages: "सभी भाषाएँ", sortFavorites: "पसंदीदा क्रमित करें", sortHistory: "इतिहास क्रमित करें", recent: "नवीनतम", oldest: "सबसे पुराने", alpha: "वर्णानुक्रम", visits: "विज़िट", uniquePages: "अद्वितीय पृष्ठ", totalTime: "कुल समय", deleteHistory: "इतिहास हटाएँ", previous: "← पिछला", next: "अगला →", clearHistoryConfirm: "पूरा इतिहास हटाएँ? यह कार्रवाई पूर्ववत नहीं की जा सकती।", saved: "प्राथमिकताएँ सफलतापूर्वक सहेजी गईं।", deleted: "इतिहास सफलतापूर्वक हटाया गया।", retry: "फिर प्रयास करें।", saveError: "सहेजने में त्रुटि:", loadError: "लोड करने में त्रुटि:", deleteError: "हटाने में त्रुटि:", editName: "नाम संपादित करें", displayName: "प्रदर्शित नाम", fullName: "पूरा नाम", saveName: "नाम सहेजें", country: "देश", signInMethod: "लॉगिन विधि", registrationDate: "पंजीकरण तिथि", lastAccess: "अंतिम पहुंच", signOut: "साइन आउट", saveNameSuccess: "नाम सफलतापूर्वक अपडेट किया गया।", invalidName: "मान्य नाम दर्ज करें (कम से कम 2 अक्षर)।" },
-    ar: { home: "الرئيسية", account: "حسابي", profile: "ملفي الشخصي", settings: "الإعدادات", favorites: "المفضلة", history: "السجل", profileHero: "أدر معلوماتك الشخصية وتفضيلات حسابك.", settingsHero: "اضبط تفضيلات الحساب والإشعارات والخصوصية.", favoritesHero: "يمكنك الوصول بسرعة إلى الآلات الحاسبة والمقاييس والمواد المفضلة.", historyHero: "راجع حساباتك وتقاريرك السابقة وأعد فتحها.", loadingProfile: "جارٍ تحميل ملفك الشخصي…", loadingSettings: "جارٍ تحميل تفضيلاتك…", loadingFavorites: "جارٍ تحميل المفضلة…", loadingHistory: "جارٍ تحميل السجل…", preferences: "التفضيلات", siteLanguage: "لغة الموقع", theme: "المظهر", light: "فاتح", dark: "داكن", newsletter: "تلقي التحديثات", newsletterHelp: "يمكننا إرسال تحديثات وميزات جديدة عبر البريد الإلكتروني (اختياري).", fontSize: "حجم الخط", savePreferences: "حفظ التفضيلات", account: "الحساب", searchFavorites: "البحث في المفضلة…", searchHistory: "البحث في السجل…", allCategories: "جميع الفئات", allTypes: "جميع الأنواع", allLanguages: "جميع اللغات", sortFavorites: "ترتيب المفضلة", sortHistory: "ترتيب السجل", recent: "الأحدث", oldest: "الأقدم", alpha: "ترتيب أبجدي", visits: "الزيارات", uniquePages: "الصفحات الفريدة", totalTime: "الوقت الإجمالي", deleteHistory: "حذف السجل", previous: "← السابق", next: "التالي →", clearHistoryConfirm: "حذف السجل بالكامل؟ لا يمكن التراجع عن هذا الإجراء.", saved: "تم حفظ التفضيلات بنجاح.", deleted: "تم حذف السجل بنجاح.", retry: "حاول مرة أخرى.", saveError: "خطأ في الحفظ:", loadError: "خطأ في التحميل:", deleteError: "خطأ في الحذف:", editName: "تعديل الاسم", displayName: "اسم العرض", fullName: "الاسم الكامل", saveName: "حفظ الاسم", country: "البلد", signInMethod: "طريقة تسجيل الدخول", registrationDate: "تاريخ التسجيل", lastAccess: "آخر وصول", signOut: "تسجيل الخروج", saveNameSuccess: "تم تحديث الاسم بنجاح.", invalidName: "أدخل اسمًا صالحًا (حرفان على الأقل)." },
-    ru: { home: "Главная", account: "Мой аккаунт", profile: "Мой профиль", settings: "Настройки", favorites: "Избранное", history: "История" },
-    tr: { home: "Ana sayfa", account: "Hesabım", profile: "Profilim", settings: "Ayarlar", favorites: "Favoriler", history: "Geçmiş" },
-    ko: { home: "홈", account: "내 계정", profile: "내 프로필", settings: "설정", favorites: "즐겨찾기", history: "기록" },
-    nl: { home: "Home", account: "Mijn account", profile: "Mijn profiel", settings: "Instellingen", favorites: "Favorieten", history: "Geschiedenis" },
-    pl: { home: "Strona główna", account: "Moje konto", profile: "Mój profil", settings: "Ustawienia", favorites: "Ulubione", history: "Historia" },
-    sv: { home: "Hem", account: "Mitt konto", profile: "Min profil", settings: "Inställningar", favorites: "Favoriter", history: "Historik" },
-    id: { home: "Beranda", account: "Akun Saya", profile: "Profil Saya", settings: "Pengaturan", favorites: "Favorit", history: "Riwayat" },
-    vi: { home: "Trang chủ", account: "Tài khoản của tôi", profile: "Hồ sơ của tôi", settings: "Cài đặt", favorites: "Yêu thích", history: "Lịch sử" },
-    uk: { home: "Головна", account: "Мій обліковий запис", profile: "Мій профіль", settings: "Налаштування", favorites: "Обране", history: "Історія" }
+    "perfil.html": {
+      h1: "profile",
+      heroText: "profileHero"
+    },
+    "configuracoes.html": {
+      h1: "settings",
+      heroText: "settingsHero"
+    },
+    "favoritos.html": {
+      h1: "favorites",
+      heroText: "favoritesHero"
+    },
+    "historico.html": {
+      h1: "history",
+      heroText: "historyHero"
+    },
+    "assinatura.html": {
+      h1: null
+    }
   };
 
-  function currentLanguage() { try { return window.AccountI18n && window.AccountI18n.getLanguage ? window.AccountI18n.getLanguage() : (window.__LANG || "pt"); } catch (_) { return "pt"; } }
-  function text(key, fallback) { var map = MAP[currentLanguage()] || MAP.en; return map[key] || fallback || (MAP.en[key] || key); }
-  function url(path) { try { return window.AccountRoutes && window.AccountRoutes.accountUrl ? window.AccountRoutes.accountUrl(path.replace(/^\/conta\//, "")) : window.__ACCOUNT_PAGE_URL(path); } catch (_) { return path; } }
+  var COMMON_SELECTOR_KEYS = [
+    ["a[href='/']", "home"],
+    ["a[href='/conta/perfil.html']", "profile"],
+    ["a[href^='/conta/assinatura.html']", "subscription"],
+    ["a[href^='/conta/configuracoes.html']", "settings"],
+    ["a[href^='/conta/favoritos.html']", "favorites"],
+    ["a[href^='/conta/historico.html']", "history"],
+    ["a[href^='/conta/login.html']", "signIn"]
+  ];
+
+  var COMMON_TEXT_SELECTORS = {
+    ".breadcrumb li span": "account",
+    "[aria-label='Ações da conta']": "account",
+    "#account-language-select": null
+  };
+
+  function pageName() {
+    var pathname = String(window.location && window.location.pathname || "");
+    var parts = pathname.split("/");
+    return parts[parts.length - 1] || "login.html";
+  }
+
+  function i18n() {
+    return window.AccountI18n && typeof window.AccountI18n.t === "function"
+      ? window.AccountI18n
+      : null;
+  }
+
+  function language() {
+    var api = i18n();
+    return api && typeof api.getLanguage === "function" ? api.getLanguage() : "pt-BR";
+  }
+
+  function keyExists(key) {
+    var api = i18n();
+    if (!api || typeof api.t !== "function") return false;
+    var value = api.t(key);
+    return value && value !== key;
+  }
+
+  function mark(element, key) {
+    if (!element || !key || !keyExists(key)) return;
+    element.setAttribute("data-conta-i18n", key);
+  }
+
+  function markPlaceholder(element, key) {
+    if (!element || !key || !keyExists(key)) return;
+    element.setAttribute("data-conta-i18n-placeholder", key);
+  }
+
+  function annotate(root) {
+    var api = i18n();
+    if (!api || !document || !document.body) return;
+
+    var cfg = PAGE_CONFIG[pageName()] || {};
+    var scope = root && root.querySelectorAll ? root : document;
+
+    if (cfg.h1) {
+      var h1 = document.querySelector("main h1");
+      if (h1) mark(h1, cfg.h1);
+    }
+
+    if (cfg.heroText) {
+      var h1Node = document.querySelector("main h1");
+      if (h1Node) {
+        var section = h1Node.closest("section");
+        if (section) {
+          var candidates = section.querySelectorAll("p,h2");
+          for (var i = 0; i < candidates.length; i++) {
+            var el = candidates[i];
+            var text = (el.textContent || "").trim();
+            if (text && !/^(PREMIUM|MINHA CONTA|SISTEMA DE CONTAS|PLANOS?)$/i.test(text)) {
+              mark(el, cfg.heroText);
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    COMMON_SELECTOR_KEYS.forEach(function (pair) {
+      Array.prototype.forEach.call(scope.querySelectorAll ? scope.querySelectorAll(pair[0]) : [], function (el) {
+        mark(el, pair[1]);
+      });
+    });
+
+    Object.keys(COMMON_TEXT_SELECTORS).forEach(function (selector) {
+      var key = COMMON_TEXT_SELECTORS[selector];
+      if (!key) return;
+      Array.prototype.forEach.call(scope.querySelectorAll ? scope.querySelectorAll(selector) : [], function (el) {
+        mark(el, key);
+      });
+    });
+
+    if (cfg.fields) {
+      Object.keys(cfg.fields).forEach(function (id) {
+        var field = document.getElementById(id);
+        var config = cfg.fields[id];
+        if (!field || !config) return;
+
+        var label = document.querySelector('label[for="' + id + '"]');
+        if (label) mark(label, config.label);
+
+        if (config.placeholder) markPlaceholder(field, config.placeholder);
+      });
+    }
+
+    if (cfg.buttons) {
+      Object.keys(cfg.buttons).forEach(function (id) {
+        var button = document.getElementById(id);
+        if (button) mark(button, cfg.buttons[id]);
+      });
+    }
+
+    // Shared account controls that are stable by ID.
+    [
+      ["link-reset-password", "forgotPassword"],
+      ["link-toggle-mode", "createAccount"],
+      ["link-back-to-login", "backToLogin"],
+      ["form-title", "emailSignIn"],
+      ["btn-save-preferences", "savePreferences"],
+      ["btn-clear-history", "deleteHistory"],
+      ["history-prev", "previous"],
+      ["history-next", "next"],
+      ["fav-search", "searchFavorites"],
+      ["history-search", "searchHistory"],
+      ["history-filter-category", "filterCategory"],
+      ["history-filter-type", "filterType"],
+      ["history-filter-language", "filterLanguage"]
+    ].forEach(function (entry) {
+      var el = document.getElementById(entry[0]);
+      if (el) mark(el, entry[1]);
+    });
+
+    // Known profile/settings metadata labels.
+    Array.prototype.forEach.call(document.querySelectorAll("dt"), function (el) {
+      var value = (el.textContent || "").trim();
+      var map = {
+        "Nome de exibição": "displayName",
+        "Nome completo": "fullName",
+        "País": "country",
+        "Método de login": "signInMethod",
+        "Data de cadastro": "registrationDate",
+        "Último acesso": "lastAccess"
+      };
+      if (map[value]) mark(el, map[value]);
+    });
+
+    document.documentElement.lang = language();
+    document.documentElement.dir = language() === "ar" ? "rtl" : "ltr";
+  }
+
+  function translateMarked(root) {
+    var api = i18n();
+    if (!api || typeof api.t !== "function") return;
+
+    root = root && root.querySelectorAll ? root : document;
+    var nodes = root.querySelectorAll("[data-conta-i18n]");
+    Array.prototype.forEach.call(nodes, function (el) {
+      var key = el.getAttribute("data-conta-i18n");
+      if (key) el.textContent = api.t(key);
+    });
+
+    var placeholders = root.querySelectorAll("[data-conta-i18n-placeholder]");
+    Array.prototype.forEach.call(placeholders, function (el) {
+      var key = el.getAttribute("data-conta-i18n-placeholder");
+      if (key) el.setAttribute("placeholder", api.t(key));
+    });
+  }
 
   function localize() {
-    if (!window.document) return;
-    var lang = currentLanguage();
-    var titleMap = { "Meu Perfil - Calculadoras de Enfermagem": text("profile") + " - Calculadoras de Enfermagem", "Configurações - Calculadoras de Enfermagem": text("settings") + " - Calculadoras de Enfermagem", "Favoritos - Calculadoras de Enfermagem": text("favorites") + " - Calculadoras de Enfermagem", "Histórico - Calculadoras de Enfermagem": text("history") + " - Calculadoras de Enfermagem", "Entrar - Calculadoras de Enfermagem": text("signIn", "Sign in") + " - Calculadoras de Enfermagem" };
-    if (titleMap[document.title]) document.title = titleMap[document.title];
-    var attrMap = {
-      "Início": "home", "Minha Conta": "account", "Meu Perfil": "profile", "Configurações": "settings", "Favoritos": "favorites", "Histórico": "history",
-      "SISTEMA DE CONTAS": "account", "Carregando seu perfil…": "loadingProfile", "Carregando suas preferências…": "loadingSettings", "Carregando seus favoritos…": "loadingFavorites", "Carregando seu histórico…": "loadingHistory",
-      "Preferências": "preferences", "Idioma do site": "siteLanguage", "Tema": "theme", "Claro": "light", "Escuro": "dark", "Receber novidades": "newsletter", "Tamanho da fonte": "fontSize", "Salvar preferências": "savePreferences", "Conta": "account", "Meu Histórico": "history", "Excluir histórico": "deleteHistory", "← Anterior": "previous", "Próxima →": "next", "Visitas": "visits", "Páginas únicas": "uniquePages", "Tempo total": "totalTime", "Ordenar favoritos": "sortFavorites", "Ordenar histórico": "sortHistory", "Mais recentes": "recent", "Mais antigos": "oldest", "Ordem alfabética": "alpha", "Editar nome": "editName", "Nome de exibição": "displayName", "Nome completo": "fullName", "Salvar nome": "saveName", "País": "country", "Método de login": "signInMethod", "Data de cadastro": "registrationDate", "Último acesso": "lastAccess", "Sair da conta": "signOut", "Sair": "signOut"
-    };
-    document.querySelectorAll("a,button,label,p,h1,h2,h3,h4,span,dt,option").forEach(function (el) {
-      if (el.hasAttribute("data-conta-i18n")) return;
-      var value = (el.textContent || "").trim();
-      var key = attrMap[value];
-      if (key) el.textContent = text(key);
-    });
-    document.querySelectorAll("[placeholder]").forEach(function (el) {
-      var p = el.getAttribute("placeholder");
-      if (p === "Pesquisar favoritos…") el.setAttribute("placeholder", text("searchFavorites"));
-      if (p === "Pesquisar histórico…") el.setAttribute("placeholder", text("searchHistory"));
-      if (p === "Seu nome completo") el.setAttribute("placeholder", text("fullName"));
-    });
-    document.querySelectorAll("a[href^='/conta/']").forEach(function (a) {
-      var href = a.getAttribute("href");
-      if (/^\/conta\/(perfil|configuracoes|favoritos|historico|assinatura)\.html(?:\?.*)?$/.test(href)) {
-        var base = href.split("?")[0].replace(/^\/conta\//, "");
-        a.setAttribute("href", url(base));
-      }
-    });
-    document.documentElement.lang = lang === "pt-BR" ? "pt-BR" : lang;
-    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+    annotate(document);
+    translateMarked(document);
   }
 
-  window.AccountPageI18n = { localize: localize, text: text, currentLanguage: currentLanguage };
-  if (window.document && window.document.readyState === "loading") window.document.addEventListener("DOMContentLoaded", localize); else localize();
-  // Proteção contra loop de mutações: o observer anterior chamava localize() a cada
-  // mutação, e localize() reescreve textContent (gerando novas mutações childList),
-  // travando a thread principal. Agora há debounce + disconnect/reconnect durante a
-  // localização para impedir auto-disparo.
-  if (window.document && window.MutationObserver && window.document.body) {
-    var _pageObserver = null;
-    var _pageScheduled = false;
-    var _pageLocalize = function () {
-      _pageScheduled = false;
-      if (_pageObserver) _pageObserver.disconnect();
-      localize();
-      if (_pageObserver) _pageObserver.observe(window.document.body, { childList: true, subtree: true });
-    };
-    var _pageSchedule = function () {
-      if (_pageScheduled) return;
-      _pageScheduled = true;
-      window.setTimeout(_pageLocalize, 0);
-    };
-    _pageObserver = new MutationObserver(_pageSchedule);
-    _pageObserver.observe(window.document.body, { childList: true, subtree: true });
+  window.AccountPageI18n = {
+    localize: localize,
+    annotate: annotate,
+    translate: translateMarked,
+    currentLanguage: language
+  };
+
+  function init() {
+    localize();
+
+    if (window.MutationObserver && document.body) {
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+          Array.prototype.forEach.call(mutation.addedNodes, function (node) {
+            if (node && node.nodeType === 1) {
+              annotate(node);
+              translateMarked(node);
+            }
+          });
+        });
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    }
+
+    document.addEventListener("conta:languagechange", localize);
   }
-  if (window.document) window.document.addEventListener("conta:languagechange", localize);
-})(window);
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init, { once: true });
+  } else {
+    init();
+  }
+})(window, document);
