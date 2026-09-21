@@ -91,7 +91,7 @@ serve(async req=>{
     // cadastrais obrigatórios quando esse objeto é informado. O Checkout
     // coleta os dados do pagador diretamente, evitando rejeição por CPF/endereço
     // ausentes no perfil Firebase.
-    if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate};
+    if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate,externalReference:ref};
 
     const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
     checkoutId=String(checkout?.id||"");
