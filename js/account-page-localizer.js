@@ -21,8 +21,7 @@
         "btn-google-login": "google",
         "btn-microsoft-login": "microsoft",
         "btn-apple-login": "apple",
-        "btn-email-submit": "signIn"
-      }
+        }
     },
     "perfil.html": {
       h1: "profile",
@@ -57,7 +56,6 @@
 
   var COMMON_TEXT_SELECTORS = {
     ".breadcrumb li span": "account",
-    "[aria-label='Ações da conta']": "account",
     "#account-language-select": null
   };
 
@@ -162,9 +160,7 @@
     // Shared account controls that are stable by ID.
     [
       ["link-reset-password", "forgotPassword"],
-      ["link-toggle-mode", "createAccount"],
       ["link-back-to-login", "backToLogin"],
-      ["form-title", "emailSignIn"],
       ["btn-save-preferences", "savePreferences"],
       ["btn-clear-history", "deleteHistory"],
       ["history-prev", "previous"],
