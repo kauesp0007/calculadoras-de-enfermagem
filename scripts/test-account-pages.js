@@ -32,7 +32,7 @@ for (const file of PAGES) {
     'id="footer-placeholder"',
     'src="/global-scripts.js"',
     'src="/lang-selector.js"',
-    '"/output.css"',
+    '/public/output.css',
     '"/global-styles.css"'
   ]) {
     if (!html.includes(required)) fail(`${file}: componente canônico ausente: ${required}`);
