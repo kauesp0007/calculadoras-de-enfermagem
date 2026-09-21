@@ -318,18 +318,21 @@ function showMessage(text,error){
   var box=$("profile-message");if(!box)return;box.textContent=text;box.style.display="block";
   box.className="mb-4 px-4 py-3 rounded-xl text-sm font-semibold "+(error?"bg-red-50 text-red-700 border border-red-200":"bg-green-50 text-green-700 border border-green-200");
 }
+function setText(id,value){var el=$(id);if(el)el.textContent=value==null?"":String(value);}
 function renderIdentity(){
   var g=greetingText(),name=g.name||"Profissional";
-  $("profile-greeting").textContent=g.prefix+(g.name?" "+g.name:"");
-  $("profile-name").textContent=name;
-  $("profile-email").textContent=profile&&profile.email||"";
-  $("profile-plan").textContent=billing.plan==="premium"?"Premium":billing.plan==="verifying"?"Verificando":"Gratuito";
-  $("profile-language").textContent=profile&&profile.language||"pt";
-  $("profile-country").textContent=profile&&profile.country||"BR";
-  $("profile-created").textContent=safeDate(profile&&profile.createdAt,false);
-  $("account-provider").textContent=profile&&profile.provider?String(profile.provider).replace(/_/g," "):"—";
-  var sel=$("professional-gender");sel.value=(profile&&profile.metadata&&profile.metadata.professionalGender)||"";
-  var avatar=$("profile-avatar");avatar.innerHTML="";
+  setText("profile-greeting",g.prefix+(g.name?" "+g.name:""));
+  setText("profile-name",name);
+  setText("profile-email",profile&&profile.email||"");
+  setText("profile-plan",billing.plan==="premium"?"Premium":billing.plan==="verifying"?"Verificando":"Gratuito");
+  setText("profile-language",profile&&profile.language||"pt");
+  setText("profile-country",profile&&profile.country||"BR");
+  setText("profile-created",safeDate(profile&&profile.createdAt,false));
+  setText("account-provider",profile&&profile.provider?String(profile.provider).replace(/_/g," "):"—");
+  var sel=$("professional-gender");if(sel)sel.value=(profile&&profile.metadata&&profile.metadata.professionalGender)||"";
+  var avatar=$("profile-avatar");
+  if(!avatar)return;
+  avatar.innerHTML="";
   if(profile&&profile.photoURL){
     var img=document.createElement("img");img.src=profile.photoURL;img.alt="";img.className="w-full h-full object-cover";img.referrerPolicy="no-referrer";avatar.appendChild(img);
   }else{
