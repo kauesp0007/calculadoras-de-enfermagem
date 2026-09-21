@@ -11,13 +11,7 @@
   function setup(){
     style();
     var path=(global.location&&global.location.pathname||"");
-    var cfg={
-      login:{},
-      perfil:{},
-      configuracoes:{},
-      favoritos:{},
-      historico:{}
-    };
+    var cfg={login:{},perfil:{},configuracoes:{},favoritos:{},historico:{},assinatura:{}};
     var key=Object.keys(cfg).find(function(k){return path.indexOf("/conta/"+k+".html")!==-1;});
     if(!key)return;
 
@@ -35,12 +29,12 @@
     setAttr("btn-save-settings",{"aria-label":t("savePreferences","Salvar preferências")});
     setAttr("btn-save-all",{"aria-label":t("savePreferences","Salvar todas as alterações")});
     setAttr("focus-status",{"role":"status","aria-live":"polite"});
-    ["profile-message","settings-message","fav-message","history-message"].forEach(function(id){setAttr(id,{"role":"status","aria-live":"polite","class":(document.getElementById(id)||{}).className||""});});
+    ["profile-message","settings-message","fav-message","history-message"].forEach(function(id){setAttr(id,{"role":"status","aria-live":"polite"});});
     ["profile-loading","settings-loading","fav-loading","history-loading"].forEach(function(id){setAttr(id,{"role":"status","aria-live":"polite"});});
     setAttr("settings-save-state",{"role":"status","aria-live":"polite"});
     setAttr("premium-status-chip",{"role":"status"});
     setAttr("dashboard-date-status",{"role":"status","aria-live":"polite"});
-    if(key==="configuracoes"){
+    if(key==="assinatura"){\n      Array.prototype.forEach.call(document.querySelectorAll("[data-kind]"),function(el){if(!el.getAttribute("aria-label")){var kind=el.getAttribute("data-kind");el.setAttribute("aria-label",kind==="pix"?t("payment","Pagamento"):t("subscribeAction","Assinar"));}});\n    }\n    if(key==="login"){\n      setAttr("btn-google-login",{"aria-label":t("google","Continuar com Google")});\n      setAttr("btn-microsoft-login",{"aria-label":t("microsoft","Continuar com Microsoft")});\n      setAttr("btn-apple-login",{"aria-label":t("apple","Continuar com Apple")});\n      setAttr("btn-email-submit",{"aria-label":t("signIn","Entrar")});\n    }\n    if(key==="configuracoes"){
       var saveState=document.getElementById("settings-save-state");if(saveState)saveState.classList.add("account-save-state-spacer");
       var avatarLabel=document.querySelector('label[for="professional-avatar"]');if(avatarLabel)avatarLabel.setAttribute("aria-label",t("selectPhoto","Selecionar foto"));
     }
