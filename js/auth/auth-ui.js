@@ -541,12 +541,13 @@
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
       var isAccountRoute = normalizedReturn.indexOf("/conta/") === 0;
-      var isSubscriptionRoute = /^\/conta\/assinatura\.html$/i.test(normalizedReturn);
+      var isLoginRoute = /^\/conta\/login\.html$/i.test(normalizedReturn);
 
-      // A assinatura é o destino intencional do CTA "Assine já". As demais
-      // páginas da área da conta continuam retornando à home após o login.
+      // Preserve o destino solicitado para qualquer página da conta, exceto
+      // o próprio login. Isso permite voltar diretamente a Configurações,
+      // Favoritos, Histórico ou Assinatura após autenticar.
       if (
-        (!isAccountRoute || isSubscriptionRoute) &&
+        !isLoginRoute &&
         normalizedReturn !== "/" &&
         normalizedReturn !== localizedHome
       ) {
