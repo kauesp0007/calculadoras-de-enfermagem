@@ -55,6 +55,7 @@ for (const rel of PAGES) {
     const required = [
       "professional-workplace","professional-position","professional-specialty",
       "professional-gender","professional-admission-date","professional-graduation-date",
+      "professional-institution","professional-course","professional-graduation-year","professional-city","professional-state","professional-avatar",
       "btn-save-professional","btn-save-settings","preview-tenure","preview-education-time"
     ];
     for (const id of required) {
@@ -67,6 +68,9 @@ for (const rel of PAGES) {
     }
     if (!/new Date\(ad\+"T00:00:00"\)>now/.test(source)) {
       fail(rel + ": validação de datas profissionais ausente");
+    }
+    if (!/resource=avatar/.test(source) || !/image\/jpeg,image\/png,image\/webp/.test(source)) {
+      fail(rel + ": upload de avatar não está configurado corretamente");
     }
   }
   if (rel === "conta/perfil.html") {
