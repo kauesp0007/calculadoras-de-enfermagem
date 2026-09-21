@@ -154,11 +154,30 @@
 
   window.AccountRouting = api;
 
+  function observeDynamicLinks() {
+    if (!window.document || !window.MutationObserver || !window.document.body) return;
+    if (window.__ACCOUNT_ROUTING_OBSERVER) return;
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        Array.prototype.forEach.call(mutation.addedNodes || [], function (node) {
+          if (!node || node.nodeType !== 1) return;
+          bindLinks(node);
+        });
+      });
+    });
+    observer.observe(window.document.body, { childList: true, subtree: true });
+    window.__ACCOUNT_ROUTING_OBSERVER = observer;
+  }
+
   if (window.document) {
     if (window.document.readyState === "loading") {
-      window.document.addEventListener("DOMContentLoaded", init, { once: true });
+      window.document.addEventListener("DOMContentLoaded", function () {
+        init();
+        observeDynamicLinks();
+      }, { once: true });
     } else {
       init();
+      observeDynamicLinks();
     }
 
     window.document.addEventListener("conta:languagechange", function () {
