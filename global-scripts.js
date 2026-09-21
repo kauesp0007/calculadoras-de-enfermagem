@@ -102,6 +102,112 @@ window.__FIX_RELATIVE_LINKS = function (container) {
 // The former second global Firebase bootstrap was removed to prevent competing
 // auth initialization paths and transient Free decisions.
 
+
+/* =========================
+   Bootstrap canônico de autenticação
+   ========================= */
+// Um único bootstrap é compartilhado por menu global, páginas de conta e Premium.
+// Isso evita que cada página crie sua própria cadeia de Firebase/Auth e corrige o
+// cenário em que o login termina, mas a página seguinte não consegue restaurar a sessão.
+(function installCanonicalAuthBootstrap(window, document) {
+  "use strict";
+
+  if (typeof window.__ENSURE_AUTH === "function") return;
+
+  var scripts = [
+    "/js/firebase/firebase-init.js",
+    "/js/auth/auth-session.js",
+    "/js/auth/auth-providers.js",
+    "/js/auth/auth-permissions.js",
+    "/js/auth/firestore-user.js",
+    "/js/auth/user-cache.js",
+    "/js/auth/user-events.js",
+    "/js/auth/preferences.js",
+    "/js/auth/auth-user-profile.js",
+    "/js/auth/auth-core.js",
+    "/js/auth/auth-google.js",
+    "/js/auth/auth-microsoft.js",
+    "/js/auth/auth-apple.js",
+    "/js/auth/auth-email.js"
+  ];
+
+  var sharedPromise = null;
+
+  function loadOne(src) {
+    if (window.__AUTH_SCRIPT_PROMISES && window.__AUTH_SCRIPT_PROMISES[src]) {
+      return window.__AUTH_SCRIPT_PROMISES[src];
+    }
+
+    window.__AUTH_SCRIPT_PROMISES = window.__AUTH_SCRIPT_PROMISES || {};
+
+    var existing = document.querySelector('script[src="' + src + '"]');
+    if (existing && existing.dataset && existing.dataset.authBootstrapLoaded === "1") {
+      return Promise.resolve();
+    }
+
+    var promise = new Promise(function (resolve, reject) {
+      var script = existing || document.createElement("script");
+      var settled = false;
+
+      function done() {
+        if (settled) return;
+        settled = true;
+        try {
+          if (script.dataset) script.dataset.authBootstrapLoaded = "1";
+        } catch (_) {}
+        resolve();
+      }
+
+      function fail() {
+        if (settled) return;
+        settled = true;
+        reject(new Error("auth_script_load_failed:" + src));
+      }
+
+      script.addEventListener("load", done, { once: true });
+      script.addEventListener("error", fail, { once: true });
+
+      if (!existing) {
+        script.src = src;
+        script.async = false;
+        script.dataset.authBootstrap = "true";
+        document.head.appendChild(script);
+      }
+    });
+
+    window.__AUTH_SCRIPT_PROMISES[src] = promise;
+    return promise;
+  }
+
+  window.__ENSURE_AUTH = function () {
+    if (window.Auth && typeof window.Auth.init === "function") {
+      return window.Auth.init().then(function () {
+        return window.Auth;
+      });
+    }
+
+    if (sharedPromise) return sharedPromise;
+
+    sharedPromise = scripts.reduce(function (chain, src) {
+      return chain.then(function () {
+        return loadOne(src);
+      });
+    }, Promise.resolve()).then(function () {
+      if (!window.Auth || typeof window.Auth.init !== "function") {
+        throw new Error("auth_core_unavailable");
+      }
+      return window.Auth.init().then(function () {
+        return window.Auth;
+      });
+    }).catch(function (error) {
+      sharedPromise = null;
+      throw error;
+    });
+
+    return sharedPromise;
+  };
+})(window, document);
+
 // -----------------------------------------------------------------------------
 // Multiplex audit ad placement.
 // The occasional ad must remain in normal document flow below the global
