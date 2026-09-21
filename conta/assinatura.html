@@ -315,6 +315,10 @@ if(profile.plan==="premium"){
 area.innerHTML='<div class="active-premium-panel"><p class="active-premium-title">'+esc(t.active)+'</p><p class="active-premium-copy">'+S("activeCopy")+'</p><a class="billing-button billing-button-primary" href="/conta/perfil.html">'+S("viewProfile")+'</a></div>';
 return;
 }
+if(profile.plan==="verifying"){
+area.innerHTML='<div class="active-premium-panel"><p class="active-premium-title">'+esc(S("billingCheckingTitle"))+'</p><p class="active-premium-copy">'+S(profile.billingUnavailable?"billingUnavailableCopy":"billingCheckingCopy")+'</p></div>';
+return;
+}
 var provider=paymentProviderFor(langCode);
 if(provider==="stripe"){
 area.innerHTML='<article class="billing-method-card billing-method-card--stripe"><div class="billing-method-top"><div class="billing-icon billing-icon--card" aria-hidden="true"><svg viewBox="0 0 576 512" focusable="false"><path d="M64 32C28.7 32 0 60.7 0 96V128H576V96c0-35.3-28.7-64-64-64H64zM0 160V416c0 35.3 28.7 64 64 64H512c35.3 0 64-28.7 64-64V160H0zm96 120a32 32 0 1 1 0 64 32 32 0 1 1 0-64zm224 0c8.8 0 16 7.2 16 16v32c0 8.8-7.2 16-16 16H176c-8.8 0-16-7.2-16-16v-32c0-8.8 7.2-16 16-16h144z"/></svg></div><div><span class="billing-kicker">'+S("payment")+'</span><h3 class="billing-method-title">'+esc(t.br)+'</h3><p class="billing-description">'+S("stripeCopy")+'</p></div></div><div class="billing-price"><strong>'+S("priceLabel")+'</strong></div><div class="billing-spacer"></div><button type="button" data-kind="stripe" class="billing-button billing-button-primary">'+S("subscribeCard")+'</button></article>';
@@ -341,7 +345,7 @@ var s=document.getElementById("action-subscription");if(s&&window.AccountRouting
 var md=document.querySelector('meta[name="description"]');if(md)md.content=SS("accessText");
 }
 function renderCurrentState(langCode){renderStatic(langCode);var u=window.Auth&&window.Auth.currentUser?window.Auth.currentUser():null;var p=window.Auth&&window.Auth.profile?window.Auth.profile():null;var status=document.getElementById("account-status");if(status)status.textContent=u?(u.email||""):(T[langCode]||T.en).login;if(u&&!p)p={uid:u.uid,email:u.email||"",plan:"verifying",billingUnavailable:false};render(langCode,p);}
-async function init(){var l=lang();try{await window.Auth.init();if(window.Auth.onProfileChange)window.Auth.onProfileChange(function(){var current=lang();renderCurrentState(current);});if(window.Auth.onAuthChange)window.Auth.onAuthChange(function(){var current=lang();renderCurrentState(current);});document.addEventListener("conta:languagechange",function(){var current=lang();renderCurrentState(current);});renderCurrentState(l);}catch(e){console.error("[Billing] Falha ao inicializar a assinatura:",e);render(l,null);}}
+async function init(){var l=lang();try{await (window.Auth.whenReady?window.Auth.whenReady():window.Auth.init());if(window.Auth.onProfileChange)window.Auth.onProfileChange(function(){var current=lang();renderCurrentState(current);});if(window.Auth.onAuthChange)window.Auth.onAuthChange(function(){var current=lang();renderCurrentState(current);});document.addEventListener("conta:languagechange",function(){var current=lang();renderCurrentState(current);});renderCurrentState(l);}catch(e){console.error("[Billing] Falha ao inicializar a assinatura:",e);render(l,null);}}
 document.addEventListener("DOMContentLoaded",init);
 })();
 
