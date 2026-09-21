@@ -92,11 +92,138 @@ window.__FIX_RELATIVE_LINKS = function (container) {
     if (href && href.charAt(0) !== "#" && href.charAt(0) !== "/" && href.indexOf(":") === -1) {
       a.setAttribute("href", window.__FETCH_PREFIX + href);
     }
-    if (/\/?conta\/login\.html(?:[?#]|$)/.test(a.getAttribute("href") || "")) {
+    var accountHref = a.getAttribute("href") || "";
+    if (/\/?conta\/login\.html(?:[?#]|$)/.test(accountHref)) {
       a.setAttribute("href", window.__ACCOUNT_LOGIN_URL());
+    } else if (/^\/conta\/[^/?#]+(?:\?|#|$)/i.test(accountHref)) {
+      try {
+        var accountUrl = new URL(accountHref, window.location.origin);
+        var lang = window.__LANG || "pt";
+        accountUrl.searchParams.set("lang", lang);
+        a.setAttribute("href", accountUrl.pathname + (accountUrl.search ? accountUrl.search : "") + (accountUrl.hash ? accountUrl.hash : ""));
+      } catch (_) {}
     }
   });
+  if (window.AccountRouting && typeof window.AccountRouting.bindLinks === "function") {
+    window.AccountRouting.bindLinks(container);
+  }
 };
+
+// Garante que os novos simulados Premium permaneçam descobríveis mesmo quando
+// um menu traduzido/protegido ainda estiver defasado. Não altera os arquivos
+// menu-global.html: apenas completa o DOM já injetado.
+window.__ENSURE_SIMULATOR_MENU_LINKS = function (container) {
+  if (!container || !container.querySelector) return;
+  var menu = container.querySelector("#submenu-simulados-mobile");
+  if (!menu) return;
+
+  var lang = String(window.__LANG || "pt").toLowerCase();
+  var labels = {
+    pt: {
+      bloco: "Simulado de Bloco Operatório",
+      sim4: "2° Simulado para Técnicos de enfermagem"
+    },
+    en: {
+      bloco: "Operating Room Practice Exam",
+      sim4: "2nd Practice Exam for LPNs/Techs"
+    },
+    es: {
+      bloco: "Simulacro de Bloque Operatorio",
+      sim4: "2.º Simulacro para Técnicos de Enfermería"
+    },
+    fr: {
+      bloco: "Examen blanc de bloc opératoire",
+      sim4: "2e examen blanc pour aides-soignants"
+    },
+    de: {
+      bloco: "Prüfungssimulation für den OP-Bereich",
+      sim4: "2. Prüfungssimulation für Pflegeassistenz"
+    },
+    it: {
+      bloco: "Simulazione di Sala Operatoria",
+      sim4: "2ª Simulazione per Tecnici Infermieristici"
+    },
+    hi: {
+      bloco: "ऑपरेशन थिएटर मॉक टेस्ट",
+      sim4: "तकनीकी नर्सों के लिए दूसरा मॉक टेस्ट"
+    },
+    zh: {
+      bloco: "手术室模拟考试",
+      sim4: "护理技术员第二次模拟考试"
+    },
+    ja: {
+      bloco: "手術室模擬試験",
+      sim4: "看護技術者向け第2回模擬試験"
+    },
+    ru: {
+      bloco: "Пробный экзамен по операционному блоку",
+      sim4: "2-й пробный экзамен для помощников медсестры"
+    },
+    ko: {
+      bloco: "수술실 모의고사",
+      sim4: "간호기술자를 위한 제2회 모의고사"
+    },
+    tr: {
+      bloco: "Ameliyathane Deneme Sınavı",
+      sim4: "Sağlık Bakım Teknisyenleri için 2. Deneme Sınavı"
+    },
+    nl: {
+      bloco: "Proefexamen operatiekamer",
+      sim4: "2e simulatietoets voor verzorgenden"
+    },
+    pl: {
+      bloco: "Test próbny z bloku operacyjnego",
+      sim4: "2. test próbny dla techników pielęgniarstwa"
+    },
+    sv: {
+      bloco: "Prov om operationssjukvård",
+      sim4: "2:a övningsprovet för undersköterskor"
+    },
+    id: {
+      bloco: "Simulasi Kamar Operasi",
+      sim4: "Simulasi Kedua untuk Teknisi Keperawatan"
+    },
+    vi: {
+      bloco: "Bài thi thử về Phòng mổ",
+      sim4: "Bài thi thử số 2 cho Kỹ thuật viên Điều dưỡng"
+    },
+    uk: {
+      bloco: "Практичний іспит з операційного блоку",
+      sim4: "2-й практичний іспит для техніків сестринської справи"
+    },
+    ar: {
+      bloco: "اختبار تجريبي لغرفة العمليات",
+      sim4: "الاختبار التجريبي الثاني لفنيي التمريض"
+    }
+  };
+  var map = labels[lang] || labels.pt;
+
+  function add(path, text) {
+    var found = Array.prototype.some.call(menu.querySelectorAll("a[href]"), function (a) {
+      try {
+        var href = new URL(a.getAttribute("href") || "", window.location.origin).pathname;
+        return href === path;
+      } catch (_) {
+        return (a.getAttribute("href") || "").replace(/^[^/]/, "/") === path;
+      }
+    });
+    if (found) return;
+
+    var li = document.createElement("li");
+    var a = document.createElement("a");
+    li.setAttribute("role", "none");
+    a.setAttribute("role", "menuitem");
+    a.href = path;
+    a.className = "block px-4 !py-0.5 text-gray-700 hover:bg-gray-100";
+    a.textContent = text;
+    li.appendChild(a);
+    menu.appendChild(li);
+  }
+
+  add("/simulado_bloco-operatorio.html", map.bloco);
+  add("/simulado-de-enfermagem4.html", map.sim4);
+};
+
 
 // Premium pages bootstrap authentication through premium-content-loader.js.
 // The former second global Firebase bootstrap was removed to prevent competing
@@ -265,6 +392,8 @@ document.addEventListener("DOMContentLoaded", function () {
       window.requestAnimationFrame(() => {
         o.innerHTML = e;
         // Corrige links relativos do menu para páginas em subpastas de idioma
+        if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
+        if (window.__ENSURE_SIMULATOR_MENU_LINKS) window.__ENSURE_SIMULATOR_MENU_LINKS(o);
         if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
         initializeNavigationMenu();
         // Inicializa auth no menu (não bloqueante)
@@ -610,7 +739,6 @@ function initializeAuthMenu() {
       if (window.Auth && window.Auth.isInitialized()) {
         safeUpdateUI(window.Auth.currentUser());
       }
-      hideAdsForPremium();
       // Não carregue o access-router/premium-banner-manager em uma rota Premium.
       // O premium-content-loader é o único gate de entrega dessas páginas.
       return;
@@ -622,14 +750,12 @@ function initializeAuthMenu() {
     if (window.Auth && window.Auth.isInitialized()) {
       safeUpdateUI(window.Auth.currentUser());
     }
-    hideAdsForPremium();
     if (window.Authorization.onChange) {
       window.Authorization.onChange(function () {
         if (window.Auth) {
           safeUpdateUI(window.Auth.currentUser());
         }
-        hideAdsForPremium();
-      });
+        });
     }
     bindAccess();
   }
@@ -676,6 +802,7 @@ function initializeAuthMenu() {
   /**
    * Inicializa a camada de acesso e aplica a proteção de conteúdo.
    */
+  var _accessBillingListenerBound = false;
   function _setupAccess() {
     if (!window.Access) {
       return;
@@ -687,6 +814,26 @@ function initializeAuthMenu() {
     // o próprio assinante para /conta/assinatura.html.
     if (window.__IS_PREMIUM_ROUTE) {
       return;
+    }
+
+    // Em uma sessão autenticada, não converta "verifying" em Free para fins
+    // de banner/CTA. Aguarde o resultado comercial real.
+    var auth = window.Auth;
+    if (auth && auth.isLoggedIn && auth.isLoggedIn() && auth.billingStatus) {
+      var billing = auth.billingStatus();
+      if (billing && !billing.resolved) {
+        if (!_accessBillingListenerBound && auth.onProfileChange) {
+          _accessBillingListenerBound = true;
+          auth.onProfileChange(function () {
+            _setupAccess();
+          });
+        }
+        return;
+      }
+      // Em indisponibilidade de billing, não exiba um estado Free enganoso.
+      if (billing && billing.unavailable) {
+        return;
+      }
     }
 
     if (window.Access.guard) {
@@ -738,6 +885,15 @@ function initializeAuthMenu() {
   }
 
   function _premiumCtaHtml(isLoggedIn) {
+    // Nunca exibir um CTA baseado em uma decisão comercial ainda não resolvida.
+    // Isso evita mostrar "Assine já" a um assinante durante a hidratação do billing.
+    var billing = window.Auth && typeof window.Auth.billingStatus === "function"
+      ? window.Auth.billingStatus()
+      : null;
+    if (isLoggedIn && billing && !billing.resolved) {
+      return "";
+    }
+
     var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
     var href = isPremium
       ? _premiumSubscribeUrl()
@@ -1435,42 +1591,19 @@ function ativarModoDislexia() {
 })();
 
 /* =========================
-   Controle de anúncios (premium removido — todos os usuários são free)
+   Controle de anúncios
    ========================= */
-// Stubs mantidos como no-op por compatibilidade com demais call sites.
-// Nenhum usuário é premium; todos veem os anúncios.
-function isPremiumSubscriber() {
-  return false;
-}
-
-function hideAdsForPremium() {
-  // Nada a fazer: não há mais assinantes premium.
-}
-
-/* =========================
-   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-   ========================= */
-function initializeMultiplexAds() {
-  if (isPremiumSubscriber()) return;
-  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
-    if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
-    ad.dataset.multiplexInitialized = "true";
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (error) {
-      delete ad.dataset.multiplexInitialized;
-      console.warn("Falha ao inicializar o AdSense Multiplex:", error);
-    }
-  });
-}
+// O plano Premium não é decidido por stubs locais.
+// A assinatura é resolvida pelo Auth + billing-access; o módulo de anúncios
+// permanece independente do entitlement para não transformar publicidade em
+// mecanismo de autorização.
 
 /* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
+   MODO ADMIN + GOOGLE TAG + CONSENT (OTIMIZADO PARA INP)
    ========================================================= */
 
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
-  hideAdsForPremium();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
     new URLSearchParams(window.location.search).get('admin') === '1'
@@ -1483,11 +1616,10 @@ function initLazyLoadServices() {
     var savedConsent = localStorage.getItem("cookieConsent");
     var isRefused = (savedConsent === "refused");
     var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+    var analyticsBlocked = isRefused || (isManaged && localStorage.getItem("analytics_storage") === "denied");
 
     window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
+        window.dataLayer = window.dataLayer || [];
 
     function gtag() {
       dataLayer.push(arguments);
@@ -1499,7 +1631,7 @@ function initLazyLoadServices() {
       window.__metricsLoaded = true;
 
       var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
+      var adState = "denied";
 
       var s = document.createElement("script");
       s.async = true;
@@ -1527,43 +1659,18 @@ function initLazyLoadServices() {
       console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
     }
 
-    function loadAdSenseOnce() {
-      if (adsBlocked || isPremiumSubscriber()) return;
-
-      // Inicializa o multiplex imediatamente. O push({}) é seguro antes
-      // ou depois do script carregar; o guard interno evita push duplicado.
-      initializeMultiplexAds();
-
-      if (window.__adsenseLoaded) return;
-      window.__adsenseLoaded = true;
-
-      var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-      if (existingAdSense) return;
-
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      ad.addEventListener("load", function () {
-        initializeMultiplexAds();
-      }, { once: true });
-      document.head.appendChild(ad);
-      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
-    }
-
     // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
-    // Envolvemos o carregamento para não bloquear a Thread Principal
+    // O carregamento de analytics permanece adiado para não bloquear a interação.
+    // O carregamento de analytics permanece separado da publicidade, que está desativada.
     function executeServices() {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(function () {
           loadAnalytics();
-          loadAdSenseOnce();
         });
       } else {
         setTimeout(function () {
           loadAnalytics();
-          loadAdSenseOnce();
-        }, 100); // Pequeno atraso para liberar a interação
+        }, 100);
       }
     }
 
@@ -1579,7 +1686,7 @@ function initLazyLoadServices() {
     // Verifica se é o robô do Lighthouse/PageSpeed analisando o site
     const isPageSpeed = navigator.userAgent.includes("Lighthouse") || navigator.userAgent.includes("Chrome-Lighthouse") || navigator.userAgent.includes("Googlebot");
 
-    if (!adsBlocked) {
+    if (!analyticsBlocked) {
       window.addEventListener("scroll", onUserInteraction, {
         passive: true
       });
@@ -1602,17 +1709,11 @@ function initLazyLoadServices() {
 
     window.applyConsent = function (consent) {
       gtag("consent", "update", consent);
-      if (consent.ad_storage === "granted") {
-        adsBlocked = false;
+      if (consent.analytics_storage === "granted") {
         onUserInteraction();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle")
-          .forEach(ad => {
-            ad.style.display = "none";
-            ad.innerHTML = "";
-          });
       }
+      // A preferência ad_storage continua registrada para compatibilidade com o
+      // modal de consentimento, mas o runtime atual não inicia publicidade.
       localStorage.setItem("analytics_storage", consent.analytics_storage);
       localStorage.setItem("ad_storage", consent.ad_storage);
     }

@@ -541,24 +541,16 @@
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
       var isAccountRoute = normalizedReturn.indexOf("/conta/") === 0;
-      var premiumPath = normalizedReturn;
-      var parts = premiumPath.split("/").filter(Boolean);
-      var languages = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
-      if(parts.length > 1 && languages[parts[0]]) {
-        premiumPath = "/" + parts.slice(1).join("/");
-      }
-      var isPremiumRoute = !!(
-        window.__PREMIUM_PATHS &&
-        window.__PREMIUM_PATHS[premiumPath]
-      );
+      var isLoginRoute = /^\/conta\/login\.html$/i.test(normalizedReturn);
 
+      // Preserve o destino solicitado para qualquer página da conta, exceto
+      // o próprio login. Isso permite voltar diretamente a Configurações,
+      // Favoritos, Histórico ou Assinatura após autenticar.
       if (
-        !isAccountRoute &&
+        !isLoginRoute &&
         normalizedReturn !== "/" &&
         normalizedReturn !== localizedHome
       ) {
-        targetUrl = returnUrl;
-      } else if (isPremiumRoute) {
         targetUrl = returnUrl;
       }
     }
