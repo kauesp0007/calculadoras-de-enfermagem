@@ -51,6 +51,7 @@
          var generation=++_hydrationGeneration;
          _currentUser=user||null;
          if(!user){
+           _hydrationPromise=Promise.resolve();
            _userProfile=null;
            _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:true};
            _clearLocalCache();
