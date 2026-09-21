@@ -179,7 +179,7 @@ var DATA="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/account-data",us
 var R=function(key,vars){return window.AccountRuntimeI18n?window.AccountRuntimeI18n.t(key,vars):key};
 function $(id){return document.getElementById(id);}
 function race(p,m){var timer;return Promise.race([p,new Promise(function(_,reject){timer=setTimeout(function(){reject(new Error("timeout"));},m);})]).finally(function(){clearTimeout(timer);});}
-async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race(window.Auth.init(),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
+async function session(){if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await race((window.Auth.whenReady?window.Auth.whenReady():window.Auth.init()),10000);return window.Auth.currentUser?window.Auth.currentUser():null;}
 async function req(method,body){var token=await race(user.getIdToken(false),6000),controller=new AbortController(),timer=setTimeout(function(){controller.abort();},8000);try{var r=await fetch(DATA+"?resource=profile",{method:method||"GET",headers:{Authorization:"Bearer "+token,Accept:"application/json","Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body),cache:"no-store",signal:controller.signal}),d=await r.json().catch(function(){return{}});if(!r.ok)throw new Error(d.error||"request_"+r.status);return d;}finally{clearTimeout(timer);}}
 function saveState(text,error){var x=$("settings-save-state");if(!x)return;x.textContent=text;x.className="text-xs font-bold account-save-state-spacer "+(error?"text-red-600":"text-slate-500");}
 function draftKey(){return user?"accountSettingsDraft:"+String(user.uid):"accountSettingsDraft";}
