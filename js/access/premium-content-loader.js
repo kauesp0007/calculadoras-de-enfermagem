@@ -3,6 +3,9 @@
   window.__IS_PREMIUM_ROUTE = true;
   var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/premium-content";
   var MAX_ATTEMPTS=3;
+  var AUTH_TIMEOUT_MS=15000;
+  var TOKEN_TIMEOUT_MS=10000;
+  var REQUEST_TIMEOUT_MS=12000;
   var AUTH_SCRIPTS=[
     "/js/firebase/firebase-init.js",
     "/js/auth/auth-session.js",
@@ -79,15 +82,26 @@
     if(!window.Auth||typeof window.Auth.init!=="function") throw new Error("auth_bootstrap_failed");
     await window.Auth.init();
   }
-  async function request(token,key){
-    return fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey()),{
-      headers:{Authorization:"Bearer "+token,Accept:"text/html"},
-      cache:"no-store"
+  function withTimeout(promise,ms,label){
+    return new Promise(function(resolve,reject){
+      var timer=setTimeout(function(){reject(new Error(label+"_timeout"));},ms);
+      Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(error){clearTimeout(timer);reject(error);});
     });
+  }
+  async function request(token,key){
+    var controller=typeof AbortController==="function"?new AbortController():null;
+    var timer=setTimeout(function(){if(controller)controller.abort();},REQUEST_TIMEOUT_MS);
+    try{
+      return await fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey()),{
+        headers:{Authorization:"Bearer "+token,Accept:"text/html"},
+        cache:"no-store",
+        signal:controller?controller.signal:undefined
+      });
+    }finally{clearTimeout(timer);}
   }
   async function load(){
     try{
-      await ensureAuth();
+      await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"auth_bootstrap");
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
 
@@ -95,7 +109,7 @@
       // Ela valida diretamente token + identidade de billing + entitlement.
       // Uma falha transitória em billing-access não pode bloquear um assinante
       // válido antes que a própria entrega protegida seja consultada.
-      var token=await user.getIdToken(false);
+      var token=await withTimeout(user.getIdToken(false),TOKEN_TIMEOUT_MS,"token");
       var currentKey=pathKey();
       var canonicalKey=canonicalPathKey();
       var res=await request(token,currentKey);
@@ -108,7 +122,7 @@
       }
 
       if(res.status===401){
-        token=await user.getIdToken(true);
+        token=await withTimeout(user.getIdToken(true),TOKEN_TIMEOUT_MS,"token_refresh");
         res=await request(token,currentKey);
         if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
           res=await request(token,canonicalKey);
@@ -121,7 +135,7 @@
         if(typeof auth.refreshProfile==="function"){
           try{
             await auth.refreshProfile();
-            token=await user.getIdToken(true);
+            token=await withTimeout(user.getIdToken(true),TOKEN_TIMEOUT_MS,"token_refresh");
             res=await request(token,currentKey);
             if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
               res=await request(token,canonicalKey);
@@ -141,7 +155,7 @@
       if(res.status>=500){
         for(var attempt=2;attempt<=MAX_ATTEMPTS&&res.status>=500;attempt++){
           await new Promise(function(resolve){setTimeout(resolve,500*attempt);});
-          res=await request(await user.getIdToken(false),currentKey);
+          res=await request(await withTimeout(user.getIdToken(false),TOKEN_TIMEOUT_MS,"token_retry"),currentKey);
         }
       }
       if(res.status===401){login();return;}
