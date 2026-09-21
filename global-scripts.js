@@ -109,6 +109,122 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   }
 };
 
+// Garante que os novos simulados Premium permaneçam descobríveis mesmo quando
+// um menu traduzido/protegido ainda estiver defasado. Não altera os arquivos
+// menu-global.html: apenas completa o DOM já injetado.
+window.__ENSURE_SIMULATOR_MENU_LINKS = function (container) {
+  if (!container || !container.querySelector) return;
+  var menu = container.querySelector("#submenu-simulados-mobile");
+  if (!menu) return;
+
+  var lang = String(window.__LANG || "pt").toLowerCase();
+  var labels = {
+    pt: {
+      bloco: "Simulado de Bloco Operatório",
+      sim4: "2° Simulado para Técnicos de enfermagem"
+    },
+    en: {
+      bloco: "Operating Room Practice Exam",
+      sim4: "2nd Practice Exam for LPNs/Techs"
+    },
+    es: {
+      bloco: "Simulacro de Bloque Operatorio",
+      sim4: "2.º Simulacro para Técnicos de Enfermería"
+    },
+    fr: {
+      bloco: "Examen blanc de bloc opératoire",
+      sim4: "2e examen blanc pour aides-soignants"
+    },
+    de: {
+      bloco: "Prüfungssimulation für den OP-Bereich",
+      sim4: "2. Prüfungssimulation für Pflegeassistenz"
+    },
+    it: {
+      bloco: "Simulazione di Sala Operatoria",
+      sim4: "2ª Simulazione per Tecnici Infermieristici"
+    },
+    hi: {
+      bloco: "ऑपरेशन थिएटर मॉक टेस्ट",
+      sim4: "तकनीकी नर्सों के लिए दूसरा मॉक टेस्ट"
+    },
+    zh: {
+      bloco: "手术室模拟考试",
+      sim4: "护理技术员第二次模拟考试"
+    },
+    ja: {
+      bloco: "手術室模擬試験",
+      sim4: "看護技術者向け第2回模擬試験"
+    },
+    ru: {
+      bloco: "Пробный экзамен по операционному блоку",
+      sim4: "2-й пробный экзамен для помощников медсестры"
+    },
+    ko: {
+      bloco: "수술실 모의고사",
+      sim4: "간호기술자를 위한 제2회 모의고사"
+    },
+    tr: {
+      bloco: "Ameliyathane Deneme Sınavı",
+      sim4: "Sağlık Bakım Teknisyenleri için 2. Deneme Sınavı"
+    },
+    nl: {
+      bloco: "Proefexamen operatiekamer",
+      sim4: "2e simulatietoets voor verzorgenden"
+    },
+    pl: {
+      bloco: "Test próbny z bloku operacyjnego",
+      sim4: "2. test próbny dla techników pielęgniarstwa"
+    },
+    sv: {
+      bloco: "Prov om operationssjukvård",
+      sim4: "2:a övningsprovet för undersköterskor"
+    },
+    id: {
+      bloco: "Simulasi Kamar Operasi",
+      sim4: "Simulasi Kedua untuk Teknisi Keperawatan"
+    },
+    vi: {
+      bloco: "Bài thi thử về Phòng mổ",
+      sim4: "Bài thi thử số 2 cho Kỹ thuật viên Điều dưỡng"
+    },
+    uk: {
+      bloco: "Практичний іспит з операційного блоку",
+      sim4: "2-й практичний іспит для техніків сестринської справи"
+    },
+    ar: {
+      bloco: "اختبار تجريبي لغرفة العمليات",
+      sim4: "الاختبار التجريبي الثاني لفنيي التمريض"
+    }
+  };
+  var map = labels[lang] || labels.pt;
+
+  function add(path, text) {
+    var found = Array.prototype.some.call(menu.querySelectorAll("a[href]"), function (a) {
+      try {
+        var href = new URL(a.getAttribute("href") || "", window.location.origin).pathname;
+        return href === path;
+      } catch (_) {
+        return (a.getAttribute("href") || "").replace(/^[^/]/, "/") === path;
+      }
+    });
+    if (found) return;
+
+    var li = document.createElement("li");
+    var a = document.createElement("a");
+    li.setAttribute("role", "none");
+    a.setAttribute("role", "menuitem");
+    a.href = path;
+    a.className = "block px-4 !py-0.5 text-gray-700 hover:bg-gray-100";
+    a.textContent = text;
+    li.appendChild(a);
+    menu.appendChild(li);
+  }
+
+  add("/simulado_bloco-operatorio.html", map.bloco);
+  add("/simulado-de-enfermagem4.html", map.sim4);
+};
+
+
 // Premium pages bootstrap authentication through premium-content-loader.js.
 // The former second global Firebase bootstrap was removed to prevent competing
 // auth initialization paths and transient Free decisions.
@@ -276,6 +392,8 @@ document.addEventListener("DOMContentLoaded", function () {
       window.requestAnimationFrame(() => {
         o.innerHTML = e;
         // Corrige links relativos do menu para páginas em subpastas de idioma
+        if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
+        if (window.__ENSURE_SIMULATOR_MENU_LINKS) window.__ENSURE_SIMULATOR_MENU_LINKS(o);
         if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
         initializeNavigationMenu();
         // Inicializa auth no menu (não bloqueante)
