@@ -76,7 +76,7 @@ serve(async req=>{
       if(!allowed.includes(file.type))throw new Error("avatar_type_not_allowed");
       if(file.size>5242880)throw new Error("avatar_too_large");
       const ext=file.type==="image/png"?"png":file.type==="image/webp"?"webp":"jpg";
-      const profile=await ensureProfile(u),timestamp=Date.now(),path=`avatars/${u.uid}/${timestamp}.${ext}`;
+      const profile=await ensureProfile(u),path=`avatars/${crypto.randomUUID()}.${ext}`;
       const storage=db().storage.from("avatars-assinantes");
       const bytes=new Uint8Array(await file.arrayBuffer());
       const {data:upload,error:uploadError}=await storage.upload(path,bytes,{contentType:file.type,cacheControl:"31536000",upsert:false});
