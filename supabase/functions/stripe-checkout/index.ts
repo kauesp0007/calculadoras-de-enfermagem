@@ -1,3 +1,4 @@
+import { claimCheckout, releaseCheckout, completeCheckout } from "../_shared/billing-checkout-lock.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
@@ -9,6 +10,7 @@ const FB=Deno.env.get("FIREBASE_PROJECT_ID")??"calculadoras-enfermagem";
 const SITE="https://www.calculadorasdeenfermagem.com.br";
 const INTERNATIONAL=["en","es","fr","de","it","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"];
 const EUR=["tr","nl","pl","ru","fr","es","de","it","uk","sv"];
+const STRIPE_LOCALES={en:"en",es:"es",fr:"fr",de:"de",it:"it",ja:"ja",zh:"zh",hi:"auto",ar:"auto",ru:"ru",tr:"tr",ko:"ko",nl:"nl",pl:"pl",sv:"sv",id:"id",vi:"vi",uk:"auto"};
 const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com.br","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
 const db=()=>createClient(SUPABASE_URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
@@ -28,12 +30,16 @@ async function stripe(path:string,init:RequestInit={}){
   const r=await fetch("https://api.stripe.com/v1"+path,{...init,headers:{Authorization:`Bearer ${STRIPE}`,"Content-Type":"application/x-www-form-urlencoded",...(init.headers||{})}});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d?.error?.message||`stripe_${r.status}`);return d;
 }
-function priceFor(lang:string){const id=EUR.includes(lang)?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");if(!id)throw new Error("stripe_price_not_configured");return id;}
+function priceFor(lang:string){const currency=EUR.includes(lang)?"EUR":"USD";const id=currency==="EUR"?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");if(!id)throw new Error("stripe_price_not_configured");return {id,currency};}
+function stripeLocale(lang:string){return STRIPE_LOCALES[lang as keyof typeof STRIPE_LOCALES]||"auto";}
 serve(async req=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});
   if(req.method!=="POST")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
+  let identityId="";
+  let checkoutRef="";
+  let lockClaimed=false;
   try{
-    const u=await firebaseUser(req);const id=await identity(u);
+    const u=await firebaseUser(req);const id=await identity(u);identityId=id;
     const body=await req.json().catch(()=>({}));const lang=String(body?.lang||"").toLowerCase();
     if(!INTERNATIONAL.includes(lang))throw new Error("unsupported_international_language");
     const {data:ent}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
@@ -41,23 +47,30 @@ serve(async req=>{
     const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
     if(existing?.length)throw new Error("active_billing_flow");
     const price=priceFor(lang);
-    const ref="premium_"+crypto.randomUUID();
-    const ins=await db().from("billing_subscriptions").insert({user_id:id,provider:"stripe",external_id:ref,status:"checkout_pending",plan:"premium",currency:null,metadata:{lang,external_reference:ref,price_id:price}});
+    if(!await claimCheckout("stripe",id,1800))throw new Error("active_billing_flow");
+    lockClaimed=true;
+    const ref="premium_"+crypto.randomUUID();checkoutRef=ref;
+    const ins=await db().from("billing_subscriptions").insert({user_id:id,provider:"stripe",external_id:ref,status:"checkout_pending",plan:"premium",currency:price.currency,metadata:{lang,external_reference:ref,price_id:price.id,currency:price.currency}});
     if(ins.error)throw ins.error;
     const form=new URLSearchParams({
-      mode:"subscription","line_items[0][price]":price,"line_items[0][quantity]":"1",
+      mode:"subscription","line_items[0][price]":price.id,"line_items[0][quantity]":"1",
       client_reference_id:id,"metadata[user_id]":id,"metadata[firebase_uid]":u.uid,"metadata[lang]":lang,"metadata[plan]":"premium",
       "subscription_data[metadata][user_id]":id,"subscription_data[metadata][firebase_uid]":u.uid,"subscription_data[metadata][lang]":lang,"subscription_data[metadata][plan]":"premium",
-      customer_email:String(u.email||""),locale:"auto",
+      customer_email:String(u.email||""),locale:stripeLocale(lang),
       success_url:`${SITE}/boas_vindas_assinante.html?lang=${encodeURIComponent(lang)}&provider=stripe&payment=success`,
       cancel_url:`${SITE}/conta/assinatura.html?lang=${encodeURIComponent(lang)}&stripe=cancel`
     });
     const session=await stripe("/checkout/sessions",{method:"POST",body:form});
     if(!session?.id||!session?.url)throw new Error("checkout_creation_failed");
-    const upd=await db().from("billing_subscriptions").update({external_id:String(session.subscription||ref),metadata:{lang,external_reference:ref,price_id:price,checkout_session_id:String(session.id)},updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",ref);
+    const upd=await db().from("billing_subscriptions").update({external_id:String(session.subscription||ref),metadata:{lang,external_reference:ref,price_id:price.id,currency:price.currency,checkout_session_id:String(session.id)},currency:price.currency,updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",ref);
     if(upd.error)throw upd.error;
+    await completeCheckout("stripe",id);
+    lockClaimed=false;
     return new Response(JSON.stringify({url:session.url,id:session.id}),{status:200,headers:H});
   }catch(e){
-    return new Response(JSON.stringify({error:String((e as Error)?.message||e)}),{status:400,headers:H});
+    const message=String((e as Error)?.message||e);
+    if(checkoutRef)await db().from("billing_subscriptions").update({status:"checkout_failed",metadata:{error:message.slice(0,1000)},updated_at:new Date().toISOString()}).eq("provider","stripe").eq("external_id",checkoutRef);
+    if(lockClaimed&&identityId)await releaseCheckout("stripe",identityId,message);
+    return new Response(JSON.stringify({error:message}),{status:400,headers:H});
   }
 });
