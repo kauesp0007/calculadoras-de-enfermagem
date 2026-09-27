@@ -60,17 +60,17 @@ const CANONICAL_PRINTABLE_FORMS = new Set([
 function validateCanonicalPrintable(rel, html) {
   if (!CANONICAL_PRINTABLE_FORMS.has(rel)) return;
   const expected = "https://www.calculadorasdeenfermagem.com.br/" + rel;
-  if (!/<meta\\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) {
+  if (!/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) {
     throw new Error("Formulário canônico sem meta description: " + rel);
   }
-  const canonical = html.match(/<link\\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
+  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
   if (!canonical || canonical[1] !== expected) {
     throw new Error("Formulário canônico sem canonical autorreferente: " + rel);
   }
   if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
     throw new Error("Formulário canônico sem hreflang pt-br/x-default: " + rel);
   }
-  if (!/<script\\b[^>]*type=["']application\\/ld\\+json["']/i.test(html)) {
+  if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) {
     throw new Error("Formulário canônico sem JSON-LD: " + rel);
   }
   const markers = (html.match(/MULTIPLEX_AD_RESERVED_START/gi)||[]).length;
