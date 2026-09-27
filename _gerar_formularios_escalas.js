@@ -322,16 +322,29 @@ function tornarInterfaceBilingue(html, e) {
         out = out.split(ORIG_KEYWORDS).join(e.keywords);
         out = out.split(ORIG_TWITTER).join(e.twitter);
         out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
+
+        // Substituições específicas do PDF e da rota.
         out = out.split("/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Downton-v2.pdf").join(e.pdf);
-        // Cada formulário deve carregar exclusivamente o PDF correspondente à sua escala.
-        // O template canônico de Downton é apenas a estrutura visual; o PDF é trocado pelo arquivo
-        // homônimo existente em /FORMULARIOS_DE_ESCALAS.
-        out = out.split("/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Downton-v2.pdf")
-            .join(e.pdf);
         out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
+
+        // O template visual é Downton, mas o resultado final nunca pode conter
+        // qualquer referência residual a Downton.
+        out = out.replace(/Escala de Downton/gi, e.fullName);
+        out = out.replace(/Downton/gi, e.fullName);
+        out = out.replace(/formulario_escala_de_downton/gi, `formulario_escala_de_${e.slug}`);
+        out = out.replace(/ficha_impressao_escala_downton-v2/gi, `ficha_impressao_escala_${e.slug}`);
 
         out = tornarInterfaceBilingue(out, e);
         out = ensureMultiplexBlock(out);
+
+        const expectedPdf = e.pdf.split("/").pop().toLowerCase();
+        const wrongScale = /downton/i.test(out);
+        const wrongPdf = !out.toLowerCase().includes(expectedPdf);
+        if (wrongScale || wrongPdf) {
+            throw new Error(
+                `Integridade rejeitada para ${e.slug}: resíduo Downton=${wrongScale}; PDF esperado=${expectedPdf}; PDF presente=${!wrongPdf}`
+            );
+        }
 
         const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
         fs.writeFileSync(file, out, "utf8");
