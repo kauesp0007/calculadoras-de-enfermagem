@@ -95,6 +95,41 @@ function validateFull(rel, html, source) {
   if (!/id=["']footer-placeholder["']/i.test(html)) fail(source + ": footer-placeholder ausente: " + rel);
 }
 
+function validateSemanticForm(rel, html) {
+  // A página Downton é o template-base, mas não pode contaminar nenhuma
+  // outra escala. Esta checagem existe justamente para detectar a falha
+  // histórica em que a shell estava correta, mas o conteúdo privado estava errado.
+  const expectedPdf = {
+    "formulario_escala_de_glasgow.html": "Ficha_Impressao_Escala_Glasgow.pdf",
+    "formulario_escala_de_gosnell.html": "Ficha_Impressao_Escala_Gosnell.pdf",
+    "formulario_escala_de_hamilton.html": "Ficha_Impressao_Escala_Hamilton.pdf",
+    "formulario_escala_de_hendrich.html": "Ficha_Impressao_Escala_Hendrich.pdf",
+    "formulario_escala_de_humpty.html": "Ficha_Impressao_Escala_Humpty_Dumpty.pdf",
+    "formulario_escala_de_johns.html": "Ficha_Impressao_Escala_Johns_Hopkins.pdf",
+    "formulario_escala_de_jouvet.html": "Ficha_Impressao_Escala_Jouvet.pdf",
+    "formulario_escala_de_lachs.html": "Ficha_Impressao_Escala_Lachs.pdf",
+    "formulario_escala_de_lanss.html": "Ficha_Impressao_Escala_LANSS.pdf",
+    "formulario_escala_de_lawton.html": "Ficha_Impressao_Escala_Lawton.pdf",
+    "formulario_escala_de_meows.html": "Ficha_Impressao_Escala_MEOWS.pdf",
+    "formulario_escala_de_news.html": "Ficha_Impressao_Escala_NEWS.pdf",
+    "formulario_escala_de_nips.html": "Ficha_Impressao_Escala_NIPS.pdf",
+    "formulario_escala_de_downton.html": "Ficha_Impressao_Escala_Downton-v2.pdf"
+  };
+
+  const pdf = expectedPdf[rel];
+  if (!pdf) return;
+
+  const lower = html.toLowerCase();
+
+  if (rel !== "formulario_escala_de_downton.html" && lower.includes("downton")) {
+    fail("Conteúdo Premium contaminado por Downton: " + rel);
+  }
+
+  if (!lower.includes(pdf.toLowerCase())) {
+    fail("PDF canônico esperado não encontrado no conteúdo Premium: " + rel + " -> " + pdf);
+  }
+}
+
 function validatePublicShell(rel, html) {
   if (!/<html\b[^>]*lang=["']pt-BR["']/i.test(html)) fail("Shell público sem lang pt-BR: " + rel);
   if (!/<title>[^<]+<\/title>/i.test(html)) fail("Shell público sem title: " + rel);
@@ -144,6 +179,7 @@ async function main() {
 
   for (const rel of FORM_PATHS) {
     validateFull(rel, byPath.get(rel), "Catálogo Premium");
+    validateSemanticForm(rel, byPath.get(rel));
   }
 
   if (publicMode) {
