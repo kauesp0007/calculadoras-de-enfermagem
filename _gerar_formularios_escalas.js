@@ -172,33 +172,30 @@ function tornarInterfaceBilingue(html, e) {
 
 
 (async function(){
-const base = await loadFullTemplate();
-for (const e of escalas) {
-    const aspect = JSON.stringify(e.aspect);
-    let out = base;
+    const base = await loadFullTemplate();
 
-    // Título completo (title tag + schema name)
-    out = out.split("Formulário da Escala de Downton para Imprimir - Calculadoras de Enfermagem").join(`Formulário da ${e.fullName} para Imprimir - Calculadoras de Enfermagem`);
-    // Título curto (og:title, twitter:title, caption)
-    out = out.split("Formulário da Escala de Downton para Imprimir").join(`Formulário da ${e.fullName} para Imprimir`);
-    // Breadcrumb
-    out = out.split("Formulário da Escala de Downton").join(`Formulário da ${e.fullName}`);
-    // Descrição
-    out = out.split(ORIG_DESC).join(e.description);
-    // Keywords
-    out = out.split(ORIG_KEYWORDS).join(e.keywords);
-    // Twitter description
-    out = out.split(ORIG_TWITTER).join(e.twitter);
-    // About (Schema.org)
-    out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
-    // Slug nas URLs
-    out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
-    out = tornarInterfaceBilingue(out, e);
+    for (const e of escalas) {
+        const aspect = JSON.stringify(e.aspect);
+        let out = base;
 
-    const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
-    fs.writeFileSync(file, out, "utf8");
-    console.log("OK -> " + path.basename(file));
-}
+        out = out.split("Formulário da Escala de Downton para Imprimir - Calculadoras de Enfermagem")
+            .join(`Formulário da ${e.fullName} para Imprimir - Calculadoras de Enfermagem`);
+        out = out.split("Formulário da Escala de Downton para Imprimir")
+            .join(`Formulário da ${e.fullName} para Imprimir`);
+        out = out.split("Formulário da Escala de Downton")
+            .join(`Formulário da ${e.fullName}`);
+        out = out.split(ORIG_DESC).join(e.description);
+        out = out.split(ORIG_KEYWORDS).join(e.keywords);
+        out = out.split(ORIG_TWITTER).join(e.twitter);
+        out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
+        out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
 
-console.log("Concluído: " + escalas.length + " arquivos gerados.");
+        out = tornarInterfaceBilingue(out, e);
+
+        const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
+        fs.writeFileSync(file, out, "utf8");
+        console.log("OK -> " + path.basename(file));
+    }
+
+    console.log("Concluído: " + escalas.length + " arquivos gerados.");
 })();
