@@ -9,7 +9,40 @@ const path = require("path");
 
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
-const base = fs.readFileSync(BASE, "utf8");
+
+async function loadFullTemplate() {
+    const local = fs.readFileSync(BASE, "utf8");
+    if (!/premium-content-loader\.js/i.test(local) && !/premium-content-placeholder/i.test(local)) {
+        return local;
+    }
+
+    const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+        throw new Error(
+            "O template formulario_escala_de_downton.html está shellificado. " +
+            "Defina SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY para recuperar o modelo completo privado."
+        );
+    }
+
+    const url = SUPABASE_URL +
+        "/rest/v1/premium_content_pages?select=content&path=eq.formulario_escala_de_downton.html&limit=1";
+    const response = await fetch(url, {
+        headers: {
+            apikey: SERVICE_KEY,
+            Authorization: "Bearer " + SERVICE_KEY,
+            Accept: "application/json"
+        }
+    });
+    if (!response.ok) {
+        throw new Error("Falha ao recuperar template Premium: HTTP " + response.status);
+    }
+    const rows = await response.json();
+    if (!Array.isArray(rows) || !rows[0] || !rows[0].content) {
+        throw new Error("Template Premium de Downton não encontrado no catálogo privado.");
+    }
+    return rows[0].content;
+}
 
 const escalas = [
     {
@@ -82,7 +115,7 @@ const ORIG_KEYWORDS = "Escala de Downton, escala downton, risco de queda, idosos
 const ORIG_TWITTER = "Baixe ou imprima a ficha da Escala de Downton para avaliação de risco de queda em idosos em uma página.";
 const ORIG_ABOUT = '"name":"Escala de Downton","aspect":["Risco de Queda","Gerontologia","Escore Clínico"]';
 
-for (const e of escalas) {
+(async function(){\nconst base = await loadFullTemplate();\nfor (const e of escalas) {
     const aspect = JSON.stringify(e.aspect);
     let out = base;
 
@@ -108,4 +141,4 @@ for (const e of escalas) {
     console.log("OK -> " + path.basename(file));
 }
 
-console.log("Concluído: " + escalas.length + " arquivos gerados.");
+console.log("Concluído: " + escalas.length + " arquivos gerados.");\n})();
