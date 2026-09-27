@@ -20,6 +20,7 @@ import requests
 ROOT = Path(__file__).resolve().parent.parent
 
 FORMULARIOS = [
+    "formulario_avaliacao_da_cabeca_aos_pes.html",
     "formulario_bishop.html",
     "formulario_bps.html",
     "formulario_cam.html",
@@ -72,7 +73,7 @@ def main() -> int:
 
     headers = {
         "apikey": service_key,
-        "Authorization": f"Bearer {service_key}",
+        "Authorization": "Bearer " + service_key,
         "Accept": "application/json",
     }
 
