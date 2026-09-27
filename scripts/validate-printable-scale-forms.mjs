@@ -71,8 +71,8 @@ function validateFull(rel, html, source) {
   const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
   if (!canonical || canonical[1] !== expected) fail(source + ": canonical incorreto/ausente: " + rel);
 
-  if (!new RegExp('hreflang=["\\']pt-br["\\'][^>]*', "i").test(html) ||
-      !new RegExp('hreflang=["\\']x-default["\\'][^>]*', "i").test(html)) {
+  if (!/hreflang=["']pt-br["']/i.test(html) ||
+      !/hreflang=["']x-default["']/i.test(html)) {
     fail(source + ": hreflang pt-br/x-default ausente: " + rel);
   }
 
