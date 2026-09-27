@@ -48,6 +48,38 @@ function count(s, sub) {
     return s.split(sub).length - 1;
 }
 
+function bilíngue(pt, en) {
+    return `<span class="block">${pt}</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">${en}</span>`;
+}
+
+function substituirVisiveisComuns(html) {
+    const replacements = [
+        ["Pular para o conteúdo principal", bilíngue("Pular para o conteúdo principal", "Skip to main content")],
+        ["Formulários", bilíngue("Formulários", "Forms")],
+        ["Formulário para impressão", bilíngue("Formulário para impressão", "Printable form")],
+        ["★ Favoritar", bilíngue("★ Favoritar", "★ Favorite")],
+        ["↗ Compartilhar", bilíngue("↗ Compartilhar", "↗ Share")],
+        ["▣ Imprimir", bilíngue("▣ Imprimir", "▣ Print")],
+        ["⚑ Reportar correção", bilíngue("⚑ Reportar correção", "⚑ Report a correction")],
+        ["▤ Ver resultado", bilíngue("▤ Ver resultado", "▤ View result")],
+        ["▤ Ir para o formulário", bilíngue("▤ Ir para o formulário", "▤ Go to form")],
+        ["▤ Diagnósticos NANDA", bilíngue("▤ Diagnósticos NANDA", "▤ NANDA diagnoses")],
+        ["ⓘ Recursos sobre a escala", bilíngue("ⓘ Recursos sobre a escala", "ⓘ Scale resources")],
+        ["⌕ Evidências", bilíngue("⌕ Evidências", "⌕ Evidence")],
+        ["⇩ Downloads", bilíngue("⇩ Downloads", "⇩ Download")],
+        ["Sobre este formulário", bilíngue("Sobre este formulário", "About this form")],
+        ["Referências e evidências", bilíngue("Referências e evidências", "References and evidence")],
+        ["Referências", bilíngue("Referências", "References")],
+        ["Nota de governança", bilíngue("Nota de governança", "Governance note")],
+        ["Recursos sobre a escala", bilíngue("Recursos sobre a escala", "Scale resources")],
+        ["Informações", bilíngue("Informações", "Information")],
+        ["Acesso rápido", bilíngue("Acesso rápido", "Quick access")]
+    ];
+    let out = html;
+    for (const [src, dst] of replacements) out = out.split(src).join(dst);
+    return out;
+}
+
 for (const e of escalas) {
     const metaDesc = `Ficha da ${e.fullName} para ${e.topic}, visualização, preenchimento e impressão em PDF.`;
     const ogDesc = `Ficha da ${e.fullName} para ${e.topic}, visualização e impressão em PDF.`;
@@ -80,6 +112,26 @@ for (const e of escalas) {
 
     // Nome da escala (restante).
     out = out.split("Escala de Downton").join(e.fullName);
+
+    const inglesHero = {
+        glasgow: "Consciousness level assessment sheet for filling and printing.",
+        gosnell: "Fall risk assessment sheet for filling and printing.",
+        hamilton: "Anxiety intensity assessment sheet for filling and printing.",
+        hendrich: "Fall risk assessment sheet for hospitalized patients.",
+        humpty: "Pediatric fall risk assessment sheet.",
+        johns: "Adult fall risk assessment sheet.",
+        jouvet: "Consciousness level assessment sheet for filling and printing.",
+        lachs: "Older adult vulnerability assessment sheet.",
+        lanss: "Neuropathic pain assessment sheet.",
+        lawton: "Instrumental activities of daily living assessment sheet.",
+        meows: "Maternal clinical deterioration assessment sheet.",
+        news: "Patient clinical deterioration assessment sheet.",
+        nips: "Neonatal pain assessment sheet."
+    }[e.slug] || "Nursing assessment sheet for filling and printing.";
+
+    // Interface visível: português primeiro e inglês menor imediatamente abaixo.
+    out = substituirVisiveisComuns(out);
+    out = out.replace(heroH2, bilíngue(heroH2, inglesHero));
 
     const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
     fs.writeFileSync(file, out, "utf8");
