@@ -192,7 +192,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         else if (['mp4', 'webm', 'ogg'].includes(ext)) { bgHex = "#f3e8ff"; textHex = "#7e22ce"; icon = "fa-solid fa-video"; }
         else if (['png', 'jpg', 'jpeg', 'webp', 'gif'].includes(ext)) { bgHex = "#d1fae5"; textHex = "#047857"; icon = "fa-solid fa-image"; }
 
-        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} ARQUIVO ${label}</div>`;
+        fileTypeBadgeHtml = `<div class="inline-flex items-center gap-1.5 px-3 py-1 text-[11px] font-black rounded uppercase tracking-wider w-fit shadow-sm" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} <span>ARQUIVO ${label}</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">FILE ${label}</span></div>`;
     }
 
     const cat = String(item.categoria || "").toLowerCase().trim();
@@ -204,7 +204,7 @@ function gerarHtmlDoItem({ template, templateHash, item }) {
         <video controls preload="metadata" class="w-full rounded-lg shadow-sm" style="max-height: 600px; background-color: #0f172a;">
             <source src="${filePath}" type="video/mp4">
             <source src="${filePath}" type="video/webm">
-            O seu navegador não suporta a reprodução de vídeo.
+            <span>O seu navegador não suporta a reprodução de vídeo.</span><span class="block text-[0.85em]" lang="en">Your browser does not support video playback.</span>
         </video>`;
     } else {
         mediaPlayerHtml = `<img src="${imagePath}" alt="${titulo}" class="max-w-full h-auto object-contain rounded-lg shadow-sm" style="max-height: 600px;">`;
