@@ -112,6 +112,63 @@ const ORIG_KEYWORDS = "Escala de Downton, escala downton, risco de queda, idosos
 const ORIG_TWITTER = "Baixe ou imprima a ficha da Escala de Downton para avaliação de risco de queda em idosos em uma página.";
 const ORIG_ABOUT = '"name":"Escala de Downton","aspect":["Risco de Queda","Gerontologia","Escore Clínico"]';
 
+function bilíngue(pt, en) {
+    return '<span class="block">' + pt + '</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">' + en + '</span>';
+}
+
+function tornarInterfaceBilingue(html, e) {
+    const english = {
+        "Formulário para impressão": "Printable form",
+        "Formulários": "Forms",
+        "Sobre este formulário": "About this form",
+        "Adicionar aos favoritos": "Add to favorites",
+        "Favoritar": "Favorite",
+        "Compartilhar": "Share",
+        "Imprimir": "Print",
+        "Reportar correção": "Report a correction",
+        "Ver resultado": "View result",
+        "Ir para o formulário": "Go to form",
+        "Diagnósticos NANDA": "NANDA diagnoses",
+        "Recursos sobre a escala": "Scale resources",
+        "Evidências": "Evidence",
+        "Downloads": "Download",
+        "Referências e evidências": "References and evidence",
+        "Referências": "References",
+        "Nota de governança": "Governance note",
+        "Início": "Home"
+    };
+    let out = html;
+    for (const pt of Object.keys(english)) {
+        const en = english[pt];
+        const escaped = pt.split("").map(ch => "\\.^$*+?()[]{}|".includes(ch) ? "\\" + ch : ch).join("");
+        const re = new RegExp(">(\\s*)" + escaped + "(\\s*)<", "g");
+        out = out.replace(re, function(_match, before, after) {
+            return ">" + before + bilíngue(pt, en) + after + "<";
+        });
+    }
+    const heroPt = {
+        glasgow: "Ficha de avaliação do nível de consciência para preenchimento e impressão.",
+        gosnell: "Ficha de avaliação do risco de queda para preenchimento e impressão.",
+        hamilton: "Ficha de avaliação da intensidade de ansiedade para preenchimento e impressão.",
+        hendrich: "Ficha de avaliação do risco de queda em pacientes hospitalizados para preenchimento e impressão.",
+        humpty: "Ficha de avaliação do risco de queda em pacientes pediátricos para preenchimento e impressão.",
+        johns: "Ficha de avaliação do risco de queda em pacientes adultos para preenchimento e impressão.",
+        jouvet: "Ficha de avaliação do nível de consciência para preenchimento e impressão."
+    }[e.slug];
+    const heroEn = {
+        glasgow: "Consciousness level assessment sheet for filling and printing.",
+        gosnell: "Fall risk assessment sheet for filling and printing.",
+        hamilton: "Anxiety intensity assessment sheet for filling and printing.",
+        hendrich: "Fall risk assessment sheet for hospitalized patients.",
+        humpty: "Pediatric fall risk assessment sheet.",
+        johns: "Adult fall risk assessment sheet.",
+        jouvet: "Consciousness level assessment sheet for filling and printing."
+    }[e.slug];
+    if (heroPt && heroEn) out = out.split(heroPt).join(bilíngue(heroPt, heroEn));
+    return out;
+}
+
+
 (async function(){
 const base = await loadFullTemplate();
 for (const e of escalas) {
@@ -134,6 +191,7 @@ for (const e of escalas) {
     out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
     // Slug nas URLs
     out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
+    out = tornarInterfaceBilingue(out, e);
 
     const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
     fs.writeFileSync(file, out, "utf8");
