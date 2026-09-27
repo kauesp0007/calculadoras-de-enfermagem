@@ -3,7 +3,7 @@
  *
  * RESPONSABILIDADE: Cache local temporário dos favoritos (espelho do Firestore).
  *
- * O Firestore é SEMPRE a fonte oficial. O cache serve apenas para abrir rápido
+ * O Supabase PostgreSQL é SEMPRE a fonte oficial. O cache serve apenas para abrir rápido
  * e reduzir leituras. Usa o prefixo "auth_" para que o logout (clearCache do
  * auth-session.js) limpe tudo junto.
  */
