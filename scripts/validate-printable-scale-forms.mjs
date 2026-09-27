@@ -3,14 +3,7 @@
 
 /**
  * Validador canônico dos 30 formulários de escalas para impressão.
- *
  * O catálogo privado do Supabase é a fonte canônica do conteúdo Premium.
- * O HTML público é apenas o shell de proteção; por isso a validação separa:
- *   --catalog : conteúdo completo armazenado no catálogo privado
- *   --public  : shell público após shellificação
- *
- * O deploy deve falhar se qualquer um dos elementos SEO canônicos ou o
- * bloco Multiplex real do AdSense desaparecer.
  */
 
 const fs = require("node:fs");
@@ -62,27 +55,29 @@ function count(re, html) {
   return (html.match(re) || []).length;
 }
 
+function linkHas(html, rel, href) {
+  const wantedRel = String(rel).toLowerCase();
+  const wantedHref = String(href).toLowerCase();
+  return (html.match(/<link\b[^>]*>/gi) || []).some(raw => {
+    const tag = raw.toLowerCase();
+    return (tag.includes('rel="' + wantedRel + '"') || tag.includes("rel='" + wantedRel + "'")) &&
+           (tag.includes('href="' + wantedHref + '"') || tag.includes("href='" + wantedHref + "'"));
+  });
+}
+
 function validateFull(rel, html, source) {
   const expected = BASE + rel;
 
   if (!/<title>[^<]+<\/title>/i.test(html)) fail(source + ": sem <title>: " + rel);
   if (!/<meta\b[^>]*name=["']description["'][^>]*>/i.test(html)) fail(source + ": sem meta description: " + rel);
+  if (!linkHas(html, "canonical", expected)) fail(source + ": canonical incorreto/ausente: " + rel);
 
-  const canonical = (html.match(/<link\b[^>]*>/gi) || []).find(tag =>
-    /rel=["']canonical["']/i.test(tag) && new RegExp("href=[\"']" + expected.replace(/[.*+?^$\\{}()|[\]\\]/g, "\\  if (!/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) fail(source + ": sem meta description: " + rel);
-
-  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical || canonical[1] !== expected) fail(source + ": canonical incorreto/ausente: " + rel);") + "[\"']", "i").test(tag)
-  );
-  if (!canonical) fail(source + ": canonical incorreto/ausente: " + rel);
-
-  if (!/hreflang=["']pt-br["']/i.test(html) ||
-      !/hreflang=["']x-default["']/i.test(html)) {
+  if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
     fail(source + ": hreflang pt-br/x-default ausente: " + rel);
   }
 
   if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) fail(source + ": JSON-LD ausente: " + rel);
-  if (!(html.match(/<link\b[^>]*>/gi) || []).some(tag => /rel=["']icon["']/i.test(tag) && /href=["']\/favicon\.ico["']/i.test(tag))) fail(source + ": favicon ausente: " + rel);
+  if (!linkHas(html, "icon", "/favicon.ico")) fail(source + ": favicon ausente: " + rel);
   if (!/<script\b[^>]*src=["']\/global-scripts\.js["'][^>]*>/i.test(html)) fail(source + ": global-scripts.js ausente: " + rel);
   if (!/<script\b[^>]*src=["']\/lang-selector\.js["'][^>]*>/i.test(html)) fail(source + ": lang-selector.js ausente: " + rel);
 
@@ -105,17 +100,13 @@ function validatePublicShell(rel, html) {
   if (!/<meta\b[^>]*name=["']description["']/i.test(html)) fail("Shell público sem meta description: " + rel);
 
   const expected = BASE + rel;
-  const canonical = (html.match(/<link\b[^>]*>/gi) || []).find(tag =>
-    /rel=["']canonical["']/i.test(tag) && new RegExp("href=[\"']" + expected.replace(/[.*+?^$\\{}()|[\]\\]/g, "\\  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical || canonical[1] !== expected) fail("Shell público sem canonical autorreferente: " + rel);") + "[\"']", "i").test(tag)
-  );
-  if (!canonical) fail("Shell público sem canonical autorreferente: " + rel);
+  if (!linkHas(html, "canonical", expected)) fail("Shell público sem canonical autorreferente: " + rel);
 
   if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
     fail("Shell público sem hreflang pt-br/x-default: " + rel);
   }
   if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) fail("Shell público sem JSON-LD: " + rel);
-  if (!/<link\b[^>]*rel=["']icon["'][^>]*href=["']\/favicon\.ico["']/i.test(html)) fail("Shell público sem favicon: " + rel);
+  if (!linkHas(html, "icon", "/favicon.ico")) fail("Shell público sem favicon: " + rel);
   if (!/<script\b[^>]*src=["']\/global-scripts\.js["'][^>]*>/i.test(html)) fail("Shell público sem global-scripts.js: " + rel);
   if (!/<script\b[^>]*src=["']\/lang-selector\.js["'][^>]*>/i.test(html)) fail("Shell público sem lang-selector.js: " + rel);
   if (!/<script\b[^>]*src=["']\/js\/access\/premium-content-loader\.js["'][^>]*>/i.test(html)) fail("Shell público sem premium-content-loader.js: " + rel);
@@ -124,8 +115,10 @@ function validatePublicShell(rel, html) {
 
 async function catalogRows() {
   if (!SUPABASE_URL || !SERVICE_KEY) fail("SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ausentes para validar o catálogo Premium.");
+
   const url = SUPABASE_URL + "/rest/v1/premium_content_pages?select=path,content&path=in.(" +
     FORM_PATHS.map(encodeURIComponent).join(",") + ")";
+
   const response = await fetch(url, {
     headers: {
       apikey: SERVICE_KEY,
@@ -133,6 +126,7 @@ async function catalogRows() {
       Accept: "application/json"
     }
   });
+
   if (!response.ok) fail("Supabase HTTP " + response.status + " ao consultar o catálogo Premium.");
   return await response.json();
 }
@@ -147,7 +141,9 @@ async function main() {
     fail("Catálogo Premium incompleto: " + missing.join(", "));
   }
 
-  for (const rel of FORM_PATHS) validateFull(rel, byPath.get(rel), "Catálogo Premium");
+  for (const rel of FORM_PATHS) {
+    validateFull(rel, byPath.get(rel), "Catálogo Premium");
+  }
 
   if (publicMode) {
     for (const rel of FORM_PATHS) {
