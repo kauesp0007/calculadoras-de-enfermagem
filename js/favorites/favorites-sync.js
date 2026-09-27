@@ -3,7 +3,7 @@
  *
  * RESPONSABILIDADE: Orquestração e sincronização dos favoritos.
  *
- * Mantém o estado em memória (uma vez por sessão), sincroniza com o Firestore
+ * Mantém o estado em memória (uma vez por sessão), sincroniza com o Supabase PostgreSQL
  * (fonte oficial) e atualiza o cache local + eventos automaticamente.
  *
  * USO:
@@ -144,7 +144,7 @@
     }
 
     /**
-     * Adiciona um favorito (grava Firestore + cache + eventos).
+     * Adiciona um favorito (grava no Supabase PostgreSQL + cache + eventos).
      * @param {object} pageContext
      * @returns {Promise<object|null>}
      */
@@ -177,7 +177,7 @@
     }
 
     /**
-     * Remove um favorito (grava Firestore + cache + eventos).
+     * Remove um favorito (grava no Supabase PostgreSQL + cache + eventos).
      * @param {string} pageId
      * @returns {Promise<void>}
      */
