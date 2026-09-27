@@ -28,10 +28,7 @@ function loadCanonicalTemplate() {
 }
 
 // DNS prefetch/preconnect (Core Web Vitals) — inserido após o viewport.
-const DNS_BLOCK = '<link href="//googleads.g.doubleclick.net" rel="dns-prefetch"/>
-<link href="//pagead2.googlesyndication.com" rel="dns-prefetch"/>
-<link href="//pagead2.googlesyndication.com" rel="preconnect" crossorigin/>
-';
+const DNS_BLOCK = '<link href="//googleads.g.doubleclick.net" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="preconnect" crossorigin/>\n';
 
 const escalas = [
     { slug: "glasgow", pdf: "Ficha_Impressao_Escala_Glasgow.pdf", fullName: "Escala de Coma de Glasgow", topic: "avaliação do nível de consciência", chip: "Escala de nível de consciência", menu: "Formulário da Escala de Glasgow" },
@@ -56,8 +53,7 @@ const viewport = '<meta content="width=device-width, initial-scale=1.0" name="vi
 if (!base0.includes(viewport)) {
     throw new Error("viewport meta não encontrado no template");
 }
-const base = base0.replace(viewport, viewport + "
-" + DNS_BLOCK);
+const base = base0.replace(viewport, viewport + "\n" + DNS_BLOCK);
 
 function count(s, sub) {
     return s.split(sub).length - 1;
