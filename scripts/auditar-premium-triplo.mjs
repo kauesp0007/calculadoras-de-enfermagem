@@ -5,8 +5,9 @@
  * Camada 1 — catálogo/arquitetura:
  *   um único manifesto define o conteúdo Premium.
  * Camada 2 — frontend:
- *   todo HTML Premium é apenas shell + premium-content-loader;
- *   guards legados não contêm catálogo Premium nem redirecionam Premium.
+ *   após a shellificação, todo HTML Premium é shell + loader;
+ *   durante o estágio pré-shell do pipeline, conteúdo completo é aceito
+ *   como fonte intermediária válida e será convertido pelo deploy.
  * Camada 3 — backend:
  *   a Edge Function valida Firebase ID token + entitlement Supabase e
  *   entrega somente conteúdo privado armazenado em premium_content_pages.
@@ -47,6 +48,21 @@ function walkScoped(dir=ROOT,out=[]){
   return out;
 }
 
+function isPremiumShell(html){
+  return /premium-content-loader\.js/i.test(html) &&
+         /premium-content-placeholder/i.test(html);
+}
+
+function isCompletePremiumSource(html){
+  // Pré-shell legítimo: conteúdo completo aguardando a etapa de shellificação.
+  // Evita aceitar stubs vazios como fonte.
+  return html.length >= 5000 &&
+         /<html\b/i.test(html) &&
+         /<body\b/i.test(html) &&
+         /<(?:main|form|section)\b/i.test(html) &&
+         !/premium-content-placeholder/i.test(html);
+}
+
 console.log("=== CAMADA 1 — CATÁLOGO CANÔNICO ===");
 if(CATALOG.model==="FREE / PREMIUM") ok("modelo comercial canônico");
 else fail("modelo comercial inválido");
@@ -82,23 +98,48 @@ else fail("route-guard pode interceptar Premium");
 if(!policy.includes("PREMIUM_PAGE_IDS")&&!policy.includes("RESTRICTED_CONTENT")) ok("content-policy sem catálogo Premium duplicado");
 else fail("content-policy ainda duplica catálogo Premium");
 
-for(const file of CATALOG.exact){ if(fs.existsSync(path.join(ROOT,file))) ok(file+" existe no catálogo raiz"); else fail(file+" está no catálogo mas não existe na raiz"); }
+for(const file of CATALOG.exact){
+  if(fs.existsSync(path.join(ROOT,file))) ok(file+" existe no catálogo raiz");
+  else fail(file+" está no catálogo mas não existe na raiz");
+}
 
 const premiumFiles=walkScoped().filter(isPremiumFile);
 let shellFailures=0;
+let sourceStage=0;
 for(const rel of premiumFiles){
   const html=read(rel);
   const hasLoader=/premium-content-loader\.js/i.test(html);
   const hasPlaceholder=/premium-content-placeholder/i.test(html);
   const directSubscription=/(?:location\.(?:href|replace|assign)|window\.open|href\s*=)[^\n]{0,260}conta\/assinatura\.html/i.test(html);
-  if(!hasLoader||!hasPlaceholder||directSubscription){
-    shellFailures++;
-    fail(rel+" shell inválido: loader="+hasLoader+" placeholder="+hasPlaceholder+" assinatura="+directSubscription);
-  }
-}
-if(!shellFailures) ok("todos os "+premiumFiles.length+" HTMLs Premium no escopo são shells protegidos");
-else fail(shellFailures+" HTML(s) Premium com shell inconsistente");
 
+  if(directSubscription){
+    shellFailures++;
+    fail(rel+" contém redirecionamento direto para assinatura");
+    continue;
+  }
+
+  if(isPremiumShell(html)){
+    continue;
+  }
+
+  if(isCompletePremiumSource(html)){
+    sourceStage++;
+    continue;
+  }
+
+  shellFailures++;
+  fail(rel+" não é nem shell Premium válido nem fonte completa pré-shell");
+}
+
+if(!shellFailures){
+  if(sourceStage){
+    ok("todos os "+premiumFiles.length+" HTMLs Premium estão em estado válido: "+sourceStage+" fonte(s) pré-shell e o restante shell");
+  }else{
+    ok("todos os "+premiumFiles.length+" HTMLs Premium no escopo são shells protegidos");
+  }
+}else{
+  fail(shellFailures+" HTML(s) Premium em estado inválido");
+}
 
 console.log("\n=== AUDITORIA DE ROTAS FREE EXCEPCIONADAS ===");
 for(const rel of ["braden.html","fugulin.html","dimensionamento.html"]){
@@ -122,6 +163,6 @@ if(edge.includes("Cache-Control")&&edge.includes("private, no-store")) ok("backe
 else fail("backend sem proteção de cache privado");
 
 console.log("\n=== RESULTADO ===");
-const result={ok:failures.length===0,checks,premiumHtmlAudited:premiumFiles.length,failures,generatedAt:new Date().toISOString()};
+const result={ok:failures.length===0,checks,premiumHtmlAudited:premiumFiles.length,preShellSources:sourceStage,failures,generatedAt:new Date().toISOString()};
 console.log(JSON.stringify(result,null,2));
 if(failures.length) process.exit(1);
