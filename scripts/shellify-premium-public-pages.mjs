@@ -3,6 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 
 const ROOT=process.cwd();
+const SUPABASE_URL=String(process.env.SUPABASE_URL||"").replace(/\/$/,"");
+const SERVICE_KEY=process.env.SUPABASE_SERVICE_ROLE_KEY||"";
 const CATALOG=JSON.parse(await fs.readFile(path.join(ROOT,"premium-content-manifest.json"),"utf8"));
 const LANGS=new Set(CATALOG.scope.languages);
 const EXACT=new Set(CATALOG.exact.map(x=>x.toLowerCase()));
@@ -24,6 +26,39 @@ function eligible(rel){
   const p=rel.split(path.sep).join("/").split("/");
   const file=p.at(-1).toLowerCase();
   return (p.length===1||(p.length===2&&LANGS.has(p[0])))&&(EXACT.has(file)||RE.test(file));
+}
+
+function isShell(source){
+  return /id=["']premium-content-placeholder["']/i.test(source) &&
+         /premium-content-loader\.js/i.test(source);
+}
+
+function needsShellHeadRefresh(source){
+  return !/<meta\b[^>]*name=["']description["']/i.test(source) ||
+         !/<link\b[^>]*rel=["']canonical["']/i.test(source) ||
+         !/hreflang=["']pt-br["']/i.test(source) ||
+         !/hreflang=["']x-default["']/i.test(source) ||
+         !/<script\b[^>]*type=["']application\/ld\+json["']/i.test(source) ||
+         !/<link\b[^>]*rel=["']icon["']/i.test(source);
+}
+
+async function fetchPrivateContent(rel){
+  if(!SUPABASE_URL||!SERVICE_KEY){
+    throw new Error("Shell Premium legado sem SEO canônico e sem credenciais do catálogo: "+rel);
+  }
+  const url=SUPABASE_URL+"/rest/v1/premium_content_pages?select=content&path=eq."+encodeURIComponent(rel)+"&limit=1";
+  const res=await fetch(url,{
+    headers:{
+      apikey:SERVICE_KEY,
+      Authorization:"Bearer "+SERVICE_KEY,
+      Accept:"application/json"
+    }
+  });
+  if(!res.ok) throw new Error("Supabase "+res.status+" ao recuperar conteúdo canônico de "+rel+": "+await res.text());
+  const rows=await res.json();
+  const content=Array.isArray(rows)?rows[0]?.content:null;
+  if(!content||isShell(content)) throw new Error("Conteúdo canônico completo não encontrado para "+rel);
+  return content;
 }
 
 function isInsideOpenScript(source,index){
@@ -85,8 +120,19 @@ const files=(await walk(ROOT)).filter(eligible).sort();
 let changed=0;
 for(const rel of files){
   const abs=path.join(ROOT,rel);
-  const original=await fs.readFile(abs,"utf8");
+  let original=await fs.readFile(abs,"utf8");
+
+  // Shells legados podem ter sido criados antes da padronização SEO.
+  // Nesse caso, a fonte canônica é o conteúdo completo do catálogo privado.
+  if(isShell(original) && needsShellHeadRefresh(original)){
+    const canonical=await fetchPrivateContent(rel);
+    original=shellify(canonical);
+  }
+
   const next=shellify(original);
-  if(next!==original){await fs.writeFile(abs,next,"utf8");changed++;}
+  if(next!==original){
+    await fs.writeFile(abs,next,"utf8");
+    changed++;
+  }
 }
 console.log(JSON.stringify({eligible:files.length,changed}));
