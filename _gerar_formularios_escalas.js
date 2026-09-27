@@ -10,11 +10,11 @@ const path = require("path");
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-async function loadFullTemplate() {
+function loadFullTemplate() {
     const local = fs.readFileSync(BASE, "utf8");
 
-    // O arquivo canônico pode estar shellificado depois de um deploy.
-    // Nesse caso, recuperamos o último conteúdo completo armazenado no catálogo privado.
+    // Este gerador executa antes da shellificação. Se a rota canônica já estiver
+    // protegida no checkout, recuperamos o conteúdo completo da tabela privada.
     if (/premium-content-loader\.js/i.test(local) || /premium-content-placeholder/i.test(local)) {
         const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
         const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
