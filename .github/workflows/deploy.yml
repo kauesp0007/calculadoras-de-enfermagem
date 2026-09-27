@@ -71,43 +71,7 @@ jobs:
         run: node scripts/test-account-pages.js
 
       - name: 🧪 Validar conteúdo bilíngue da Biblioteca e formulários
-        run: |
-          node --input-type=module <<'NODE'
-          import fs from "node:fs";
-          import path from "node:path";
-          const requiredEn = ["Nursing Library","Digital Collection","Search the library"];
-          const downloads = ["downloads.html"];
-          if (fs.existsSync("downloads")) {
-            for (const f of fs.readdirSync("downloads").filter(x => /^page\d+\.html$/i.test(x))) downloads.push(path.join("downloads",f));
-          }
-          for (const file of downloads) {
-            const html = fs.readFileSync(file,"utf8");
-            if (!html.includes('lang="en"') || !requiredEn.some(t => html.includes(t))) {
-              throw new Error("Biblioteca sem interface PT→EN atualizada: "+file);
-            }
-          }
-          const itemDir = "biblioteca";
-          if (fs.existsSync(itemDir)) {
-            for (const f of fs.readdirSync(itemDir).filter(x => x.endsWith(".html"))) {
-              const html = fs.readFileSync(path.join(itemDir,f),"utf8");
-              if (!html.includes('lang="en"') || !html.includes("Nursing Library")) {
-                throw new Error("Página de item sem interface PT→EN atualizada: "+f);
-              }
-            }
-          }
-          const forms = [
-            "glasgow","gosnell","hamilton","hendrich","humpty","johns","jouvet",
-            "lachs","lanss","lawton","meows","news","nips"
-          ].map(s => `formulario_escala_de_${s}.html`);
-          for (const file of forms) {
-            const html = fs.readFileSync(file,"utf8");
-            if (!html.includes('lang="en"') || !html.includes("Printable form")) {
-              throw new Error("Formulário sem interface PT→EN atualizada: "+file);
-            }
-          }
-          console.log("OK: Biblioteca e 13 formulários estão com interface PT→EN.");
-          NODE
-
+        run: node scripts/validate-bilingual-library-forms.js
       - name: 🔐 Sincronizar conteúdo Premium no catálogo privado
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
