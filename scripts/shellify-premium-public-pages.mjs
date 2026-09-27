@@ -12,6 +12,41 @@ const RE=CATALOG?.patterns ? new RegExp("(?:"+CATALOG.patterns.join("|")+")","i"
 const LOADER='<script src="/js/access/premium-content-loader.js" defer></script>';
 const PLACEHOLDER='<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>';
 
+// Esses 30 formulários têm conteúdo completo no catálogo privado e devem
+// reconstruir o shell público a partir dessa fonte canônica em todo deploy.
+const PRINTABLE_FORM_SHELL_REFRESH = new Set([
+  "formulario_escala_de_perroca.html",
+  "formulario_de_fugulin.html",
+  "formulario_meem.html",
+  "formulario_impresso_sbar.html",
+  "formulario_impresso_saep.html",
+  "formulario_bishop.html",
+  "formulario_bps.html",
+  "formulario_cam.html",
+  "formulario_capurro.html",
+  "formulario_escala_cincinnati.html",
+  "formulario_escala_curb65.html",
+  "formulario_morse.html",
+  "formulario_escala_de_four.html",
+  "formulario_escala_de_flacc.html",
+  "formulario_escala_de_fast.html",
+  "formulario_escala_de_elpo.html",
+  "formulario_escala_de_downton.html",
+  "formulario_escala_de_glasgow.html",
+  "formulario_escala_de_gosnell.html",
+  "formulario_escala_de_hamilton.html",
+  "formulario_escala_de_hendrich.html",
+  "formulario_escala_de_humpty.html",
+  "formulario_escala_de_johns.html",
+  "formulario_escala_de_jouvet.html",
+  "formulario_escala_de_lachs.html",
+  "formulario_escala_de_lanss.html",
+  "formulario_escala_de_lawton.html",
+  "formulario_escala_de_meows.html",
+  "formulario_escala_de_news.html",
+  "formulario_escala_de_nips.html"
+]);
+
 async function walk(dir,out=[]){
   for(const e of await fs.readdir(dir,{withFileTypes:true})){
     if([".git","node_modules","downloads","biblioteca","blog","blog-templates","locales","fonts","public","img","automacoes","assets","css","font","js","admin","src","dist",".vscode","institucionais"].includes(e.name)) continue;
@@ -124,7 +159,8 @@ for(const rel of files){
 
   // Shells legados podem ter sido criados antes da padronização SEO.
   // Nesse caso, a fonte canônica é o conteúdo completo do catálogo privado.
-  if(isShell(original) && needsShellHeadRefresh(original)){
+  const printableName=path.basename(rel).toLowerCase();
+  if(isShell(original) && (PRINTABLE_FORM_SHELL_REFRESH.has(printableName) || needsShellHeadRefresh(original))){
     const canonical=await fetchPrivateContent(rel);
     original=shellify(canonical);
   }
