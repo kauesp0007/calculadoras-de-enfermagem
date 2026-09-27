@@ -61,7 +61,7 @@ const escalas = [
         keywords: "Escala de Coma de Glasgow, escala de glasgow, ECG, nível de consciência, neurologia, trauma, abertura ocular, resposta verbal, resposta motora, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Coma de Glasgow para avaliação do nível de consciência em uma página.",
         aspect: ["Nível de Consciência", "Neurologia", "Trauma", "Escore Clínico"],
-        menu: "Formulário da Escala de Glasgow"
+        menu: "Formulário da Escala de Glasgow",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Glasgow.pdf",
     },
     {
@@ -71,7 +71,7 @@ const escalas = [
         keywords: "Escala de Gosnell, escala gosnell, risco de queda, prevenção de quedas, idosos, gerontologia, segurança do paciente, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Gosnell para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Gerontologia", "Escore Clínico"],
-        menu: "Formulário da Escala de Gosnell"
+        menu: "Formulário da Escala de Gosnell",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Gosnell.pdf",
     },
     {
@@ -81,7 +81,7 @@ const escalas = [
         keywords: "Escala de Hamilton, escala hamilton, HAM-A, ansiedade, avaliação de ansiedade, saúde mental, psiquiatria, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Hamilton para avaliação da intensidade de ansiedade em uma página.",
         aspect: ["Ansiedade", "Saúde Mental", "Avaliação Psiquiátrica"],
-        menu: "Formulário da Escala de Hamilton"
+        menu: "Formulário da Escala de Hamilton",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Hamilton.pdf",
     },
     {
@@ -91,7 +91,7 @@ const escalas = [
         keywords: "Escala de Hendrich, escala hendrich II, risco de queda, prevenção de quedas, segurança do paciente, hospital, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Hendrich II para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Escore Clínico"],
-        menu: "Formulário da Escala de Hendrich"
+        menu: "Formulário da Escala de Hendrich",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Hendrich.pdf",
     },
     {
@@ -101,7 +101,7 @@ const escalas = [
         keywords: "Escala de Humpty Dumpty, escala humpty dumpty, risco de queda, pediatria, prevenção de quedas, segurança do paciente, criança, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Humpty Dumpty para avaliação do risco de queda em pediatria em uma página.",
         aspect: ["Risco de Queda", "Pediatria", "Segurança do Paciente"],
-        menu: "Formulário da Escala de Humpty Dumpty"
+        menu: "Formulário da Escala de Humpty Dumpty",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Humpty_Dumpty.pdf",
     },
     {
@@ -111,7 +111,7 @@ const escalas = [
         keywords: "Escala de Johns Hopkins, escala johns hopkins, risco de queda, prevenção de quedas, segurança do paciente, hospital, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Johns Hopkins para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Escore Clínico"],
-        menu: "Formulário da Escala de Johns Hopkins"
+        menu: "Formulário da Escala de Johns Hopkins",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Johns_Hopkins.pdf",
     },
     {
@@ -121,7 +121,7 @@ const escalas = [
         keywords: "Escala de Jouvet, escala jouvet, nível de consciência, avaliação neurológica, coma, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Jouvet para avaliação do nível de consciência em uma página.",
         aspect: ["Nível de Consciência", "Neurologia", "Escore Clínico"],
-        menu: "Formulário da Escala de Jouvet"
+        menu: "Formulário da Escala de Jouvet",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Jouvet.pdf",
     },
     {
@@ -131,7 +131,7 @@ const escalas = [
         keywords: "Escala de Lachs, vulnerabilidade do idoso, avaliação geriátrica, idosos, gerontologia, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Lachs para avaliação da vulnerabilidade do idoso em uma página.",
         aspect: ["Vulnerabilidade do Idoso", "Gerontologia", "Avaliação Geriátrica"],
-        menu: "Formulário da Escala de Lachs"
+        menu: "Formulário da Escala de Lachs",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Lachs.pdf",
     },
     {
@@ -141,7 +141,7 @@ const escalas = [
         keywords: "Escala de LANSS, dor neuropática, avaliação da dor, neurologia, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de LANSS para avaliação de dor neuropática em uma página.",
         aspect: ["Dor Neuropática", "Avaliação da Dor", "Neurologia"],
-        menu: "Formulário da Escala de LANSS"
+        menu: "Formulário da Escala de LANSS",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_LANSS.pdf",
     },
     {
@@ -151,7 +151,7 @@ const escalas = [
         keywords: "Escala de Lawton, atividades instrumentais de vida diária, AIVD, idosos, gerontologia, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de Lawton para avaliação das atividades instrumentais de vida diária em uma página.",
         aspect: ["Atividades Instrumentais de Vida Diária", "Gerontologia", "Avaliação Funcional"],
-        menu: "Formulário da Escala de Lawton"
+        menu: "Formulário da Escala de Lawton",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Lawton.pdf",
     },
     {
@@ -161,7 +161,7 @@ const escalas = [
         keywords: "Escala de MEOWS, deterioração clínica materna, obstetrícia, alerta obstétrico, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de MEOWS para avaliação de deterioração clínica materna em uma página.",
         aspect: ["Deterioração Clínica Materna", "Obstetrícia", "Alerta Obstétrico"],
-        menu: "Formulário da Escala de MEOWS"
+        menu: "Formulário da Escala de MEOWS",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_MEOWS.pdf",
     },
     {
@@ -171,7 +171,7 @@ const escalas = [
         keywords: "Escala de NEWS, NEWS2, deterioração clínica, alerta precoce, sinais vitais, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de NEWS para avaliação de deterioração clínica do paciente em uma página.",
         aspect: ["Deterioração Clínica", "Alerta Precoce", "Sinais Vitais"],
-        menu: "Formulário da Escala de NEWS"
+        menu: "Formulário da Escala de NEWS",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_NEWS.pdf",
     },
     {
@@ -181,7 +181,7 @@ const escalas = [
         keywords: "Escala de NIPS, dor neonatal, recém-nascido, neonatologia, avaliação da dor, formulário para imprimir, enfermagem",
         twitter: "Baixe ou imprima a ficha da Escala de NIPS para avaliação da dor em recém-nascidos em uma página.",
         aspect: ["Dor Neonatal", "Neonatologia", "Avaliação da Dor"],
-        menu: "Formulário da Escala de NIPS"
+        menu: "Formulário da Escala de NIPS",
         pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_NIPS.pdf",
     }
 ];
