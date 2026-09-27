@@ -24,5 +24,13 @@ Foi adicionada somente uma documentação de intenção no comentário da tabela
 - Edge Function `premium-content`: continua exigindo entitlement Premium para o restante do conteúdo privado.
 - Supabase: os registros históricos das três rotas permanecem na tabela privada; nenhum dado financeiro foi modificado.
 
+## Resultado da auditoria estática
+- Branch sem alterações pendentes no escopo funcional além das rotas e documentação relacionadas.
+- Os três HTMLs restaurados contêm formulário/conteúdo e não contêm o loader/placeholder Premium.
+- `perroca.html`, `simulado-de-enfermagem.html` e `formularios-em-branco-de-escalas.html` continuam como shells Premium com loader e placeholder.
+- A Edge Function de produção `premium-content` permanece ativa (versão 140), validando token + entitlement e exigindo `plan="premium"`.
+- `premium_content_pages` continua sem privilégios para `anon`/`authenticated`; somente `service_role` possui acesso direto, portanto a tabela privada não libera conteúdo a usuários FREE.
+- A migração/documentação no Supabase foi registrada remotamente como `20260927024622_document_free_routes_braden_fugulin_dimensionamento`.
+
 ## Limitação desta etapa
 A auditoria estática foi executada sobre o código e o banco. O acesso visual em um navegador anônimo/conta FREE e a execução interativa dos cálculos dependem da publicação/deploy da branch e não podem ser simulados integralmente pelo conector GitHub/Supabase neste ambiente.
