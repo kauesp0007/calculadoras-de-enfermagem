@@ -20,6 +20,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
       - name: 📥 Clonar repositório
         uses: actions/checkout@v4
@@ -42,6 +45,12 @@ jobs:
           node --check build-downloads.js
           node build-biblioteca.js
           node build.js
+
+      - name: 🔐 Validar credenciais do catálogo Premium
+        shell: bash
+        run: |
+          test -n "$SUPABASE_URL" || { echo "::error::Secret SUPABASE_URL não está disponível no ambiente github-pages."; exit 1; }
+          test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::Secret SUPABASE_SERVICE_ROLE_KEY não está disponível no ambiente github-pages."; exit 1; }
 
       - name: 📝 Regenerar formulários de escalas Premium
         run: |
@@ -70,10 +79,8 @@ jobs:
 
       - name: 🧪 Validar conteúdo bilíngue da Biblioteca e formulários
         run: node scripts/validate-bilingual-library-forms.js
+
       - name: 🔐 Sincronizar conteúdo Premium no catálogo privado
-        env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: |
           node scripts/migrate-premium-content.mjs --apply
           test -s premium-content-inventory.json
