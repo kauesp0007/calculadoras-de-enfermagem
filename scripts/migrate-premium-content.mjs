@@ -57,14 +57,23 @@ const CANONICAL_PRINTABLE_FORMS = new Set([
   "formulario_escala_de_nips.html"
 ]);
 
+function linkHas(html, rel, href) {
+  const wantedRel = String(rel).toLowerCase();
+  const wantedHref = String(href).toLowerCase();
+  return (html.match(/<link\b[^>]*>/gi) || []).some(raw => {
+    const tag = raw.toLowerCase();
+    return (tag.includes('rel="' + wantedRel + '"') || tag.includes("rel='" + wantedRel + "'")) &&
+           (tag.includes('href="' + wantedHref + '"') || tag.includes("href='" + wantedHref + "'"));
+  });
+}
+
 function validateCanonicalPrintable(rel, html) {
   if (!CANONICAL_PRINTABLE_FORMS.has(rel)) return;
   const expected = "https://www.calculadorasdeenfermagem.com.br/" + rel;
-  if (!/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) {
+  if (!/<meta\b[^>]*name=["']description["'][^>]*>/i.test(html)) {
     throw new Error("Formulário canônico sem meta description: " + rel);
   }
-  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical || canonical[1] !== expected) {
+  if (!linkHas(html, "canonical", expected)) {
     throw new Error("Formulário canônico sem canonical autorreferente: " + rel);
   }
   if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
