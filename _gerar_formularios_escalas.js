@@ -10,7 +10,7 @@ const path = require("path");
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-async function loadFullTemplate() {
+function loadFullTemplate() {
     const local = fs.readFileSync(BASE, "utf8");
     if (!/premium-content-loader\.js/i.test(local) && !/premium-content-placeholder/i.test(local)) {
         return local;
@@ -234,7 +234,7 @@ function tornarInterfaceBilingue(html, e) {
 
 
 (async function(){
-    const base = await loadFullTemplate();
+    const base = loadFullTemplate();
 
     for (const e of escalas) {
         const aspect = JSON.stringify(e.aspect);
