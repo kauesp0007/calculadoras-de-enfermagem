@@ -56,6 +56,10 @@ if(CATALOG.scope.root&&LANGS.size===18) ok("escopo root + 18 idiomas");
 else fail("escopo de idiomas incompleto");
 if(EXACT.size===CATALOG.exact.length) ok("rotas exatas sem duplicidade");
 else fail("rotas exatas duplicadas");
+for(const freeRoute of ["braden.html","fugulin.html","dimensionamento.html"]){
+  if(EXACT.has(freeRoute)) fail(freeRoute+" ainda consta no catálogo Premium");
+  else ok(freeRoute+" não consta no catálogo Premium");
+}
 if(PATTERNS.length) ok("padrões para simulados/formulários registrados");
 else fail("padrões de simulados/formulários ausentes");
 
@@ -94,6 +98,15 @@ for(const rel of premiumFiles){
 }
 if(!shellFailures) ok("todos os "+premiumFiles.length+" HTMLs Premium no escopo são shells protegidos");
 else fail(shellFailures+" HTML(s) Premium com shell inconsistente");
+
+
+console.log("\n=== AUDITORIA DE ROTAS FREE EXCEPCIONADAS ===");
+for(const rel of ["braden.html","fugulin.html","dimensionamento.html"]){
+  const html=read(rel);
+  if(/premium-content-loader\\.js/i.test(html)) fail(rel+" ainda carrega premium-content-loader"); else ok(rel+" sem premium loader");
+  if(/premium-content-placeholder/i.test(html)) fail(rel+" ainda possui placeholder Premium"); else ok(rel+" sem placeholder Premium");
+  if(/__IS_PREMIUM_ROUTE|required-plan|content-access/i.test(html)) fail(rel+" ainda possui marcador explícito de acesso Premium"); else ok(rel+" sem marcador Premium local");
+}
 
 console.log("\n=== CAMADA 3 — BACKEND ===");
 const edge=read("supabase/functions/premium-content/index.ts");
