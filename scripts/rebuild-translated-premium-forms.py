@@ -11,7 +11,10 @@ Regra de segurança:
 """
 
 from pathlib import Path
+import os
 import sys
+import tempfile
+import requests
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -60,14 +63,42 @@ def main() -> int:
 
     from automacoes.translation import orchestrator
 
+    supabase_url = os.getenv("SUPABASE_URL", "").rstrip("/")
+    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "")
+    if not supabase_url or not service_key:
+        print("SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY ausentes; não é seguro reconstruir a partir de shells.")
+        return 2
+
+    headers = {
+        "apikey": service_key,
+        "Authorization": f"Bearer {service_key}",
+        "Accept": "application/json",
+    }
+
+    temp_dir = Path(tempfile.mkdtemp(prefix="premium-form-sources-"))
+
+    def carregar_fonte_privada(nome: str) -> Path:
+        url = f"{supabase_url}/rest/v1/premium_content_pages"
+        params = {"select": "content", "path": f"eq.{nome}", "limit": "1"}
+        response = requests.get(url, params=params, headers=headers, timeout=60)
+        response.raise_for_status()
+        rows = response.json()
+        content = rows[0].get("content") if rows else None
+        if not content or "premium-content-placeholder" in content:
+            raise RuntimeError(f"conteúdo privado completo ausente para {nome}")
+        destino = temp_dir / nome
+        destino.write_text(content, encoding="utf-8")
+        return destino
+
     total = 0
     changed = 0
     failures = []
 
     for nome in FORMULARIOS:
-        fonte = ROOT / nome
-        if not fonte.exists():
-            failures.append(f"fonte PT ausente: {nome}")
+        try:
+            fonte = carregar_fonte_privada(nome)
+        except Exception as exc:
+            failures.append(f"fonte privada {nome}: {exc}")
             continue
 
         for idioma in IDIOMAS:
