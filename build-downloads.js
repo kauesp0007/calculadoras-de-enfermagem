@@ -52,7 +52,7 @@ function gerarCardGoogleImages(item, index) {
     mediaVisualHtml = `
       <div class="w-full h-full flex flex-col items-center justify-center transition-colors bg-gray-50 group-hover:bg-gray-100">
         ${iconeSvg(badgeConfig.icon, "text-5xl mb-2 transition-transform duration-300 group-hover:scale-110", `style="color:${badgeConfig.text}90"`)}
-        <span class="text-[9px] font-black uppercase tracking-widest text-gray-400">Ver Arquivo</span>
+        <span class="text-[9px] font-black uppercase tracking-widest text-gray-400"><span class="block">Ver Arquivo</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">View File</span></span>
       </div>`;
   }
 
@@ -102,7 +102,7 @@ function gerarPaginacaoHTML(currentPage, totalPages) {
 
   // Botão Próxima
   if (currentPage < totalPages) {
-    html += `<a href="/downloads/page${currentPage + 1}.html" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline">Próxima ${iconeSvg('fa-solid fa-chevron-right', 'ml-1')}</a>`;
+    html += `<a href="/downloads/page${currentPage + 1}.html" class="flex items-center px-3 py-2 text-sm md:text-base text-[#4A90E2] font-bold hover:underline"><span class="block">Próxima</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">Next</span>${iconeSvg('fa-solid fa-chevron-right', 'ml-1')}</a>`;
   }
 
   html += `</nav>`;
