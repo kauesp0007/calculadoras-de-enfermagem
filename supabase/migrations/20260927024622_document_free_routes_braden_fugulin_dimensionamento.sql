@@ -1,0 +1,1 @@
+comment on table public.premium_content_pages is 'Private Premium catalog. braden.html, fugulin.html, and dimensionamento.html are intentionally public/free in the application catalog and are not served through premium-content.';
