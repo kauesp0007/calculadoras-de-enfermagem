@@ -14,10 +14,24 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = __dirname;
-const TEMPLATE = path.join(ROOT, "backups-temporarios", "formulario_escala_de_downton.html.20260919-094500.bak");
+const TEMPLATE = path.join(ROOT, "formulario_escala_de_downton.html");
+
+function loadCanonicalTemplate() {
+    const source = fs.readFileSync(TEMPLATE, "utf8");
+    if (/premium-content-loader\.js/i.test(source) || /premium-content-placeholder/i.test(source)) {
+        throw new Error(
+            "formulario_escala_de_downton.html está shellificado. " +
+            "Este gerador deve receber o conteúdo completo antes da shellificação."
+        );
+    }
+    return source;
+}
 
 // DNS prefetch/preconnect (Core Web Vitals) — inserido após o viewport.
-const DNS_BLOCK = '<link href="//googleads.g.doubleclick.net" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="preconnect" crossorigin/>\n';
+const DNS_BLOCK = '<link href="//googleads.g.doubleclick.net" rel="dns-prefetch"/>
+<link href="//pagead2.googlesyndication.com" rel="dns-prefetch"/>
+<link href="//pagead2.googlesyndication.com" rel="preconnect" crossorigin/>
+';
 
 const escalas = [
     { slug: "glasgow", pdf: "Ficha_Impressao_Escala_Glasgow.pdf", fullName: "Escala de Coma de Glasgow", topic: "avaliação do nível de consciência", chip: "Escala de nível de consciência", menu: "Formulário da Escala de Glasgow" },
@@ -35,14 +49,15 @@ const escalas = [
     { slug: "nips", pdf: "Ficha_Impressao_Escala_NIPS.pdf", fullName: "Escala de NIPS", topic: "avaliação de dor em recém-nascidos", chip: "Escala de dor neonatal", menu: "Formulário da Escala de NIPS" }
 ];
 
-const base0 = fs.readFileSync(TEMPLATE, "utf8");
+const base0 = loadCanonicalTemplate();
 
 // 1) Insere DNS prefetch/preconnect após o viewport.
-const viewport = '<meta name="viewport" content="width=device-width, initial-scale=1">';
+const viewport = '<meta content="width=device-width, initial-scale=1.0" name="viewport"/>';
 if (!base0.includes(viewport)) {
     throw new Error("viewport meta não encontrado no template");
 }
-const base = base0.replace(viewport, viewport + "\n" + DNS_BLOCK);
+const base = base0.replace(viewport, viewport + "
+" + DNS_BLOCK);
 
 function count(s, sub) {
     return s.split(sub).length - 1;
