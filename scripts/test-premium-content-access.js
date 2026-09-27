@@ -10,18 +10,12 @@ const LANGS = new Set([
   "pl","sv","id","vi","uk","ar"
 ]);
 
-const EXACT_PREMIUM = new Set([
-  "braden.html","fugulin.html","dimensionamento.html","perroca.html",
-  "medicacao.html","medicamentos.html","meem.html","moca.html",
-  "zarit.html","morse.html","elpo.html","glasgow.html",
-  "balancohidrico.html","biblioteca-provas.html",
-  "formularios-em-branco-de-escalas.html",
-  "formularios_de_escalas_assistenciais.html"
-]);
+const CATALOG = JSON.parse(fs.readFileSync(path.join(ROOT, "premium-content-manifest.json"), "utf8"));
+const EXACT_PREMIUM = new Set(CATALOG.exact);
 
 const LOCALIZED_CORE = [
-  "balancohidrico.html","braden.html","elpo.html","formulario-saep-enfermagem.html",
-  "fugulin.html","glasgow.html","medicamentos.html","meem.html","moca.html","morse.html",
+  "balancohidrico.html","elpo.html","formulario-saep-enfermagem.html",
+  "glasgow.html","medicamentos.html","meem.html","moca.html","morse.html",
   "perroca.html","zarit.html"
 ];
 
