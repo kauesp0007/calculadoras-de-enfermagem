@@ -6,6 +6,7 @@ on:
       - main
     paths:
       - scripts/rebuild-translated-premium-forms.py
+      - .github/workflows/rebuild-translated-premium-forms.yml
 
 permissions:
   contents: write
@@ -19,10 +20,9 @@ jobs:
     environment: github-pages
     runs-on: ubuntu-latest
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-      TRANSLATION_PROVIDER: both
-      TRANSLATION_MAX_FALLBACK: 6
+      TRANSLATION_PROVIDER: deepseek
+      TRANSLATION_MAX_FALLBACK: 3
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
     steps:
@@ -36,6 +36,15 @@ jobs:
 
       - name: 📦 Instalar dependências de tradução
         run: python -m pip install --upgrade pip requests python-dotenv
+
+      - name: 🔐 Validar credenciais de reconstrução
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${DEEPSEEK_API_KEY}" || { echo "::error::DEEPSEEK_API_KEY não está disponível no ambiente github-pages."; exit 1; }
+          test -n "${SUPABASE_URL}" || { echo "::error::SUPABASE_URL não está disponível no ambiente github-pages."; exit 1; }
+          test -n "${SUPABASE_SERVICE_ROLE_KEY}" || { echo "::error::SUPABASE_SERVICE_ROLE_KEY não está disponível no ambiente github-pages."; exit 1; }
+          echo "Credenciais necessárias disponíveis."
 
       - name: 🌐 Reconstruir conteúdos completos EN/ES
         run: python scripts/rebuild-translated-premium-forms.py
