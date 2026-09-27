@@ -10,7 +10,7 @@ const path = require("path");
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-function loadFullTemplate() {
+async function loadFullTemplate() {
     const local = fs.readFileSync(BASE, "utf8");
 
     // Este gerador executa antes da shellificação. Se a rota canônica já estiver
