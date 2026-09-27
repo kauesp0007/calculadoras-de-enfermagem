@@ -6,8 +6,8 @@
  * O catálogo privado do Supabase é a fonte canônica do conteúdo Premium.
  */
 
-const fs = require("node:fs");
-const path = require("node:path");
+import fs from "node:fs";
+import path from "node:path";
 
 const ROOT = process.cwd();
 const BASE = "https://www.calculadorasdeenfermagem.com.br/";
