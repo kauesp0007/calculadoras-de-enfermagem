@@ -2,7 +2,7 @@
 "use strict";
 
 /**
- * Validador canônico dos 30 formulários de escalas para impressão.
+ * Validador canônico dos 34 formulários de escalas para impressão.
  * O catálogo privado do Supabase é a fonte canônica do conteúdo Premium.
  * O bloco Multiplex é validado pelo slot real do AdSense e pelo marcador canônico.
  */
