@@ -93,7 +93,7 @@ function criarCartaoHTML(item) {
       textHex = "#047857";
       icon = "fa-solid fa-image";
     }
-    fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} ${label}</div>`;
+    fileTypeBadgeHtml = `<div class="absolute top-2 right-2 text-[10px] font-black uppercase px-2 py-1 rounded shadow-sm z-20 flex items-center gap-1" style="background-color: ${bgHex}; color: ${textHex};">${iconeSvg(icon)} <span>${label}</span><span class="text-[0.82em] font-normal opacity-80" lang="en">${label === "WORD" ? "WORD" : label}</span></div>`;
   }
 
   const cat = String(item.categoria || "")
@@ -124,7 +124,9 @@ function criarCartaoHTML(item) {
     }
   </div>
   <div class="p-3 flex-grow flex flex-col justify-center">
-    <span class="file-card-title text-center text-sm font-bold text-gray-700 group-hover:text-[#4A90E2] transition-colors line-clamp-2">${titulo}</span>
+    <span class="file-card-title text-center text-sm font-bold text-gray-700 group-hover:text-[#4A90E2] transition-colors line-clamp-2">
+      <span class="block">${titulo}</span>
+    </span>
   </div>
 </a>`;
 }
