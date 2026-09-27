@@ -10,16 +10,47 @@ const path = require("path");
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-function loadFullTemplate() {
+async function loadFullTemplate() {
     const local = fs.readFileSync(BASE, "utf8");
 
-    // O build deve usar a versão completa do template. A shellificação ocorre
-    // somente depois da sincronização privada durante o deploy.
-    if (/premium-content-loader\.js/i.test(local) || /premium-content-placeholder/i.test(local)) {
-        throw new Error("Template canônico de Downton está shellificado antes da regeneração.");
+    // Em produção, a página pública é shellificada após cada deploy. O
+    // template completo deve vir do catálogo privado do Supabase.
+    if (!/premium-content-loader\.js/i.test(local) && !/premium-content-placeholder/i.test(local)) {
+        return local;
     }
 
-    return local;
+    const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+        throw new Error(
+            "Template Premium de Downton está shellificado e SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY não foram fornecidos ao job."
+        );
+    }
+
+    const url = SUPABASE_URL +
+        "/rest/v1/premium_content_pages?select=content&path=eq.formulario_escala_de_downton.html&limit=1";
+
+    const response = await fetch(url, {
+        headers: {
+            apikey: SERVICE_KEY,
+            Authorization: "Bearer " + SERVICE_KEY,
+            Accept: "application/json"
+        }
+    });
+
+    if (!response.ok) {
+        throw new Error("Falha ao recuperar template Premium de Downton: HTTP " + response.status);
+    }
+
+    const rows = await response.json();
+    const privateContent = Array.isArray(rows) ? rows[0]?.content : null;
+
+    if (!privateContent || /premium-content-placeholder/i.test(privateContent)) {
+        throw new Error("Conteúdo completo de Downton não encontrado no catálogo privado.");
+    }
+
+    return privateContent;
 }
 
 const escalas = [
@@ -188,7 +219,13 @@ function tornarInterfaceBilingue(html, e) {
         hendrich: "Ficha de avaliação do risco de queda em pacientes hospitalizados para preenchimento e impressão.",
         humpty: "Ficha de avaliação do risco de queda em pacientes pediátricos para preenchimento e impressão.",
         johns: "Ficha de avaliação do risco de queda em pacientes adultos para preenchimento e impressão.",
-        jouvet: "Ficha de avaliação do nível de consciência para preenchimento e impressão."
+        jouvet: "Ficha de avaliação do nível de consciência para preenchimento e impressão.",
+        lachs: "Ficha de avaliação da vulnerabilidade do idoso para preenchimento e impressão.",
+        lanss: "Ficha de avaliação de dor neuropática para preenchimento e impressão.",
+        lawton: "Ficha de avaliação das atividades instrumentais de vida diária para preenchimento e impressão.",
+        meows: "Ficha de avaliação da deterioração clínica materna para preenchimento e impressão.",
+        news: "Ficha de avaliação da deterioração clínica do paciente para preenchimento e impressão.",
+        nips: "Ficha de avaliação da dor em recém-nascidos para preenchimento e impressão."
     }[e.slug];
     const heroEn = {
         glasgow: "Consciousness level assessment sheet for filling and printing.",
@@ -197,7 +234,13 @@ function tornarInterfaceBilingue(html, e) {
         hendrich: "Fall risk assessment sheet for hospitalized patients.",
         humpty: "Pediatric fall risk assessment sheet.",
         johns: "Adult fall risk assessment sheet.",
-        jouvet: "Consciousness level assessment sheet for filling and printing."
+        jouvet: "Consciousness level assessment sheet for filling and printing.",
+        lachs: "Older adult vulnerability assessment sheet for filling and printing.",
+        lanss: "Neuropathic pain assessment sheet for filling and printing.",
+        lawton: "Instrumental activities of daily living assessment sheet for filling and printing.",
+        meows: "Maternal clinical deterioration assessment sheet for filling and printing.",
+        news: "Clinical deterioration assessment sheet for filling and printing.",
+        nips: "Newborn pain assessment sheet for filling and printing."
     }[e.slug];
     if (heroPt && heroEn) out = out.split(heroPt).join(bilíngue(heroPt, heroEn));
     return out;
@@ -205,7 +248,7 @@ function tornarInterfaceBilingue(html, e) {
 
 
 (async function(){
-    const base = loadFullTemplate();
+    const base = await loadFullTemplate();
 
     for (const e of escalas) {
         const aspect = JSON.stringify(e.aspect);
