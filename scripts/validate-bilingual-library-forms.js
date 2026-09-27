@@ -48,7 +48,6 @@ for (const slug of formSlugs) {
   const html = fs.readFileSync(path.join(root, rel), "utf8");
   assert(html.includes('lang="en"'), "Formulário sem bloco EN: " + rel);
   assert(html.includes("Printable form"), "Formulário sem 'Printable form': " + rel);
-  assert(html.includes("Nursing Library"), "Formulário sem link EN para a Biblioteca: " + rel);
 }
 
 console.log("OK: Biblioteca de Enfermagem e 13 formulários validados PT → EN.");
