@@ -62,6 +62,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Coma de Glasgow para avaliação do nível de consciência em uma página.",
         aspect: ["Nível de Consciência", "Neurologia", "Trauma", "Escore Clínico"],
         menu: "Formulário da Escala de Glasgow"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Glasgow.pdf",
     },
     {
         slug: "gosnell",
@@ -71,6 +72,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Gosnell para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Gerontologia", "Escore Clínico"],
         menu: "Formulário da Escala de Gosnell"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Gosnell.pdf",
     },
     {
         slug: "hamilton",
@@ -80,6 +82,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Hamilton para avaliação da intensidade de ansiedade em uma página.",
         aspect: ["Ansiedade", "Saúde Mental", "Avaliação Psiquiátrica"],
         menu: "Formulário da Escala de Hamilton"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Hamilton.pdf",
     },
     {
         slug: "hendrich",
@@ -89,6 +92,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Hendrich II para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Escore Clínico"],
         menu: "Formulário da Escala de Hendrich"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Hendrich.pdf",
     },
     {
         slug: "humpty",
@@ -98,6 +102,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Humpty Dumpty para avaliação do risco de queda em pediatria em uma página.",
         aspect: ["Risco de Queda", "Pediatria", "Segurança do Paciente"],
         menu: "Formulário da Escala de Humpty Dumpty"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Humpty_Dumpty.pdf",
     },
     {
         slug: "johns",
@@ -107,6 +112,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Johns Hopkins para avaliação do risco de queda em uma página.",
         aspect: ["Risco de Queda", "Segurança do Paciente", "Escore Clínico"],
         menu: "Formulário da Escala de Johns Hopkins"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Johns_Hopkins.pdf",
     },
     {
         slug: "jouvet",
@@ -116,6 +122,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Jouvet para avaliação do nível de consciência em uma página.",
         aspect: ["Nível de Consciência", "Neurologia", "Escore Clínico"],
         menu: "Formulário da Escala de Jouvet"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Jouvet.pdf",
     },
     {
         slug: "lachs",
@@ -125,6 +132,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Lachs para avaliação da vulnerabilidade do idoso em uma página.",
         aspect: ["Vulnerabilidade do Idoso", "Gerontologia", "Avaliação Geriátrica"],
         menu: "Formulário da Escala de Lachs"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Lachs.pdf",
     },
     {
         slug: "lanss",
@@ -134,6 +142,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de LANSS para avaliação de dor neuropática em uma página.",
         aspect: ["Dor Neuropática", "Avaliação da Dor", "Neurologia"],
         menu: "Formulário da Escala de LANSS"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_LANSS.pdf",
     },
     {
         slug: "lawton",
@@ -143,6 +152,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Lawton para avaliação das atividades instrumentais de vida diária em uma página.",
         aspect: ["Atividades Instrumentais de Vida Diária", "Gerontologia", "Avaliação Funcional"],
         menu: "Formulário da Escala de Lawton"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Lawton.pdf",
     },
     {
         slug: "meows",
@@ -152,6 +162,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de MEOWS para avaliação de deterioração clínica materna em uma página.",
         aspect: ["Deterioração Clínica Materna", "Obstetrícia", "Alerta Obstétrico"],
         menu: "Formulário da Escala de MEOWS"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_MEOWS.pdf",
     },
     {
         slug: "news",
@@ -161,6 +172,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de NEWS para avaliação de deterioração clínica do paciente em uma página.",
         aspect: ["Deterioração Clínica", "Alerta Precoce", "Sinais Vitais"],
         menu: "Formulário da Escala de NEWS"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_NEWS.pdf",
     },
     {
         slug: "nips",
@@ -170,6 +182,7 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de NIPS para avaliação da dor em recém-nascidos em uma página.",
         aspect: ["Dor Neonatal", "Neonatologia", "Avaliação da Dor"],
         menu: "Formulário da Escala de NIPS"
+        pdf: "/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_NIPS.pdf",
     }
 ];
 
@@ -264,6 +277,7 @@ function tornarInterfaceBilingue(html, e) {
         out = out.split(ORIG_KEYWORDS).join(e.keywords);
         out = out.split(ORIG_TWITTER).join(e.twitter);
         out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
+        out = out.split("/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Downton-v2.pdf").join(e.pdf);
         // Cada formulário deve carregar exclusivamente o PDF correspondente à sua escala.
         // O template canônico de Downton é apenas a estrutura visual; o PDF é trocado pelo arquivo
         // homônimo existente em /FORMULARIOS_DE_ESCALAS.
