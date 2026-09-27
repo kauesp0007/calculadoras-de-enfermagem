@@ -264,6 +264,11 @@ function tornarInterfaceBilingue(html, e) {
         out = out.split(ORIG_KEYWORDS).join(e.keywords);
         out = out.split(ORIG_TWITTER).join(e.twitter);
         out = out.split(ORIG_ABOUT).join(`"name":"${e.fullName}","aspect":${aspect}`);
+        // Cada formulário deve carregar exclusivamente o PDF correspondente à sua escala.
+        // O template canônico de Downton é apenas a estrutura visual; o PDF é trocado pelo arquivo
+        // homônimo existente em /FORMULARIOS_DE_ESCALAS.
+        out = out.split("/FORMULARIOS_DE_ESCALAS/Ficha_Impressao_Escala_Downton-v2.pdf")
+            .join(e.pdf);
         out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
 
         out = tornarInterfaceBilingue(out, e);
