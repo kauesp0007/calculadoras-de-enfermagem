@@ -155,18 +155,19 @@ const files=(await walk(ROOT)).filter(eligible).sort();
 let changed=0;
 for(const rel of files){
   const abs=path.join(ROOT,rel);
-  let original=await fs.readFile(abs,"utf8");
+  const current=await fs.readFile(abs,"utf8");
+  let candidate=current;
 
   // Shells legados podem ter sido criados antes da padronização SEO.
   // Nesse caso, a fonte canônica é o conteúdo completo do catálogo privado.
   const printableName=path.basename(rel).toLowerCase();
-  if(isShell(original) && (PRINTABLE_FORM_SHELL_REFRESH.has(printableName) || needsShellHeadRefresh(original))){
+  if(isShell(current) && (PRINTABLE_FORM_SHELL_REFRESH.has(printableName) || needsShellHeadRefresh(current))){
     const canonical=await fetchPrivateContent(rel);
-    original=shellify(canonical);
+    candidate=shellify(canonical);
   }
 
-  const next=shellify(original);
-  if(next!==original){
+  const next=shellify(candidate);
+  if(next!==current){
     await fs.writeFile(abs,next,"utf8");
     changed++;
   }
