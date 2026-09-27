@@ -191,6 +191,51 @@ const ORIG_KEYWORDS = "Escala de Downton, escala downton, risco de queda, idosos
 const ORIG_TWITTER = "Baixe ou imprima a ficha da Escala de Downton para avaliação de risco de queda em idosos em uma página.";
 const ORIG_ABOUT = '"name":"Escala de Downton","aspect":["Risco de Queda","Gerontologia","Escore Clínico"]';
 
+const MULTIPLEX_BLOCK = `<!-- MULTIPLEX_AD_RESERVED_START -->
+<style>
+.multiplex-ad-reserved {
+box-sizing: border-box;
+display: block;
+width: calc(100% - 32px);
+max-width: 1200px;
+min-height: 260px;
+margin: 32px auto;
+overflow: visible;
+}
+@media (max-width: 600px) {
+.multiplex-ad-reserved {
+width: calc(100% - 24px);
+min-height: 220px;
+margin: 24px auto;
+}
+}
+</style>
+<aside id="multiplex-ad-reserved" class="multiplex-ad-reserved" aria-label="Publicidade">
+<ins class="adsbygoogle"
+style="display:block;width:100%"
+data-ad-format="autorelaxed"
+data-ad-client="ca-pub-6472730056006847"
+data-ad-slot="3341197364"
+data-matched-content-rows-num="1,1"
+data-matched-content-columns-num="1,4"
+data-matched-content-ui-type="image_card_sidebyside,image_card_sidebyside"></ins>
+</aside>
+<!-- MULTIPLEX_AD_RESERVED_END -->`;
+
+function ensureMultiplexBlock(html) {
+    if (/data-ad-slot=["']3341197364["']/i.test(html)) return html;
+    if (/<div id=["']footer-placeholder["']><\/div>/i.test(html)) {
+        return html.replace(
+            /(<div id=["']footer-placeholder["']><\/div>)/i,
+            MULTIPLEX_BLOCK + "\n\n$1"
+        );
+    }
+    if (/<\/body>/i.test(html)) {
+        return html.replace(/<\/body>/i, MULTIPLEX_BLOCK + "\n</body>");
+    }
+    throw new Error("Não foi possível posicionar o bloco Multiplex no formulário gerado.");
+}
+
 function bilíngue(pt, en) {
     return '<span class="block">' + pt + '</span><span class="block text-[0.68em] font-normal opacity-80" lang="en">' + en + '</span>';
 }
@@ -286,6 +331,7 @@ function tornarInterfaceBilingue(html, e) {
         out = out.split("formulario_escala_de_downton").join(`formulario_escala_de_${e.slug}`);
 
         out = tornarInterfaceBilingue(out, e);
+        out = ensureMultiplexBlock(out);
 
         const file = path.join(ROOT, `formulario_escala_de_${e.slug}.html`);
         fs.writeFileSync(file, out, "utf8");
