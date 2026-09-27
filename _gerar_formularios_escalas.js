@@ -106,6 +106,60 @@ const escalas = [
         twitter: "Baixe ou imprima a ficha da Escala de Jouvet para avaliação do nível de consciência em uma página.",
         aspect: ["Nível de Consciência", "Neurologia", "Escore Clínico"],
         menu: "Formulário da Escala de Jouvet"
+    },
+    {
+        slug: "lachs",
+        fullName: "Escala de Lachs",
+        description: "Ficha da Escala de Lachs para avaliação da vulnerabilidade do idoso, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de Lachs, vulnerabilidade do idoso, avaliação geriátrica, idosos, gerontologia, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de Lachs para avaliação da vulnerabilidade do idoso em uma página.",
+        aspect: ["Vulnerabilidade do Idoso", "Gerontologia", "Avaliação Geriátrica"],
+        menu: "Formulário da Escala de Lachs"
+    },
+    {
+        slug: "lanss",
+        fullName: "Escala de LANSS",
+        description: "Ficha da Escala de LANSS para avaliação de dor neuropática, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de LANSS, dor neuropática, avaliação da dor, neurologia, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de LANSS para avaliação de dor neuropática em uma página.",
+        aspect: ["Dor Neuropática", "Avaliação da Dor", "Neurologia"],
+        menu: "Formulário da Escala de LANSS"
+    },
+    {
+        slug: "lawton",
+        fullName: "Escala de Lawton",
+        description: "Ficha da Escala de Lawton para avaliação das atividades instrumentais de vida diária, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de Lawton, atividades instrumentais de vida diária, AIVD, idosos, gerontologia, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de Lawton para avaliação das atividades instrumentais de vida diária em uma página.",
+        aspect: ["Atividades Instrumentais de Vida Diária", "Gerontologia", "Avaliação Funcional"],
+        menu: "Formulário da Escala de Lawton"
+    },
+    {
+        slug: "meows",
+        fullName: "Escala de MEOWS",
+        description: "Ficha da Escala de MEOWS para avaliação de deterioração clínica materna, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de MEOWS, deterioração clínica materna, obstetrícia, alerta obstétrico, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de MEOWS para avaliação de deterioração clínica materna em uma página.",
+        aspect: ["Deterioração Clínica Materna", "Obstetrícia", "Alerta Obstétrico"],
+        menu: "Formulário da Escala de MEOWS"
+    },
+    {
+        slug: "news",
+        fullName: "Escala de NEWS",
+        description: "Ficha da Escala de NEWS para avaliação de deterioração clínica do paciente, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de NEWS, NEWS2, deterioração clínica, alerta precoce, sinais vitais, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de NEWS para avaliação de deterioração clínica do paciente em uma página.",
+        aspect: ["Deterioração Clínica", "Alerta Precoce", "Sinais Vitais"],
+        menu: "Formulário da Escala de NEWS"
+    },
+    {
+        slug: "nips",
+        fullName: "Escala de NIPS",
+        description: "Ficha da Escala de NIPS para avaliação de dor em recém-nascidos, preenchimento e impressão em formulário de uma página.",
+        keywords: "Escala de NIPS, dor neonatal, recém-nascido, neonatologia, avaliação da dor, formulário para imprimir, enfermagem",
+        twitter: "Baixe ou imprima a ficha da Escala de NIPS para avaliação da dor em recém-nascidos em uma página.",
+        aspect: ["Dor Neonatal", "Neonatologia", "Avaliação da Dor"],
+        menu: "Formulário da Escala de NIPS"
     }
 ];
 
