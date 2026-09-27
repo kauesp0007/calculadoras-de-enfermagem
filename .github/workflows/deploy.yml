@@ -55,6 +55,14 @@ jobs:
       - name: 👤 Validar páginas da conta
         run: node scripts/test-account-pages.js
 
+      - name: 🔐 Sincronizar conteúdo Premium no catálogo privado
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          node scripts/migrate-premium-content.mjs --apply
+          test -s premium-content-inventory.json
+
       - name: 🔒 Gerar shells das páginas Premium
         run: node scripts/shellify-premium-public-pages.mjs
 
