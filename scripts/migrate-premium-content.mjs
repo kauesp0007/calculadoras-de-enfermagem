@@ -24,6 +24,63 @@ const LANGS=new Set(CATALOG.scope.languages);
 const EXACT=new Set(CATALOG.exact.map(x=>x.toLowerCase()));
 const PATTERNS=CATALOG.patterns.map(x=>new RegExp(x,"i"));
 
+const CANONICAL_PRINTABLE_FORMS = new Set([
+  "formulario_escala_de_perroca.html",
+  "formulario_de_fugulin.html",
+  "formulario_meem.html",
+  "formulario_impresso_sbar.html",
+  "formulario_impresso_saep.html",
+  "formulario_bishop.html",
+  "formulario_bps.html",
+  "formulario_cam.html",
+  "formulario_capurro.html",
+  "formulario_escala_cincinnati.html",
+  "formulario_escala_curb65.html",
+  "formulario_morse.html",
+  "formulario_escala_de_four.html",
+  "formulario_escala_de_flacc.html",
+  "formulario_escala_de_fast.html",
+  "formulario_escala_de_elpo.html",
+  "formulario_escala_de_downton.html",
+  "formulario_escala_de_glasgow.html",
+  "formulario_escala_de_gosnell.html",
+  "formulario_escala_de_hamilton.html",
+  "formulario_escala_de_hendrich.html",
+  "formulario_escala_de_humpty.html",
+  "formulario_escala_de_johns.html",
+  "formulario_escala_de_jouvet.html",
+  "formulario_escala_de_lachs.html",
+  "formulario_escala_de_lanss.html",
+  "formulario_escala_de_lawton.html",
+  "formulario_escala_de_meows.html",
+  "formulario_escala_de_news.html",
+  "formulario_escala_de_nips.html"
+]);
+
+function validateCanonicalPrintable(rel, html) {
+  if (!CANONICAL_PRINTABLE_FORMS.has(rel)) return;
+  const expected = "https://www.calculadorasdeenfermagem.com.br/" + rel;
+  if (!/<meta\\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) {
+    throw new Error("Formulário canônico sem meta description: " + rel);
+  }
+  const canonical = html.match(/<link\\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
+  if (!canonical || canonical[1] !== expected) {
+    throw new Error("Formulário canônico sem canonical autorreferente: " + rel);
+  }
+  if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
+    throw new Error("Formulário canônico sem hreflang pt-br/x-default: " + rel);
+  }
+  if (!/<script\\b[^>]*type=["']application\\/ld\\+json["']/i.test(html)) {
+    throw new Error("Formulário canônico sem JSON-LD: " + rel);
+  }
+  const markers = (html.match(/MULTIPLEX_AD_RESERVED_START/gi)||[]).length;
+  const slots = (html.match(/data-ad-slot=["']3341197364["']/gi)||[]).length;
+  const formats = (html.match(/data-ad-format=["']autorelaxed["']/gi)||[]).length;
+  if (markers !== 1 || slots !== 1 || formats !== 1) {
+    throw new Error("Formulário canônico sem exatamente um Multiplex AdSense válido: " + rel);
+  }
+}
+
 const IGNORED=new Set([
   ".git","node_modules","downloads","biblioteca","blog","blog-templates",
   "locales","fonts","public","img","automacoes","assets","css","font",
@@ -120,6 +177,10 @@ for(const rel of files){
   }
 
   if(DRY) continue;
+  // Nunca sobrescreva a fonte privada com um formulário degradado.
+  // Para os 30 formulários canônicos, a migração só aceita conteúdo completo
+  // que já contenha SEO canônico + o bloco Multiplex real.
+  validateCanonicalPrintable(rel, original);
   await upsert(rel,original);
   migrated++;
 }
