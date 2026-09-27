@@ -66,10 +66,15 @@ function validateFull(rel, html, source) {
   const expected = BASE + rel;
 
   if (!/<title>[^<]+<\/title>/i.test(html)) fail(source + ": sem <title>: " + rel);
-  if (!/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) fail(source + ": sem meta description: " + rel);
+  if (!/<meta\b[^>]*name=["']description["'][^>]*>/i.test(html)) fail(source + ": sem meta description: " + rel);
+
+  const canonical = (html.match(/<link\b[^>]*>/gi) || []).find(tag =>
+    /rel=["']canonical["']/i.test(tag) && new RegExp("href=[\"']" + expected.replace(/[.*+?^$\\{}()|[\]\\]/g, "\\  if (!/<meta\b[^>]*name=["']description["'][^>]*content=["'][^"']+["']/i.test(html)) fail(source + ": sem meta description: " + rel);
 
   const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical || canonical[1] !== expected) fail(source + ": canonical incorreto/ausente: " + rel);
+  if (!canonical || canonical[1] !== expected) fail(source + ": canonical incorreto/ausente: " + rel);") + "[\"']", "i").test(tag)
+  );
+  if (!canonical) fail(source + ": canonical incorreto/ausente: " + rel);
 
   if (!/hreflang=["']pt-br["']/i.test(html) ||
       !/hreflang=["']x-default["']/i.test(html)) {
@@ -77,7 +82,7 @@ function validateFull(rel, html, source) {
   }
 
   if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) fail(source + ": JSON-LD ausente: " + rel);
-  if (!/<link\b[^>]*rel=["']icon["'][^>]*href=["']\/favicon\.ico["']/i.test(html)) fail(source + ": favicon ausente: " + rel);
+  if (!(html.match(/<link\b[^>]*>/gi) || []).some(tag => /rel=["']icon["']/i.test(tag) && /href=["']\/favicon\.ico["']/i.test(tag))) fail(source + ": favicon ausente: " + rel);
   if (!/<script\b[^>]*src=["']\/global-scripts\.js["'][^>]*>/i.test(html)) fail(source + ": global-scripts.js ausente: " + rel);
   if (!/<script\b[^>]*src=["']\/lang-selector\.js["'][^>]*>/i.test(html)) fail(source + ": lang-selector.js ausente: " + rel);
 
@@ -100,8 +105,11 @@ function validatePublicShell(rel, html) {
   if (!/<meta\b[^>]*name=["']description["']/i.test(html)) fail("Shell público sem meta description: " + rel);
 
   const expected = BASE + rel;
-  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical || canonical[1] !== expected) fail("Shell público sem canonical autorreferente: " + rel);
+  const canonical = (html.match(/<link\b[^>]*>/gi) || []).find(tag =>
+    /rel=["']canonical["']/i.test(tag) && new RegExp("href=[\"']" + expected.replace(/[.*+?^$\\{}()|[\]\\]/g, "\\  const canonical = html.match(/<link\b[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
+  if (!canonical || canonical[1] !== expected) fail("Shell público sem canonical autorreferente: " + rel);") + "[\"']", "i").test(tag)
+  );
+  if (!canonical) fail("Shell público sem canonical autorreferente: " + rel);
 
   if (!/hreflang=["']pt-br["']/i.test(html) || !/hreflang=["']x-default["']/i.test(html)) {
     fail("Shell público sem hreflang pt-br/x-default: " + rel);
