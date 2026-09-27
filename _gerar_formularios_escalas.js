@@ -10,37 +10,44 @@ const path = require("path");
 const ROOT = __dirname;
 const BASE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-function loadFullTemplate() {
+async function loadFullTemplate() {
     const local = fs.readFileSync(BASE, "utf8");
-
-    // A rota canônica fica shellificada após o deploy. Para o próximo build,
-    // o conteúdo completo é recuperado do catálogo privado com a service key.
     if (!/premium-content-loader\.js/i.test(local) && !/premium-content-placeholder/i.test(local)) {
-        return Promise.resolve(local);
+        return local;
     }
 
     const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+
+    // O CI pode ler o catálogo privado com a service key. Em local, uma rota
+    // shellificada não pode ser transformada sem esta fonte completa.
     if (!SUPABASE_URL || !SERVICE_KEY) {
-        throw new Error("Template Premium de Downton está shellificado e o catálogo privado não foi configurado.");
+        throw new Error(
+            "Template Premium de Downton está shellificado e as credenciais do catálogo privado não foram fornecidas."
+        );
     }
 
     const url = SUPABASE_URL +
         "/rest/v1/premium_content_pages?select=content&path=eq.formulario_escala_de_downton.html&limit=1";
 
-    return fetch(url, {
+    const response = await fetch(url, {
         headers: {
             apikey: SERVICE_KEY,
             Authorization: "Bearer " + SERVICE_KEY,
             Accept: "application/json"
         }
-    }).then(async (response) => {
-        if (!response.ok) throw new Error("Falha ao recuperar template Premium: HTTP " + response.status);
-        const rows = await response.json();
-        const privateContent = Array.isArray(rows) ? rows[0]?.content : null;
-        if (!privateContent) throw new Error("Template Premium de Downton não encontrado no catálogo privado.");
-        return privateContent;
     });
+
+    if (!response.ok) {
+        throw new Error("Falha ao recuperar template Premium de Downton: HTTP " + response.status);
+    }
+
+    const rows = await response.json();
+    const privateContent = Array.isArray(rows) ? rows[0]?.content : null;
+    if (!privateContent || /premium-content-placeholder/i.test(privateContent)) {
+        throw new Error("Conteúdo completo de Downton não encontrado no catálogo privado.");
+    }
+    return privateContent;
 }
 
 const escalas = [
