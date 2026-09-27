@@ -45,8 +45,7 @@
    * @returns {boolean}
    */
   function isAvailable() {
-    // Placeholder: retorna true para mostrar mensagem "em breve"
-    return true;
+    return false;
   }
 
   // ─── Registro ────────────────────────────────────────────────────
