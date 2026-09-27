@@ -18,6 +18,7 @@ async function loadFullTemplate() {
 
     const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
     const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    // Conteúdo Premium completo deve vir do catálogo privado; nunca usar fallback incompleto.
 
     // O CI pode ler o catálogo privado com a service key. Em local, uma rota
     // shellificada não pode ser transformada sem esta fonte completa.
