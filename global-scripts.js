@@ -43,12 +43,13 @@
   var _ttsMap = { en: "en-US", es: "es-ES", de: "de-DE", it: "it-IT", fr: "fr-FR", hi: "hi-IN", zh: "zh-CN", ar: "ar-SA", ja: "ja-JP", ru: "ru-RU", ko: "ko-KR", tr: "tr-TR", nl: "nl-NL", pl: "pl-PL", sv: "sv-SE", id: "id-ID", vi: "vi-VN", uk: "uk-UA", pt: "pt-BR" };
   window.__TTS_LANG = _ttsMap[window.__LANG] || "pt-BR";
 
-  // Os componentes globais (menu, elementos do body e footer) vivem na
-  // raiz do site. Portanto, o prefixo deve ser absoluto em TODAS as páginas,
-  // inclusive nas 18 pastas de idioma e em páginas aninhadas. Usar "" ou "../"
-  // aqui faria o navegador procurar /en/menu-global.html, /en/foo/menu-global.html,
-  // etc., que não existem, deixando o cabeçalho e a área da conta ausentes.
-  window.__FETCH_PREFIX = "/";
+  // Cada pasta de idioma possui seus próprios componentes globais traduzidos.
+  // Em páginas /en/*, /es/*, etc., o carregamento deve permanecer dentro da
+  // respectiva pasta, mesmo quando a página está em um nível mais profundo.
+  // A raiz continua sendo a fonte dos componentes das páginas em português.
+  window.__FETCH_PREFIX = window.__IS_LANG_FOLDER
+    ? "/" + window.__LANG + "/"
+    : "/";
 })();
 
 window.__ACCOUNT_LOGIN_URL = function (returnUrl) {
