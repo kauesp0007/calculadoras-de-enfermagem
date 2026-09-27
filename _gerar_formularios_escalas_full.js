@@ -16,19 +16,35 @@ const path = require("path");
 const ROOT = __dirname;
 const TEMPLATE = path.join(ROOT, "formulario_escala_de_downton.html");
 
-function loadCanonicalTemplate() {
-    const source = fs.readFileSync(TEMPLATE, "utf8");
-    if (/premium-content-loader\.js/i.test(source) || /premium-content-placeholder/i.test(source)) {
-        throw new Error(
-            "formulario_escala_de_downton.html está shellificado. " +
-            "Este gerador deve receber o conteúdo completo antes da shellificação."
-        );
+async function loadCanonicalTemplate() {
+    const local = fs.readFileSync(TEMPLATE, "utf8");
+    if (!/premium-content-loader\.js/i.test(local) && !/premium-content-placeholder/i.test(local)) {
+        return local;
     }
-    return source;
-}
 
-// DNS prefetch/preconnect (Core Web Vitals) — inserido após o viewport.
-const DNS_BLOCK = '<link href="//googleads.g.doubleclick.net" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="dns-prefetch"/>\n<link href="//pagead2.googlesyndication.com" rel="preconnect" crossorigin/>\n';
+    const SUPABASE_URL = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
+    const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+    if (!SUPABASE_URL || !SERVICE_KEY) {
+        throw new Error("Template Premium de Downton está shellificado e o catálogo privado não foi configurado.");
+    }
+
+    const url = SUPABASE_URL +
+        "/rest/v1/premium_content_pages?select=content&path=eq.formulario_escala_de_downton.html&limit=1";
+    const response = await fetch(url, {
+        headers: {
+            apikey: SERVICE_KEY,
+            Authorization: "Bearer " + SERVICE_KEY,
+            Accept: "application/json"
+        }
+    });
+    if (!response.ok) throw new Error("Falha ao recuperar template Premium: HTTP " + response.status);
+    const rows = await response.json();
+    const privateContent = Array.isArray(rows) ? rows[0]?.content : null;
+    if (!privateContent || /premium-content-placeholder/i.test(privateContent)) {
+        throw new Error("Conteúdo completo de Downton não encontrado no catálogo privado.");
+    }
+    return privateContent;
+}
 
 const escalas = [
     { slug: "glasgow", pdf: "Ficha_Impressao_Escala_Glasgow.pdf", fullName: "Escala de Coma de Glasgow", topic: "avaliação do nível de consciência", chip: "Escala de nível de consciência", menu: "Formulário da Escala de Glasgow" },
@@ -46,7 +62,7 @@ const escalas = [
     { slug: "nips", pdf: "Ficha_Impressao_Escala_NIPS.pdf", fullName: "Escala de NIPS", topic: "avaliação de dor em recém-nascidos", chip: "Escala de dor neonatal", menu: "Formulário da Escala de NIPS" }
 ];
 
-const base0 = loadCanonicalTemplate();
+const base0 = await loadCanonicalTemplate();
 
 // 1) Insere DNS prefetch/preconnect após o viewport.
 const viewport = '<meta content="width=device-width, initial-scale=1.0" name="viewport"/>';
