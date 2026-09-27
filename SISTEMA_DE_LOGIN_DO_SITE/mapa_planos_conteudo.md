@@ -1,7 +1,7 @@
 ================================================================================
   MAPA DE PLANOS × CONTEÚDO — CALCULADORAS DE ENFERMAGEM
   Fonte canônica de acesso. O modelo comercial atual possui somente FREE e PREMIUM.
-  Atualizado: 13/09/2026
+  Atualizado: 26/09/2026
 ================================================================================
 
 A decisão técnica de acesso fica em:
@@ -40,9 +40,10 @@ assinatura.
 -------------------------------------------------------------------------------
 A lista efetiva é mantida exclusivamente por `js/access/content-policy.js`.
 
-Exemplos atualmente marcados para `junior`:
-  morse, braden, fugulin, dimensionamento, meem, balancohidrico,
-  medicamentos, glasgow e formulários identificados pela regra canônica.
+Exemplos atualmente marcados como Premium:
+  morse, meem, balancohidrico, medicamentos, glasgow, perroca e formulários
+  identificados pela regra canônica. Braden, Fugulin e Dimensionamento são
+  conteúdos públicos e não exigem assinatura.
 
 Para adicionar um conteúdo premium:
   o arquivo deve entrar na política Premium e no catálogo privado `premium_content_pages`.
