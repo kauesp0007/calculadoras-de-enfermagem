@@ -10,6 +10,10 @@
   function canAccess(resource){var user=window.Auth&&window.Auth.currentUser?window.Auth.currentUser():null;if(!user)return false;if(window.Authorization&&window.Authorization.hasRole&&window.Authorization.hasRole("administrator"))return true;var key=MAP[resource];return !!(key&&PLAN_PERMISSIONS[effective()]&&PLAN_PERMISSIONS[effective()][key]);}
   function isAdmin(){return !!(window.Authorization&&window.Authorization.hasRole&&window.Authorization.hasRole("administrator"));}
   function getCurrentPlan(){return effective();}
-  function isPlanExpired(){return false;}
+  function isPlanExpired(){
+    var profile=window.Auth&&window.Auth.profile?window.Auth.profile():null;
+    var expiry=profile&&profile.premiumExpiresAt?new Date(profile.premiumExpiresAt):null;
+    return !!(expiry&& !isNaN(expiry.getTime()) && expiry<=new Date());
+  }
   window.AuthModules.permissions={canAccess:canAccess,isAdmin:isAdmin,getCurrentPlan:getCurrentPlan,isPlanExpired:isPlanExpired,PLAN_PERMISSIONS:PLAN_PERMISSIONS};
 })(window);
