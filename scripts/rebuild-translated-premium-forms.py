@@ -4,6 +4,7 @@ Reconstrói os formulários Premium traduzidos EN/ES a partir dos formulários
 canônicos PT-BR usando a memória de tradução v2 já versionada no repositório.
 
 Regra de segurança:
+- a fonte PT-BR é recuperada do catálogo privado quando o repositório contém apenas shell;
 - nunca usa um shell Premium como fonte;
 - nunca copia conteúdo PT-BR para EN/ES;
 - só substitui o destino quando a tradução estrutural é validada;
