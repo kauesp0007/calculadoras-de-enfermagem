@@ -1,0 +1,50 @@
+name: 🌐 Reconstruir formulários Premium EN/ES
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/rebuild-translated-premium-forms.py
+
+permissions:
+  contents: write
+
+concurrency:
+  group: rebuild-translated-premium-forms
+  cancel-in-progress: false
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    env:
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      TRANSLATION_PROVIDER: both
+      TRANSLATION_MAX_FALLBACK: 6
+    steps:
+      - name: 📥 Clonar repositório
+        uses: actions/checkout@v4
+
+      - name: 🐍 Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 📦 Instalar dependências de tradução
+        run: python -m pip install --upgrade pip requests python-dotenv
+
+      - name: 🌐 Reconstruir conteúdos completos EN/ES
+        run: python scripts/rebuild-translated-premium-forms.py
+
+      - name: 💾 Persistir formulários traduzidos completos
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- en es; then
+            echo "Nenhum formulário EN/ES foi alterado."
+            exit 0
+          fi
+          git add en es
+          git commit -m "fix(premium): restaurar conteúdo completo dos formulários EN/ES"
+          git push origin HEAD:main
