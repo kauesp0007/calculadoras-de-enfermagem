@@ -12,7 +12,7 @@ const RE=CATALOG?.patterns ? new RegExp("(?:"+CATALOG.patterns.join("|")+")","i"
 const LOADER='<script src="/js/access/premium-content-loader.js" defer></script>';
 const PLACEHOLDER='<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>';
 
-// Esses 30 formulários têm conteúdo completo no catálogo privado e devem
+// Esses 34 formulários têm conteúdo completo no catálogo privado e devem
 // reconstruir o shell público a partir dessa fonte canônica em todo deploy.
 const PRINTABLE_FORM_SHELL_REFRESH = new Set([
   "formulario_escala_de_perroca.html",
