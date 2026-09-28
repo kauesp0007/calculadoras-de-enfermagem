@@ -1543,8 +1543,9 @@ function ativarModoDislexia() {
    Estratégia:
    - SEM Auto ads.
    - Mantém Multiplex manual.
-   - Até 2 blocos display pequenos, em posições definidas pelo site.
-   - Nenhum anúncio junto de botões ou dentro da área de resultado.
+   - Até 3 blocos display pequenos, em posições definidas pelo site.
+   - O terceiro bloco fica após a calculadora/formulário e antes do resultado.
+   - Nenhum anúncio é inserido dentro da área de resultado.
 */
 const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
 const CONTROLLED_DISPLAY_SLOT = "5690484911";
@@ -1698,7 +1699,17 @@ function placeControlledAds() {
     hero.parentNode.insertBefore(topAd, hero.nextSibling);
   }
 
-  // 2º display: próximo ao final do conteúdo, mas antes do rodapé.
+  // 2º display: imediatamente após a calculadora/formulário e antes do resultado.
+  // Mantemos uma distância clara de botões/controles para evitar cliques acidentais.
+  const resultAd = createDisplayAd("result");
+  const resultTarget = document.querySelector(
+    "#resultado, #resultados, #resultado-container, [id*='resultado' i], [id*='resultados' i], .resultado, .resultados, [data-resultados], [data-results]"
+  );
+  if (resultAd && resultTarget && resultTarget.parentNode) {
+    resultTarget.parentNode.insertBefore(resultAd, resultTarget);
+  }
+
+  // 3º display: próximo ao final do conteúdo, mas antes do rodapé.
   const bottomAd = createDisplayAd("bottom");
   if (bottomAd && footer && footer.parentNode) {
     footer.parentNode.insertBefore(bottomAd, footer);
