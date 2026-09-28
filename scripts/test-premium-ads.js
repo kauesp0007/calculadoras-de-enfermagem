@@ -49,18 +49,32 @@ function productionHtmlPaths() {
   return out;
 }
 
-const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=["'][^"']*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^"']*["'][^>]*>\s*<\/script>/gi;
+const DIRECT_AD_URL = /pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js/gi;
 const residualDirectLoaders = [];
 for (const file of productionHtmlPaths()) {
   const html = fs.readFileSync(file, "utf8");
-  if (DIRECT_AD_LOADER.test(html)) residualDirectLoaders.push(path.relative(ROOT, file));
-  DIRECT_AD_LOADER.lastIndex = 0;
+  if (DIRECT_AD_URL.test(html)) residualDirectLoaders.push(path.relative(ROOT, file));
+  DIRECT_AD_URL.lastIndex = 0;
 }
 assert.equal(
   residualDirectLoaders.length,
   0,
-  "Ainda existem carregadores diretos do AdSense fora do global-scripts.js: " +
+  "Ainda existem referências/carregadores diretos do AdSense em HTML de produção fora do global-scripts.js: " +
     residualDirectLoaders.slice(0, 10).join(", ")
+);
+
+const legacyPremiumHelpers = [];
+for (const file of productionHtmlPaths()) {
+  const html = fs.readFileSync(file, "utf8");
+  if (/function\s+isPremiumLocal\s*\(/i.test(html)) {
+    legacyPremiumHelpers.push(path.relative(ROOT, file));
+  }
+}
+assert.equal(
+  legacyPremiumHelpers.length,
+  0,
+  "Ainda existe isPremiumLocal() em HTML de produção: " +
+    legacyPremiumHelpers.slice(0, 10).join(", ")
 );
 
 function section(from, to) {
