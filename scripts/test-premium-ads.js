@@ -16,6 +16,53 @@ const ROOT = path.resolve(__dirname, "..");
 const GLOBAL = path.join(ROOT, "global-scripts.js");
 const source = fs.readFileSync(GLOBAL, "utf8");
 
+const LANGUAGE_FOLDERS = [
+  "en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"
+];
+
+const PROTECTED_HTML_NAMES = new Set([
+  "footer.html",
+  "menu-global.html",
+  "global-body-elements.html",
+  "downloads.html",
+  "menu-lateral.html",
+  "_language_selector.html",
+  "googlefc0a17cdd552164b.html"
+]);
+
+function productionHtmlPaths() {
+  const out = [];
+  for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
+    if (entry.isFile() && /\\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
+      out.push(path.join(ROOT, entry.name));
+    }
+  }
+  for (const lang of LANGUAGE_FOLDERS) {
+    const dir = path.join(ROOT, lang);
+    if (!fs.existsSync(dir)) continue;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isFile() && /\\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
+        out.push(path.join(dir, entry.name));
+      }
+    }
+  }
+  return out;
+}
+
+const DIRECT_AD_LOADER = /<script\\b[^>]*\\bsrc=[\"'][^\"']*pagead2\\.googlesyndication\\.com\\/pagead\\/js\\/adsbygoogle\\.js[^\\"']*[\"'][^>]*>\\s*<\\/script>/gi;
+const residualDirectLoaders = [];
+for (const file of productionHtmlPaths()) {
+  const html = fs.readFileSync(file, "utf8");
+  if (DIRECT_AD_LOADER.test(html)) residualDirectLoaders.push(path.relative(ROOT, file));
+  DIRECT_AD_LOADER.lastIndex = 0;
+}
+assert.equal(
+  residualDirectLoaders.length,
+  0,
+  "Ainda existem carregadores diretos do AdSense fora do global-scripts.js: " +
+    residualDirectLoaders.slice(0, 10).join(", ")
+);
+
 function section(from, to) {
   const a = source.indexOf(from);
   const b = source.indexOf(to, a);
