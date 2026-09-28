@@ -1633,6 +1633,24 @@ function findAdBySlot(slot) {
   );
 }
 
+function normalizeExistingAd(ad, slot) {
+  if (!ad) return;
+  ad.classList.add("adsbygoogle");
+  ad.setAttribute("data-ad-client", CONTROLLED_AD_CLIENT);
+  ad.setAttribute("data-ad-slot", slot);
+  ad.setAttribute("data-ad-format", slot === CONTROLLED_MULTIPLEX_SLOT ? "autorelaxed" : "auto");
+
+  if (slot !== CONTROLLED_MULTIPLEX_SLOT) {
+    ad.setAttribute("data-full-width-responsive", "true");
+    ad.style.display = "block";
+    ad.style.width = "100%";
+    ad.style.minHeight = "90px";
+  } else {
+    ad.style.display = "block";
+    ad.style.width = "100%";
+  }
+}
+
 function getAdContainer(ad) {
   if (!ad) return null;
   return ad.closest(".controlled-display-ad, .controlled-multiplex-ad") ||
@@ -1645,6 +1663,7 @@ function createDisplayAd(position, slot) {
 
   const existing = findAdBySlot(slot);
   if (existing) {
+    normalizeExistingAd(existing, slot);
     const existingContainer = getAdContainer(existing);
     if (existingContainer) {
       existingContainer.classList.add("no-print");
@@ -1678,6 +1697,7 @@ function createMultiplexAd() {
 
   const existing = findAdBySlot(CONTROLLED_MULTIPLEX_SLOT);
   if (existing) {
+    normalizeExistingAd(existing, CONTROLLED_MULTIPLEX_SLOT);
     const existingContainer = getAdContainer(existing);
     if (existingContainer) {
       existingContainer.classList.add("no-print");
