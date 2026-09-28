@@ -201,7 +201,7 @@ serve(async req=>{
     }else if(type==="customer.subscription.updated"){
       const status=String(o?.status||"");
       const end=isoFromUnix(o?.current_period_end);
-      if(["active","trialing"].includes(status)&&end)await setPremium({...sub,metadata:meta},o,meta,status);
+      if(["active","trialing"].includes(status))await setPremium({...sub,metadata:meta},o,meta,status);
       else{
         const u=await db().from("billing_subscriptions").update({
           external_id:subId||sub.external_id,
