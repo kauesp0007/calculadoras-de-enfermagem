@@ -49,7 +49,7 @@ function productionHtmlPaths() {
   return out;
 }
 
-const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=[\"'][^\"']*pagead2\.googlesyndication\.com\\/pagead\\/js\\/adsbygoogle\\.js[^\\"']*[\"'][^>]*>\s*<\/script>/gi;
+const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=["'][^"']*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^"']*["'][^>]*>\s*<\/script>/gi;
 const residualDirectLoaders = [];
 for (const file of productionHtmlPaths()) {
   const html = fs.readFileSync(file, "utf8");
