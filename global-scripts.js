@@ -1546,6 +1546,15 @@ function ativarModoDislexia() {
    - Remove os slots antigos (pre-hero, pré-resultado e Multiplex).
    - Mantém o carregamento lazy e o consentimento existentes.
 */
+// Compatibilidade com os call sites existentes do sistema de acesso.
+function isPremiumSubscriber() {
+  return false;
+}
+
+function hideAdsForPremium() {
+  // O controle efetivo de acesso continua pertencendo aos módulos de conta/Premium.
+}
+
 const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
 const CONTROLLED_AD_SLOT = "5690484911";
 
