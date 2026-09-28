@@ -1515,6 +1515,12 @@ function ativarModoDislexia() {
       titulo_pagina: document.title || ""
     };
 
+    // Se o usuário sair antes do lazy-load normal (8,5 s/interação),
+    // inicializa o GA4 imediatamente para não deixar o evento apenas na fila.
+    if (typeof window.__ENSURE_GA4 === "function" && !window.__metricsLoaded) {
+      try { window.__ENSURE_GA4(); } catch (_) {}
+    }
+
     if (typeof window.gtag === "function") {
       window.gtag("event", "tempo_permanencia", parametros);
     }
@@ -1672,6 +1678,10 @@ function initLazyLoadServices() {
       window.removeEventListener("touchstart", onUserInteraction);
       window.removeEventListener("keydown", onUserInteraction);
     }
+
+    // Permite que eventos críticos de saída (como tempo de permanência)
+    // inicializem apenas o GA4, sem carregar o AdSense no encerramento da página.
+    window.__ENSURE_GA4 = loadAnalytics;
 
     // Verifica se é o robô do Lighthouse/PageSpeed analisando o site
     const isPageSpeed = navigator.userAgent.includes("Lighthouse") || navigator.userAgent.includes("Chrome-Lighthouse") || navigator.userAgent.includes("Googlebot");
