@@ -1392,7 +1392,14 @@ function ativarModoDislexia() {
    ========================= */
 (function () {
   // 1) Verifica se pode enviar analytics (respeita consentimento)
-  // Garante uma fila gtag mesmo quando o carregamento do GA4 ainda é lazy.\n  // O initLazyLoadServices() existente assume essa mesma função quando o GA4 é carregado.\n  if (typeof window.gtag !== "function") {\n    window.dataLayer = window.dataLayer || [];\n    window.gtag = function () { window.dataLayer.push(arguments); };\n  }\n\n  function podeEnviarAnalytics() {
+  // Garante uma fila gtag mesmo quando o carregamento do GA4 ainda é lazy.
+  // O initLazyLoadServices() existente assume essa mesma função quando o GA4 é carregado.
+  if (typeof window.gtag !== "function") {
+    window.dataLayer = window.dataLayer || [];
+    window.gtag = function () { window.dataLayer.push(arguments); };
+  }
+
+  function podeEnviarAnalytics() {
     try {
       const a = localStorage.getItem("analytics_storage");
       return a !== "denied";
