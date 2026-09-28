@@ -73,7 +73,7 @@ function section(from, to) {
 
 const adSection = section(
   "/* =========================\n   Controle canônico de anúncios Premium",
-  "/* =========================\n   Injeção Dinâmica: Anúncio Multiplex"
+  "function isAdsExcludedPage()"
 );
 
 assert.match(adSection, /billingStatus\s*\(/, "A decisão não consulta Auth.billingStatus().");
