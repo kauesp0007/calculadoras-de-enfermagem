@@ -17,6 +17,24 @@ const cors = {
 let cachedToken: { value: string; expiresAt: number } | null = null;
 const responseCache = new Map<string, { value: unknown; expiresAt: number }>();
 
+// Limita as chamadas simultâneas ao GA4 e reduz respostas 429 por quota.
+const MAX_CONCURRENT_GA_REQUESTS = 3;
+let activeGARequests = 0;
+const gaWaiters: Array<() => void> = [];
+
+async function withGASlot<T>(fn: () => Promise<T>): Promise<T> {
+  if (activeGARequests >= MAX_CONCURRENT_GA_REQUESTS) {
+    await new Promise<void>((resolve) => gaWaiters.push(resolve));
+  }
+  activeGARequests++;
+  try {
+    return await fn();
+  } finally {
+    activeGARequests--;
+    gaWaiters.shift()?.();
+  }
+}
+
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -78,17 +96,24 @@ function rangeFor(name: string) {
 }
 
 async function runReport(body: Record<string, unknown>) {
-  const token = await accessToken();
-  const response = await fetch(API_URL, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  return await withGASlot(async () => {
+    let lastStatus = 0;
+    let lastDetail = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const token = await accessToken();
+      const response = await fetch(API_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (response.ok) return await response.json();
+      lastStatus = response.status;
+      lastDetail = (await response.text()).slice(0, 300);
+      if (response.status !== 429 && response.status !== 503) break;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+    throw new Error(`GA runReport failed: ${lastStatus} ${lastDetail}`);
   });
-  if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(`GA runReport failed: ${response.status} ${detail.slice(0, 300)}`);
-  }
-  return await response.json();
 }
 
 function rows(report: any) {
