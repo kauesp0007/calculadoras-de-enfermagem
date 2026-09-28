@@ -206,8 +206,8 @@
 <section class="metricas-card metricas-wide">
 <h2>Atualização e metodologia</h2>
 <div class="metricas-note">
-<p>O painel exibe um snapshot público da propriedade GA4 correta, gerado a partir do Supermetrics, sem expor credenciais do Analytics no navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo correspondem ao snapshot de 30 dias. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
-<p><strong>Atualização:</strong> este arquivo é um snapshot estático publicado no repositório. A página não contém credenciais e não consulta diretamente o GA4 no navegador. A automação periódica do snapshot fica como próxima etapa de infraestrutura.</p>
+<p>O painel consulta diretamente a propriedade GA4 por meio da Google Analytics Data API, através de uma Edge Function do Supabase. A credencial permanece exclusivamente no servidor e nunca é enviada ao navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo correspondem ao snapshot de 30 dias. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
+<p><strong>Atualização:</strong> a página consulta a Google Analytics Data API por meio do backend seguro do Supabase. O navegador recebe somente os dados agregados necessários aos gráficos; nenhuma credencial do Google Analytics é exposta.</p>
 <p class="metricas-disclaimer">Observação: “visitantes desde a criação” depende do que o GA4 tem disponível no histórico da propriedade. A página não inventa um número de fundação: quando a consulta histórica completa estiver disponível, ele será calculado da fonte; caso contrário, o painel indicará a limitação.</p>
 </div>
 </section>
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script type="module">
-const GA_CONFIG = Object.freeze({project:"522498030",cacheEndpoint:"/api/metrics.json"});
+const GA_CONFIG = Object.freeze({project:"522498030",cacheEndpoint:"https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics"});
 const CHART_LIBRARY = "https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js";
 
 const state={range:"last_30_days",data:null};
@@ -261,10 +261,10 @@ async function loadChartLibrary(){
 }
 
 async function loadData(){
-  const response=await fetch(GA_CONFIG.cacheEndpoint,{cache:"no-store",headers:{"Accept":"application/json"}});
+  const response=await fetch(GA_CONFIG.cacheEndpoint+"?range="+encodeURIComponent(state.range),{cache:"no-store",headers:{"Accept":"application/json"}});
   if(!response.ok)throw new Error("Snapshot de métricas indisponível ("+response.status+").");
   const raw=await response.json();
-  if(!raw||raw.version!==1)throw new Error("Formato de métricas inválido.");
+  if(!raw||![1,2].includes(raw.version))throw new Error("Formato de métricas inválido.");
   const totals=raw.ranges?.[state.range]?.totals||raw.ranges?.last_30_days?.totals||{};
   const daily=(raw.daily||[]).map(r=>({date:r[0],dateLabel:r[0],totalUsers:+r[1],activeUsers:+r[2],sessions:+r[3],views:+r[4],engagementRate:+r[5]}));
   const pages=(raw.pages||[]).map(r=>({label:r[0],path:r[0],activeUsers:+r[1],views:+r[2]}));
