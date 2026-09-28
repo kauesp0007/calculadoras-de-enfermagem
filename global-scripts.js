@@ -268,9 +268,18 @@ document.addEventListener("DOMContentLoaded", function () {
         o.innerHTML = e;
         // Corrige links relativos do menu para páginas em subpastas de idioma
         if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
-        initializeNavigationMenu();
-        // Inicializa auth no menu (não bloqueante)
-        initializeAuthMenu();
+        // Proteção: uma falha no código de navegação nunca pode impedir
+        // a inicialização do estado de autenticação do usuário.
+        try {
+          initializeNavigationMenu();
+        } catch (navigationError) {
+          console.error("[Navigation] Falha ao inicializar o menu:", navigationError);
+        }
+        try {
+          initializeAuthMenu();
+        } catch (authMenuError) {
+          console.error("[Auth] Falha ao inicializar o menu de autenticação:", authMenuError);
+        }
       });
     }
   }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
@@ -803,6 +812,18 @@ function initializeAuthMenu() {
     var photoURL = "";
     var isLoggedIn = !!(user && user.uid);
 
+    // Firebase é a fonte imediata da identidade. Nunca permita que um usuário
+    // autenticado seja renderizado como "Entrar" por causa de estado tardio da UI.
+    if (!isLoggedIn) {
+      try {
+        var directUser = _getRawFirebaseUser && _getRawFirebaseUser();
+        if (directUser && directUser.uid) {
+          user = directUser;
+          isLoggedIn = true;
+        }
+      } catch (_) { }
+    }
+
     if (isLoggedIn) {
       displayName = (user.displayName || user.email || "Usuário").split(" ")[0];
       photoURL = user.photoURL || "";
@@ -1033,16 +1054,74 @@ function initializeAuthMenu() {
   // Uma página Premium pode chamar __ENSURE_AUTH imediatamente sem criar uma
   // segunda instância ou uma segunda cadeia de carregamento.
   var _authDeferred = false;
+  var _authBootstrapAttempts = 0;
+  var _AUTH_BOOTSTRAP_MAX_ATTEMPTS = 4;
+
+  function _getRawFirebaseUser() {
+    try {
+      if (window.Auth && typeof window.Auth.currentUser === "function") {
+        var authUser = window.Auth.currentUser();
+        if (authUser && authUser.uid) return authUser;
+      }
+    } catch (_) { }
+
+    try {
+      if (window.FirebaseInit && typeof window.FirebaseInit.getAuthSync === "function") {
+        var firebaseAuth = window.FirebaseInit.getAuthSync();
+        var firebaseUser = firebaseAuth && firebaseAuth.currentUser;
+        if (firebaseUser && firebaseUser.uid) return firebaseUser;
+      }
+    } catch (_) { }
+
+    return null;
+  }
+
+  function _authUiWatchdog(attempt) {
+    attempt = attempt || 0;
+    var rawUser = _getRawFirebaseUser();
+    if (rawUser) {
+      // Mesmo que o listener canônico esteja atrasado, a identidade Firebase
+      // já autenticada deve aparecer imediatamente no menu.
+      safeUpdateUI(rawUser);
+      return;
+    }
+    if (attempt < 20) {
+      setTimeout(function () {
+        _authUiWatchdog(attempt + 1);
+      }, 500);
+    }
+  }
+
   function _deferAuth() {
     if (_authDeferred) return;
     _authDeferred = true;
-    loadAuthScripts().catch(function () { });
+    _authBootstrapAttempts++;
+
+    loadAuthScripts().then(function () {
+      _authBootstrapAttempts = 0;
+      _authUiWatchdog(0);
+    }).catch(function (error) {
+      console.error("[Auth] Bootstrap de autenticação falhou:", error);
+
+      // Se o Firebase já estiver disponível, não deixe o menu congelado em
+      // "Entrar"; renderiza a identidade disponível e tenta o bootstrap canônico.
+      var rawUser = _getRawFirebaseUser();
+      if (rawUser) {
+        safeUpdateUI(rawUser);
+      } else {
+        _renderAuthFallback(null);
+      }
+
+      _authDeferred = false;
+      if (_authBootstrapAttempts < _AUTH_BOOTSTRAP_MAX_ATTEMPTS) {
+        setTimeout(_deferAuth, 1000 * _authBootstrapAttempts);
+      }
+    });
   }
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(_deferAuth, { timeout: 3000 });
-  } else {
-    setTimeout(_deferAuth, 300);
-  }
+
+  // Autenticação é parte do estado crítico da navegação e não deve depender
+  // de requestIdleCallback: inicia assim que o menu global estiver disponível.
+  _deferAuth();
 }
 function inicializarTooltips() {
   document.querySelectorAll("[data-tooltip]").forEach(e => {
