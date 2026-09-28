@@ -513,3 +513,38 @@ Qualquer implementação que fugir desta cadeia deve ser rejeitada antes do depl
 ## Regra de encerramento
 
 Enquanto o E2E autenticado não tiver evidência observável de que um assinante Premium válido não carrega/exibe AdSense, esta receita permanece em estado **HOMOLOGAÇÃO PENDENTE**, e não em estado de conclusão definitiva.
+
+
+# 16. Homologação E2E manual — 28/09/2026
+
+## Resultado observado em produção
+
+O proprietário do site realizou o teste ponta a ponta com sua própria conta Premium após o deploy e confirmou o comportamento esperado:
+
+- **Conta Premium autenticada:** nenhum anúncio foi carregado/exibido.
+- **Logout / retorno ao estado Free:** os anúncios voltaram a aparecer normalmente.
+- A alternância foi observada na mesma experiência de produção, validando a mudança de estado entre Premium e Free.
+
+## Resultado final do PDCA
+
+**PLAN:** aprovado.
+
+**DO:** aprovado.
+
+**CHECK:** aprovado, incluindo testes automatizados, simulação com estado real do Supabase, auditoria do deploy e teste E2E manual em produção.
+
+**ACT:** aprovado.
+
+## Status final
+
+**HOMOLOGADO — Premium sem anúncios.**
+
+A implementação permanece vinculada ao sistema moderno de assinatura/entitlement existente. Não foi criado plano `ad-free`, autoridade paralela de billing ou mecanismo legado para conceder o benefício.
+
+## Evidência operacional
+
+Deploy GitHub Actions: run `36400506706` / workflow `🚀 Deploy automático no GitHub Pages` / conclusão `success`.
+
+O teste E2E manual confirmou o requisito funcional central: **Premium = sem anúncios; Free = anúncios novamente elegíveis.**
+
+> Esta evidência comprova o comportamento observado no teste manual realizado pelo proprietário. Não implica uma nova compra financeira nem altera qualquer assinatura ou entitlement de produção.
