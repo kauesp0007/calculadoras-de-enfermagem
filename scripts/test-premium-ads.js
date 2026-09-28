@@ -115,9 +115,21 @@ const cases = [
   },
   {
     name: "Premium válido",
-    billing: { resolved: true, plan: "premium", premium_expires_at: null },
+    billing: { resolved: true, plan: "premium", premium_expires_at: "2999-12-31T23:59:59Z" },
     authenticated: true,
     expect: { resolved: true, premium: true, allowAds: false, authenticated: true }
+  },
+  {
+    name: "Premium sem expiração",
+    billing: { resolved: true, plan: "premium", premium_expires_at: null },
+    authenticated: true,
+    expect: { resolved: true, premium: false, allowAds: true, authenticated: true }
+  },
+  {
+    name: "Premium com expiração inválida",
+    billing: { resolved: true, plan: "premium", premium_expires_at: "data-invalida" },
+    authenticated: true,
+    expect: { resolved: true, premium: false, allowAds: true, authenticated: true }
   },
   {
     name: "Premium com expiração futura",
