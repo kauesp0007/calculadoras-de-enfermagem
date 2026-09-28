@@ -1734,9 +1734,16 @@ function placeControlledAds() {
   const main = document.querySelector("main");
 
   // 1. Display oficial Pós-Hero: slot 2979726942.
-  const hero = document.querySelector(
-    ".hero-card, [data-hero], .hero, section[class*='hero']"
-  );
+  // O "Hero" oficial das páginas é o card que contém o H1 principal.
+  // Não confundir com cards de resultado que podem conter outros títulos.
+  // Primeiro procuramos o H1 principal e subimos até a SECTION que o contém;
+  // depois usamos os seletores legados apenas como fallback.
+  const mainH1 = document.querySelector("main h1, h1");
+  const hero =
+    (mainH1 && mainH1.closest("section")) ||
+    document.querySelector(
+      "[data-hero], .hero-card, .hero, section[class*='hero']"
+    );
   const topAd = createDisplayAd("post-hero", CONTROLLED_POST_HERO_SLOT);
   if (topAd && hero && hero.parentNode) {
     if (topAd.parentNode !== hero.parentNode || topAd.previousElementSibling !== hero) {
