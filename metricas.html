@@ -139,7 +139,7 @@
 <h2 class="text-blue-100 text-base font-medium">Acompanhamento público de audiência, páginas, países, cidades e evolução do site.</h2>
 </div>
 <div class="metricas-meta">
-<div>Fonte: Google Analytics 4</div>
+<div>Fonte: Google Analytics 4 · snapshot</div>
 <div>Propriedade: 522498030</div>
 <div id="ultima-atualizacao">Última atualização: —</div>
 </div>
@@ -169,7 +169,7 @@
 <div class="metricas-mini"><b id="mini-dia">—</b><span>Hoje · usuários</span></div>
 <div class="metricas-mini"><b id="mini-semana">—</b><span>Últimos 7 dias · usuários</span></div>
 <div class="metricas-mini"><b id="mini-mes">—</b><span>Últimos 30 dias · usuários</span></div>
-</div><div class="metricas-note" style="margin-top:1rem">A série principal usa dados diários do GA4. Os indicadores auxiliares são recalculados na mesma fonte para separar claramente as escalas diária, semanal e mensal.</div></article>
+</div><div class="metricas-note" style="margin-top:1rem">A série principal usa dados diários do GA4. Os indicadores de período usam snapshots separados do mesmo relatório para preservar as escalas diária, semanal e mensal.</div></article>
 </section>
 
 <section class="metricas-layout-3" aria-label="Distribuição geográfica">
@@ -206,8 +206,8 @@
 <section class="metricas-card metricas-wide">
 <h2>Atualização e metodologia</h2>
 <div class="metricas-note">
-<p>O painel foi estruturado para consultar a propriedade GA4 correta do projeto e exibir dados de audiência sem expor credenciais do Analytics no navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo são calculados para o período escolhido. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
-<p><strong>Atualização operacional:</strong> o site deve receber nova leitura duas vezes ao dia, às 11h e às 22h (horário de Brasília). O próprio painel também pode consultar os dados ao ser aberto, mostrando a hora da leitura disponível na fonte.</p>
+<p>O painel exibe um snapshot público da propriedade GA4 correta, gerado a partir do Supermetrics, sem expor credenciais do Analytics no navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo correspondem ao snapshot de 30 dias. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
+<p><strong>Atualização:</strong> este arquivo é um snapshot estático publicado no repositório. A página não contém credenciais e não consulta diretamente o GA4 no navegador. A automação periódica do snapshot fica como próxima etapa de infraestrutura.</p>
 <p class="metricas-disclaimer">Observação: “visitantes desde a criação” depende do que o GA4 tem disponível no histórico da propriedade. A página não inventa um número de fundação: quando a consulta histórica completa estiver disponível, ele será calculado da fonte; caso contrário, o painel indicará a limitação.</p>
 </div>
 </section>
@@ -261,17 +261,35 @@ async function loadChartLibrary(){
 }
 
 async function loadData(){
-  /*
-   * Segurança canônica:
-   * o navegador NÃO recebe token GA4, chave de serviço ou credencial Supermetrics.
-   * A página consome somente um endpoint público de dados preparados/cacheados.
-   * O endpoint /api/metrics.json deve ser produzido no backend/automação.
-   */
-  const response=await fetch(GA_CONFIG.cacheEndpoint+"?range="+encodeURIComponent(state.range),{cache:"no-store",headers:{"Accept":"application/json"}});
-  if(!response.ok)throw new Error("Fonte de métricas indisponível ("+response.status+").");
-  const data=await response.json();
-  if(!data||data.version!==1)throw new Error("Formato de métricas inválido.");
-  return data;
+  const response=await fetch(GA_CONFIG.cacheEndpoint,{cache:"no-store",headers:{"Accept":"application/json"}});
+  if(!response.ok)throw new Error("Snapshot de métricas indisponível ("+response.status+").");
+  const raw=await response.json();
+  if(!raw||raw.version!==1)throw new Error("Formato de métricas inválido.");
+  const totals=raw.ranges?.[state.range]?.totals||raw.ranges?.last_30_days?.totals||{};
+  const daily=(raw.daily||[]).map(r=>({date:r[0],dateLabel:r[0],totalUsers:+r[1],activeUsers:+r[2],sessions:+r[3],views:+r[4],engagementRate:+r[5]}));
+  const pages=(raw.pages||[]).map(r=>({label:r[0],path:r[0],activeUsers:+r[1],views:+r[2]}));
+  const countries=(raw.countries||[]).map(r=>({name:r[0],activeUsers:+r[1],sessions:+r[2]}));
+  const cities=(raw.cities||[]).map(r=>({name:r[0],activeUsers:+r[1],sessions:+r[2]}));
+  const monthly=(raw.monthly||[]).map(r=>({label:r[0].replace("|","/"),totalUsers:+r[1],sessions:+r[2],views:+r[3]}));
+  return {
+    version:1,generatedAt:raw.generatedAt,rangeLabel:{
+      last_30_days:"Últimos 30 dias",last_7_days:"Últimos 7 dias",this_month_inc:"Este mês",last_month:"Mês anterior"
+    }[state.range]||"Período selecionado",
+    totals,
+    periods:{
+      today:{activeUsers:daily.at(-1)?.activeUsers},
+      last7Days:{activeUsers:raw.ranges?.last_7_days?.totals?.activeUsers},
+      last30Days:{activeUsers:raw.ranges?.last_30_days?.totals?.activeUsers}
+    },
+    daily,pages,countries,cities,visitors:{
+      daily,
+      monthly,
+      historicalTotal:raw.historicalTotal,
+      lastMonth:raw.ranges?.last_month?.totals,
+      last7Days:raw.ranges?.last_7_days?.totals,
+      today:daily.at(-1)
+    }
+  };
 }
 
 function renderKpis(data){
