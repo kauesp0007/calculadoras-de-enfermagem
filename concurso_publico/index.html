@@ -970,72 +970,8 @@ start();
 })();
 </script>
 
-<!-- Lazy-load third-party ads/tracking after page interactive to reduce main-thread work -->
-<script>
-(function(){
-function isPremiumLocal(){ return false; }
-function loadAdsDeferred(){
-try{
-if(isPremiumLocal())return;
-// delay a pequena por 3s após load para permitir pintura crítica
-setTimeout(function(){
-// exemplo: injetar adsense
-var s = document.createElement('script');
-s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847';
-s.async = true;
-s.crossOrigin = 'anonymous';
-document.head.appendChild(s);
+<!-- AdSense é carregado exclusivamente pelo global-scripts.js após a resolução canônica de consentimento e entitlement. -->
 
-// carregar wusk apenas se cookie consent permitir (gerenciado por initializeCookieFunctionality)
-if(localStorage.getItem('ad_storage') === 'granted'){
-var w = document.createElement('script');
-w.src = '/wusk/loader.js';
-w.async = true;
-document.head.appendChild(w);
-}
-}, 3000);
-}catch(e){console.warn('Lazy load ads failed',e)}
-}
-if(document.readyState === 'complete') loadAdsDeferred(); else window.addEventListener('load', loadAdsDeferred);
-})();
-</script>
-
-<script>
-(function(){
-var img = document.getElementById('imgLightboxImg');
-var lightbox = document.getElementById('imgLightbox');
-function setDimensionsAndFocus(){
-if(!img) return;
-if(img.naturalWidth && img.naturalHeight){
-img.setAttribute('width', img.naturalWidth);
-img.setAttribute('height', img.naturalHeight);
-}
-var closeBtn = document.getElementById('imgLightboxClose');
-if(closeBtn) closeBtn.focus();
-}
-if(img){
-img.addEventListener('load', setDimensionsAndFocus);
-var obs = new MutationObserver(function(mutations){
-mutations.forEach(function(m){
-if(m.attributeName === 'src'){
-img.alt = img.getAttribute('data-alt') || img.alt || '';
-}
-});
-});
-obs.observe(img, { attributes: true });
-}
-if(lightbox){
-lightbox.addEventListener('keydown', function(e){
-if(e.key === 'Escape' || e.key === 'Esc'){
-var closeBtn = document.getElementById('imgLightboxClose');
-if(closeBtn) closeBtn.click();
-}
-});
-if(!lightbox.hasAttribute('tabindex')) lightbox.setAttribute('tabindex','-1');
-}
-// Accessibility note: ensure `js/concurso-santos.js` sets `data-alt` or `alt` before assigning `src`.
-})();
-</script>
 
 <!-- MULTIPLEX_AD_RESERVED_START -->
 <style>
