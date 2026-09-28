@@ -77,7 +77,14 @@ serve(async req=>{
                 updated_at:new Date().toISOString()
               }).eq("id",current.id);
             }else{
-              throw new Error("active_billing_flow");
+              const existingUrl=String(remote?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(existingCheckoutId)}`).trim();
+              if(!/^https:\\/\\/(?:www\\.)?asaas\\.com\\//i.test(existingUrl))throw new Error("active_billing_flow");
+              return new Response(JSON.stringify({
+                url:existingUrl,
+                checkoutId:existingCheckoutId,
+                externalReference:String(current.external_id||""),
+                reused:true
+              }),{status:200,headers:H});
             }
           }catch(e){
             const msg=String((e as Error)?.message||e);
