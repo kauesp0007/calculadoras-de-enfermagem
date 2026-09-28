@@ -46,8 +46,9 @@
   // Cada pasta de idioma possui seus próprios componentes globais traduzidos.
   // Em páginas /en/*, /es/*, etc., o carregamento deve permanecer dentro da
   // respectiva pasta, mesmo quando a página está em um nível mais profundo.
-  // A raiz continua sendo a fonte dos componentes das páginas em português.
-  window.__FETCH_PREFIX = window.__IS_LANG_FOLDER
+  // As páginas centralizadas de /conta/ também usam os componentes localizados
+  // de acordo com ?lang=...; somente pt usa os componentes da raiz.
+  window.__FETCH_PREFIX = (window.__IS_LANG_FOLDER || (_path.indexOf("/conta/") === 0 && window.__LANG !== "pt"))
     ? "/" + window.__LANG + "/"
     : "/";
 })();
@@ -729,6 +730,36 @@ function initializeAuthMenu() {
     return out;
   }
 
+  // ── Textos dinâmicos da área de conta por idioma ──
+  // O menu está localizado estaticamente em cada pasta; estes textos são
+  // inseridos dinamicamente pelo estado de autenticação e também precisam
+  // acompanhar o idioma atual.
+  var _MENU_AUTH_I18N = {
+    pt: {login:"Entrar",profile:"Meu Perfil",settings:"Configurações",favorites:"Favoritos",history:"Histórico",subscribe:"Assine já",logout:"Sair"},
+    en: {login:"Sign in",profile:"My Profile",settings:"Settings",favorites:"Favorites",history:"History",subscribe:"Subscribe now",logout:"Sign out"},
+    es: {login:"Iniciar sesión",profile:"Mi perfil",settings:"Configuración",favorites:"Favoritos",history:"Historial",subscribe:"Suscríbete ya",logout:"Cerrar sesión"},
+    fr: {login:"Se connecter",profile:"Mon profil",settings:"Paramètres",favorites:"Favoris",history:"Historique",subscribe:"Abonnez-vous",logout:"Se déconnecter"},
+    de: {login:"Anmelden",profile:"Mein Profil",settings:"Einstellungen",favorites:"Favoriten",history:"Verlauf",subscribe:"Jetzt abonnieren",logout:"Abmelden"},
+    it: {login:"Accedi",profile:"Il mio profilo",settings:"Impostazioni",favorites:"Preferiti",history:"Cronologia",subscribe:"Abbonati ora",logout:"Esci"},
+    hi: {login:"साइन इन",profile:"मेरी प्रोफ़ाइल",settings:"सेटिंग्स",favorites:"पसंदीदा",history:"इतिहास",subscribe:"अभी सदस्यता लें",logout:"साइन आउट"},
+    zh: {login:"登录",profile:"我的个人资料",settings:"设置",favorites:"收藏夹",history:"历史记录",subscribe:"立即订阅",logout:"退出登录"},
+    ja: {login:"ログイン",profile:"プロフィール",settings:"設定",favorites:"お気に入り",history:"履歴",subscribe:"今すぐ購読",logout:"ログアウト"},
+    ru: {login:"Войти",profile:"Мой профиль",settings:"Настройки",favorites:"Избранное",history:"История",subscribe:"Подписаться сейчас",logout:"Выйти"},
+    ko: {login:"로그인",profile:"내 프로필",settings:"설정",favorites:"즐겨찾기",history:"기록",subscribe:"지금 구독",logout:"로그아웃"},
+    tr: {login:"Giriş yap",profile:"Profilim",settings:"Ayarlar",favorites:"Favoriler",history:"Geçmiş",subscribe:"Şimdi abone ol",logout:"Çıkış yap"},
+    nl: {login:"Inloggen",profile:"Mijn profiel",settings:"Instellingen",favorites:"Favorieten",history:"Geschiedenis",subscribe:"Abonneer nu",logout:"Uitloggen"},
+    pl: {login:"Zaloguj się",profile:"Mój profil",settings:"Ustawienia",favorites:"Ulubione",history:"Historia",subscribe:"Subskrybuj teraz",logout:"Wyloguj się"},
+    sv: {login:"Logga in",profile:"Min profil",settings:"Inställningar",favorites:"Favoriter",history:"Historik",subscribe:"Prenumerera nu",logout:"Logga ut"},
+    id: {login:"Masuk",profile:"Profil saya",settings:"Pengaturan",favorites:"Favorit",history:"Riwayat",subscribe:"Berlangganan sekarang",logout:"Keluar"},
+    vi: {login:"Đăng nhập",profile:"Hồ sơ của tôi",settings:"Cài đặt",favorites:"Yêu thích",history:"Lịch sử",subscribe:"Đăng ký ngay",logout:"Đăng xuất"},
+    uk: {login:"Увійти",profile:"Мій профіль",settings:"Налаштування",favorites:"Обране",history:"Історія",subscribe:"Підписатися зараз",logout:"Вийти"},
+    ar: {login:"تسجيل الدخول",profile:"ملفي الشخصي",settings:"الإعدادات",favorites:"المفضلة",history:"السجل",subscribe:"اشترك الآن",logout:"تسجيل الخروج"}
+  };
+  function _menuAuthCopy() {
+    var lang = String(window.__LANG || "pt").toLowerCase().split("-")[0];
+    return _MENU_AUTH_I18N[lang] || _MENU_AUTH_I18N.pt;
+  }
+
   // ── Função para atualizar UI baseada no estado de auth ──
   // Re-consulta os elementos do DOM a cada chamada (evita race condition)
   function _premiumSubscribeUrl() {
@@ -739,6 +770,7 @@ function initializeAuthMenu() {
   }
 
   function _premiumCtaHtml(isLoggedIn) {
+    var copy = _menuAuthCopy();
     var isPremium = !!(window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium"));
     var href = isPremium
       ? _premiumSubscribeUrl()
@@ -747,7 +779,7 @@ function initializeAuthMenu() {
         : window.__ACCOUNT_LOGIN_URL(typeof window.__ACCOUNT_PAGE_URL === "function"
           ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
           : "/conta/assinatura.html"));
-    var label = isPremium ? "Premium" : "Assine já";
+    var label = isPremium ? "Premium" : copy.subscribe;
     return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
   }
 
@@ -785,13 +817,13 @@ function initializeAuthMenu() {
           '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
           "</button>" +
           '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100" role="menu">' +
-          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Meu Perfil</a></li>' +
-          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Configurações</a></li>' +
-          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Favoritos</a></li>' +
-          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">Histórico</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.profile + '</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.settings + '</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.favorites + '</a></li>' +
+          '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.history + '</a></li>' +
           '<li>' + _premiumCtaHtml(isLoggedIn) + '</li>' +
           _extraMenuItems(false) +
-          '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">Sair</a></li>' +
+          '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">' + copy.logout + '</a></li>' +
           "</ul>";
 
         (function bindDesktopAccountDropdown() {
@@ -847,7 +879,7 @@ function initializeAuthMenu() {
         desktopItem.innerHTML =
           '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
-          "Entrar" +
+          copy.login +
           "</a>" +
           _premiumCtaHtml(isLoggedIn);
       }
@@ -865,13 +897,13 @@ function initializeAuthMenu() {
           '<div><p class="font-bold text-sm text-gray-800 m-0">' + (user.displayName || "Usuário") + "</p>" +
           '<p class="text-xs text-gray-500 m-0">' + (user.email || "") + "</p></div>" +
           "</div>" +
-          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Meu Perfil</a>' +
-          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Favoritos</a>' +
-          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Histórico</a>' +
-          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">Configurações</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.profile + '</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.favorites + '</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.history + '</a>' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.settings + '</a>' +
           '<div class="px-4 py-1.5">' + _premiumCtaHtml(isLoggedIn) + '</div>' +
           _extraMenuItems(true) +
-          '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">Sair</a>';
+          '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">' + copy.logout + '</a>';
 
         setTimeout(function () {
           var logoutBtn = document.getElementById("menu-auth-logout-mobile");
