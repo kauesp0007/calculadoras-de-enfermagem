@@ -756,8 +756,12 @@ function initializeAuthMenu() {
     ar: {login:"تسجيل الدخول",profile:"ملفي الشخصي",settings:"الإعدادات",favorites:"المفضلة",history:"السجل",subscribe:"اشترك الآن",logout:"تسجيل الخروج"}
   };
   function _menuAuthCopy() {
-    var lang = String(window.__LANG || "pt").toLowerCase().split("-")[0];
-    return _MENU_AUTH_I18N[lang] || _MENU_AUTH_I18N.pt;
+    try {
+      var lang = String(window.__LANG || "pt").toLowerCase().split("-")[0];
+      return _MENU_AUTH_I18N[lang] || _MENU_AUTH_I18N.pt;
+    } catch (_) {
+      return _MENU_AUTH_I18N.pt;
+    }
   }
 
   // ── Função para atualizar UI baseada no estado de auth ──
@@ -933,16 +937,46 @@ function initializeAuthMenu() {
     return true;
   }
 
+  // ── Fallback de segurança do menu de autenticação ──
+  // Um erro de tradução/renderização NUNCA pode esconder o estado de login.
+  function _renderAuthFallback(user) {
+    try {
+      var desktopItem = document.getElementById("menu-auth-desktop");
+      var mobileItem = document.getElementById("menu-auth-mobile");
+      var copy = _menuAuthCopy();
+      var logged = !!(user && user.uid);
+      var displayName = logged ? (user.displayName || user.email || copy.profile || "Account").split(" ")[0] : "";
+      var href = logged
+        ? (typeof window.__ACCOUNT_PAGE_URL === "function" ? window.__ACCOUNT_PAGE_URL("/conta/perfil.html") : "/conta/perfil.html")
+        : window.__ACCOUNT_LOGIN_URL();
+      var html = logged
+        ? '<a href="' + href + '" class="text-gray-700 hover:text-[#1A3E74] font-medium whitespace-nowrap">' + displayName + '</a>'
+        : '<a href="' + href + '" class="text-gray-700 hover:text-[#1A3E74] font-medium whitespace-nowrap">' + copy.login + '</a>';
+      if (desktopItem) desktopItem.innerHTML = html;
+      if (mobileItem) mobileItem.innerHTML = logged ? html : '<a role="menuitem" href="' + href + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold">' + copy.login + '</a>';
+    } catch (fallbackError) {
+      console.error("[Auth] Fallback do menu também falhou:", fallbackError);
+    }
+  }
+
   // ── Wrapper com retry: tenta atualizar UI, repete se elementos não prontos ──
   function safeUpdateUI(user, retries) {
     retries = retries || 0;
-    if (updateAuthUI(user)) {
-      return; // Sucesso
+    try {
+      if (updateAuthUI(user)) {
+        return; // Sucesso
+      }
+    } catch (error) {
+      console.error("[Auth] Falha ao renderizar o menu de autenticação:", error);
+      _renderAuthFallback(user);
+      return;
     }
     if (retries < 10) {
       setTimeout(function () {
         safeUpdateUI(user, retries + 1);
       }, 200);
+    } else {
+      _renderAuthFallback(user);
     }
   }
 
