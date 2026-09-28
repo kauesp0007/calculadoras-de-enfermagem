@@ -31,7 +31,7 @@ const PROTECTED_HTML_NAMES = new Set([
   "googlefc0a17cdd552164b.html"
 ]);
 
-const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=[\"'][^\"']*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^\"']*[\"'][^>]*>\s*<\/script>\s*/gi;
+const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=["'][^"']*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^"']*["'][^>]*>\s*<\/script>/gi;
 
 function allowedHtmlFiles() {
   const files = [];
