@@ -1538,215 +1538,300 @@ function ativarModoDislexia() {
 })();
  
 /* =========================
-   Controle de anúncios (premium removido — todos os usuários são free)
-   ========================= */
-// Stubs mantidos como no-op por compatibilidade com demais call sites.
-// Nenhum usuário é premium; todos veem os anúncios.
-function isPremiumSubscriber() {
-  return false;
+   Publicidade controlada — blocos manuais
+   =========================
+   Objetivo:
+   - Um único anúncio discreto por página.
+   - Nenhum anúncio antes de botões/resultados.
+   - Remove os slots antigos (pre-hero, pré-resultado e Multiplex).
+   - Mantém o carregamento lazy e o consentimento existentes.
+*/
+const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
+const CONTROLLED_AD_SLOT = "5690484911";
+
+function isAdsExcludedPage() {
+  const path = window.location.pathname.toLowerCase();
+  return (
+    path.endsWith("/metricas.html") ||
+    path.includes("/conta/") ||
+    path.includes("/assinatura") ||
+    path.includes("/configuracoes") ||
+    path.includes("/perfil") ||
+    path.includes("/favoritos") ||
+    path.includes("/historico") ||
+    path.includes("/login") ||
+    path.includes("/cadastro")
+  );
 }
 
-function hideAdsForPremium() {
-  // Nada a fazer: não há mais assinantes premium.
-}
+function removeLegacyAdSlots() {
+  document.querySelectorAll(
+    'ins.adsbygoogle[data-ad-slot="2979726942"],' +
+    'ins.adsbygoogle[data-ad-slot="5690484911"],' +
+    'ins.adsbygoogle[data-ad-slot="3341197364"]'
+  ).forEach(function (ad) {
+    const parent = ad.closest("aside") || ad.parentElement;
+    if (parent) parent.remove();
+    else ad.remove();
+  });
 
-/* =========================
-   Injeção Dinâmica: Anúncio Multiplex (Antes do Rodapé)
-   ========================= */
-function initializeMultiplexAds() {
-  if (isPremiumSubscriber()) return;
-  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
-    if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
-    ad.dataset.multiplexInitialized = "true";
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (error) {
-      delete ad.dataset.multiplexInitialized;
-      console.warn("Falha ao inicializar o AdSense Multiplex:", error);
-    }
+  // Remove estilos/reservas antigas do Multiplex caso tenham sido deixados
+  // fora do <aside> por alguma versão anterior do template.
+  document.querySelectorAll("#multiplex-ad-reserved, .multiplex-ad-reserved").forEach(function (node) {
+    node.remove();
   });
 }
 
-/* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO PARA INP)
-   ========================================================= */
+function createControlledAdSlot() {
+  if (isAdsExcludedPage()) return null;
+  if (document.querySelector("[data-controlled-ad-slot='true']")) return null;
 
-// Função que engloba toda a lógica que estava nos HTMLs
-function initLazyLoadServices() {
-  hideAdsForPremium();
-  if (
-    localStorage.getItem('admin_mode') === 'true' ||
-    new URLSearchParams(window.location.search).get('admin') === '1'
-  ) {
-    console.log('🚧 Modo Admin: Bloqueado.');
-    if (new URLSearchParams(window.location.search).get('admin') === '1') {
-      localStorage.setItem('admin_mode', 'true');
-    }
+  const host =
+    document.getElementById("footer-placeholder") ||
+    document.querySelector("footer") ||
+    document.querySelector("main");
+
+  if (!host || !host.parentNode) return null;
+
+  const aside = document.createElement("aside");
+  aside.className = "controlled-ad-slot";
+  aside.setAttribute("data-controlled-ad-slot", "true");
+  aside.setAttribute("aria-label", "Publicidade");
+  aside.innerHTML =
+    '<span class="controlled-ad-label" aria-hidden="true">Anúncio</span>' +
+    '<ins class="adsbygoogle"' +
+    ' style="display:block;width:100%"' +
+    ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
+    ' data-ad-slot="' + CONTROLLED_AD_SLOT + '"' +
+    ' data-ad-format="horizontal"' +
+    ' data-full-width-responsive="true"></ins>';
+
+  if (host.id === "footer-placeholder" || host.tagName === "FOOTER") {
+    host.parentNode.insertBefore(aside, host);
   } else {
-    var savedConsent = localStorage.getItem("cookieConsent");
-    var isRefused = (savedConsent === "refused");
-    var isManaged = (savedConsent === "managed");
-    var adsBlocked = isRefused || (isManaged && localStorage.getItem("ad_storage") === "denied");
+    host.appendChild(aside);
+  }
 
-    window.__metricsLoaded = false;
-    window.__adsenseLoaded = false;
-    window.dataLayer = window.dataLayer || [];
+  return aside;
+}
 
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    window.gtag = gtag;
+function styleControlledAds() {
+  if (document.getElementById("controlled-ads-style")) return;
 
-    function loadAnalytics() {
-      if (window.__metricsLoaded) return;
-      window.__metricsLoaded = true;
+  const style = document.createElement("style");
+  style.id = "controlled-ads-style";
+  style.textContent =
+    ".controlled-ad-slot{" +
+      "box-sizing:border-box;" +
+      "display:block;" +
+      "width:min(100%,970px);" +
+      "min-height:110px;" +
+      "margin:32px auto;" +
+      "padding:8px 12px 10px;" +
+      "text-align:center;" +
+      "background:transparent;" +
+      "contain:layout paint;" +
+    "}" +
+    ".controlled-ad-label{" +
+      "display:block;" +
+      "font:600 10px/1.2 Arial,sans-serif;" +
+      "letter-spacing:.04em;" +
+      "text-transform:uppercase;" +
+      "color:#94a3b8;" +
+      "margin:0 0 6px;" +
+    "}" +
+    "@media(max-width:600px){" +
+      ".controlled-ad-slot{min-height:100px;margin:24px auto;padding:6px 8px 8px;}" +
+    "}" +
+    ".controlled-ad-slot ins.adsbygoogle{" +
+      "margin:0 auto;" +
+    "}";
 
-      var aState = isRefused ? "denied" : (localStorage.getItem("analytics_storage") || "granted");
-      var adState = adsBlocked ? "denied" : "granted";
+  document.head.appendChild(style);
+}
 
-      var s = document.createElement("script");
-      s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
-      document.head.appendChild(s);
+function initializeControlledAd() {
+  if (isAdsExcludedPage()) return;
+  if (isPremiumSubscriber()) return;
 
-      gtag("consent", "default", {
-        analytics_storage: aState,
-        ad_storage: adState,
-        ad_user_data: adState,
-        ad_personalization: adState,
-        wait_for_update: 500
-      });
+  removeLegacyAdSlots();
+  styleControlledAds();
 
-      gtag("js", new Date());
-      gtag("config", "G-PFM06B7TS5");
-      gtag("config", "G-MJDKPDPJ26");
-      gtag("config", "G-M7DHHF38EJ");
-      gtag("config", "G-8FLJ59XXDK");
-      gtag("config", "G-VVDP5JGEX8");
-      gtag("config", "G-EX8");
-      gtag("config", "AW-952633102");
-      gtag("config", "AW-9277197961");
+  const slot = createControlledAdSlot();
+  if (!slot) return;
 
-      console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
-    }
-
-    function loadAdSenseOnce() {
-      if (adsBlocked || isPremiumSubscriber()) return;
-
-      // Inicializa o multiplex imediatamente. O push({}) é seguro antes
-      // ou depois do script carregar; o guard interno evita push duplicado.
-      initializeMultiplexAds();
-
-      if (window.__adsenseLoaded) return;
-      window.__adsenseLoaded = true;
-
-      var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-      if (existingAdSense) return;
-
-      var ad = document.createElement("script");
-      ad.async = true;
-      ad.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6472730056006847";
-      ad.crossOrigin = "anonymous";
-      ad.addEventListener("load", function () {
-        initializeMultiplexAds();
-      }, { once: true });
-      document.head.appendChild(ad);
-      console.log("💰 AdSense carregado via Lazy Load (Otimizado).");
-    }
-
-    // --- A SOLUÇÃO DO INP ESTÁ AQUI ---
-    // Envolvemos o carregamento para não bloquear a Thread Principal
-    function executeServices() {
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
-        });
-      } else {
-        setTimeout(function () {
-          loadAnalytics();
-          loadAdSenseOnce();
-        }, 100); // Pequeno atraso para liberar a interação
-      }
-    }
-
-    function onUserInteraction() {
-      executeServices();
-
-      window.removeEventListener("scroll", onUserInteraction);
-      window.removeEventListener("mousemove", onUserInteraction);
-      window.removeEventListener("touchstart", onUserInteraction);
-      window.removeEventListener("keydown", onUserInteraction);
-    }
-
-    // Permite que eventos críticos de saída (como tempo de permanência)
-    // inicializem apenas o GA4, sem carregar o AdSense no encerramento da página.
-    window.__ENSURE_GA4 = loadAnalytics;
-
-    // Verifica se é o robô do Lighthouse/PageSpeed analisando o site
-    const isPageSpeed = navigator.userAgent.includes("Lighthouse") || navigator.userAgent.includes("Chrome-Lighthouse") || navigator.userAgent.includes("Googlebot");
-
-    if (!adsBlocked) {
-      window.addEventListener("scroll", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("mousemove", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("touchstart", onUserInteraction, {
-        passive: true
-      });
-      window.addEventListener("keydown", onUserInteraction, {
-        passive: true
-      });
-
-      // Se for um usuário real, mantém o disparo automático após 8,5s
-      // Se for o robô do PageSpeed, aguarda apenas a interação, poupando 190KB na auditoria
-      if (!isPageSpeed) {
-        setTimeout(onUserInteraction, 8500);
-      }
-    }
-
-    window.applyConsent = function (consent) {
-      gtag("consent", "update", consent);
-      if (consent.ad_storage === "granted") {
-        adsBlocked = false;
-        onUserInteraction();
-      } else {
-        adsBlocked = true;
-        document.querySelectorAll("ins.adsbygoogle")
-          .forEach(ad => {
-            ad.style.display = "none";
-            ad.innerHTML = "";
-          });
-      }
-      localStorage.setItem("analytics_storage", consent.analytics_storage);
-      localStorage.setItem("ad_storage", consent.ad_storage);
-    }
-
-    window.acceptAllCookies = function () {
-      localStorage.setItem("cookieConsent", "accepted");
-      window.applyConsent({
-        analytics_storage: "granted",
-        ad_storage: "granted",
-        ad_user_data: "granted",
-        ad_personalization: "granted"
-      });
-    };
-
-    window.rejectAllCookies = function () {
-      localStorage.setItem("cookieConsent", "refused");
-      window.applyConsent({
-        analytics_storage: "denied",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied"
-      });
-    };
+  try {
+    (window.adsbygoogle = window.adsbygoogle || []).push({});
+  } catch (error) {
+    console.warn("Falha ao inicializar o anúncio controlado:", error);
   }
 }
 
-// Inicializa a função assim que o DOM estiver pronto
+/* =========================================================
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO)
+   ========================================================= */
+function initLazyLoadServices() {
+  if (
+    localStorage.getItem("admin_mode") === "true" ||
+    new URLSearchParams(window.location.search).get("admin") === "1"
+  ) {
+    console.log("🚧 Modo Admin: publicidade bloqueada.");
+    return;
+  }
+
+  const savedConsent = localStorage.getItem("cookieConsent");
+  const isRefused = savedConsent === "refused";
+  const isManaged = savedConsent === "managed";
+  let adsBlocked =
+    isRefused ||
+    (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+  window.__metricsLoaded = false;
+  window.__adsenseLoaded = false;
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  window.gtag = gtag;
+
+  function loadAnalytics() {
+    if (window.__metricsLoaded) return;
+    window.__metricsLoaded = true;
+
+    const aState = isRefused
+      ? "denied"
+      : (localStorage.getItem("analytics_storage") || "granted");
+    const adState = adsBlocked ? "denied" : "granted";
+
+    const s = document.createElement("script");
+    s.async = true;
+    s.src = "https://www.googletagmanager.com/gtag/js?id=G-PFM06B7TS5";
+    document.head.appendChild(s);
+
+    gtag("consent", "default", {
+      analytics_storage: aState,
+      ad_storage: adState,
+      ad_user_data: adState,
+      ad_personalization: adState,
+      wait_for_update: 500
+    });
+
+    gtag("js", new Date());
+    gtag("config", "G-PFM06B7TS5");
+    gtag("config", "G-MJDKPDPJ26");
+    gtag("config", "G-M7DHHF38EJ");
+    gtag("config", "G-8FLJ59XXDK");
+    gtag("config", "G-VVDP5JGEX8");
+    gtag("config", "G-EX8");
+    gtag("config", "AW-952633102");
+    gtag("config", "AW-9277197961");
+  }
+
+  function loadAdSenseOnce() {
+    if (adsBlocked || isPremiumSubscriber() || isAdsExcludedPage()) return;
+    if (window.__adsenseLoaded) return;
+
+    window.__adsenseLoaded = true;
+
+    const existingAdSense = document.querySelector(
+      'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+    );
+
+    if (existingAdSense) {
+      initializeControlledAd();
+      return;
+    }
+
+    const ad = document.createElement("script");
+    ad.async = true;
+    ad.src =
+      "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" +
+      CONTROLLED_AD_CLIENT;
+    ad.crossOrigin = "anonymous";
+    ad.addEventListener("load", initializeControlledAd, { once: true });
+    document.head.appendChild(ad);
+  }
+
+  function executeServices() {
+    if ("requestIdleCallback" in window) {
+      requestIdleCallback(function () {
+        loadAnalytics();
+        loadAdSenseOnce();
+      });
+    } else {
+      setTimeout(function () {
+        loadAnalytics();
+        loadAdSenseOnce();
+      }, 100);
+    }
+  }
+
+  function onUserInteraction() {
+    executeServices();
+    window.removeEventListener("scroll", onUserInteraction);
+    window.removeEventListener("mousemove", onUserInteraction);
+    window.removeEventListener("touchstart", onUserInteraction);
+    window.removeEventListener("keydown", onUserInteraction);
+  }
+
+  window.__ENSURE_GA4 = loadAnalytics;
+
+  const isPageSpeed =
+    navigator.userAgent.includes("Lighthouse") ||
+    navigator.userAgent.includes("Chrome-Lighthouse") ||
+    navigator.userAgent.includes("Googlebot");
+
+  if (!adsBlocked && !isAdsExcludedPage()) {
+    window.addEventListener("scroll", onUserInteraction, { passive: true });
+    window.addEventListener("mousemove", onUserInteraction, { passive: true });
+    window.addEventListener("touchstart", onUserInteraction, { passive: true });
+    window.addEventListener("keydown", onUserInteraction, { passive: true });
+
+    if (!isPageSpeed) {
+      setTimeout(onUserInteraction, 8500);
+    }
+  }
+
+  window.applyConsent = function (consent) {
+    gtag("consent", "update", consent);
+
+    if (consent.ad_storage === "granted") {
+      adsBlocked = false;
+      onUserInteraction();
+    } else {
+      adsBlocked = true;
+      document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
+        ad.style.display = "none";
+        ad.innerHTML = "";
+      });
+    }
+
+    localStorage.setItem("analytics_storage", consent.analytics_storage);
+    localStorage.setItem("ad_storage", consent.ad_storage);
+  };
+
+  window.acceptAllCookies = function () {
+    localStorage.setItem("cookieConsent", "accepted");
+    window.applyConsent({
+      analytics_storage: "granted",
+      ad_storage: "granted",
+      ad_user_data: "granted",
+      ad_personalization: "granted"
+    });
+  };
+
+  window.rejectAllCookies = function () {
+    localStorage.setItem("cookieConsent", "refused");
+    window.applyConsent({
+      analytics_storage: "denied",
+      ad_storage: "denied",
+      ad_user_data: "denied",
+      ad_personalization: "denied"
+    });
+  };
+}
+
 document.addEventListener("DOMContentLoaded", initLazyLoadServices);
 
 // Verifica se a variável já existe para evitar erro de declaração duplicada
