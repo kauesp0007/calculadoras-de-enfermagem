@@ -1538,16 +1538,238 @@ function ativarModoDislexia() {
 })();
  
 /* =========================
-   Controle de anúncios (premium removido — todos os usuários são free)
-   ========================= */
-// Stubs mantidos como no-op por compatibilidade com demais call sites.
-// Nenhum usuário é premium; todos veem os anúncios.
+   Controle canônico de anúncios Premium
+   =========================
+   Premium sem anúncios é uma capacidade derivada do entitlement comercial.
+   Não existe plano comercial paralelo de "ad-free".
+*/
+var __premiumAdState = {
+  resolved: false,
+  premium: false,
+  allowAds: false,
+  authenticated: false,
+  unavailable: false
+};
+var __premiumAdDecisionPromise = null;
+var __premiumAdWatchBound = false;
+var __premiumAdMutationObserver = null;
+var PREMIUM_AD_AUTH_TIMEOUT_MS = 15000;
+
+function evaluatePremiumAdState(billing, authenticated) {
+  if (!authenticated) {
+    return {
+      resolved: true,
+      premium: false,
+      allowAds: true,
+      authenticated: false,
+      unavailable: false
+    };
+  }
+
+  if (
+    !billing ||
+    billing.resolved !== true ||
+    billing.unavailable === true ||
+    billing.billingUnavailable === true
+  ) {
+    return {
+      resolved: false,
+      premium: false,
+      allowAds: false,
+      authenticated: true,
+      unavailable: true
+    };
+  }
+
+  var premium =
+    billing.plan === "premium" &&
+    (!billing.premium_expires_at ||
+      new Date(billing.premium_expires_at) > new Date());
+
+  return {
+    resolved: true,
+    premium: premium,
+    allowAds: !premium,
+    authenticated: true,
+    unavailable: false
+  };
+}
+
+function withPremiumAdTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise(function(_, reject) {
+      setTimeout(function() {
+        reject(new Error("premium_ad_auth_timeout"));
+      }, timeoutMs);
+    })
+  ]);
+}
+
+function neutralizePremiumAdArtifacts() {
+  document.querySelectorAll(
+    ".controlled-display-ad, .controlled-multiplex-ad, #multiplex-ad-reserved"
+  ).forEach(function(container) {
+    container.setAttribute("data-premium-ads-hidden", "true");
+    container.style.display = "none";
+  });
+
+  document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+    ad.style.display = "none";
+    ad.setAttribute("aria-hidden", "true");
+  });
+
+  document.querySelectorAll(
+    'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+  ).forEach(function(script) {
+    script.remove();
+  });
+
+  window.__adsenseLoaded = false;
+}
+
+function installPremiumAdMutationObserver() {
+  if (__premiumAdMutationObserver || !document.body || !window.MutationObserver) return;
+
+  __premiumAdMutationObserver = new MutationObserver(function() {
+    if (__premiumAdState.resolved && __premiumAdState.premium) {
+      neutralizePremiumAdArtifacts();
+    }
+  });
+
+  __premiumAdMutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
 function isPremiumSubscriber() {
-  return false;
+  return !!(__premiumAdState.resolved && __premiumAdState.premium);
 }
 
 function hideAdsForPremium() {
-  // Nada a fazer: não há mais assinantes premium.
+  if (!isPremiumSubscriber()) return;
+  neutralizePremiumAdArtifacts();
+  installPremiumAdMutationObserver();
+}
+
+async function resolvePremiumAdState(force) {
+  if (force) {
+    __premiumAdDecisionPromise = null;
+  }
+
+  if (__premiumAdDecisionPromise) {
+    return __premiumAdDecisionPromise;
+  }
+
+  __premiumAdDecisionPromise = (async function() {
+    try {
+      if (
+        !window.Auth ||
+        typeof window.Auth.init !== "function"
+      ) {
+        if (typeof window.__ENSURE_AUTH !== "function") {
+          __premiumAdState = {
+            resolved: false,
+            premium: false,
+            allowAds: false,
+            authenticated: true,
+            unavailable: true
+          };
+          return __premiumAdState;
+        }
+        await withPremiumAdTimeout(
+          window.__ENSURE_AUTH(),
+          PREMIUM_AD_AUTH_TIMEOUT_MS
+        );
+      } else {
+        await withPremiumAdTimeout(
+          window.Auth.init(),
+          PREMIUM_AD_AUTH_TIMEOUT_MS
+        );
+      }
+
+      var auth = window.Auth;
+      var user =
+        auth && typeof auth.currentUser === "function"
+          ? auth.currentUser()
+          : null;
+
+      if (!user) {
+        __premiumAdState = evaluatePremiumAdState(null, false);
+        return __premiumAdState;
+      }
+
+      var billing =
+        auth && typeof auth.billingStatus === "function"
+          ? auth.billingStatus()
+          : null;
+
+      if (
+        (!billing || billing.resolved !== true) &&
+        auth &&
+        typeof auth.refreshProfile === "function"
+      ) {
+        try {
+          await withPremiumAdTimeout(
+            auth.refreshProfile(),
+            PREMIUM_AD_AUTH_TIMEOUT_MS
+          );
+          billing = auth.billingStatus();
+        } catch (_) {
+          billing = auth.billingStatus();
+        }
+      }
+
+      __premiumAdState = evaluatePremiumAdState(billing, true);
+      bindPremiumAdWatch(auth);
+
+      if (__premiumAdState.premium) {
+        hideAdsForPremium();
+      }
+
+      return __premiumAdState;
+    } catch (_) {
+      __premiumAdState = {
+        resolved: false,
+        premium: false,
+        allowAds: false,
+        authenticated: true,
+        unavailable: true
+      };
+      return __premiumAdState;
+    }
+  })();
+
+  return __premiumAdDecisionPromise;
+}
+
+function bindPremiumAdWatch(auth) {
+  if (__premiumAdWatchBound || !auth) return;
+  __premiumAdWatchBound = true;
+
+  var onStateChange = function() {
+    __premiumAdDecisionPromise = null;
+
+    resolvePremiumAdState(true).then(function(state) {
+      if (state.premium) {
+        hideAdsForPremium();
+      } else if (
+        state.resolved &&
+        state.allowAds &&
+        typeof window.__LOAD_ADS_IF_ELIGIBLE === "function"
+      ) {
+        window.__LOAD_ADS_IF_ELIGIBLE();
+      }
+    });
+  };
+
+  if (typeof auth.onProfileChange === "function") {
+    auth.onProfileChange(onStateChange);
+  }
+  if (typeof auth.onAuthChange === "function") {
+    auth.onAuthChange(onStateChange);
+  }
 }
 
 /* =========================
@@ -1555,16 +1777,23 @@ function hideAdsForPremium() {
    ========================= */
 function initializeMultiplexAds() {
   if (isPremiumSubscriber()) return;
-  document.querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]').forEach(function (ad) {
-    if (ad.dataset.multiplexInitialized === "true" || ad.hasAttribute("data-adsbygoogle-status")) return;
-    ad.dataset.multiplexInitialized = "true";
-    try {
-      (window.adsbygoogle = window.adsbygoogle || []).push({});
-    } catch (error) {
-      delete ad.dataset.multiplexInitialized;
-      console.warn("Falha ao inicializar o AdSense Multiplex:", error);
-    }
-  });
+
+  document
+    .querySelectorAll('ins.adsbygoogle[data-ad-slot="3341197364"]')
+    .forEach(function(ad) {
+      if (
+        ad.dataset.multiplexInitialized === "true" ||
+        ad.hasAttribute("data-adsbygoogle-status")
+      ) return;
+
+      ad.dataset.multiplexInitialized = "true";
+      try {
+        (window.adsbygoogle = window.adsbygoogle || []).push({});
+      } catch (error) {
+        delete ad.dataset.multiplexInitialized;
+        console.warn("Falha ao inicializar o AdSense Multiplex:", error);
+      }
+    });
 }
 
 /* =========================================================
@@ -1573,6 +1802,7 @@ function initializeMultiplexAds() {
 
 // Função que engloba toda a lógica que estava nos HTMLs
 function initLazyLoadServices() {
+  resolvePremiumAdState(false);
   hideAdsForPremium();
   if (
     localStorage.getItem('admin_mode') === 'true' ||
@@ -1630,18 +1860,29 @@ function initLazyLoadServices() {
       console.log("📈 Analytics carregado via Lazy Load (Otimizado).");
     }
 
-    function loadAdSenseOnce() {
-      if (adsBlocked || isPremiumSubscriber()) return;
+    async function loadAdSenseOnce() {
+      if (adsBlocked) return;
 
-      // Inicializa o multiplex imediatamente. O push({}) é seguro antes
-      // ou depois do script carregar; o guard interno evita push duplicado.
-      initializeMultiplexAds();
+      var adState = await resolvePremiumAdState(false);
+
+      // Fail closed: enquanto a assinatura não puder ser verificada,
+      // não carregamos publicidade. Quando resolvido como Free/visitante,
+      // o fluxo normal de AdSense continua.
+      if (!adState.resolved) return;
+
+      if (adState.premium) {
+        hideAdsForPremium();
+        return;
+      }
 
       if (window.__adsenseLoaded) return;
       window.__adsenseLoaded = true;
 
       var existingAdSense = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-      if (existingAdSense) return;
+      if (existingAdSense) {
+        initializeMultiplexAds();
+        return;
+      }
 
       var ad = document.createElement("script");
       ad.async = true;
@@ -1682,6 +1923,7 @@ function initLazyLoadServices() {
     // Permite que eventos críticos de saída (como tempo de permanência)
     // inicializem apenas o GA4, sem carregar o AdSense no encerramento da página.
     window.__ENSURE_GA4 = loadAnalytics;
+    window.__LOAD_ADS_IF_ELIGIBLE = loadAdSenseOnce;
 
     // Verifica se é o robô do Lighthouse/PageSpeed analisando o site
     const isPageSpeed = navigator.userAgent.includes("Lighthouse") || navigator.userAgent.includes("Chrome-Lighthouse") || navigator.userAgent.includes("Googlebot");
