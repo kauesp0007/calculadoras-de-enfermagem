@@ -79,7 +79,13 @@ const adSection = section(
 assert.match(adSection, /billingStatus\s*\(/, "A decisão não consulta Auth.billingStatus().");
 assert.match(adSection, /premium_expires_at/, "A decisão não valida a expiração do Premium.");
 assert.match(adSection, /adsbygoogle\.js/, "O carregador do AdSense não está presente.");
-assert.match(adSection, /resolvePremiumAdState\(false\)/, "O carregamento não aguarda a resolução do entitlement.");
+
+const loaderStart = source.indexOf("async function loadAdSenseOnce()");
+const loaderEnd = source.indexOf("function executeServices()", loaderStart);
+assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "Carregador canônico do AdSense não encontrado.");
+const loaderSection = source.slice(loaderStart, loaderEnd);
+assert.match(loaderSection, /resolvePremiumAdState\(false\)/, "O carregador não aguarda a resolução do entitlement.");
+assert.match(loaderSection, /if \(adState\.premium\)/, "O carregador não possui bloqueio específico para Premium.");
 
 assert.doesNotMatch(adSection, /premium-ads-guard/i, "Módulo legado premium-ads-guard foi reutilizado.");
 assert.doesNotMatch(adSection, /premium-banner-manager/i, "Módulo legado premium-banner-manager foi reutilizado.");
