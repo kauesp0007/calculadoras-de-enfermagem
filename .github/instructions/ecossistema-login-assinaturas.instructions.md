@@ -22,7 +22,7 @@ Não reintroduzir:
 - lifetime
 - ad-free
 
-Premium mantém anúncios ativos.
+Premium com entitlement válido não carrega nem exibe anúncios do Google AdSense. Isso é uma capacidade do plano Premium, não um terceiro plano comercial.
 
 ## Identidade
 
@@ -204,6 +204,23 @@ Exceções documentadas:
 - dimensionamento.html
 
 Não colocá-las no catálogo Premium sem revisão explícita.
+
+## Publicidade Premium
+
+A remoção de anúncios para Premium é derivada exclusivamente do mesmo entitlement comercial usado pelo restante do sistema.
+
+Regras:
+- Firebase Authentication identifica o usuário;
+- Supabase billing-access resolve o estado comercial;
+- `Auth.billingStatus()` reflete o estado resolvido no frontend;
+- `global-scripts.js` é o único carregador do AdSense;
+- Premium válido bloqueia o carregamento do `adsbygoogle.js` e neutraliza containers de anúncios;
+- Free e visitantes continuam elegíveis a anúncios, respeitando o consentimento;
+- billing, checkout, webhooks e `user_entitlements` não são alterados para implementar o benefício;
+- não criar `ad-free`, tabela, RPC, cookie ou `localStorage` como autoridade paralela;
+- não usar módulos legados de publicidade como fonte de decisão.
+
+Receita de bolo operacional: `conta/PLANO_REMOCAO_ANUNCIOS_ASSINANTES_PREMIUM.md`.
 
 ## Legado proibido
 
