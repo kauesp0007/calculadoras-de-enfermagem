@@ -188,6 +188,21 @@
 <article class="metricas-card"><h2>Cidades — ranking mensal</h2><div class="metricas-table-wrap"><table class="metricas-table" id="tabela-cidades"><thead><tr><th>#</th><th>Cidade</th><th class="num">Sessões</th><th class="num">Usuários</th></tr></thead><tbody><tr><td colspan="4" class="metricas-loading">Carregando…</td></tr></tbody></table></div></article>
 </section>
 
+<section class="metricas-layout-2" aria-label="Visão histórica">
+<article class="metricas-card metricas-chart"><h2>Visitantes por dia</h2><canvas id="chart-visitantes-dia" aria-label="Gráfico de visitantes por dia"></canvas></article>
+<article class="metricas-card metricas-chart"><h2>Visitantes por mês</h2><canvas id="chart-visitantes-mes" aria-label="Gráfico de visitantes por mês"></canvas></article>
+</section>
+
+<section class="metricas-card metricas-wide">
+<h2>Visitantes acumulados</h2>
+<div class="metricas-grid" style="margin-bottom:0">
+<div class="metricas-mini"><b id="historico-total">—</b><span>Total histórico disponível</span></div>
+<div class="metricas-mini"><b id="historico-mensal">—</b><span>Último mês</span></div>
+<div class="metricas-mini"><b id="historico-semanal">—</b><span>Últimos 7 dias</span></div>
+<div class="metricas-mini"><b id="historico-diario">—</b><span>Último dia</span></div>
+</div>
+</section>
+
 <section class="metricas-card metricas-wide">
 <h2>Atualização e metodologia</h2>
 <div class="metricas-note">
@@ -278,6 +293,25 @@ function chartOpts(indexAxis="x"){
 }
 const defaultColors=["#1a3e74","#2563eb","#4a90e2","#7c3aed","#0f766e","#d97706","#dc2626","#64748b"];
 
+function renderHistoryCharts(data){
+  if(!window.Chart)return;
+  const Chart=window.Chart;
+  ["chart-visitantes-dia","chart-visitantes-mes"].forEach(id=>{const el=document.getElementById(id);if(el&&el._chart)el._chart.destroy()});
+  const d=(data.visitors||{}).daily||[];
+  const m=(data.visitors||{}).monthly||[];
+  const mk=(el,type,labels,datasets)=>{const ch=new Chart(el,{type,data:{labels,datasets},options:chartOpts()});el._chart=ch};
+  const cd=document.getElementById("chart-visitantes-dia"); if(cd) mk(cd,"line",d.map(x=>x.dateLabel||x.date),[{label:"Visitantes",data:d.map(x=>+(x.totalUsers??x.activeUsers??0)),borderColor:defaultColors[3],backgroundColor:"rgba(124,58,237,.08)",fill:true,tension:.3,pointRadius:2}]);
+  const cm=document.getElementById("chart-visitantes-mes"); if(cm) mk(cm,"bar",m.map(x=>x.label),[{label:"Visitantes",data:m.map(x=>+(x.totalUsers??x.activeUsers??0)),backgroundColor:defaultColors[4],borderRadius:5}]);
+}
+
+function renderHistoryKpis(data){
+  const v=data.visitors||{};
+  document.getElementById("historico-total").textContent=fmt(v.historicalTotal?.totalUsers??v.historicalTotal?.activeUsers);
+  document.getElementById("historico-mensal").textContent=fmt(v.lastMonth?.totalUsers??v.lastMonth?.activeUsers);
+  document.getElementById("historico-semanal").textContent=fmt(v.last7Days?.totalUsers??v.last7Days?.activeUsers);
+  document.getElementById("historico-diario").textContent=fmt(v.today?.totalUsers??v.today?.activeUsers);
+}
+
 function renderCharts(data){
   if(!window.Chart)return;
   const Chart=window.Chart;
@@ -317,7 +351,7 @@ async function refresh(){
   try{
     const [chartLib,data]=await Promise.all([loadChartLibrary(),loadData()]);
     state.data=data;
-    renderKpis(data);renderCharts(data);renderTables(data);
+    renderKpis(data);renderHistoryKpis(data);renderCharts(data);renderHistoryCharts(data);renderTables(data);
     const stamp=data.generatedAt?new Date(data.generatedAt).toLocaleString("pt-BR"):"agora";
     document.getElementById("ultima-atualizacao").textContent="Última atualização: "+stamp;
     setStatus("ok","Dados disponíveis · "+stamp);
