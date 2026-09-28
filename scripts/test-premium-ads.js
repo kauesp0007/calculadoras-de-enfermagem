@@ -33,7 +33,7 @@ const PROTECTED_HTML_NAMES = new Set([
 function productionHtmlPaths() {
   const out = [];
   for (const entry of fs.readdirSync(ROOT, { withFileTypes: true })) {
-    if (entry.isFile() && /\\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
+    if (entry.isFile() && /\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
       out.push(path.join(ROOT, entry.name));
     }
   }
@@ -41,7 +41,7 @@ function productionHtmlPaths() {
     const dir = path.join(ROOT, lang);
     if (!fs.existsSync(dir)) continue;
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-      if (entry.isFile() && /\\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
+      if (entry.isFile() && /\.html$/i.test(entry.name) && !PROTECTED_HTML_NAMES.has(entry.name)) {
         out.push(path.join(dir, entry.name));
       }
     }
@@ -49,7 +49,7 @@ function productionHtmlPaths() {
   return out;
 }
 
-const DIRECT_AD_LOADER = /<script\\b[^>]*\\bsrc=[\"'][^\"']*pagead2\\.googlesyndication\\.com\\/pagead\\/js\\/adsbygoogle\\.js[^\\"']*[\"'][^>]*>\\s*<\\/script>/gi;
+const DIRECT_AD_LOADER = /<script\b[^>]*\bsrc=[\"'][^\"']*pagead2\.googlesyndication\.com\\/pagead\\/js\\/adsbygoogle\\.js[^\\"']*[\"'][^>]*>\s*<\/script>/gi;
 const residualDirectLoaders = [];
 for (const file of productionHtmlPaths()) {
   const html = fs.readFileSync(file, "utf8");
