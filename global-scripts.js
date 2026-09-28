@@ -1555,13 +1555,244 @@ const CONTROLLED_POST_HERO_SLOT = "2979726942";
 const CONTROLLED_RESULT_SLOT = "5690484911";
 const CONTROLLED_MULTIPLEX_SLOT = "3341197364";
 
+/* =========================
+   Controle canônico de anúncios Premium
+   =========================
+   Premium sem anúncios é uma capacidade derivada do entitlement comercial.
+   Não existe plano comercial paralelo de "ad-free".
+*/
+var __premiumAdState = {
+  resolved: false,
+  premium: false,
+  allowAds: false,
+  authenticated: false,
+  unavailable: false
+};
+var __premiumAdDecisionPromise = null;
+var __premiumAdWatchBound = false;
+var __premiumAdMutationObserver = null;
+var PREMIUM_AD_AUTH_TIMEOUT_MS = 15000;
+
+function evaluatePremiumAdState(billing, authenticated) {
+  if (!authenticated) {
+    return {
+      resolved: true,
+      premium: false,
+      allowAds: true,
+      authenticated: false,
+      unavailable: false
+    };
+  }
+
+  if (
+    !billing ||
+    billing.resolved !== true ||
+    billing.unavailable === true ||
+    billing.billingUnavailable === true
+  ) {
+    return {
+      resolved: false,
+      premium: false,
+      allowAds: false,
+      authenticated: true,
+      unavailable: true
+    };
+  }
+
+  var expiresAt = billing.premium_expires_at
+    ? new Date(billing.premium_expires_at)
+    : null;
+
+  var premium = !!(
+    billing.plan === "premium" &&
+    expiresAt &&
+    Number.isFinite(expiresAt.getTime()) &&
+    expiresAt.getTime() > Date.now()
+  );
+
+  return {
+    resolved: true,
+    premium: premium,
+    allowAds: !premium,
+    authenticated: true,
+    unavailable: false
+  };
+}
+
+function withPremiumAdTimeout(promise, timeoutMs) {
+  return Promise.race([
+    promise,
+    new Promise(function(_, reject) {
+      setTimeout(function() {
+        reject(new Error("premium_ad_auth_timeout"));
+      }, timeoutMs);
+    })
+  ]);
+}
+
+function neutralizePremiumAdArtifacts() {
+  document.querySelectorAll(
+    ".controlled-display-ad, .controlled-multiplex-ad, #multiplex-ad-reserved"
+  ).forEach(function(container) {
+    container.setAttribute("data-premium-ads-hidden", "true");
+    container.style.display = "none";
+  });
+
+  document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+    ad.style.display = "none";
+    ad.setAttribute("aria-hidden", "true");
+  });
+
+  document.querySelectorAll(
+    'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
+  ).forEach(function(script) {
+    script.remove();
+  });
+
+  window.__adsenseLoaded = false;
+}
+
+function installPremiumAdMutationObserver() {
+  if (__premiumAdMutationObserver || !document.body || !window.MutationObserver) return;
+
+  __premiumAdMutationObserver = new MutationObserver(function() {
+    if (__premiumAdState.resolved && __premiumAdState.premium) {
+      neutralizePremiumAdArtifacts();
+    }
+  });
+
+  __premiumAdMutationObserver.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
+}
+
 function isPremiumSubscriber() {
-  return false;
+  return !!(__premiumAdState.resolved && __premiumAdState.premium);
 }
 
 function hideAdsForPremium() {
-  // Mantido por compatibilidade com os módulos existentes.
+  if (!isPremiumSubscriber()) return;
+  neutralizePremiumAdArtifacts();
+  installPremiumAdMutationObserver();
 }
+
+async function resolvePremiumAdState(force) {
+  if (force) {
+    __premiumAdDecisionPromise = null;
+  }
+
+  if (__premiumAdDecisionPromise) {
+    return __premiumAdDecisionPromise;
+  }
+
+  __premiumAdDecisionPromise = (async function() {
+    try {
+      if (!window.Auth || typeof window.Auth.init !== "function") {
+        if (typeof window.__ENSURE_AUTH !== "function") {
+          __premiumAdState = {
+            resolved: false,
+            premium: false,
+            allowAds: false,
+            authenticated: true,
+            unavailable: true
+          };
+          return __premiumAdState;
+        }
+        await withPremiumAdTimeout(
+          window.__ENSURE_AUTH(),
+          PREMIUM_AD_AUTH_TIMEOUT_MS
+        );
+      } else {
+        await withPremiumAdTimeout(
+          window.Auth.init(),
+          PREMIUM_AD_AUTH_TIMEOUT_MS
+        );
+      }
+
+      var auth = window.Auth;
+      var user =
+        auth && typeof auth.currentUser === "function"
+          ? auth.currentUser()
+          : null;
+
+      if (!user) {
+        __premiumAdState = evaluatePremiumAdState(null, false);
+        return __premiumAdState;
+      }
+
+      var billing =
+        auth && typeof auth.billingStatus === "function"
+          ? auth.billingStatus()
+          : null;
+
+      if (
+        (!billing || billing.resolved !== true) &&
+        auth &&
+        typeof auth.refreshProfile === "function"
+      ) {
+        try {
+          await withPremiumAdTimeout(
+            auth.refreshProfile(),
+            PREMIUM_AD_AUTH_TIMEOUT_MS
+          );
+          billing = auth.billingStatus();
+        } catch (_) {
+          billing = auth.billingStatus();
+        }
+      }
+
+      __premiumAdState = evaluatePremiumAdState(billing, true);
+      bindPremiumAdWatch(auth);
+
+      if (__premiumAdState.premium) {
+        hideAdsForPremium();
+      }
+
+      return __premiumAdState;
+    } catch (_) {
+      __premiumAdState = {
+        resolved: false,
+        premium: false,
+        allowAds: false,
+        authenticated: true,
+        unavailable: true
+      };
+      return __premiumAdState;
+    }
+  })();
+
+  return __premiumAdDecisionPromise;
+}
+
+function bindPremiumAdWatch(auth) {
+  if (__premiumAdWatchBound || !auth) return;
+  __premiumAdWatchBound = true;
+
+  var onStateChange = function() {
+    __premiumAdDecisionPromise = null;
+
+    resolvePremiumAdState(true).then(function(state) {
+      if (state.premium) {
+        hideAdsForPremium();
+      } else if (
+        state.resolved &&
+        state.allowAds &&
+        typeof window.__LOAD_ADS_IF_ELIGIBLE === "function"
+      ) {
+        window.__LOAD_ADS_IF_ELIGIBLE();
+      }
+    });
+  };
+
+  if (typeof auth.onProfileChange === "function") {
+    auth.onProfileChange(onStateChange);
+  }
+  if (typeof auth.onAuthChange === "function") {
+    auth.onAuthChange(onStateChange);
+  }
+}
+
 
 function isAdsExcludedPage() {
   const path = window.location.pathname.toLowerCase();
@@ -1796,6 +2027,7 @@ function initializeManualAds() {
    MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
    ========================================================= */
 function initLazyLoadServices() {
+  resolvePremiumAdState(false);
   hideAdsForPremium();
 
   if (
@@ -1855,8 +2087,21 @@ function initLazyLoadServices() {
     gtag("config", "AW-9277197961");
   }
 
-  function loadAdSenseOnce() {
-    if (adsBlocked || isPremiumSubscriber() || isAdsExcludedPage()) return;
+  async function loadAdSenseOnce() {
+    if (adsBlocked || isAdsExcludedPage()) return;
+
+    var adState = await resolvePremiumAdState(false);
+
+    // Fail closed: enquanto a assinatura não puder ser verificada,
+    // não carregamos publicidade. Quando resolvido como Free/visitante,
+    // o fluxo normal de AdSense continua.
+    if (!adState.resolved) return;
+
+    if (adState.premium) {
+      hideAdsForPremium();
+      return;
+    }
+
     if (window.__adsenseLoaded) return;
 
     window.__adsenseLoaded = true;
@@ -1903,6 +2148,7 @@ function initLazyLoadServices() {
   }
 
   window.__ENSURE_GA4 = loadAnalytics;
+  window.__LOAD_ADS_IF_ELIGIBLE = loadAdSenseOnce;
 
   const isPageSpeed =
     navigator.userAgent.includes("Lighthouse") ||
