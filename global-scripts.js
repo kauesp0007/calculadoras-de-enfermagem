@@ -1603,11 +1603,12 @@ function evaluatePremiumAdState(billing, authenticated) {
     ? new Date(billing.premium_expires_at)
     : null;
 
-  var premium =
+  var premium = !!(
     billing.plan === "premium" &&
     expiresAt &&
     Number.isFinite(expiresAt.getTime()) &&
-    expiresAt.getTime() > Date.now();
+    expiresAt.getTime() > Date.now()
+  );
 
   return {
     resolved: true,
