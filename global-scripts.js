@@ -1599,10 +1599,15 @@ function evaluatePremiumAdState(billing, authenticated) {
     };
   }
 
+  var expiresAt = billing.premium_expires_at
+    ? new Date(billing.premium_expires_at)
+    : null;
+
   var premium =
     billing.plan === "premium" &&
-    (!billing.premium_expires_at ||
-      new Date(billing.premium_expires_at) > new Date());
+    expiresAt &&
+    Number.isFinite(expiresAt.getTime()) &&
+    expiresAt.getTime() > Date.now();
 
   return {
     resolved: true,
