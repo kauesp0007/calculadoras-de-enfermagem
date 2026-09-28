@@ -71,13 +71,29 @@ A decisão deve ser feita nesta ordem:
 2. consultar o estado comercial pelo mesmo `Auth` atual;
 3. confirmar que o billing está resolvido;
 4. confirmar `plan = premium`;
-5. confirmar que `premium_expires_at` é válido/futuro;
+5. confirmar que `premium_expires_at` existe, é uma data válida e é futura;
 6. somente então considerar o usuário inelegível para AdSense;
 7. para Free/visitante, manter o carregamento normal do AdSense, condicionado ao consentimento.
 
 A fonte do estado é a mesma utilizada hoje por `billing-access` e `Auth.billingStatus()`.
 
 Não introduzir uma tabela, RPC, endpoint ou cache de “usuário sem anúncios”.
+
+### 3.1 Implementação atual e invariantes
+
+A implementação canônica reside no bloco de publicidade do `global-scripts.js`.
+
+Invariantes obrigatórios:
+
+- `Auth.billingStatus()` é a única fonte frontend usada para decidir o benefício;
+- `plan === "premium"` sozinho não basta: `premium_expires_at` precisa existir, ser uma data válida e estar no futuro;
+- enquanto o billing autenticado não estiver resolvido, o AdSense permanece desligado (fail-closed);
+- visitante sem sessão e usuário Free resolvido continuam elegíveis para AdSense, sempre respeitando consentimento;
+- o script `adsbygoogle.js` não pode ser carregado por páginas individuais;
+- quando Premium é confirmado, containers `adsbygoogle` existentes são neutralizados e um observador impede reinjeções tardias;
+- alterações de autenticação/perfil reavaliam a decisão sem criar uma segunda autoridade.
+
+O caso fora da arquitetura central que possuía um carregador próprio em `concurso_publico/index.html` foi removido para evitar bypass do bloqueio Premium.
 
 ---
 
@@ -91,7 +107,7 @@ Arquivo central:
 
 A implementação deve:
 
-- substituir a decisão fictícia atual de Premium, que não reconhece o entitlement real;
+- manter a decisão de publicidade vinculada exclusivamente ao entitlement real;
 - aguardar a resolução do estado comercial antes de chamar `loadAdSenseOnce()`;
 - não carregar `adsbygoogle.js` quando o estado Premium válido estiver confirmado;
 - esconder/remover os containers de anúncios já presentes no HTML quando o estado Premium for confirmado;
@@ -135,7 +151,7 @@ Não utilizar, reativar ou copiar:
 - `premium-ads-guard.js` como autoridade;
 - `premium-banner-manager.js` como autoridade de publicidade;
 - `PREMIUM_AD_FREE_PLANS`;
-- `isPremiumLocal()`;
+- `isPremiumLocal()` como autoridade;
 - `localStorage.plan`;
 - `hasPlan('junior')`;
 - Firestore para plano;
@@ -227,6 +243,18 @@ Critério de saída da fase D:
 Executar testes em camadas.
 
 ### C1 — Teste estático
+
+Executar:
+
+`node scripts/test-premium-ads.js`
+
+### C1.1 — Simulação com estado persistido real
+
+Executar:
+
+`node scripts/test-premium-ads-real-state.mjs`
+
+Esse teste consulta somente leitura `public.user_entitlements` no Supabase usando a credencial de serviço já existente no pipeline e não imprime IDs de usuários.
 
 Validar:
 
