@@ -66,12 +66,16 @@ const freeRows = rows.filter((row) => row && row.plan === "free");
 assert.ok(premiumRows.length > 0, "Nenhum entitlement Premium persistido foi encontrado.");
 
 for (const row of premiumRows) {
-  assert.ok(row.premium_expires_at, "Entitlement Premium sem premium_expires_at.");
-  const expiry = new Date(row.premium_expires_at);
-  assert.equal(Number.isFinite(expiry.getTime()), true, "premium_expires_at inválido.");
+  // premium_expires_at nulo representa Premium permanente na autoridade canônica.
+  // Quando preenchido, o timestamp deve ser uma data válida.
+  if (row.premium_expires_at !== null && row.premium_expires_at !== undefined) {
+    const expiry = new Date(row.premium_expires_at);
+    assert.equal(Number.isFinite(expiry.getTime()), true, "premium_expires_at inválido.");
+  }
 }
 
 const futurePremium = premiumRows.filter((row) => {
+  if (row.premium_expires_at === null || row.premium_expires_at === undefined) return false;
   const expiry = new Date(row.premium_expires_at);
   return expiry.getTime() > Date.now();
 });
