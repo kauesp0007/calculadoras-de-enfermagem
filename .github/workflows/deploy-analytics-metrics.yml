@@ -21,3 +21,13 @@ jobs:
         run: |
           test -n "$SUPABASE_ACCESS_TOKEN" || { echo "::error::Adicione o secret SUPABASE_ACCESS_TOKEN no GitHub."; exit 1; }
           supabase functions deploy analytics-metrics --project-ref asjkftjfbkuuhilnqonx --no-verify-jwt
+
+      - name: 🧪 Testar endpoint GA4
+        run: |
+          response="$(curl -sS --fail-with-body "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics?range=last_30_days")"
+          echo "$response" | grep -q '"version":2' || {
+            echo "::error::A Edge Function não retornou o payload esperado."
+            echo "$response"
+            exit 1
+          }
+          echo "analytics-metrics respondeu com sucesso."
