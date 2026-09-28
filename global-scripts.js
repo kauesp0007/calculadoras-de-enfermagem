@@ -1540,15 +1540,19 @@ function ativarModoDislexia() {
 /* =========================
    Publicidade manual controlada
    =========================
-   Estratégia:
-   - SEM Auto ads.
-   - Mantém Multiplex manual.
-   - Até 3 blocos display pequenos, em posições definidas pelo site.
-   - O terceiro bloco fica após a calculadora/formulário e antes do resultado.
-   - Nenhum anúncio é inserido dentro da área de resultado.
+   Estratégia oficial:
+   - SEM Auto Ads.
+   - Display Pós-Hero: bloco AdSense 2979726942.
+   - Display entre formulário/botão Calcular e resultado: bloco 5690484911.
+   - Multiplex no final da página: bloco 3341197364.
+   - Os códigos e formatos abaixo correspondem aos snippets oficiais
+     fornecidos pelo AdSense para este site.
+   - O JavaScript centraliza a implantação; páginas que já possuem o
+     bloco oficial não recebem uma segunda cópia.
 */
 const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
-const CONTROLLED_DISPLAY_SLOT = "5690484911";
+const CONTROLLED_POST_HERO_SLOT = "2979726942";
+const CONTROLLED_RESULT_SLOT = "5690484911";
 const CONTROLLED_MULTIPLEX_SLOT = "3341197364";
 
 function isPremiumSubscriber() {
@@ -1623,9 +1627,35 @@ function styleControlledAds() {
   document.head.appendChild(style);
 }
 
-function createDisplayAd(position) {
+function findAdBySlot(slot) {
+  return document.querySelector(
+    'ins.adsbygoogle[data-ad-slot="' + slot + '"]'
+  );
+}
+
+function getAdContainer(ad) {
+  if (!ad) return null;
+  return ad.closest(".controlled-display-ad, .controlled-multiplex-ad") ||
+    ad.closest("aside, div") ||
+    ad.parentElement;
+}
+
+function createDisplayAd(position, slot) {
   if (isAdsExcludedPage()) return null;
-  if (document.querySelector('[data-controlled-display-ad="' + position + '"]')) return null;
+
+  const existing = findAdBySlot(slot);
+  if (existing) {
+    const existingContainer = getAdContainer(existing);
+    if (existingContainer) {
+      existingContainer.classList.add("no-print");
+      existingContainer.setAttribute("data-controlled-display-ad", position);
+    }
+    return existingContainer;
+  }
+
+  if (document.querySelector('[data-controlled-display-ad="' + position + '"]')) {
+    return null;
+  }
 
   const aside = document.createElement("aside");
   aside.className = "controlled-display-ad no-print";
@@ -1636,8 +1666,8 @@ function createDisplayAd(position) {
     '<ins class="adsbygoogle"' +
     ' style="display:block;width:100%"' +
     ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
-    ' data-ad-slot="' + CONTROLLED_DISPLAY_SLOT + '"' +
-    ' data-ad-format="horizontal"' +
+    ' data-ad-slot="' + slot + '"' +
+    ' data-ad-format="auto"' +
     ' data-full-width-responsive="true"></ins>';
 
   return aside;
@@ -1645,7 +1675,18 @@ function createDisplayAd(position) {
 
 function createMultiplexAd() {
   if (isAdsExcludedPage()) return null;
-  if (document.querySelector('ins.adsbygoogle[data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"]')) {
+
+  const existing = findAdBySlot(CONTROLLED_MULTIPLEX_SLOT);
+  if (existing) {
+    const existingContainer = getAdContainer(existing);
+    if (existingContainer) {
+      existingContainer.classList.add("no-print");
+      existingContainer.setAttribute("data-controlled-multiplex", "true");
+    }
+    return existingContainer;
+  }
+
+  if (document.querySelector('[data-controlled-multiplex="true"]')) {
     return null;
   }
 
@@ -1659,70 +1700,52 @@ function createMultiplexAd() {
     ' style="display:block;width:100%"' +
     ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
     ' data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"' +
-    ' data-matched-content-rows-num="4,2"' +
-    ' data-matched-content-columns-num="1,2"' +
-    ' data-matched-content-ui-type="image_stacked,image_stacked"' +
     ' data-ad-format="autorelaxed"></ins>';
 
   return aside;
-}
-
-function removeLegacyDisplaySlots() {
-  document.querySelectorAll(
-    'ins.adsbygoogle[data-ad-slot="' + CONTROLLED_DISPLAY_SLOT + '"], ' +
-    'ins.adsbygoogle[data-ad-slot="2979726942"]'
-  ).forEach(function(ad) {
-    const parent = ad.closest("aside") || ad.parentElement;
-    if (parent && !parent.querySelector('ins.adsbygoogle[data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"]')) {
-      parent.remove();
-    } else {
-      ad.remove();
-    }
-  });
 }
 
 function placeControlledAds() {
   if (isAdsExcludedPage()) return;
 
   styleControlledAds();
-  removeLegacyDisplaySlots();
 
   const footer = document.getElementById("footer-placeholder") || document.querySelector("footer");
   const main = document.querySelector("main");
 
-  // 1º display: depois do bloco hero, quando existir.
+  // 1. Display oficial Pós-Hero: slot 2979726942.
   const hero = document.querySelector(
     ".hero-card, [data-hero], .hero, section[class*='hero']"
   );
-  const topAd = createDisplayAd("top");
+  const topAd = createDisplayAd("post-hero", CONTROLLED_POST_HERO_SLOT);
   if (topAd && hero && hero.parentNode) {
-    hero.parentNode.insertBefore(topAd, hero.nextSibling);
+    if (topAd.parentNode !== hero.parentNode || topAd.previousElementSibling !== hero) {
+      hero.parentNode.insertBefore(topAd, hero.nextSibling);
+    }
   }
 
-  // 2º display: imediatamente após a calculadora/formulário e antes do resultado.
-  // Mantemos uma distância clara de botões/controles para evitar cliques acidentais.
-  const resultAd = createDisplayAd("result");
+  // 2. Display oficial "Botao Calcular": slot 5690484911.
+  // O ponto correto é a divisória entre o formulário/calculadora e o
+  // container que apresentará o resultado.
   const resultTarget = document.querySelector(
-    "#resultado, #resultados, #resultado-container, [id*='resultado' i], [id*='resultados' i], .resultado, .resultados, [data-resultados], [data-results]"
+    "#resultado-section, #resultado, #resultados, #resultado-container, " +
+    ".resultado, .resultados, [data-resultados], [data-results], " +
+    "[id*='resultado' i], [id*='resultados' i]"
   );
+
+  const resultAd = createDisplayAd("pre-result", CONTROLLED_RESULT_SLOT);
   if (resultAd && resultTarget && resultTarget.parentNode) {
     resultTarget.parentNode.insertBefore(resultAd, resultTarget);
   }
 
-  // 3º display: próximo ao final do conteúdo, mas antes do rodapé.
-  const bottomAd = createDisplayAd("bottom");
-  if (bottomAd && footer && footer.parentNode) {
-    footer.parentNode.insertBefore(bottomAd, footer);
-  } else if (bottomAd && main) {
-    main.appendChild(bottomAd);
-  }
-
-  // Multiplex: permanece no final da jornada do usuário.
+  // 3. Multiplex oficial: slot 3341197364, no final da jornada.
   const multiplex = createMultiplexAd();
   if (multiplex && footer && footer.parentNode) {
-    footer.parentNode.insertBefore(multiplex, footer);
+    if (multiplex.parentNode !== footer.parentNode || multiplex.nextElementSibling !== footer) {
+      footer.parentNode.insertBefore(multiplex, footer);
+    }
   } else if (multiplex && main) {
-    main.appendChild(multiplex);
+    if (multiplex.parentNode !== main) main.appendChild(multiplex);
   }
 }
 
