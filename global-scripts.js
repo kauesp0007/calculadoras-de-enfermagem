@@ -1538,25 +1538,25 @@ function ativarModoDislexia() {
 })();
  
 /* =========================
-   Publicidade controlada — blocos manuais
+   Publicidade manual controlada
    =========================
-   Objetivo:
-   - Um único anúncio discreto por página.
-   - Nenhum anúncio antes de botões/resultados.
-   - Remove os slots antigos (pre-hero, pré-resultado e Multiplex).
-   - Mantém o carregamento lazy e o consentimento existentes.
+   Estratégia:
+   - SEM Auto ads.
+   - Mantém Multiplex manual.
+   - Até 2 blocos display pequenos, em posições definidas pelo site.
+   - Nenhum anúncio junto de botões ou dentro da área de resultado.
 */
-// Compatibilidade com os call sites existentes do sistema de acesso.
+const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
+const CONTROLLED_DISPLAY_SLOT = "5690484911";
+const CONTROLLED_MULTIPLEX_SLOT = "3341197364";
+
 function isPremiumSubscriber() {
   return false;
 }
 
 function hideAdsForPremium() {
-  // O controle efetivo de acesso continua pertencendo aos módulos de conta/Premium.
+  // Mantido por compatibilidade com os módulos existentes.
 }
-
-const CONTROLLED_AD_CLIENT = "ca-pub-6472730056006847";
-const CONTROLLED_AD_SLOT = "5690484911";
 
 function isAdsExcludedPage() {
   const path = window.location.pathname.toLowerCase();
@@ -1573,78 +1573,23 @@ function isAdsExcludedPage() {
   );
 }
 
-function removeLegacyAdSlots() {
-  document.querySelectorAll(
-    'ins.adsbygoogle[data-ad-slot="2979726942"],' +
-    'ins.adsbygoogle[data-ad-slot="5690484911"],' +
-    'ins.adsbygoogle[data-ad-slot="3341197364"]'
-  ).forEach(function (ad) {
-    const parent = ad.closest("aside") || ad.parentElement;
-    if (parent) parent.remove();
-    else ad.remove();
-  });
-
-  // Remove estilos/reservas antigas do Multiplex caso tenham sido deixados
-  // fora do <aside> por alguma versão anterior do template.
-  document.querySelectorAll("#multiplex-ad-reserved, .multiplex-ad-reserved").forEach(function (node) {
-    node.remove();
-  });
-}
-
-// Executa imediatamente para retirar os slots legados antes do próximo ciclo de renderização.
-removeLegacyAdSlots();
-
-function createControlledAdSlot() {
-  if (isAdsExcludedPage()) return null;
-  if (document.querySelector("[data-controlled-ad-slot='true']")) return null;
-
-  const host =
-    document.getElementById("footer-placeholder") ||
-    document.querySelector("footer") ||
-    document.querySelector("main");
-
-  if (!host || !host.parentNode) return null;
-
-  const aside = document.createElement("aside");
-  aside.className = "controlled-ad-slot";
-  aside.setAttribute("data-controlled-ad-slot", "true");
-  aside.setAttribute("aria-label", "Publicidade");
-  aside.innerHTML =
-    '<span class="controlled-ad-label" aria-hidden="true">Anúncio</span>' +
-    '<ins class="adsbygoogle"' +
-    ' style="display:block;width:100%"' +
-    ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
-    ' data-ad-slot="' + CONTROLLED_AD_SLOT + '"' +
-    ' data-ad-format="horizontal"' +
-    ' data-full-width-responsive="true"></ins>';
-
-  if (host.id === "footer-placeholder" || host.tagName === "FOOTER") {
-    host.parentNode.insertBefore(aside, host);
-  } else {
-    host.appendChild(aside);
-  }
-
-  return aside;
-}
-
 function styleControlledAds() {
   if (document.getElementById("controlled-ads-style")) return;
 
   const style = document.createElement("style");
   style.id = "controlled-ads-style";
   style.textContent =
-    ".controlled-ad-slot{" +
+    ".controlled-display-ad{" +
       "box-sizing:border-box;" +
-      "display:block;" +
       "width:min(100%,970px);" +
-      "min-height:110px;" +
-      "margin:32px auto;" +
-      "padding:8px 12px 10px;" +
+      "min-height:100px;" +
+      "margin:28px auto;" +
+      "padding:8px 12px;" +
       "text-align:center;" +
-      "background:transparent;" +
       "contain:layout paint;" +
     "}" +
-    ".controlled-ad-label{" +
+    ".controlled-display-ad .controlled-ad-label," +
+    ".controlled-multiplex-ad .controlled-ad-label{" +
       "display:block;" +
       "font:600 10px/1.2 Arial,sans-serif;" +
       "letter-spacing:.04em;" +
@@ -1652,37 +1597,146 @@ function styleControlledAds() {
       "color:#94a3b8;" +
       "margin:0 0 6px;" +
     "}" +
-    "@media(max-width:600px){" +
-      ".controlled-ad-slot{min-height:100px;margin:24px auto;padding:6px 8px 8px;}" +
-    "}" +
-    ".controlled-ad-slot ins.adsbygoogle{" +
+    ".controlled-display-ad ins.adsbygoogle{" +
+      "display:block;" +
+      "width:100%;" +
+      "min-height:90px;" +
       "margin:0 auto;" +
+    "}" +
+    ".controlled-multiplex-ad{" +
+      "box-sizing:border-box;" +
+      "width:calc(100% - 32px);" +
+      "max-width:1200px;" +
+      "min-height:260px;" +
+      "margin:32px auto;" +
+      "overflow:visible;" +
+    "}" +
+    ".controlled-multiplex-ad ins.adsbygoogle{" +
+      "display:block;" +
+      "width:100%;" +
+    "}" +
+    "@media(max-width:600px){" +
+      ".controlled-display-ad{min-height:90px;margin:22px auto;padding:6px 8px;}" +
+      ".controlled-multiplex-ad{width:calc(100% - 24px);min-height:220px;margin:24px auto;}" +
     "}";
-
   document.head.appendChild(style);
 }
 
-function initializeControlledAd() {
+function createDisplayAd(position) {
+  if (isAdsExcludedPage()) return null;
+  if (document.querySelector('[data-controlled-display-ad="' + position + '"]')) return null;
+
+  const aside = document.createElement("aside");
+  aside.className = "controlled-display-ad no-print";
+  aside.setAttribute("data-controlled-display-ad", position);
+  aside.setAttribute("aria-label", "Publicidade");
+  aside.innerHTML =
+    '<span class="controlled-ad-label" aria-hidden="true">Anúncio</span>' +
+    '<ins class="adsbygoogle"' +
+    ' style="display:block;width:100%"' +
+    ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
+    ' data-ad-slot="' + CONTROLLED_DISPLAY_SLOT + '"' +
+    ' data-ad-format="horizontal"' +
+    ' data-full-width-responsive="true"></ins>';
+
+  return aside;
+}
+
+function createMultiplexAd() {
+  if (isAdsExcludedPage()) return null;
+  if (document.querySelector('ins.adsbygoogle[data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"]')) {
+    return null;
+  }
+
+  const aside = document.createElement("aside");
+  aside.className = "controlled-multiplex-ad no-print";
+  aside.setAttribute("data-controlled-multiplex", "true");
+  aside.setAttribute("aria-label", "Publicidade");
+  aside.innerHTML =
+    '<span class="controlled-ad-label" aria-hidden="true">Publicidade</span>' +
+    '<ins class="adsbygoogle"' +
+    ' style="display:block;width:100%"' +
+    ' data-ad-client="' + CONTROLLED_AD_CLIENT + '"' +
+    ' data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"' +
+    ' data-matched-content-rows-num="4,2"' +
+    ' data-matched-content-columns-num="1,2"' +
+    ' data-matched-content-ui-type="image_stacked,image_stacked"' +
+    ' data-ad-format="autorelaxed"></ins>';
+
+  return aside;
+}
+
+function removeLegacyDisplaySlots() {
+  document.querySelectorAll(
+    'ins.adsbygoogle[data-ad-slot="' + CONTROLLED_DISPLAY_SLOT + '"], ' +
+    'ins.adsbygoogle[data-ad-slot="2979726942"]'
+  ).forEach(function(ad) {
+    const parent = ad.closest("aside") || ad.parentElement;
+    if (parent && !parent.querySelector('ins.adsbygoogle[data-ad-slot="' + CONTROLLED_MULTIPLEX_SLOT + '"]')) {
+      parent.remove();
+    } else {
+      ad.remove();
+    }
+  });
+}
+
+function placeControlledAds() {
   if (isAdsExcludedPage()) return;
-  if (isPremiumSubscriber()) return;
 
-  removeLegacyAdSlots();
   styleControlledAds();
+  removeLegacyDisplaySlots();
 
-  const slot = createControlledAdSlot();
-  if (!slot) return;
+  const footer = document.getElementById("footer-placeholder") || document.querySelector("footer");
+  const main = document.querySelector("main");
 
-  try {
-    (window.adsbygoogle = window.adsbygoogle || []).push({});
-  } catch (error) {
-    console.warn("Falha ao inicializar o anúncio controlado:", error);
+  // 1º display: depois do bloco hero, quando existir.
+  const hero = document.querySelector(
+    ".hero-card, [data-hero], .hero, section[class*='hero']"
+  );
+  const topAd = createDisplayAd("top");
+  if (topAd && hero && hero.parentNode) {
+    hero.parentNode.insertBefore(topAd, hero.nextSibling);
+  }
+
+  // 2º display: próximo ao final do conteúdo, mas antes do rodapé.
+  const bottomAd = createDisplayAd("bottom");
+  if (bottomAd && footer && footer.parentNode) {
+    footer.parentNode.insertBefore(bottomAd, footer);
+  } else if (bottomAd && main) {
+    main.appendChild(bottomAd);
+  }
+
+  // Multiplex: permanece no final da jornada do usuário.
+  const multiplex = createMultiplexAd();
+  if (multiplex && footer && footer.parentNode) {
+    footer.parentNode.insertBefore(multiplex, footer);
+  } else if (multiplex && main) {
+    main.appendChild(multiplex);
   }
 }
 
+function initializeManualAds() {
+  if (isAdsExcludedPage()) return;
+  if (isPremiumSubscriber()) return;
+
+  placeControlledAds();
+
+  document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+    if (ad.hasAttribute("data-adsbygoogle-status")) return;
+    try {
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    } catch (error) {
+      console.warn("Falha ao inicializar anúncio manual:", error);
+    }
+  });
+}
+
 /* =========================================================
-   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE (OTIMIZADO)
+   MODO ADMIN + GOOGLE TAG + CONSENT + ADSENSE
    ========================================================= */
 function initLazyLoadServices() {
+  hideAdsForPremium();
+
   if (
     localStorage.getItem("admin_mode") === "true" ||
     new URLSearchParams(window.location.search).get("admin") === "1"
@@ -1751,7 +1805,7 @@ function initLazyLoadServices() {
     );
 
     if (existingAdSense) {
-      initializeControlledAd();
+      initializeManualAds();
       return;
     }
 
@@ -1761,18 +1815,18 @@ function initLazyLoadServices() {
       "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" +
       CONTROLLED_AD_CLIENT;
     ad.crossOrigin = "anonymous";
-    ad.addEventListener("load", initializeControlledAd, { once: true });
+    ad.addEventListener("load", initializeManualAds, { once: true });
     document.head.appendChild(ad);
   }
 
   function executeServices() {
     if ("requestIdleCallback" in window) {
-      requestIdleCallback(function () {
+      requestIdleCallback(function() {
         loadAnalytics();
         loadAdSenseOnce();
       });
     } else {
-      setTimeout(function () {
+      setTimeout(function() {
         loadAnalytics();
         loadAdSenseOnce();
       }, 100);
@@ -1805,7 +1859,7 @@ function initLazyLoadServices() {
     }
   }
 
-  window.applyConsent = function (consent) {
+  window.applyConsent = function(consent) {
     gtag("consent", "update", consent);
 
     if (consent.ad_storage === "granted") {
@@ -1813,7 +1867,7 @@ function initLazyLoadServices() {
       onUserInteraction();
     } else {
       adsBlocked = true;
-      document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
+      document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
         ad.style.display = "none";
         ad.innerHTML = "";
       });
@@ -1823,7 +1877,7 @@ function initLazyLoadServices() {
     localStorage.setItem("ad_storage", consent.ad_storage);
   };
 
-  window.acceptAllCookies = function () {
+  window.acceptAllCookies = function() {
     localStorage.setItem("cookieConsent", "accepted");
     window.applyConsent({
       analytics_storage: "granted",
@@ -1833,7 +1887,7 @@ function initLazyLoadServices() {
     });
   };
 
-  window.rejectAllCookies = function () {
+  window.rejectAllCookies = function() {
     localStorage.setItem("cookieConsent", "refused");
     window.applyConsent({
       analytics_storage: "denied",
