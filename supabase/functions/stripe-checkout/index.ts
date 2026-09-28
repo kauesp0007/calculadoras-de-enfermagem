@@ -196,6 +196,7 @@ serve(async req=>{
 
     const form=new URLSearchParams({
       mode:"subscription",
+      integration_identifier:"site_premium_subscription_v1",
       "line_items[0][price]":price.id,
       "line_items[0][quantity]":"1",
       client_reference_id:id,
