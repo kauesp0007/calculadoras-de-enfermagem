@@ -591,17 +591,20 @@ height="533"
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 setTimeout(() => {
-fetch("/footer.html")
-.then((response) => response.text())
+var lang = String(window.__LANG || (window.AccountI18n && window.AccountI18n.getLanguage ? window.AccountI18n.getLanguage() : "pt") || "pt").toLowerCase().split("-")[0];
+var footerUrl = lang === "pt" ? "/footer.html" : "/" + encodeURIComponent(lang) + "/footer.html";
+fetch(footerUrl)
+.then((response) => {
+if (!response.ok) throw new Error("footer_http_" + response.status);
+return response.text();
+})
 .then((data) => {
 document.getElementById("footer-placeholder").innerHTML = data;
 if (typeof carregarTraducoes === "function") {
-var locale = window.AccountI18n.getLanguage() === "pt-BR" ? "pt" : window.AccountI18n.getLanguage();
-carregarTraducoes(locale, "footer.json");
-carregarTraducoes(locale, "cookies.json");
+carregarTraducoes(lang === "pt" ? "pt" : lang, "cookies.json");
 }
 })
-.catch((e) => console.log("Footer indisponível"));
+.catch((e) => console.log("Footer indisponível:", e));
 }, 150);
 });
 </script>
