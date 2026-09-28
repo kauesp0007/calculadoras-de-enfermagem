@@ -784,6 +784,7 @@ function initializeAuthMenu() {
   }
 
   function updateAuthUI(user) {
+    var copy = _menuAuthCopy();
     var desktopLink = document.getElementById("menu-auth-link-desktop");
     var desktopItem = document.getElementById("menu-auth-desktop");
     var mobileLink = document.getElementById("menu-auth-link-mobile");
