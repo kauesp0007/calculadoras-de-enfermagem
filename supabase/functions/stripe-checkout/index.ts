@@ -30,7 +30,10 @@ async function stripe(path:string,init:RequestInit={}){
   const r=await fetch("https://api.stripe.com/v1"+path,{...init,headers:{Authorization:`Bearer ${STRIPE}`,"Content-Type":"application/x-www-form-urlencoded",...(init.headers||{})}});
   const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d?.error?.message||`stripe_${r.status}`);return d;
 }
-const CANONICAL_PRICE_USD="price_1UEeJeAE0EBt2lxCFI56AWCx";\nconst CANONICAL_PRICE_EUR="price_1UEf7uAE0EBt2lxCmfLGGmNH";\nconst LEGACY_BROKEN_PRICE_USD="price_1UEeJeAE0EBt21xCFI56AWCx";\nfunction priceFor(lang:string){const currency=EUR.includes(lang)?"EUR":"USD";const configured=currency==="EUR"?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");const canonical=currency==="EUR"?CANONICAL_PRICE_EUR:CANONICAL_PRICE_USD;const id=configured===LEGACY_BROKEN_PRICE_USD||!configured?canonical:configured;if(!id)throw new Error("stripe_price_not_configured");return {id,currency};}
+const CANONICAL_PRICE_USD="price_1UEeJeAE0EBt2lxCFI56AWCx";
+const CANONICAL_PRICE_EUR="price_1UEf7uAE0EBt2lxCmfLGGmNH";
+const LEGACY_BROKEN_PRICE_USD="price_1UEeJeAE0EBt21xCFI56AWCx";
+function priceFor(lang:string){const currency=EUR.includes(lang)?"EUR":"USD";const configured=currency==="EUR"?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");const canonical=currency==="EUR"?CANONICAL_PRICE_EUR:CANONICAL_PRICE_USD;const id=configured===LEGACY_BROKEN_PRICE_USD||!configured?canonical:configured;if(!id)throw new Error("stripe_price_not_configured");return {id,currency};}
 function stripeLocale(lang:string){return STRIPE_LOCALES[lang as keyof typeof STRIPE_LOCALES]||"auto";}
 serve(async req=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});
