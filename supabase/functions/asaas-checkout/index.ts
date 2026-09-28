@@ -89,8 +89,19 @@ serve(async req=>{
           }catch(e){
             const msg=String((e as Error)?.message||e);
             if(msg==="active_billing_flow")throw e;
-            // Se a consulta remota falhar, não criamos uma segunda cobrança.
-            throw new Error("active_billing_flow");
+            // Se o checkout não existe mais no Asaas, o registro local ficou
+            // órfão. Nesse caso é seguro encerrá-lo e criar um novo checkout.
+            // Para falhas de autenticação/rede/provedor, mantemos fail-closed
+            // e não criamos uma segunda sessão potencialmente duplicada.
+            if(/^asaas_404(?:_|$)/.test(msg)){
+              await db().from("billing_subscriptions").update({
+                status:"inactive",
+                metadata:{...(current.metadata||{}),last_event:"CHECKOUT_NOT_FOUND"},
+                updated_at:new Date().toISOString()
+              }).eq("id",current.id);
+            }else{
+              throw new Error("active_billing_flow");
+            }
           }
         }else{
           const createdAt=Date.parse(String(current.created_at||""));
