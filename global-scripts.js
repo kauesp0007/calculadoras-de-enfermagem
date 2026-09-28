@@ -2351,6 +2351,29 @@ function initLazyLoadServices() {
   };
 }
 
+document.addEventListener("DOMContentLoaded",function(){
+  try{
+    var p=new URLSearchParams(window.location.search);
+    var provider=String(p.get("provider")||"");
+    var payment=String(p.get("payment")||"");
+    var stripeState=String(p.get("stripe")||"");
+    var lang=String(p.get("lang")||document.documentElement.lang||"en").toLowerCase().split("-")[0];
+    var eventName=null, key=null;
+    if(provider==="stripe"&&payment==="success"){eventName="subscription_payment_return_success";key="stripe_success_"+window.location.pathname;}
+    else if(stripeState==="cancel"){eventName="subscription_checkout_cancel";key="stripe_cancel_"+window.location.pathname;}
+    if(eventName){
+      if(typeof window.__ENSURE_GA4==="function")window.__ENSURE_GA4();
+      setTimeout(function(){
+        try{
+          var once="billing_analytics_"+key;
+          if(sessionStorage.getItem(once)==="1")return;
+          sessionStorage.setItem(once,"1");
+          if(typeof window.gtag==="function")window.gtag("event",eventName,{billing_flow:"subscription",provider:"stripe",lang:lang,page:window.location.pathname});
+        }catch(_){}
+      },250);
+    }
+  }catch(_){}
+});
 document.addEventListener("DOMContentLoaded", initLazyLoadServices);
 
 // Verifica se a variável já existe para evitar erro de declaração duplicada
