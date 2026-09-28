@@ -51,6 +51,13 @@ assert(stripeWebhook.includes('invoice.payment_failed'),"Webhook Stripe deve pro
 assert(stripeWebhook.includes('customer.subscription.deleted'),"Webhook Stripe deve processar cancelamento.");
 assert(stripeWebhook.includes('stripe-signature'),"Webhook Stripe deve validar assinatura.");
 assert(stripeWebhook.includes('claim_billing_webhook'),"Webhook Stripe deve usar idempotência.");
+assert(stripe.includes("checkout_session_id"),"Stripe checkout deve persistir o Checkout Session ID para retomada determinística.");
+assert(stripe.includes("grantFromRemote"),"Stripe checkout deve reconciliar sessões já concluídas.");
+assert(stripeWebhook.includes("createReconciledSub"),"Webhook Stripe deve criar/reconciliar assinatura quando o vínculo local ainda não existe.");
+assert(stripeWebhook.includes('return new Response(JSON.stringify({ok:false,error:"billing_subscription_not_found",retryable:true}),{status:500'),"Webhook Stripe deve pedir retry quando um evento de concessão ainda não consegue localizar a assinatura.");
+assert(stripeWebhook.includes("provider_subscription_id"),"Webhook Stripe deve persistir o subscription ID como chave de reconciliação.");
+assert(stripeWebhook.includes("if(!SECRET"),"Webhook Stripe deve depender do segredo configurado no ambiente.");
+assert(!stripeWebhook.includes("whsec_2jg4SYaT9oYmBjRHFRC60P3nJJYBnUTP"),"Segredo temporário de sandbox não pode permanecer no código.");
 
 assert(billingAccess.includes('ent.plan==="premium"'),"billing-access deve usar entitlement como autoridade.");
 assert(premium.includes('ent.plan==="premium"'),"premium-content deve validar entitlement antes de entregar conteúdo.");

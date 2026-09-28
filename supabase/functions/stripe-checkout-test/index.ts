@@ -1,8 +1,6 @@
-// Endpoint de sandbox legado, intencionalmente desativado em 2026-09-20.
-// A arquitetura canonica (SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_SISTEMA_CONTAS_PAGAMENTOS.md)
-// nao inclui fluxos de teste em producao. Mantido apenas como stub 410 para
-// preservar o slug e evitar 404 em integracoes antigas. Implementacao legada
-// removida; consulte o historico do git caso seja necessario recupera-la.
+// Endpoint de sandbox legado, intencionalmente desativado.
+// O fluxo comercial usa apenas supabase/functions/stripe-checkout e stripe-webhook.
+// Mantido como stub 410 para impedir que testes paralelos sejam usados em produção.
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 Deno.serve(async (_req: Request) => new Response(JSON.stringify({error:"legacy_endpoint_disabled"}), {
   status: 410,
