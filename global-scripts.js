@@ -1436,6 +1436,95 @@ function ativarModoDislexia() {
 })();
 
 /* =========================
+   GA4 — Tempo de permanência na página
+   ========================= */
+(function () {
+  "use strict";
+
+  var enviado = false;
+  var inicioVisivel = (document.visibilityState === "hidden") ? null : performance.now();
+  var tempoAcumuladoMs = 0;
+
+  function podeEnviarAnalytics() {
+    try {
+      return localStorage.getItem("analytics_storage") !== "denied";
+    } catch (_) {
+      return true;
+    }
+  }
+
+  function acumularTempoVisivel() {
+    if (inicioVisivel === null) return;
+    var agora = performance.now();
+    if (agora >= inicioVisivel) {
+      tempoAcumuladoMs += agora - inicioVisivel;
+    }
+    inicioVisivel = null;
+  }
+
+  function retomarTempoVisivel() {
+    if (inicioVisivel === null) {
+      inicioVisivel = performance.now();
+    }
+  }
+
+  function detectarTipoConteudo() {
+    var path = (window.location.pathname || "").toLowerCase();
+    if (/formulario_|formularios-|formulario\//.test(path)) return "formulario";
+    if (/\.html$/.test(path) && /(?:escala|aldrete|apache|apgar|asa|ballard|barthel|berg|bishop|braden|bps|cam|capurro|cincinnati|cornell|cries|curb|downton|elpo|fast|flacc|four|fugulin|glasgow|gds|hamilton|morse|norton|painad|nihss|news|nips)/.test(path)) {
+      return "escala";
+    }
+    if (/calculadora|calculo|gotejamento|gasometria|insulina|medicamentos|dimensionamento|imc|gestacional/.test(path)) {
+      return "calculadora";
+    }
+    if (/blog\//.test(path)) return "blog";
+    if (/conta\//.test(path)) return "conta";
+    return "pagina";
+  }
+
+  function enviarTempoPermanencia() {
+    if (enviado) return;
+    enviado = true;
+
+    acumularTempoVisivel();
+
+    var duracaoMs = Math.max(0, Math.round(tempoAcumuladoMs));
+    var duracaoSegundos = Math.floor(duracaoMs / 1000);
+
+    // Não registra permanências inferiores a 1 segundo.
+    if (duracaoSegundos < 1 || !podeEnviarAnalytics()) return;
+
+    var caminho = window.location.pathname || "/";
+    var nomePagina = caminho.split("/").filter(Boolean).pop() || "inicio";
+    nomePagina = nomePagina.replace(/\.html$/i, "") || "inicio";
+
+    var parametros = {
+      nome_pagina: nomePagina,
+      caminho_pagina: caminho,
+      duracao_segundos: duracaoSegundos,
+      duracao_milisegundos: duracaoMs,
+      idioma: window.__LANG || "pt",
+      tipo_conteudo: detectarTipoConteudo(),
+      titulo_pagina: document.title || ""
+    };
+
+    if (typeof window.gtag === "function") {
+      window.gtag("event", "tempo_permanencia", parametros);
+    }
+  }
+
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") {
+      acumularTempoVisivel();
+    } else {
+      retomarTempoVisivel();
+    }
+  });
+
+  window.addEventListener("pagehide", enviarTempoPermanencia, { capture: true });
+})();
+ 
+/* =========================
    Controle de anúncios (premium removido — todos os usuários são free)
    ========================= */
 // Stubs mantidos como no-op por compatibilidade com demais call sites.
