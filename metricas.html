@@ -139,7 +139,7 @@
 <h2 class="text-blue-100 text-base font-medium">Acompanhamento público de audiência, páginas, países, cidades e evolução do site.</h2>
 </div>
 <div class="metricas-meta">
-<div>Fonte: Google Analytics 4 · snapshot</div>
+<div>Fonte: Google Analytics 4 · dados diretos</div>
 <div>Propriedade: 522498030</div>
 <div id="ultima-atualizacao">Última atualização: —</div>
 </div>
@@ -206,7 +206,7 @@
 <section class="metricas-card metricas-wide">
 <h2>Atualização e metodologia</h2>
 <div class="metricas-note">
-<p>O painel consulta diretamente a propriedade GA4 por meio da Google Analytics Data API, através de uma Edge Function do Supabase. A credencial permanece exclusivamente no servidor e nunca é enviada ao navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo correspondem ao snapshot de 30 dias. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
+<p>O painel consulta diretamente a propriedade GA4 por meio da Google Analytics Data API, através de uma Edge Function do Supabase. A credencial permanece exclusivamente no servidor e nunca é enviada ao navegador. A leitura diária é feita em escala de dia; os rankings geográficos e de conteúdo são calculados diretamente a partir da janela selecionada. Para manter a página leve, os gráficos são desenhados em <code>&lt;canvas&gt;</code> com uma biblioteca gráfica carregada sob demanda.</p>
 <p><strong>Atualização:</strong> a página consulta a Google Analytics Data API por meio do backend seguro do Supabase. O navegador recebe somente os dados agregados necessários aos gráficos; nenhuma credencial do Google Analytics é exposta.</p>
 <p class="metricas-disclaimer">Observação: “visitantes desde a criação” depende do que o GA4 tem disponível no histórico da propriedade. A página não inventa um número de fundação: quando a consulta histórica completa estiver disponível, ele será calculado da fonte; caso contrário, o painel indicará a limitação.</p>
 </div>
@@ -236,155 +236,26 @@ document.addEventListener("DOMContentLoaded",function(){
 </script>
 
 <script type="module">
-const GA_CONFIG = Object.freeze({project:"522498030",cacheEndpoint:"https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics"});
-const CHART_LIBRARY = "https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js";
-
-const state={range:"last_30_days",data:null};
-
-function fmt(v){return Number.isFinite(+v)?new Intl.NumberFormat("pt-BR").format(+v):"—"}
-function pct(v){return Number.isFinite(+v)?(100*+v).toFixed(1)+"%":"—"}
-function setStatus(kind,text){
-  const el=document.getElementById("status-operacional");
-  if(!el)return;
-  const dot=el.querySelector(".metricas-dot");
-  dot.className="metricas-dot "+(kind||"");
-  el.lastElementChild.textContent=text;
-}
-function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-
-async function loadChartLibrary(){
-  if(window.Chart)return window.Chart;
-  await new Promise((resolve,reject)=>{
-    const s=document.createElement("script");s.src=CHART_LIBRARY;s.async=true;s.onload=resolve;s.onerror=reject;document.head.appendChild(s);
-  });
-  return window.Chart;
-}
-
-async function loadData(){
-  const response=await fetch(GA_CONFIG.cacheEndpoint+"?range="+encodeURIComponent(state.range),{cache:"no-store",headers:{"Accept":"application/json"}});
-  if(!response.ok)throw new Error("Snapshot de métricas indisponível ("+response.status+").");
-  const raw=await response.json();
-  if(!raw||![1,2].includes(raw.version))throw new Error("Formato de métricas inválido.");
-  const totals=raw.ranges?.[state.range]?.totals||raw.ranges?.last_30_days?.totals||{};
-  const daily=(raw.daily||[]).map(r=>({date:r[0],dateLabel:r[0],totalUsers:+r[1],activeUsers:+r[2],sessions:+r[3],views:+r[4],engagementRate:+r[5]}));
-  const pages=(raw.pages||[]).map(r=>({label:r[0],path:r[0],activeUsers:+r[1],views:+r[2]}));
-  const countries=(raw.countries||[]).map(r=>({name:r[0],activeUsers:+r[1],sessions:+r[2]}));
-  const cities=(raw.cities||[]).map(r=>({name:r[0],activeUsers:+r[1],sessions:+r[2]}));
-  const monthly=(raw.monthly||[]).map(r=>({label:r[0].replace("|","/"),totalUsers:+r[1],sessions:+r[2],views:+r[3]}));
-  return {
-    version:1,generatedAt:raw.generatedAt,rangeLabel:{
-      last_30_days:"Últimos 30 dias",last_7_days:"Últimos 7 dias",this_month_inc:"Este mês",last_month:"Mês anterior"
-    }[state.range]||"Período selecionado",
-    totals,
-    periods:{
-      today:{activeUsers:daily.at(-1)?.activeUsers},
-      last7Days:{activeUsers:raw.ranges?.last_7_days?.totals?.activeUsers},
-      last30Days:{activeUsers:raw.ranges?.last_30_days?.totals?.activeUsers}
-    },
-    daily,pages,countries,cities,visitors:{
-      daily,
-      monthly,
-      historicalTotal:raw.historicalTotal,
-      lastMonth:raw.ranges?.last_month?.totals,
-      last7Days:raw.ranges?.last_7_days?.totals,
-      today:daily.at(-1)
-    }
-  };
-}
-
-function renderKpis(data){
-  const totals=data.totals||{};
-  document.getElementById("k-users").textContent=fmt(totals.activeUsers);
-  document.getElementById("k-sessions").textContent=fmt(totals.sessions);
-  document.getElementById("k-views").textContent=fmt(totals.views);
-  document.getElementById("k-eng").textContent=pct(totals.engagementRate);
-  const u=data.periods||{};
-  document.getElementById("mini-dia").textContent=fmt(u.today?.activeUsers);
-  document.getElementById("mini-semana").textContent=fmt(u.last7Days?.activeUsers);
-  document.getElementById("mini-mes").textContent=fmt(u.last30Days?.activeUsers);
-  document.getElementById("k-users-sub").textContent=data.rangeLabel||"Período selecionado";
-  document.getElementById("k-sessions-sub").textContent=data.rangeLabel||"Período selecionado";
-}
-
-function chartOpts(indexAxis="x"){
-  return {responsive:true,maintainAspectRatio:false,animation:{duration:450},plugins:{legend:{position:"bottom",labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:"index",intersect:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:45,minRotation:0,font:{size:10}}},y:{beginAtZero:true,grid:{color:"rgba(148,163,184,.16)"},ticks:{font:{size:10}}}}};
-}
-const defaultColors=["#1a3e74","#2563eb","#4a90e2","#7c3aed","#0f766e","#d97706","#dc2626","#64748b"];
-
-function renderHistoryCharts(data){
-  if(!window.Chart)return;
-  const Chart=window.Chart;
-  ["chart-visitantes-dia","chart-visitantes-mes"].forEach(id=>{const el=document.getElementById(id);if(el&&el._chart)el._chart.destroy()});
-  const d=(data.visitors||{}).daily||[];
-  const m=(data.visitors||{}).monthly||[];
-  const mk=(el,type,labels,datasets)=>{const ch=new Chart(el,{type,data:{labels,datasets},options:chartOpts()});el._chart=ch};
-  const cd=document.getElementById("chart-visitantes-dia"); if(cd) mk(cd,"line",d.map(x=>x.dateLabel||x.date),[{label:"Visitantes",data:d.map(x=>+(x.totalUsers??x.activeUsers??0)),borderColor:defaultColors[3],backgroundColor:"rgba(124,58,237,.08)",fill:true,tension:.3,pointRadius:2}]);
-  const cm=document.getElementById("chart-visitantes-mes"); if(cm) mk(cm,"bar",m.map(x=>x.label),[{label:"Visitantes",data:m.map(x=>+(x.totalUsers??x.activeUsers??0)),backgroundColor:defaultColors[4],borderRadius:5}]);
-}
-
-function renderHistoryKpis(data){
-  const v=data.visitors||{};
-  document.getElementById("historico-total").textContent=fmt(v.historicalTotal?.totalUsers??v.historicalTotal?.activeUsers);
-  document.getElementById("historico-mensal").textContent=fmt(v.lastMonth?.totalUsers??v.lastMonth?.activeUsers);
-  document.getElementById("historico-semanal").textContent=fmt(v.last7Days?.totalUsers??v.last7Days?.activeUsers);
-  document.getElementById("historico-diario").textContent=fmt(v.today?.totalUsers??v.today?.activeUsers);
-}
-
-function renderCharts(data){
-  if(!window.Chart)return;
-  const Chart=window.Chart;
-  document.querySelectorAll("canvas").forEach(c=>{if(c._chart)c._chart.destroy()});
-  const daily=(data.daily||[]);
-  const labels=daily.map(x=>x.dateLabel||x.date);
-  const c1=new Chart(document.getElementById("chart-evolucao"),{type:"line",data:{labels,datasets:[
-    {label:"Usuários",data:daily.map(x=>x.activeUsers??0),borderColor:defaultColors[0],backgroundColor:"rgba(26,62,116,.09)",fill:true,tension:.3,pointRadius:2},
-    {label:"Sessões",data:daily.map(x=>x.sessions??0),borderColor:defaultColors[1],tension:.3,pointRadius:2},
-    {label:"Views",data:daily.map(x=>x.views??0),borderColor:defaultColors[2],tension:.3,pointRadius:2}
-  ]},options:chartOpts()});
-  c1._chart=c1;
-
-  function horizontalBar(id,items,labelKey,valueKey){
-    const el=document.getElementById(id);
-    const vals=items.map(x=>+(x[valueKey]||0));
-    const chart=new Chart(el,{type:"bar",data:{labels:items.map(x=>x[labelKey]),datasets:[{label:"Sessões",data:vals,backgroundColor:items.map((_,i)=>defaultColors[i%defaultColors.length]),borderRadius:5}]},options:{...chartOpts(),indexAxis:"y",plugins:{legend:{display:false},tooltip:{intersect:false}},scales:{x:{beginAtZero:true,grid:{color:"rgba(148,163,184,.16)"}},y:{grid:{display:false},ticks:{font:{size:9}}}}}});
-    chart._chart=chart;
-  }
-  horizontalBar("chart-paises",(data.countries||[]).slice(0,15),"name","sessions");
-  horizontalBar("chart-cidades",(data.cities||[]).filter(x=>x.name&&x.name!=="(not set)").slice(0,20),"name","sessions");
-  horizontalBar("chart-paginas",(data.pages||[]).slice(0,20),"label","views");
-  const geo=(data.summary||{}).countries||data.countries||[];
-  const doughnut=new Chart(document.getElementById("chart-usuarios"),{type:"doughnut",data:{labels:geo.slice(0,7).map(x=>x.name),datasets:[{data:geo.slice(0,7).map(x=>x.sessions),backgroundColor:defaultColors,borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:10}}}}}});
-  doughnut._chart=doughnut;
-}
-
-function renderTables(data){
-  const pages=(data.pages||[]).slice(0,20),countries=(data.countries||[]).slice(0,15),cities=(data.cities||[]).filter(x=>x.name&&x.name!=="(not set)").slice(0,20);
-  document.querySelector("#tabela-paginas tbody").innerHTML=pages.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+escapeHtml(x.label||x.path||"—")+"</td><td class='num'>"+fmt(x.views)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>";
-  document.querySelector("#tabela-paises tbody").innerHTML=countries.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+escapeHtml(x.name)+"</td><td class='num'>"+fmt(x.sessions)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>";
-  document.querySelector("#tabela-cidades tbody").innerHTML=cities.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+escapeHtml(x.name)+"</td><td class='num'>"+fmt(x.sessions)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>";
-}
-
-async function refresh(){
-  setStatus("","Consultando métricas…");
-  try{
-    const [chartLib,data]=await Promise.all([loadChartLibrary(),loadData()]);
-    state.data=data;
-    renderKpis(data);renderHistoryKpis(data);renderCharts(data);renderHistoryCharts(data);renderTables(data);
-    const stamp=data.generatedAt?new Date(data.generatedAt).toLocaleString("pt-BR"):"agora";
-    document.getElementById("ultima-atualizacao").textContent="Última atualização: "+stamp;
-    setStatus("ok","Dados disponíveis · "+stamp);
-  }catch(error){
-    setStatus("err","Métricas indisponíveis no momento");
-    document.getElementById("ultima-atualizacao").textContent="Última atualização: não disponível";
-    console.error("metricas.html:",error);
-  }
-}
-
-document.querySelectorAll(".periodo").forEach(btn=>btn.addEventListener("click",function(){
-  document.querySelectorAll(".periodo").forEach(b=>b.classList.remove("active"));
-  this.classList.add("active");state.range=this.dataset.range;refresh();
-}));
-refresh();
+const GA_CONFIG={propertyId:"522498030",endpoint:"https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics"};
+const CHART_LIBRARY="https://cdn.jsdelivr.net/npm/chart.js@4.5.0/dist/chart.umd.min.js";
+const state={range:"last_30_days"};
+const colors=["#1a3e74","#2563eb","#4a90e2","#7c3aed","#0f766e","#d97706","#dc2626","#64748b"];
+const fmt=v=>Number.isFinite(Number(v))?new Intl.NumberFormat("pt-BR").format(Number(v)):"—";
+const pct=v=>Number.isFinite(Number(v))?(Number(v)*100).toFixed(1)+"%":"—";
+const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+function status(k,t){const e=document.getElementById("status-operacional");if(!e)return;const d=e.querySelector(".metricas-dot");d.className="metricas-dot "+(k||"");e.lastElementChild.textContent=t}
+async function chartLib(){if(window.Chart)return;await new Promise((ok,no)=>{const s=document.createElement("script");s.src=CHART_LIBRARY;s.async=true;s.onload=ok;s.onerror=no;document.head.appendChild(s)})}
+async function data(){const r=await fetch(GA_CONFIG.endpoint+"?range="+encodeURIComponent(state.range),{cache:"no-store",headers:{Accept:"application/json"}}),j=await r.json().catch(()=>null);if(!r.ok)throw Error(j?.error||"HTTP "+r.status);if(j?.version!==2)throw Error("Resposta GA4 inválida");return j}
+function opts(){return{responsive:true,maintainAspectRatio:false,animation:{duration:350},plugins:{legend:{position:"bottom",labels:{boxWidth:12,usePointStyle:true}},tooltip:{mode:"index",intersect:false}},scales:{x:{grid:{display:false},ticks:{maxRotation:45,minRotation:0,font:{size:10}}},y:{beginAtZero:true,grid:{color:"rgba(148,163,184,.16)"},ticks:{font:{size:10}}}}}}
+function destroy(){document.querySelectorAll("canvas").forEach(c=>{if(c._chart)c._chart.destroy();c._chart=null})}
+function kpis(d){const t=d.totals||{},p=d.periods||{};document.getElementById("k-users").textContent=fmt(t.activeUsers);document.getElementById("k-sessions").textContent=fmt(t.sessions);document.getElementById("k-views").textContent=fmt(t.views);document.getElementById("k-eng").textContent=pct(t.engagementRate);document.getElementById("k-users-sub").textContent=d.rangeLabel||"Período selecionado";document.getElementById("k-sessions-sub").textContent=d.rangeLabel||"Período selecionado";document.getElementById("mini-dia").textContent=fmt(p.today?.activeUsers);document.getElementById("mini-semana").textContent=fmt(p.last7Days?.activeUsers);document.getElementById("mini-mes").textContent=fmt(p.last30Days?.activeUsers)}
+function bar(id,a,label,val){const e=document.getElementById(id);if(!e)return;const ch=new Chart(e,{type:"bar",data:{labels:a.map(x=>x[label]),datasets:[{label:val==="views"?"Views":"Sessões",data:a.map(x=>Number(x[val]||0)),backgroundColor:a.map((_,i)=>colors[i%colors.length]),borderRadius:5}]},options:{...opts(),indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{beginAtZero:true},y:{grid:{display:false},ticks:{font:{size:9}}}}}});e._chart=ch}
+function charts(d){destroy();const daily=d.daily||[],labs=daily.map(x=>x.dateLabel||x.date);let e=document.getElementById("chart-evolucao");e._chart=new Chart(e,{type:"line",data:{labels:labs,datasets:[{label:"Usuários",data:daily.map(x=>x.activeUsers||0),borderColor:colors[0],backgroundColor:"rgba(26,62,116,.09)",fill:true,tension:.3,pointRadius:2},{label:"Sessões",data:daily.map(x=>x.sessions||0),borderColor:colors[1],tension:.3,pointRadius:2},{label:"Views",data:daily.map(x=>x.views||0),borderColor:colors[2],tension:.3,pointRadius:2}]},options:opts()});bar("chart-paises",(d.countries||[]).slice(0,15),"name","sessions");bar("chart-cidades",(d.cities||[]).filter(x=>x.name&&x.name!=="(not set)").slice(0,20),"name","sessions");bar("chart-paginas",(d.pages||[]).slice(0,20),"label","views");let g=(d.countries||[]).slice(0,7),u=document.getElementById("chart-usuarios");u._chart=new Chart(u,{type:"doughnut",data:{labels:g.map(x=>x.name),datasets:[{data:g.map(x=>Number(x.sessions||0)),backgroundColor:colors,borderWidth:2,borderColor:"#fff"}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:"bottom"}}}});
+let vd=d.visitors?.daily||daily,cd=document.getElementById("chart-visitantes-dia");cd._chart=new Chart(cd,{type:"line",data:{labels:vd.map(x=>x.dateLabel||x.date),datasets:[{label:"Visitantes",data:vd.map(x=>Number(x.totalUsers||x.activeUsers||0)),borderColor:colors[3],backgroundColor:"rgba(124,58,237,.08)",fill:true,tension:.3}]},options:opts()});let vm=d.visitors?.monthly||[],cm=document.getElementById("chart-visitantes-mes");cm._chart=new Chart(cm,{type:"bar",data:{labels:vm.map(x=>x.label),datasets:[{label:"Visitantes",data:vm.map(x=>Number(x.totalUsers||0)),backgroundColor:colors[4],borderRadius:5}]},options:opts()})}
+function tables(d){const p=(d.pages||[]).slice(0,20),c=(d.countries||[]).slice(0,15),ci=(d.cities||[]).filter(x=>x.name&&x.name!=="(not set)").slice(0,20);document.querySelector("#tabela-paginas tbody").innerHTML=p.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+esc(x.title||x.label||x.path||"—")+"</td><td class='num'>"+fmt(x.views)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>";document.querySelector("#tabela-paises tbody").innerHTML=c.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+esc(x.name)+"</td><td class='num'>"+fmt(x.sessions)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>";document.querySelector("#tabela-cidades tbody").innerHTML=ci.map((x,i)=>"<tr><td>"+(i+1)+"</td><td>"+esc(x.name)+"</td><td class='num'>"+fmt(x.sessions)+"</td><td class='num'>"+fmt(x.activeUsers)+"</td></tr>").join("")||"<tr><td colspan='4'>Sem dados.</td></tr>"}
+function history(d){const v=d.visitors||{},h=v.historicalTotal||{};document.getElementById("historico-total").textContent=fmt(h.totalUsers??h.activeUsers);document.getElementById("historico-mensal").textContent=fmt(v.lastMonth?.totalUsers??v.lastMonth?.activeUsers);document.getElementById("historico-semanal").textContent=fmt(v.last7Days?.totalUsers??v.last7Days?.activeUsers);document.getElementById("historico-diario").textContent=fmt(v.today?.totalUsers??v.today?.activeUsers)}
+async function refresh(){status("","Consultando Google Analytics 4…");try{await chartLib();const d=await data();kpis(d);charts(d);tables(d);history(d);const s=d.generatedAt?new Date(d.generatedAt).toLocaleString("pt-BR"):"agora";document.getElementById("ultima-atualizacao").textContent="Última atualização: "+s;status("ok","Dados disponíveis · "+s)}catch(e){console.error("metricas.html:",e);status("err","Métricas indisponíveis no momento");document.getElementById("ultima-atualizacao").textContent="Última atualização: não disponível"}}
+document.querySelectorAll(".periodo").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll(".periodo").forEach(x=>x.classList.remove("active"));b.classList.add("active");state.range=b.dataset.range;refresh()}));window.addEventListener("metricas:refresh",refresh);refresh();
 </script>
 <script>
 document.addEventListener("DOMContentLoaded",function(){
