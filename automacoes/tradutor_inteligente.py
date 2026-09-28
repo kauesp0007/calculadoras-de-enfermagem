@@ -764,9 +764,9 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Pode ser um arquivo .html OU uma pasta (varre recursivamente os .html).
-    arquivos_originais = ["formulario_escala_de_hamilton.html", "formulario_escala_de_hendrich.html", "formulario_escala_de_humpty.html", "formulario_escala_de_johns.html", "formulario_escala_de_jouvet.html", "formulario_escala_de_lachs.html", "formulario_escala_de_lanss.html", "formulario_escala_de_lawton", "formulario_escala_de_meows.html", "formulario_escala_de_news.html", "formulario_escala_de_nips.html", "formulario_escala_de_perroca.html", "formulario_meem.html", "formulario_morse.html"] 
+    arquivos_originais = ["boas_vindas_assinante.html"] 
      
-    idiomas_alvo = ["en", "es"]
+    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
     MODO_DRY_RUN = False      # True = testa tudo SEM chamar a API nem gravar
     COM_AUDITORIA = True      # relatório pós-tradução (estrutura, pt restante, legado)
