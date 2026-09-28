@@ -78,7 +78,7 @@ serve(async req=>{
               }).eq("id",current.id);
             }else{
               const existingUrl=String(remote?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(existingCheckoutId)}`).trim();
-              if(!/^https:\\/\\/(?:www\\.)?asaas\\.com\\//i.test(existingUrl))throw new Error("active_billing_flow");
+              if(!/^https:\/\/(?:www\.)?asaas\.com\//i.test(existingUrl))throw new Error("active_billing_flow");
               return new Response(JSON.stringify({
                 url:existingUrl,
                 checkoutId:existingCheckoutId,
