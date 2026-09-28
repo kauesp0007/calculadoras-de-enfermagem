@@ -485,3 +485,31 @@ Registrar:
 > Não existe um segundo sistema de contas, billing ou anúncios.**
 
 Qualquer implementação que fugir desta cadeia deve ser rejeitada antes do deploy.
+
+
+---
+
+# 15. Registro de homologação — 28/09/2026
+
+## Evidências verificadas
+
+- A política canônica de Premium sem anúncios está presente na `main`.
+- O commit de correção mais recente é `f127696392ac9e1f6f962ffea0274cf3327ba42f`, que corrige a decisão booleana do estado Premium e elimina execução duplicada do teste no workflow.
+- O workflow de deploy mantém a validação `scripts/test-premium-ads.js` e a simulação `scripts/test-premium-ads-real-state.mjs`.
+- O Supabase de produção possui atualmente 1 entitlement `premium` com expiração futura em 20/10/2026.
+- A função `billing-access` continua sendo somente leitura para a consulta do entitlement e calcula o estado ativo a partir de `user_entitlements`.
+- Não foi encontrada, na busca estática da `main`, uma segunda implementação baseada em `localStorage.plan`, `isPremiumLocal()` ou um carregador direto adicional do AdSense.
+
+## Resultado do PDCA nesta rodada
+
+**PLAN:** aprovado.
+
+**DO:** aprovado no código publicado na `main`; a decisão continua derivada do entitlement canônico.
+
+**CHECK:** parcialmente aprovado. O estado Premium real do Supabase foi confirmado e a política estática foi auditada. O E2E autenticado no navegador não foi executado por esta rodada e, portanto, não deve ser marcado como concluído.
+
+**ACT:** pendente somente da homologação E2E autenticada e da confirmação operacional do run de GitHub Actions correspondente ao deploy.
+
+## Regra de encerramento
+
+Enquanto o E2E autenticado não tiver evidência observável de que um assinante Premium válido não carrega/exibe AdSense, esta receita permanece em estado **HOMOLOGAÇÃO PENDENTE**, e não em estado de conclusão definitiva.
