@@ -1591,6 +1591,9 @@ function removeLegacyAdSlots() {
   });
 }
 
+// Executa imediatamente para retirar os slots legados antes do próximo ciclo de renderização.
+removeLegacyAdSlots();
+
 function createControlledAdSlot() {
   if (isAdsExcludedPage()) return null;
   if (document.querySelector("[data-controlled-ad-slot='true']")) return null;
