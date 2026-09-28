@@ -60,8 +60,47 @@ serve(async req=>{
 
     const {data:active}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
     if(active?.plan==="premium"&&(!active.premium_expires_at||new Date(active.premium_expires_at)>new Date()))throw new Error("already_premium");
-    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).limit(1);
-    if(existing?.length)throw new Error("active_billing_flow");
+    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider,metadata,created_at").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).order("created_at",{ascending:false}).limit(1);
+    if(existing?.length){
+      const current=existing[0];
+      const status=String(current.status||"");
+      if(status==="checkout_pending"){
+        const existingCheckoutId=String(current?.metadata?.checkout_id||"");
+        if(existingCheckoutId){
+          try{
+            const remote=await asaas("/checkouts/"+encodeURIComponent(existingCheckoutId));
+            const remoteStatus=String(remote?.status||"").toUpperCase();
+            if(remoteStatus==="CANCELED"||remoteStatus==="EXPIRED"){
+              await db().from("billing_subscriptions").update({
+                status:"inactive",
+                metadata:{...(current.metadata||{}),last_event:"CHECKOUT_"+remoteStatus},
+                updated_at:new Date().toISOString()
+              }).eq("id",current.id);
+            }else{
+              throw new Error("active_billing_flow");
+            }
+          }catch(e){
+            const msg=String((e as Error)?.message||e);
+            if(msg==="active_billing_flow")throw e;
+            // Se a consulta remota falhar, não criamos uma segunda cobrança.
+            throw new Error("active_billing_flow");
+          }
+        }else{
+          const createdAt=Date.parse(String(current.created_at||""));
+          if(Number.isFinite(createdAt)&&Date.now()-createdAt>2*60*60*1000){
+            await db().from("billing_subscriptions").update({
+              status:"checkout_failed",
+              metadata:{...(current.metadata||{}),last_event:"STALE_CHECKOUT_PENDING"},
+              updated_at:new Date().toISOString()
+            }).eq("id",current.id);
+          }else{
+            throw new Error("active_billing_flow");
+          }
+        }
+      }else{
+        throw new Error("active_billing_flow");
+      }
+    }
 
     ref="premium_"+crypto.randomUUID();
     const isRecurring=kind==="monthly_card";
