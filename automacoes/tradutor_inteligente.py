@@ -764,7 +764,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Pode ser um arquivo .html OU uma pasta (varre recursivamente os .html).
-    arquivos_originais = ["conta\historico.html","conta/perfil.html", "conta/configuracoes.html", "conta\favoritos.html"] 
+    arquivos_originais = ["gotejamento.html"] 
      
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
