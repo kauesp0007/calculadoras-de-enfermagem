@@ -82,14 +82,13 @@ window.__ACCOUNT_PAGE_URL = function (path) {
   } catch (_) {
     lang = "pt-BR";
   }
-  // As quatro páginas da conta que possuem cópias localizadas usam a
-  // pasta do idioma para evitar que usuários internacionais caiam na versão PT.
-  // Favoritos permanece centralizado até que as cópias localizadas existam no
-  // repositório, evitando criar links para páginas 404.
+  // As páginas da conta que possuem cópias localizadas usam a pasta do idioma
+  // para evitar que usuários internacionais caiam na versão PT.
   var localizedAccountPages = {
     "/conta/perfil.html": "perfil.html",
     "/conta/configuracoes.html": "configuracoes.html",
-    "/conta/historico.html": "historico.html"
+    "/conta/historico.html": "historico.html",
+    "/conta/favoritos.html": "favoritos.html"
   };
   var normalizedPath = String(path || "").split(/[?#]/)[0];
   var normalizedLang = String(lang || "").toLowerCase();
