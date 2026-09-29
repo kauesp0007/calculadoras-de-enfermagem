@@ -82,6 +82,21 @@ window.__ACCOUNT_PAGE_URL = function (path) {
   } catch (_) {
     lang = "pt-BR";
   }
+  var accountPages = {
+    "/conta/perfil.html": "perfil.html",
+    "/conta/configuracoes.html": "configuracoes.html",
+    "/conta/historico.html": "historico.html",
+    "/conta/favoritos.html": "favoritos.html"
+  };
+  var normalizedPath = path.split("?")[0].split("#")[0];
+  if (lang !== "pt-BR" && accountPages[normalizedPath]) {
+    var suffix = path.indexOf("?") === -1 ? "" : path.slice(path.indexOf("?"));
+    var hash = path.indexOf("#") === -1 ? "" : path.slice(path.indexOf("#"));
+    var prefix = "/" + encodeURIComponent(lang) + "/conta/" + accountPages[normalizedPath];
+    if (suffix) prefix += suffix;
+    if (hash) prefix += hash;
+    return prefix + (prefix.indexOf("?") === -1 ? "?" : "&") + "lang=" + encodeURIComponent(lang);
+  }
   return path + separator + "lang=" + encodeURIComponent(lang);
 };
 
