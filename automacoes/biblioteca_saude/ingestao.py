@@ -48,14 +48,18 @@ def _novo_id() -> str:
 
 
 def listar_arquivos() -> list[Path]:
-    """Lista os arquivos aceitos na caixa de entrada, ordenados por nome."""
+    """Lista os arquivos aceitos na caixa de entrada (recursivo), ordenados por caminho relativo."""
     if not ENTRADA_DIR.exists():
         return []
     arquivos = []
-    for p in ENTRADA_DIR.iterdir():
-        if p.is_file() and p.suffix.lower() in EXTENSOES_ACEITAS:
-            arquivos.append(p)
-    return sorted(arquivos, key=lambda p: p.name.lower())
+    for p in ENTRADA_DIR.rglob("*"):
+        if not p.is_file() or p.suffix.lower() not in EXTENSOES_ACEITAS:
+            continue
+        # Ignora companheiros ".txt" de extração (ex.: "doc.pdf.txt") quando o original existe
+        if p.suffix.lower() == ".txt" and p.with_suffix("").exists():
+            continue
+        arquivos.append(p)
+    return sorted(arquivos, key=lambda p: str(p.relative_to(ENTRADA_DIR)).lower())
 
 
 def registrar_documento(caminho: Path, dry_run: bool) -> dict:
@@ -93,7 +97,7 @@ def executar(dry_run: bool = False) -> dict:
     novos = []
     ignorados = []
     for caminho in arquivos:
-        chave = caminho.name
+        chave = str(caminho.relative_to(ENTRADA_DIR))
         if chave in indice["documentos"]:
             ignorados.append(chave)
         else:
