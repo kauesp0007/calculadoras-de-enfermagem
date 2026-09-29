@@ -904,6 +904,7 @@ function initializeAuthMenu() {
       displayName = (user.displayName || user.email || "Usuário").split(" ")[0];
       photoURL = user.photoURL || "";
     }
+    var isDeveloper = isLoggedIn && String(user.email || "").trim().toLowerCase() === "ciadeenfermagem@gmail.com";
 
     // ── Desktop ──
     if (desktopItem) {
@@ -924,6 +925,7 @@ function initializeAuthMenu() {
           '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/favoritos.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.favorites + '</a></li>' +
           '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.history + '</a></li>' +
           '<li>' + _premiumCtaHtml(isLoggedIn) + '</li>' +
+          (isDeveloper ? '<li><a role="menuitem" href="/conta/desenvolvedor.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 text-sm font-medium">Desenvolvedor</a></li>' : '') +
           _extraMenuItems(false) +
           '<li class="border-t border-gray-100 mt-1 pt-1"><a href="#" id="menu-auth-logout-desktop" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 text-sm font-medium">' + copy.logout + '</a></li>' +
           "</ul>";
@@ -1004,6 +1006,7 @@ function initializeAuthMenu() {
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/historico.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.history + '</a>' +
           '<a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/configuracoes.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100">' + copy.settings + '</a>' +
           '<div class="px-4 py-1.5">' + _premiumCtaHtml(isLoggedIn) + '</div>' +
+          (isDeveloper ? '<a role="menuitem" href="/conta/desenvolvedor.html" class="block px-4 !py-1.5 text-[#1A3E74] hover:bg-blue-50 font-medium">Desenvolvedor</a>' : '') +
           _extraMenuItems(true) +
           '<a role="menuitem" href="#" id="menu-auth-logout-mobile" class="block px-4 !py-1.5 text-red-600 hover:bg-red-50 font-medium">' + copy.logout + '</a>';
 
