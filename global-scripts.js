@@ -453,47 +453,12 @@ function initializeAuthMenu() {
   }
 
   /**
-   * Monta o coração "Favoritar" ao lado da caixa de idiomas (fora de /conta/).
-   * O seletor de idiomas é carregado de forma assíncrona, então tentamos
-   * anexar com retry até o container existir.
+   * Botão "Favoritar" ao lado da caixa de idiomas.
+   * Desativado temporariamente para não exibir corações no topo das páginas.
+   * A página /conta/favoritos.html e os módulos de favoritos continuam ativos.
    */
   function _mountFavoriteButton() {
-    var path = window.location.pathname || "/";
-    if (path.indexOf("/conta/") === 0) {
-      return; // páginas de conta não são favoritáveis
-    }
-    if (document.getElementById("fav-toggle-host")) {
-      return;
-    }
-    if (!window.Favorites || !window.Favorites.getPageContext) {
-      return;
-    }
-
-    var pageContext = window.Favorites.getPageContext();
-
-    var attempts = 0;
-    function tryMount() {
-      var wrapper = document.getElementById("language-dropdown-wrapper");
-      var inner = wrapper ? wrapper.firstElementChild : null;
-      if (!wrapper || !inner) {
-        if (attempts < 25) {
-          attempts++;
-          setTimeout(tryMount, 200);
-        }
-        return;
-      }
-
-      var host = document.createElement("span");
-      host.id = "fav-toggle-host";
-      host.setAttribute(
-        "style",
-        "pointer-events:auto;margin-right:8px;display:inline-flex;align-items:center;"
-      );
-      wrapper.insertBefore(host, inner);
-      window.Favorites.mountButton(host, pageContext);
-    }
-
-    tryMount();
+    _unmountFavoriteButton();
   }
 
   /**
