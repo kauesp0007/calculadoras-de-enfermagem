@@ -28,12 +28,12 @@
       "configuracoes.html": "configuracoes.html",
       "historico.html": "historico.html"
     };
-    if (getLanguage() !== "pt" && localizedPages[file]) {
-      return "/" + encodeURIComponent(getLanguage()) + "/conta/" + localizedPages[file] + "?" + params.toString();
-    }
     Object.keys(extra || {}).forEach(function (key) {
       if (extra[key] !== undefined && extra[key] !== null && extra[key] !== "") params.set(key, extra[key]);
     });
+    if (getLanguage() !== "pt" && localizedPages[file]) {
+      url = "/" + encodeURIComponent(getLanguage()) + "/conta/" + localizedPages[file];
+    }
     return url + "?" + params.toString();
   }
 
