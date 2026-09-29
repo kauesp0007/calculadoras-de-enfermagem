@@ -7,12 +7,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   const container = document.getElementById("language-selector-placeholder");
-  if (!container) {
-    loadAccountMenuLocalizer();
-    loadForumModerationBridge();
-    loadAccountExtraLocalizer();
-    return;
-  }
+  collapseLegacyLanguagePlaceholder(container);
 
   fetch("/_language_selector.html")
     .then(response => {
@@ -20,7 +15,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return response.text();
     })
     .then(data => {
-      container.innerHTML = data;
+      return resolveLanguageSelectorTarget(container).then(target => {
+        if (!target) return;
+        target.innerHTML = data;
+        const wrapper = target.querySelector("#language-dropdown-wrapper");
+        if (wrapper) wrapper.classList.add("language-selector-compact");
+      });
+    })
+    .then(() => {
       langSelectorInit();
       accountLanguageSync();
       loadAccountMenuLocalizer();
@@ -34,6 +36,81 @@ document.addEventListener("DOMContentLoaded", () => {
       loadAccountExtraLocalizer();
     });
 });
+
+function collapseLegacyLanguagePlaceholder(container) {
+  if (!container) return;
+  container.innerHTML = "";
+  container.classList.remove("language-selector-fallback");
+  container.setAttribute("aria-hidden", "true");
+  container.style.display = "none";
+  container.style.minHeight = "0";
+  container.style.height = "0";
+  container.style.padding = "0";
+  container.style.margin = "0";
+}
+
+function restoreLegacyLanguagePlaceholder(container) {
+  if (!container) return;
+  container.classList.add("language-selector-fallback");
+  container.removeAttribute("aria-hidden");
+  container.style.display = "block";
+  container.style.minHeight = "0";
+  container.style.height = "auto";
+  container.style.padding = "0";
+  container.style.margin = "0";
+}
+
+function getAccessibilityLanguageSlot() {
+  const bar = document.getElementById("barraAcessibilidade");
+  if (!bar) return null;
+
+  let slot = document.getElementById("accessibility-language-selector-slot");
+  if (!slot) {
+    slot = document.createElement("div");
+    slot.id = "accessibility-language-selector-slot";
+    slot.className = "accessibility-language-slot";
+    slot.setAttribute("aria-label", "Seletor de idiomas");
+    bar.insertBefore(slot, bar.firstChild);
+  }
+  return slot;
+}
+
+function resolveLanguageSelectorTarget(legacyContainer) {
+  const immediateSlot = getAccessibilityLanguageSlot();
+  if (immediateSlot) return Promise.resolve(immediateSlot);
+
+  return new Promise(resolve => {
+    let resolved = false;
+    let observer = null;
+    let timeout = null;
+
+    function finish(target) {
+      if (resolved) return;
+      resolved = true;
+      if (observer) observer.disconnect();
+      if (timeout) clearTimeout(timeout);
+      resolve(target);
+    }
+
+    if (window.MutationObserver) {
+      observer = new MutationObserver(() => {
+        const slot = getAccessibilityLanguageSlot();
+        if (slot) finish(slot);
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    timeout = setTimeout(() => {
+      const slot = getAccessibilityLanguageSlot();
+      if (slot) {
+        finish(slot);
+        return;
+      }
+      restoreLegacyLanguagePlaceholder(legacyContainer);
+      finish(legacyContainer || null);
+    }, 5000);
+  });
+}
 
 function langSelectorInit() {
   const button = document.getElementById("langButton");
