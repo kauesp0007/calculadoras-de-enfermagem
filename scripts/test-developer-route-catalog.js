@@ -1,0 +1,57 @@
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { JSDOM } = require("jsdom");
+
+const root = path.resolve(__dirname, "..");
+const catalog = JSON.parse(fs.readFileSync(path.join(root, "conta/developer-route-catalog.json"), "utf8"));
+assert.ok(catalog.paths.length > 1900);
+assert.ok(catalog.paths.includes("ar/missao.html"));
+assert.ok(catalog.paths.includes("en/braden.html"));
+assert.ok(!catalog.paths.includes("en/menu-global.html"));
+
+const html = fs.readFileSync(path.join(root, "conta/desenvolvedor.html"), "utf8");
+const dom = new JSDOM(html, { url: "https://www.calculadorasdeenfermagem.com.br/conta/desenvolvedor.html", runScripts: "outside-only" });
+const { window } = dom;
+const routes = [
+  { path: "braden.html", premium_required: false, enforcement: "protected_content" },
+  { path: "en/braden.html", premium_required: false, enforcement: "protected_content" },
+  { path: "perroca.html", premium_required: true, enforcement: "protected_content" },
+  { path: "en/perroca.html", premium_required: true, enforcement: "protected_content" }
+];
+window.Auth = {
+  init: async () => {},
+  currentUser: () => ({ uid: "developer", email: "ciadeenfermagem@gmail.com", getIdToken: async () => "test-token" })
+};
+window.fetch = async (url) => ({
+  ok: true,
+  json: async () => String(url).endsWith(".json") ? catalog : { settings: {}, routes, grants: [], billing: {} },
+  text: async () => ""
+});
+
+const script = [...window.document.scripts].find((item) => item.textContent.includes("function catalogRows()"));
+assert.ok(script);
+window.eval(script.textContent);
+window.document.dispatchEvent(new window.Event("DOMContentLoaded"));
+
+setTimeout(() => {
+  try {
+    const { document } = window;
+    assert.match(document.getElementById("route-summary").textContent, /Free/);
+    assert.ok(document.getElementById("route-category").textContent.includes("Idioma: AR"));
+    const search = document.getElementById("route-search");
+    for (const [route, expected] of [["en/braden.html", false], ["en/perroca.html", true], ["ar/missao.html", false]]) {
+      search.value = route;
+      search.dispatchEvent(new window.Event("input"));
+      const input = document.querySelector('[data-route="' + route + '"]');
+      assert.ok(input, route + " missing from catalog");
+      assert.equal(input.checked, expected, route + " has wrong access state");
+    }
+    window.close();
+    console.log("Developer route catalog UI: PASS");
+  } catch (error) {
+    window.close();
+    console.error(error);
+    process.exitCode = 1;
+  }
+}, 50);
