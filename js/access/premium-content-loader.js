@@ -72,6 +72,41 @@
     document.body.innerHTML='<main style="min-height:70vh;display:flex;align-items:center;justify-content:center;padding:24px;font-family:Arial,sans-serif"><section style="max-width:620px;text-align:center"><h1>Conteúdo temporariamente indisponível</h1><p>'+message+'</p><button id="premium-retry" type="button">Tentar novamente</button></section></main>';
     var b=document.getElementById("premium-retry");if(b)b.addEventListener("click",load,{once:true});
   }
+  function stripPremiumAds(html){
+    return String(html||"")
+      .replace(/<script[^>]+src=["'][^"']*pagead2\.googlesyndication\.com\/pagead\/js\/adsbygoogle\.js[^"']*["'][^>]*><\/script>/gi,"")
+      .replace(/<ins\b[^>]*class=["'][^"']*\badsbygoogle\b[^"']*["'][^>]*>[\s\S]*?<\/ins>/gi,"")
+      .replace(/<aside\b[^>]*class=["'][^"']*\bcontrolled-(?:display|multiplex)-ad\b[^"']*["'][^>]*>[\s\S]*?<\/aside>/gi,"")
+      .replace(/<div\b[^>]*id=["']multiplex-ad-reserved["'][^>]*>[\s\S]*?<\/div>/gi,"")
+      .replace(/\(?\s*window\.adsbygoogle\s*=\s*window\.adsbygoogle\s*\|\|\s*\[\]\s*\)?\.push\(\{\}\);?/gi,"")
+      .replace(/\(?\s*adsbygoogle\s*=\s*window\.adsbygoogle\s*\|\|\s*\[\]\s*\)?\.push\(\{\}\);?/gi,"");
+  }
+  function medicamentosGovernanceSeal(){
+    return '<section id="medicamentos-version-log" data-clinical-governance="medicamentos-revision-log" class="no-print" style="width:min(1120px,calc(100% - 32px));margin:24px auto 18px;padding:14px 16px;border:1px solid #dbe3ee;border-left:4px solid #1a3e74;border-radius:12px;background:#fff;box-shadow:0 6px 18px rgba(15,23,42,.06);font-family:Inter,Arial,sans-serif;color:#475569">'
+      +'<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:6px">'
+      +'<span style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:#e0f2fe;color:#075985;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">COSO</span>'
+      +'<span style="display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:#ecfdf5;color:#047857;font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase">COBIT 2019</span>'
+      +'<strong style="color:#1a3e74;font-size:13px">Governança clínica e controles internos</strong>'
+      +'</div>'
+      +'<p style="margin:0;font-size:12px;line-height:1.5">versão revisada em: 29 de setembro de 2026 · versão 2.0 · governança clínica, segurança medicamentosa, COSO e COBIT 2019.</p>'
+      +'</section>';
+  }
+  function injectMedicamentosGovernanceSeal(html,key){
+    var documentHtml=String(html||"");
+    if(!/(^|\/)medicamentos\.html$/i.test(String(key||""))) return documentHtml;
+    if(/id=["']medicamentos-version-log["']/i.test(documentHtml)) return documentHtml;
+    var seal=medicamentosGovernanceSeal();
+    if(/<div\b[^>]*id=["']footer-placeholder["'][^>]*>/i.test(documentHtml)){
+      return documentHtml.replace(/<div\b[^>]*id=["']footer-placeholder["'][^>]*>/i,seal+"$&");
+    }
+    if(/<footer\b/i.test(documentHtml)){
+      return documentHtml.replace(/<footer\b/i,seal+"<footer");
+    }
+    if(/<\/main>/i.test(documentHtml)){
+      return documentHtml.replace(/<\/main>/i,seal+"</main>");
+    }
+    return documentHtml.replace(/<\/body>/i,seal+"</body>");
+  }
   function loadScript(src){
     return new Promise(function(resolve,reject){
       var existing=document.querySelector('script[src="'+src+'"]');
@@ -209,6 +244,8 @@
       html=html
         .replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
         .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
+      html=stripPremiumAds(html);
+      html=injectMedicamentosGovernanceSeal(html,canonicalKey||currentKey);
       document.open();document.write(html);document.close();
     }catch(e){
       console.error("[PremiumContent] protected content unavailable",e);
