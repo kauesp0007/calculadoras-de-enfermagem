@@ -37,7 +37,7 @@
     var params = new URLSearchParams(query || "");
     params.set("lang", lang === "pt" ? "pt-BR" : lang);
     var suffix = params.toString();
-    var localized = ["perfil.html", "configuracoes.html", "historico.html"].indexOf(file) !== -1;
+    var localized = ["perfil.html", "configuracoes.html", "historico.html", "favoritos.html"].indexOf(file) !== -1;
     var base = localized ? accountBase(lang) : "/conta/";
     return base + file + (suffix ? "?" + suffix : "");
   }
