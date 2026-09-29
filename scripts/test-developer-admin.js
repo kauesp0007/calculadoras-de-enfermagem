@@ -26,6 +26,14 @@ assert.match(developerAdmin, /set_route/);
 assert.match(developerAdmin, /grant_email/);
 assert.match(developerAdmin, /revoke_email/);
 assert.doesNotMatch(developerAdmin, /SUPABASE_ANON_KEY/);
+assert.doesNotMatch(developerAdmin, /"client_guard"/);
+assert.match(developerAdmin, /publishedShell\(path\)/);
+assert.match(developerAdmin, /developer_premium_activation_requests/);
+
+const activation = read("supabase/migrations/20260929222447_secure_developer_premium_activation.sql");
+assert.match(activation, /developer_premium_requires_private_enforcement/);
+assert.match(activation, /status = 'pending' for update/);
+assert.match(activation, /grant execute on function public\.activate_developer_premium_route\(text,uuid\) to service_role/);
 
 const config = read("supabase/config.toml");
 assert.match(config, /\[functions\.developer-admin\]\s+verify_jwt = false/);

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
+import { requestedPremiumPaths } from "./developer-premium-eligible.mjs";
 
 const ROOT=process.cwd();
 const SUPABASE_URL=String(process.env.SUPABASE_URL||"").replace(/\/$/,"");
@@ -151,7 +152,7 @@ function shellify(html){
   return head+"\n"+LOADER+"\n</head>\n"+body+"\n"+PLACEHOLDER+"\n</body>\n</html>";
 }
 
-const files=(await walk(ROOT)).filter(eligible).sort();
+const files=[...new Set([...(await walk(ROOT)).filter(eligible), ...await requestedPremiumPaths(ROOT)])].sort();
 let changed=0;
 for(const rel of files){
   const abs=path.join(ROOT,rel);

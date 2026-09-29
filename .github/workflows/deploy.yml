@@ -6,6 +6,9 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+  schedule:
+    - cron: '7-59/11 * * * *'
 
 permissions:
   contents: write
@@ -17,7 +20,32 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  queue:
+    runs-on: ubuntu-latest
+    environment: github-pages
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - uses: actions/checkout@v4
+        if: github.event_name == 'schedule'
+      - uses: actions/setup-node@v4
+        if: github.event_name == 'schedule'
+        with:
+          node-version: 24
+      - id: check
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ]; then
+            node scripts/developer-premium-requests.mjs --check
+          else
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
+    needs: queue
+    if: needs.queue.outputs.should_deploy == 'true'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -25,6 +53,7 @@ jobs:
     env:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      PREMIUM_REQUESTS_FILE: ${{ runner.temp }}/premium-activation-requests.json
     steps:
       - name: 📥 Clonar repositório
         uses: actions/checkout@v4
@@ -53,6 +82,9 @@ jobs:
         run: |
           test -n "$SUPABASE_URL" || { echo "::error::Secret SUPABASE_URL não está disponível no ambiente github-pages."; exit 1; }
           test -n "$SUPABASE_SERVICE_ROLE_KEY" || { echo "::error::Secret SUPABASE_SERVICE_ROLE_KEY não está disponível no ambiente github-pages."; exit 1; }
+
+      - name: 📥 Ler solicitações de conversão Premium
+        run: node scripts/developer-premium-requests.mjs --fetch
 
       - name: 📝 Regenerar formulários de escalas Premium
         run: |
@@ -83,6 +115,9 @@ jobs:
           node --check scripts/test-developer-admin.js
           node --check scripts/generate-developer-route-catalog.mjs
           node --check scripts/test-developer-route-catalog.js
+          node --check scripts/developer-premium-eligible.mjs
+          node --check scripts/developer-premium-requests.mjs
+          node scripts/test-developer-premium-activation.mjs
           node scripts/test-premium-ads.js
           node scripts/test-developer-admin.js
           node scripts/test-developer-route-catalog.js
@@ -148,3 +183,6 @@ jobs:
         uses: actions/deploy-pages@v4
         with:
           artifact_name: github-pages-${{ github.run_attempt }}
+
+      - name: ✅ Ativar rotas com shell publicado
+        run: node scripts/developer-premium-requests.mjs --finalize

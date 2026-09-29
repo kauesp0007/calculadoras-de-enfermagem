@@ -46,6 +46,27 @@ function normalizePath(value: unknown) {
   return path;
 }
 
+async function catalogHasPath(path: string) {
+  const parts = path.split("/");
+  if (!(parts.length === 1 || (parts.length === 2 && LANGS.has(parts[0])))) return false;
+  if (!/^[a-z0-9_-]+\.html$/.test(parts.at(-1) || "")) return false;
+  const res = await fetch(`${SITE}/conta/developer-route-catalog.json`, { cache: "no-store" });
+  if (!res.ok) throw new Error("route_catalog_unavailable");
+  const catalog = await res.json();
+  return Array.isArray(catalog.paths) && catalog.paths.includes(path);
+}
+
+async function publishedShell(path: string) {
+  try {
+    const res = await fetch(`${SITE}/${path}?developer_check=${crypto.randomUUID()}`, { cache: "no-store" });
+    if (!res.ok) return false;
+    const html = await res.text();
+    return /id=["']premium-content-placeholder["']/i.test(html) && /premium-content-loader\.js/i.test(html);
+  } catch (_) {
+    return false;
+  }
+}
+
 function pathCandidates(path: string) {
   const normalized = normalizePath(path);
   const parts = normalized.split("/").filter(Boolean);
@@ -170,22 +191,24 @@ async function billingSummary(sb: ReturnType<typeof db>) {
 async function adminSnapshot(req: Request) {
   await requireAdmin(req);
   const sb = db();
-  const [settings, routes, grants, billing] = await Promise.all([
+  const [settings, routes, requests, grants, billing] = await Promise.all([
     readSettings(sb),
     sb.from("developer_premium_route_rules").select("path,title,category,premium_required,enforcement,source,updated_at").order("category", { ascending: true }).order("path", { ascending: true }).limit(3000),
+    sb.from("developer_premium_activation_requests").select("path,request_id,status,requested_at").eq("status", "pending").limit(3000),
     sb.from("developer_premium_email_grants").select("email,active,reason,created_by,revoked_by,created_at,updated_at,revoked_at").order("created_at", { ascending: false }).limit(1000),
     billingSummary(sb)
   ]);
   if (routes.error) throw routes.error;
+  if (requests.error) throw requests.error;
   if (grants.error) throw grants.error;
-  return response({ settings, routes: routes.data || [], grants: grants.data || [], billing });
+  return response({ settings, routes: routes.data || [], activation_requests: requests.data || [], grants: grants.data || [], billing });
 }
 
 async function routeHasPrivateContent(sb: ReturnType<typeof db>, path: string) {
-  const candidates = pathCandidates(path);
-  const { data, error } = await sb.from("premium_content_pages").select("path").in("path", candidates).limit(1);
+  const { data, error } = await sb.from("premium_content_pages").select("content").eq("path", path).limit(1);
   if (error) throw error;
-  return Boolean(data?.length);
+  const content = String(data?.[0]?.content || "");
+  return /<html\b/i.test(content) && !/id=["']premium-content-placeholder["']/i.test(content);
 }
 
 async function mutate(req: Request) {
@@ -212,20 +235,52 @@ async function mutate(req: Request) {
 
   if (action === "set_route") {
     const path = normalizePath(body.path);
+    if (!await catalogHasPath(path)) throw new Error("invalid_path");
+    const requestedPremium = Boolean(body.premium_required);
     const hasPrivateContent = await routeHasPrivateContent(sb, path);
-    const enforcement = hasPrivateContent ? "protected_content" : "client_guard";
+    const ready = requestedPremium && hasPrivateContent && await publishedShell(path);
+    const pending = requestedPremium && !ready;
+    const { data: before } = await sb.from("developer_premium_route_rules").select("*").eq("path", path).maybeSingle();
+    // A page with public HTML must stay Free until the private catalog and public shell are deployed.
+    if (pending) {
+      const { data: existing, error: existingError } = await sb.from("developer_premium_activation_requests")
+        .select("*").eq("path", path).maybeSingle();
+      if (existingError) throw existingError;
+      const request = {
+        path, request_id: crypto.randomUUID(), status: "pending",
+        title: String(body.title || path).slice(0, 180),
+        category: String(body.category || "Catálogo administrativo").slice(0, 120),
+        requested_by: actor.email, requested_at: new Date().toISOString(), completed_at: null
+      };
+      const { data: queued, error: queueError } = await sb.from("developer_premium_activation_requests")
+        .upsert(existing?.status === "pending" ? existing : request, { onConflict: "path" }).select("*").single();
+      if (queueError) throw queueError;
+      const next = {
+        path, title: request.title, category: request.category, premium_required: false,
+        enforcement: "catalog_only", source: "developer_panel",
+        notes: "Aguardando migração do conteúdo e publicação do shell protegido.",
+        updated_by: actor.email, updated_at: new Date().toISOString()
+      };
+      const { data, error } = await sb.from("developer_premium_route_rules").upsert(next, { onConflict: "path" }).select("*").single();
+      if (error) throw error;
+      await audit(sb, actor.email, "queue_route_activation", "route", path, before, { route: data, request: queued });
+      return response({ route: data, activation_request: queued });
+    }
+    // Cancelling a request also invalidates the request_id held by any deploy in progress.
+    const { error: cancelError } = await sb.from("developer_premium_activation_requests")
+      .update({ status: "cancelled" }).eq("path", path).eq("status", "pending");
+    if (cancelError) throw cancelError;
     const next = {
       path,
       title: String(body.title || path).slice(0, 180),
       category: String(body.category || "Catálogo administrativo").slice(0, 120),
-      premium_required: Boolean(body.premium_required),
-      enforcement,
+      premium_required: requestedPremium,
+      enforcement: hasPrivateContent ? "protected_content" : "catalog_only",
       source: hasPrivateContent ? "premium_content_pages" : "developer_panel",
-      notes: hasPrivateContent ? "Rota controlada pelo catálogo privado." : "Rota pública: bloqueio aplicado pelo guard global do navegador.",
+      notes: hasPrivateContent ? "Rota controlada pelo catálogo privado." : "Rota pública Free.",
       updated_by: actor.email,
       updated_at: new Date().toISOString()
     };
-    const { data: before } = await sb.from("developer_premium_route_rules").select("*").eq("path", path).maybeSingle();
     const { data, error } = await sb.from("developer_premium_route_rules").upsert(next, { onConflict: "path" }).select("*").single();
     if (error) throw error;
     await audit(sb, actor.email, action, "route", path, before, data);

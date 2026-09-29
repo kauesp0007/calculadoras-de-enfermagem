@@ -25,7 +25,7 @@ window.Auth = {
 };
 window.fetch = async (url) => ({
   ok: true,
-  json: async () => String(url).endsWith(".json") ? catalog : { settings: {}, routes, grants: [], billing: {} },
+  json: async () => String(url).endsWith(".json") ? catalog : { settings: {}, routes, activation_requests: [{ path: "ar/missao.html", status: "pending" }], grants: [], billing: {} },
   text: async () => ""
 });
 
@@ -46,6 +46,7 @@ setTimeout(() => {
       const input = document.querySelector('[data-route="' + route + '"]');
       assert.ok(input, route + " missing from catalog");
       assert.equal(input.checked, expected, route + " has wrong access state");
+      if (route === "ar/missao.html") assert.match(input.closest("[data-route-row]").textContent, /Aguardando publicação/);
     }
     window.close();
     console.log("Developer route catalog UI: PASS");
