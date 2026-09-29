@@ -1,8 +1,9 @@
 /**
  * js/account-routing.js
  * Canonical helpers for localized account navigation.
- * Account pages remain centralized under /conta/ and carry the language
- * explicitly as ?lang=xx; this avoids 18 duplicated account implementations.
+ * Canonicaliza a navegação da área de conta.
+ * Perfil, configurações, histórico e favoritos possuem cópias localizadas;
+ * login, assinatura e cobrança permanecem centralizados com ?lang=xx.
  */
 (function (window) {
   "use strict";
@@ -26,7 +27,8 @@
     var localizedPages = {
       "perfil.html": "perfil.html",
       "configuracoes.html": "configuracoes.html",
-      "historico.html": "historico.html"
+      "historico.html": "historico.html",
+      "favoritos.html": "favoritos.html"
     };
     Object.keys(extra || {}).forEach(function (key) {
       if (extra[key] !== undefined && extra[key] !== null && extra[key] !== "") params.set(key, extra[key]);
