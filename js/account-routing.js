@@ -23,6 +23,14 @@
     var url = "/conta/" + String(file || "login.html");
     var params = new URLSearchParams();
     params.set("lang", getLanguage());
+    var localizedPages = {
+      "perfil.html": "perfil.html",
+      "configuracoes.html": "configuracoes.html",
+      "historico.html": "historico.html"
+    };
+    if (getLanguage() !== "pt" && localizedPages[file]) {
+      return "/" + encodeURIComponent(getLanguage()) + "/conta/" + localizedPages[file] + "?" + params.toString();
+    }
     Object.keys(extra || {}).forEach(function (key) {
       if (extra[key] !== undefined && extra[key] !== null && extra[key] !== "") params.set(key, extra[key]);
     });
