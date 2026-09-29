@@ -16,6 +16,7 @@ const { window } = dom;
 const routes = [
   { path: "braden.html", premium_required: false, enforcement: "protected_content" },
   { path: "en/braden.html", premium_required: false, enforcement: "protected_content" },
+  { path: "missao.html", premium_required: false, enforcement: "client_guard" },
   { path: "perroca.html", premium_required: true, enforcement: "protected_content" },
   { path: "en/perroca.html", premium_required: true, enforcement: "protected_content" }
 ];
@@ -40,13 +41,14 @@ setTimeout(() => {
     assert.match(document.getElementById("route-summary").textContent, /Free/);
     assert.ok(document.getElementById("route-category").textContent.includes("Idioma: AR"));
     const search = document.getElementById("route-search");
-    for (const [route, expected] of [["en/braden.html", false], ["en/perroca.html", true], ["ar/missao.html", false]]) {
+    for (const [route, expected] of [["en/braden.html", false], ["en/perroca.html", true], ["ar/missao.html", false], ["missao.html", false]]) {
       search.value = route;
       search.dispatchEvent(new window.Event("input"));
       const input = document.querySelector('[data-route="' + route + '"]');
       assert.ok(input, route + " missing from catalog");
       assert.equal(input.checked, expected, route + " has wrong access state");
       if (route === "ar/missao.html") assert.match(input.closest("[data-route-row]").textContent, /Aguardando publicação/);
+      if (route === "missao.html") assert.match(input.closest("[data-route-row]").textContent, /HTML público/);
     }
     window.close();
     console.log("Developer route catalog UI: PASS");

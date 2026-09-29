@@ -60,7 +60,7 @@
 <section class="dev-grid">
 <article class="dev-card p-5">
 <h2 class="text-xl">Bloqueio Global Free</h2>
-<p class="status-line mt-1">Bloqueia usuários Free em todo o site fora da área de conta.</p>
+<p class="status-line mt-1">Restringe a navegação Free no navegador fora da área de conta. HTML público continua acessível por URL.</p>
 <div class="mt-4 flex items-center justify-between gap-4">
 <span id="free_global_lockdown_state" class="tag red">Desativado</span>
 <label class="toggle" aria-label="Bloqueio global Free"><input type="checkbox" data-setting="free_global_lockdown"><span class="slider"></span><span class="toggle-label">Ativar</span></label>
@@ -175,8 +175,9 @@ function renderRoutes(){
   $("route-more").classList.toggle("hidden",visible.length>=rows.length);
   $("route-list").innerHTML=visible.map(function(r){
     var status=routeStatus(r.path),active=status.active,enforcement=status.enforcement;
-    var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="client_guard"||enforcement==="herdado de PT"?"amber":"gray";
-    return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span>'+(status.pending?'<span class="tag amber">Aguardando publicação</span>':'')+'<span class="tag '+enforcementClass+'">'+esc(enforcement)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>';
+    var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="herdado de PT"?"amber":"gray";
+    var label=({protected_content:"conteúdo protegido",client_guard:"HTML público",catalog_only:"HTML público"})[enforcement]||enforcement;
+    return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span>'+(status.pending?'<span class="tag amber">Aguardando publicação</span>':'')+'<span class="tag '+enforcementClass+'">'+esc(label)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>';
   }).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>';
 }
 function renderGrants(){var active=state.grants.filter(function(g){return g.active});$("grant-list").innerHTML=active.length?active.map(function(g){return'<div class="client-row"><div><strong>'+esc(g.email)+'</strong><div class="text-slate-500">'+esc(g.reason||"Liberação manual")+'</div></div><div>Criado: '+esc(fmt(g.created_at))+'</div><div>Por: '+esc(g.created_by||"—")+'</div><div><button class="dev-btn danger" type="button" data-revoke="'+esc(g.email)+'">Excluir</button></div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhuma exceção manual ativa.</p>'}
