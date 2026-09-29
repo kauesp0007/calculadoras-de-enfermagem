@@ -108,7 +108,7 @@ function resolveLanguageSelectorTarget(legacyContainer) {
       }
       restoreLegacyLanguagePlaceholder(legacyContainer);
       finish(legacyContainer || null);
-    }, 5000);
+    }, 12000);
   });
 }
 
