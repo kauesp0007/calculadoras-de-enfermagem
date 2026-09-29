@@ -24,9 +24,20 @@ window.Auth = {
   init: async () => {},
   currentUser: () => ({ uid: "developer", email: "ciadeenfermagem@gmail.com", getIdToken: async () => "test-token" })
 };
-window.fetch = async (url) => ({
+let pending = true;
+const mutations = [];
+window.fetch = async (url, options = {}) => ({
   ok: true,
-  json: async () => String(url).endsWith(".json") ? catalog : { settings: {}, routes, activation_requests: [{ path: "ar/missao.html", status: "pending" }], grants: [], billing: {} },
+  json: async () => {
+    if (String(url).endsWith(".json")) return catalog;
+    if (options.method === "POST") {
+      const body = JSON.parse(options.body);
+      mutations.push(body);
+      if (body.path === "ar/missao.html" && body.premium_required === false) pending = false;
+      return { route: { path: body.path, premium_required: body.premium_required } };
+    }
+    return { settings: {}, routes, activation_requests: pending ? [{ path: "ar/missao.html", status: "pending" }] : [], grants: [], billing: {} };
+  },
   text: async () => ""
 });
 
@@ -35,21 +46,34 @@ assert.ok(script);
 window.eval(script.textContent);
 window.document.dispatchEvent(new window.Event("DOMContentLoaded"));
 
-setTimeout(() => {
+setTimeout(async () => {
   try {
     const { document } = window;
     assert.match(document.getElementById("route-summary").textContent, /Free/);
     assert.ok(document.getElementById("route-category").textContent.includes("Idioma: AR"));
     const search = document.getElementById("route-search");
-    for (const [route, expected] of [["en/braden.html", false], ["en/perroca.html", true], ["ar/missao.html", false], ["missao.html", false]]) {
+    for (const [route, expected] of [["en/braden.html", false], ["en/perroca.html", true], ["ar/missao.html", true], ["missao.html", false]]) {
       search.value = route;
       search.dispatchEvent(new window.Event("input"));
       const input = document.querySelector('[data-route="' + route + '"]');
       assert.ok(input, route + " missing from catalog");
       assert.equal(input.checked, expected, route + " has wrong access state");
-      if (route === "ar/missao.html") assert.match(input.closest("[data-route-row]").textContent, /Aguardando publicação/);
+      if (route === "ar/missao.html") {
+        assert.match(input.closest("[data-route-row]").textContent, /Aguardando publicação/);
+        assert.match(input.closest("[data-route-row]").textContent, /Free liberado/);
+        assert.equal(input.checked, true, "pending request should be visually on for cancellation");
+        assert.equal(input.dataset.pending, "true");
+      }
       if (route === "missao.html") assert.match(input.closest("[data-route-row]").textContent, /HTML público/);
     }
+    search.value = "ar/missao.html";
+    search.dispatchEvent(new window.Event("input"));
+    const pendingInput = document.querySelector('[data-route="ar/missao.html"]');
+    pendingInput.checked = false;
+    pendingInput.dispatchEvent(new window.Event("change", { bubbles: true }));
+    await new Promise(resolve => setTimeout(resolve, 20));
+    assert.equal(mutations.at(-1)?.premium_required, false, "turning off a pending switch should cancel the request");
+    assert.doesNotMatch(document.querySelector('[data-route-row="ar/missao.html"]').textContent, /Aguardando publicação/);
     window.close();
     console.log("Developer route catalog UI: PASS");
   } catch (error) {

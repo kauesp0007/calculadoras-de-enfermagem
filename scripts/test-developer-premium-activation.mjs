@@ -64,14 +64,14 @@ const env = {
   SUPABASE_SERVICE_ROLE_KEY: "test-only", PREMIUM_PUBLIC_SITE: `http://127.0.0.1:${port}`,
   PREMIUM_REQUESTS_FILE: queue, PREMIUM_VERIFY_ATTEMPTS: "1"
 };
-async function run(mode, script = path.join(process.cwd(), "scripts/developer-premium-requests.mjs"), cwd = process.cwd()) {
+async function run(mode, script = path.join(process.cwd(), "scripts/developer-premium-requests.mjs"), cwd = process.cwd(), expectedCode = 0) {
   const child = spawn(process.execPath, [script, mode], { env, cwd });
   let stdout = "", stderr = "";
   child.stdout.on("data", chunk => stdout += chunk);
   child.stderr.on("data", chunk => stderr += chunk);
   const code = await new Promise(resolve => child.on("close", resolve));
-  assert.equal(code, 0, stderr);
-  return stdout;
+  assert.equal(code, expectedCode, stderr);
+  return stdout + stderr;
 }
 
 try {
@@ -86,7 +86,7 @@ try {
   assert.match(shell, /premium-content-placeholder/);
   assert.doesNotMatch(shell, /Conteúdo público/);
   // The worker must not enable Premium while the live page still exposes its full HTML.
-  assert.match(await run("--finalize"), /"activated":0/);
+  assert.match(await run("--finalize", undefined, undefined, 1), /Shell ainda não confirmado no domínio/);
   assert.equal(activations, 0);
   shellPublished = true;
   assert.match(await run("--finalize"), /"activated":1/);
