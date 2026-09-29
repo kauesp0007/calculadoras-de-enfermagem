@@ -1148,19 +1148,25 @@ function inicializarTooltips() {
 }
 
 function initializeCookieFunctionality() {
-  // Elementos do DOM (Banner e Modal) — suporta múltiplos IDs de modal
+  // Elementos do DOM (Banner e Modal) — existe uma única fonte canônica
   const e = document.getElementById("cookieConsentBanner"),
-    l = document.getElementById("granularCookieModal") || document.getElementById("cookie-modal"),
+    l = document.getElementById("granularCookieModal"),
     c = document.getElementById("cookieAnalytics"),
     r = document.getElementById("cookieMarketing");
 
   // Funções Lógicas
   const h = (param) => {
-    // Atualiza consentimento no GTM/GA4
+    // Usa a camada canônica quando disponível para manter GTM/GA4, AdSense
+    // e o estado interno de publicidade sincronizados na mesma sessão.
+    if (typeof window.applyConsent === "function") {
+      window.applyConsent(param);
+      return;
+    }
+
+    // Fallback seguro antes de initLazyLoadServices() expor applyConsent.
     if (typeof gtag === "function") {
       gtag("consent", "update", param);
     }
-    // Salva preferências granulares
     try {
       localStorage.setItem("analytics_storage", param.analytics_storage);
       localStorage.setItem("ad_storage", param.ad_storage);
