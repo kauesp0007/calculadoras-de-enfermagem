@@ -1927,9 +1927,19 @@ function bindPremiumAdWatch(auth) {
 }
 
 
+function isPremiumContentShellPage() {
+  if (window.__IS_PREMIUM_ROUTE === true) return true;
+  return !!document.querySelector(
+    'script[src*="/js/access/premium-content-loader.js"],' +
+    'script[src*="premium-content-loader.js"],' +
+    "#premium-content-placeholder"
+  );
+}
+
 function isAdsExcludedPage() {
   const path = window.location.pathname.toLowerCase();
   return (
+    isPremiumContentShellPage() ||
     path.endsWith("/metricas.html") ||
     path.includes("/conta/") ||
     path.includes("/assinatura") ||

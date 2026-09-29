@@ -100,6 +100,9 @@ assert.ok(loaderStart >= 0 && loaderEnd > loaderStart, "Carregador canônico do 
 const loaderSection = source.slice(loaderStart, loaderEnd);
 assert.match(loaderSection, /resolvePremiumAdState\(false\)/, "O carregador não aguarda a resolução do entitlement.");
 assert.match(loaderSection, /if \(adState\.premium\)/, "O carregador não possui bloqueio específico para Premium.");
+assert.match(source, /function isPremiumContentShellPage\(\)/, "Shells Premium não possuem detecção dedicada para bloqueio de anúncios.");
+assert.match(source, /premium-content-loader\.js/, "A detecção de shells Premium não reconhece o loader de conteúdo protegido.");
+assert.match(source, /isPremiumContentShellPage\(\)\s*\|\|/, "Shells Premium não foram excluídos da política global de anúncios.");
 
 assert.doesNotMatch(adSection, /premium-ads-guard/i, "Módulo legado premium-ads-guard foi reutilizado.");
 assert.doesNotMatch(adSection, /premium-banner-manager/i, "Módulo legado premium-banner-manager foi reutilizado.");
