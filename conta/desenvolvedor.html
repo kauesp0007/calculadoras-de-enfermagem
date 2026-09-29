@@ -94,10 +94,12 @@
 
 <section class="dev-card p-5">
 <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
-<div><h2 class="text-2xl">Páginas Exclusivas Premium</h2><p class="status-line">Verde significa bloqueio Free ativo. Vermelho significa acesso Free liberado. As páginas já protegidas pelo catálogo vigente aparecem ativadas.</p></div>
+<div><h2 class="text-2xl">Páginas Exclusivas Premium</h2><p class="status-line">Verde significa bloqueio Free ativo. Vermelho significa acesso Free liberado. Páginas sem regra cadastrada também aparecem como Free.</p></div>
 <div class="route-toolbar"><input id="route-search" class="dev-input" type="search" placeholder="Pesquisar página..."><select id="route-category" class="dev-input"></select></div>
 </div>
+<p id="route-summary" class="status-line mb-2" aria-live="polite"></p>
 <div id="route-list" class="divide-y divide-slate-200"></div>
+<button id="route-more" class="dev-btn secondary mt-4 hidden" type="button">Mostrar mais páginas</button>
 </section>
 
 <section class="dev-card p-5">
@@ -120,7 +122,8 @@
 "use strict";
 var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
 var ADMIN_EMAIL="ciadeenfermagem@gmail.com";
-var state={settings:{},routes:[],grants:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map()};
+var state={settings:{},routes:[],grants:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
+var LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
 var CATALOG=[
 ["Sobre Nós",["missao.html","objetivo.html","mapa-do-site.html","metricas.html","tecnologiaverde.html","responsbilidade_inteligencia_artificial.html","politica.html","termos.html","auditoria_governanca_regulatoria.html","reembolso.html"]],
 ["Calculadoras",["calculo-de-ferias.html","adicional-noturno.html","calculo-hora-extra.html","calculo-rescisao.html","insulina.html","balancohidrico.html","dimensionamento.html","exames_laboratoriais.html","gasometria.html","gotejamento.html","gestacional.html","imc.html","medicamentos.html","calculadoravacina.html","notificacao-compulsoria.html","sbar.html","dimensionamento-cofen.html"]],
@@ -140,19 +143,59 @@ async function token(){var u=window.Auth&&window.Auth.currentUser?window.Auth.cu
 async function api(method,body){var t=await token();var res=await fetch(ENDPOINT,{method:method||"GET",headers:{Authorization:"Bearer "+t,Accept:"application/json","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,cache:"no-store"});var data=await res.json().catch(function(){return{}});if(!res.ok)throw new Error(data.error||("http_"+res.status));return data}
 function settingEnabled(key,fallback){var item=state.settings[key]||{};return typeof item.enabled==="boolean"?item.enabled:fallback}
 function renderSettings(){["free_global_lockdown","asaas_portal_enabled","stripe_portal_enabled"].forEach(function(key){var input=document.querySelector('[data-setting="'+key+'"]');var fallback=key!=="free_global_lockdown";var on=settingEnabled(key,fallback);if(input)input.checked=on;var label=$(key+"_state");if(label){label.textContent=on?"Ativado":"Desativado";label.className="tag "+(on?"green":"red")}})}
-function catalogRows(){var rows=[];CATALOG.forEach(function(group){group[1].forEach(function(path){rows.push({category:group[0],path:path,title:path})})});state.routes.forEach(function(route){if(!rows.some(function(row){return row.path===route.path}))rows.push({category:route.category||"Catálogo Premium vigente",path:route.path,title:route.title||route.path})});return rows}
-function renderCategoryOptions(){var select=$("route-category");var cats=["Todas"].concat(Array.from(new Set(catalogRows().map(function(r){return r.category}))).sort());select.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join("")}
-function renderRoutes(){var q=($("route-search").value||"").toLowerCase();var cat=$("route-category").value||"Todas";var rows=catalogRows().filter(function(r){return(cat==="Todas"||r.category===cat)&&(!q||r.path.indexOf(q)!==-1||r.category.toLowerCase().indexOf(q)!==-1)});$("route-list").innerHTML=rows.map(function(r){var live=state.routeMap.get(r.path)||{};var active=!!live.premium_required;var enforcement=live.enforcement||"catalog_only";var tagClass=active?"green":"red";var enforcementClass=enforcement==="protected_content"?"green":enforcement==="client_guard"?"amber":"gray";return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span><span class="tag '+enforcementClass+'">'+esc(enforcement)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>'}).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>'}
+function catalogRows(){
+  var categories=new Map(),rows=new Map();
+  CATALOG.forEach(function(group){group[1].forEach(function(p){categories.set(p,group[0])})});
+  (state.catalogPaths.length?state.catalogPaths:Array.from(categories.keys())).forEach(function(p){
+    var language=p.split("/")[0];
+    rows.set(p,{path:p,category:LANGS.has(language)?"Idioma: "+language.toUpperCase():(categories.get(p)||"Outras páginas (PT)")});
+  });
+  state.routes.forEach(function(route){if(!rows.has(route.path)){
+    var language=route.path.split("/")[0];
+    rows.set(route.path,{path:route.path,category:LANGS.has(language)?"Idioma: "+language.toUpperCase():(categories.get(route.path)||route.category||"Outras páginas (PT)")});
+  }});
+  return Array.from(rows.values());
+}
+function routeStatus(path){
+  var rule=state.routeMap.get(path),inherited=false,parts=path.split("/");
+  if(!rule&&parts.length>1&&LANGS.has(parts[0])){rule=state.routeMap.get(parts.slice(1).join("/"));inherited=!!rule}
+  return {active:!!(rule&&rule.premium_required),enforcement:inherited?"herdado de PT":(rule?rule.enforcement:"sem regra")};
+}
+function renderCategoryOptions(){
+  var select=$("route-category"),previous=select.value||"Todas";
+  var cats=["Todas"].concat(Array.from(new Set(catalogRows().map(function(r){return r.category}))).sort());
+  select.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join("");
+  select.value=cats.includes(previous)?previous:"Todas";
+}
+function renderRoutes(){
+  var all=catalogRows(),q=($("route-search").value||"").toLowerCase(),cat=$("route-category").value||"Todas";
+  var rows=all.filter(function(r){return(cat==="Todas"||r.category===cat)&&(!q||r.path.indexOf(q)!==-1||r.category.toLowerCase().indexOf(q)!==-1)});
+  var visible=rows.slice(0,state.visibleRoutes),premium=all.filter(function(r){return routeStatus(r.path).active}).length;
+  $("route-summary").textContent=all.length+" páginas: "+premium+" Premium, "+(all.length-premium)+" Free. Mostrando "+visible.length+" de "+rows.length+" resultados.";
+  $("route-more").classList.toggle("hidden",visible.length>=rows.length);
+  $("route-list").innerHTML=visible.map(function(r){
+    var status=routeStatus(r.path),active=status.active,enforcement=status.enforcement;
+    var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="client_guard"||enforcement==="herdado de PT"?"amber":"gray";
+    return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span><span class="tag '+enforcementClass+'">'+esc(enforcement)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>';
+  }).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>';
+}
 function renderGrants(){var active=state.grants.filter(function(g){return g.active});$("grant-list").innerHTML=active.length?active.map(function(g){return'<div class="client-row"><div><strong>'+esc(g.email)+'</strong><div class="text-slate-500">'+esc(g.reason||"Liberação manual")+'</div></div><div>Criado: '+esc(fmt(g.created_at))+'</div><div>Por: '+esc(g.created_by||"—")+'</div><div><button class="dev-btn danger" type="button" data-revoke="'+esc(g.email)+'">Excluir</button></div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhuma exceção manual ativa.</p>'}
 function renderBillingList(id,rows){$(id).innerHTML=rows&&rows.length?rows.map(function(r){return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="text-slate-500">'+esc(r.provider||"—")+'</div></div><div>Status: '+esc(r.status||r.plan||"—")+'</div><div>Fim: '+esc(fmt(r.current_period_end||r.premium_expires_at))+'</div><div>Criado: '+esc(fmt(r.created_at))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro.</p>'}
 function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderBillingList("billing-active",state.billing.active||[]);renderBillingList("billing-pending",state.billing.pending||[]);renderBillingList("billing-failed",state.billing.failed||[]);renderBillingList("billing-expired",state.billing.expired||[])}
 async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.grants=data.grants||[];state.billing=data.billing||{};renderAll()}
+async function loadCatalog(){
+  var res=await fetch("/conta/developer-route-catalog.json",{cache:"no-store"});
+  if(!res.ok)throw new Error("catalog_http_"+res.status);
+  var data=await res.json();
+  if(!Array.isArray(data.paths)||data.paths.length<100)throw new Error("catalog_invalid");
+  state.catalogPaths=data.paths;
+}
 async function saveSetting(input){input.disabled=true;try{await api("POST",{action:"set_setting",key:input.dataset.setting,enabled:input.checked});await reload();msg("Configuração salva.",false)}catch(e){input.checked=!input.checked;msg("Erro ao salvar configuração: "+e.message,true)}finally{input.disabled=false}}
 async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});state.routeMap.set(path,data.route);state.routes=Array.from(state.routeMap.values());renderRoutes();msg("Rota atualizada: "+path,false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
 async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
 async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
-function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",renderRoutes);$("route-category").addEventListener("change",renderRoutes);$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
-async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();await reload();$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
+function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",function(){state.visibleRoutes=100;renderRoutes()});$("route-category").addEventListener("change",function(){state.visibleRoutes=100;renderRoutes()});$("route-more").addEventListener("click",function(){state.visibleRoutes+=100;renderRoutes()});$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
+async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>

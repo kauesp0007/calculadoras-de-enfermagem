@@ -25,6 +25,10 @@ Cada pagina tem um deslize:
 - Verde: Free bloqueado; pagina exclusiva Premium.
 - Vermelho: Free liberado.
 
+O painel lista os HTMLs de paginas da raiz e dos 18 idiomas, inclusive os que nao possuem regra no banco (Free por padrao). O catalogo `conta/developer-route-catalog.json` e gerado de novo em cada deploy por `scripts/generate-developer-route-catalog.mjs`. Filtros por idioma e pesquisa consultam o catalogo completo; a lista aparece em lotes de 100 paginas. Uma pagina de idioma sem regra propria pode herdar a regra da rota portuguesa de mesmo caminho; o painel a identifica como `herdado de PT`.
+
+Braden, Fugulin e Dimensionamento permanecem Free conforme `mapa_planos_conteudo.md`, inclusive Braden e Fugulin nas traducoes existentes. Alteracoes manuais posteriores no painel prevalecem ate outra migracao explicita.
+
 Existem dois niveis de aplicacao:
 
 - `protected_content`: protecao forte. A pagina publica e um shell e o HTML real fica em `premium_content_pages`, entregue por `premium-content`.
