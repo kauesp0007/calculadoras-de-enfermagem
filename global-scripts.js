@@ -227,6 +227,101 @@ window.__FIX_RELATIVE_LINKS = function (container) {
 })(window, document);
 
 // -----------------------------------------------------------------------------
+// Developer Premium runtime guard.
+// Static GitHub Pages cannot strongly hide HTML that is already public, but this
+// guard applies the admin route switches at runtime. Strong protection remains
+// the premium-content shell + Supabase private catalog.
+// -----------------------------------------------------------------------------
+(function installDeveloperPremiumGuard(window, document) {
+  "use strict";
+
+  var ENDPOINT = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
+  var CACHE_KEY = "ceDeveloperPolicy:";
+  var CACHE_TTL = 30000;
+
+  function pathKey() {
+    return window.location.pathname.replace(/^\/+/, "").toLowerCase() || "index.html";
+  }
+
+  function isAccountArea() {
+    return /^\/conta\//.test(window.location.pathname);
+  }
+
+  function isPremiumShell() {
+    return window.__IS_PREMIUM_ROUTE === true || !!document.querySelector('script[src*="premium-content-loader.js"]');
+  }
+
+  function policyUrl() {
+    return ENDPOINT + "?public=policy&path=" + encodeURIComponent(pathKey());
+  }
+
+  function readCachedPolicy() {
+    try {
+      var raw = sessionStorage.getItem(CACHE_KEY + pathKey());
+      if (!raw) return null;
+      var parsed = JSON.parse(raw);
+      if (!parsed || Date.now() - Number(parsed.savedAt || 0) > CACHE_TTL) return null;
+      return parsed.policy || null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function writeCachedPolicy(policy) {
+    try {
+      sessionStorage.setItem(CACHE_KEY + pathKey(), JSON.stringify({ savedAt: Date.now(), policy: policy }));
+    } catch (_) {}
+  }
+
+  async function getPolicy() {
+    var cached = readCachedPolicy();
+    if (cached) return cached;
+    var res = await fetch(policyUrl(), { cache: "no-store", headers: { Accept: "application/json" } });
+    if (!res.ok) throw new Error("developer_policy_" + res.status);
+    var policy = await res.json();
+    writeCachedPolicy(policy);
+    return policy;
+  }
+
+  async function premiumResolved(auth) {
+    var status = auth && auth.billingStatus ? auth.billingStatus() : null;
+    if (status && status.resolved && status.plan === "premium") return true;
+    if (auth && typeof auth.refreshProfile === "function") {
+      try {
+        await auth.refreshProfile();
+        status = auth.billingStatus ? auth.billingStatus() : status;
+      } catch (_) {}
+    }
+    return !!(status && status.resolved && status.plan === "premium");
+  }
+
+  async function enforce(policy) {
+    if (!policy || isAccountArea()) return;
+    var routeRequiresPremium = !!(policy.route && policy.route.premium_required);
+    var globalLockdown = policy.free_global_lockdown === true;
+    if (!globalLockdown && (!routeRequiresPremium || isPremiumShell())) return;
+    if (typeof window.__ENSURE_AUTH !== "function") return;
+    var auth = await window.__ENSURE_AUTH();
+    var user = auth && auth.currentUser ? auth.currentUser() : null;
+    if (!user) {
+      window.location.replace(window.__ACCOUNT_LOGIN_URL(window.location.pathname + window.location.search + window.location.hash));
+      return;
+    }
+    if (await premiumResolved(auth)) return;
+    window.location.replace(window.__ACCOUNT_PAGE_URL("/conta/assinatura.html"));
+  }
+
+  function init() {
+    getPolicy().then(enforce).catch(function (error) {
+      console.warn("[DeveloperPremiumGuard] política indisponível; mantendo fluxo padrão.", error);
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+  else init();
+})(window, document);
+
+// -----------------------------------------------------------------------------
 // Multiplex audit ad placement.
 // The occasional ad must remain in normal document flow below the global
 // navigation/language bars. It must never cover the menu.

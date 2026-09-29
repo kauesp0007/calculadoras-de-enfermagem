@@ -27,6 +27,12 @@ async function identity(u:{uid:string,email:string|null}){
   if(error||!data)throw new Error("identity_unavailable");
   return String(data.id);
 }
+async function portalEnabled(){
+  const {data,error}=await db().from("developer_settings").select("value").eq("key","asaas_portal_enabled").maybeSingle();
+  if(error)throw error;
+  const value=data?.value as {enabled?: boolean}|undefined;
+  return value?.enabled!==false;
+}
 async function asaas(path:string,init:RequestInit={}){
   if(!ASAAS)throw new Error("asaas_not_configured");
   const r=await fetch("https://api.asaas.com/v3"+path,{...init,headers:{access_token:ASAAS,"Content-Type":"application/json",...(init.headers||{})}});
@@ -48,6 +54,7 @@ serve(async req=>{
   let attemptLang="";
   try{
     const u=await firebaseUser(req);
+    if(!await portalEnabled())throw new Error("asaas_portal_disabled");
     const id=await identity(u);
     const body=await req.json().catch(()=>({}));
     const kind=String(body?.kind||"");
