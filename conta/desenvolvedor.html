@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Área do Desenvolvedor - Calculadoras de Enfermagem</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="stylesheet" href="/public/output.css">
+<link rel="stylesheet" href="/global-styles.css">
+<style>
+:root{--navy:#1A3E74;--green:#15803d;--red:#b91c1c;--line:#cbd5e1;--muted:#64748b}
+.dev-wrap{max-width:1500px;margin:0 auto;padding:18px}
+.dev-hero{border-radius:18px;background:linear-gradient(135deg,#163269,#1A3E74,#24579A);color:#fff;padding:28px;box-shadow:0 16px 38px rgba(15,23,42,.22)}
+.dev-card{background:#fff;border:1px solid var(--line);border-radius:14px;box-shadow:0 10px 26px rgba(15,23,42,.12)}
+.dev-card h2{color:var(--navy);font-weight:900}
+.dev-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.dev-btn{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:10px 14px;font-weight:900;border:1px solid #153765;background:var(--navy);color:#fff}
+.dev-btn.secondary{background:#f8fafc;color:var(--navy);border-color:#b6c5d8}
+.dev-btn.danger{background:#fee2e2;color:#991b1b;border-color:#fecaca}
+.dev-btn:disabled{opacity:.55;cursor:not-allowed}
+.dev-input{width:100%;border:2px solid #9aaabd;border-radius:10px;padding:10px 12px;font-weight:700;outline:none}
+.dev-input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(26,62,116,.15)}
+.switch-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:11px 12px;border-top:1px solid #e2e8f0}
+.switch-row:first-child{border-top:none}
+.switch-meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{display:inline-flex;align-items:center;border-radius:999px;padding:3px 8px;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em;background:#eef2ff;color:#3730a3}
+.tag.green{background:#dcfce7;color:#166534}.tag.red{background:#fee2e2;color:#991b1b}.tag.gray{background:#f1f5f9;color:#475569}.tag.amber{background:#fef3c7;color:#92400e}
+.toggle{position:relative;display:inline-flex;align-items:center;width:74px;height:34px}
+.toggle input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background:#fee2e2;border:1px solid #fecaca;border-radius:999px;transition:.18s}
+.slider:before{content:"";position:absolute;height:26px;width:26px;left:4px;top:3px;background:#fff;border-radius:50%;box-shadow:0 2px 8px rgba(15,23,42,.22);transition:.18s}
+.toggle input:checked+.slider{background:#dcfce7;border-color:#86efac}
+.toggle input:checked+.slider:before{transform:translateX(39px)}
+.toggle-label{font-size:10px;font-weight:900;color:#334155;text-align:center;margin-top:37px;width:74px}
+.status-line{font-size:13px;font-weight:800;color:#475569}
+.table-list{display:grid;gap:8px}
+.client-row{display:grid;grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(120px,.6fr));gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;font-size:12px}
+.client-row strong{color:var(--navy)}
+.route-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px}
+@media(max-width:900px){.dev-grid{grid-template-columns:1fr}.route-toolbar{grid-template-columns:1fr}.client-row{grid-template-columns:1fr}.dev-wrap{padding:12px}}
+</style>
+<script src="/global-scripts.js" defer></script>
+<script src="/lang-selector.js" defer></script>
+</head>
+<body class="bg-[#F4F7FB] text-slate-800 font-sans">
+<div id="global-header-container"></div>
+<div id="language-selector-placeholder"></div>
+<main class="dev-wrap">
+<nav class="text-sm mb-4"><a class="font-bold text-[#1A3E74]" href="/conta/perfil.html">Minha Conta</a> <span class="text-slate-400">/</span> <strong>Desenvolvedor</strong></nav>
+<section class="dev-hero mb-5">
+<p class="text-blue-200 text-xs font-black uppercase tracking-[.16em]">Admin Premium</p>
+<h1 class="text-[clamp(28px,5vw,46px)] font-black leading-tight mt-1">Área do Desenvolvedor</h1>
+<p class="text-blue-100 font-semibold max-w-4xl mt-2">Atalhos administrativos para o sistema Premium vigente: bloqueio Free, portais Asaas/Stripe, rotas exclusivas, exceções por e-mail e auditoria operacional.</p>
+</section>
+
+<div id="dev-message" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm font-bold"></div>
+<div id="dev-loading" class="dev-card p-8 text-center font-bold text-slate-500">Carregando controles administrativos...</div>
+<div id="dev-content" class="hidden space-y-5">
+
+<section class="dev-grid">
+<article class="dev-card p-5">
+<h2 class="text-xl">Bloqueio Global Free</h2>
+<p class="status-line mt-1">Bloqueia usuários Free em todo o site fora da área de conta.</p>
+<div class="mt-4 flex items-center justify-between gap-4">
+<span id="free_global_lockdown_state" class="tag red">Desativado</span>
+<label class="toggle" aria-label="Bloqueio global Free"><input type="checkbox" data-setting="free_global_lockdown"><span class="slider"></span><span class="toggle-label">Ativar</span></label>
+</div>
+</article>
+<article class="dev-card p-5">
+<h2 class="text-xl">Portal Asaas</h2>
+<p class="status-line mt-1">Controla novas assinaturas nacionais. Premium ativo continua acessando.</p>
+<div class="mt-4 flex items-center justify-between gap-4">
+<span id="asaas_portal_enabled_state" class="tag green">Ativado</span>
+<label class="toggle" aria-label="Portal Asaas"><input type="checkbox" data-setting="asaas_portal_enabled"><span class="slider"></span><span class="toggle-label">Ativar</span></label>
+</div>
+</article>
+<article class="dev-card p-5">
+<h2 class="text-xl">Portal Stripe</h2>
+<p class="status-line mt-1">Controla novas assinaturas internacionais nos 18 idiomas.</p>
+<div class="mt-4 flex items-center justify-between gap-4">
+<span id="stripe_portal_enabled_state" class="tag green">Ativado</span>
+<label class="toggle" aria-label="Portal Stripe"><input type="checkbox" data-setting="stripe_portal_enabled"><span class="slider"></span><span class="toggle-label">Ativar</span></label>
+</div>
+</article>
+</section>
+
+<section class="dev-card p-5">
+<div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+<div><h2 class="text-2xl">Liberar Área Premium</h2><p class="status-line">E-mails liberados aqui entram como exceção administrativa, sem pagamento.</p></div>
+<form id="grant-form" class="flex flex-wrap gap-2 min-w-[280px]"><input id="grant-email" class="dev-input min-w-[260px]" type="email" placeholder="email@exemplo.com" autocomplete="email"><button class="dev-btn" type="submit">Salvar</button></form>
+</div>
+<div id="grant-list" class="grid gap-2"></div>
+</section>
+
+<section class="dev-card p-5">
+<div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+<div><h2 class="text-2xl">Páginas Exclusivas Premium</h2><p class="status-line">Verde significa bloqueio Free ativo. Vermelho significa acesso Free liberado. As páginas já protegidas pelo catálogo vigente aparecem ativadas.</p></div>
+<div class="route-toolbar"><input id="route-search" class="dev-input" type="search" placeholder="Pesquisar página..."><select id="route-category" class="dev-input"></select></div>
+</div>
+<div id="route-list" class="divide-y divide-slate-200"></div>
+</section>
+
+<section class="dev-card p-5">
+<h2 class="text-2xl mb-4">Assinantes e Tentativas</h2>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+<div><h3 class="font-black text-[#15803d] mb-2">Clientes Premium Ativos</h3><div id="billing-active" class="table-list"></div></div>
+<div><h3 class="font-black text-[#92400e] mb-2">Aguardando Aprovação</h3><div id="billing-pending" class="table-list"></div></div>
+<div><h3 class="font-black text-[#b91c1c] mb-2">Tentativas Falharam</h3><div id="billing-failed" class="table-list"></div></div>
+<div><h3 class="font-black text-slate-600 mb-2">Expirados</h3><div id="billing-expired" class="table-list"></div></div>
+</div>
+</section>
+
+</div>
+</main>
+<div id="footer-placeholder"></div>
+<script src="/js/firebase/firebase-init.js"></script>
+<script src="/js/auth/auth-core.js"></script>
+<script>
+(function(){
+"use strict";
+var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
+var ADMIN_EMAIL="ciadeenfermagem@gmail.com";
+var state={settings:{},routes:[],grants:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map()};
+var CATALOG=[
+["Sobre Nós",["missao.html","objetivo.html","mapa-do-site.html","metricas.html","tecnologiaverde.html","responsbilidade_inteligencia_artificial.html","politica.html","termos.html","auditoria_governanca_regulatoria.html","reembolso.html"]],
+["Calculadoras",["calculo-de-ferias.html","adicional-noturno.html","calculo-hora-extra.html","calculo-rescisao.html","insulina.html","balancohidrico.html","dimensionamento.html","exames_laboratoriais.html","gasometria.html","gotejamento.html","gestacional.html","imc.html","medicamentos.html","calculadoravacina.html","notificacao-compulsoria.html","sbar.html","dimensionamento-cofen.html"]],
+["Formulários em Branco",["formularios-em-branco-de-escalas.html","formulario_escala_de_perroca.html","formulario_de_fugulin.html","formulario_meem.html","formulario_impresso_sbar.html","formulario_impresso_saep.html","formulario_bishop.html","formulario_bps.html","formulario_cam.html","formulario_capurro.html","formulario_escala_cincinnati.html","formulario_escala_curb65.html","formulario_morse.html","formulario_escala_de_four.html","formulario_escala_de_flacc.html","formulario_escala_de_fast.html","formulario_escala_de_elpo.html","formulario_escala_de_downton.html","formulario_escala_de_glasgow.html","formulario_escala_de_gosnell.html","formulario_escala_de_hamilton.html","formulario_escala_de_hendrich.html","formulario_escala_de_humpty.html","formulario_escala_de_johns.html","formulario_escala_de_jouvet.html","formulario_escala_de_lachs.html","formulario_escala_de_lanss.html","formulario_escala_de_lawton.html","formulario_escala_de_meows.html","formulario_escala_de_news.html","formulario_escala_de_nips.html","formulario_escala_de_nihss.html","formulario_escala_de_norton.html","formulario_escala_de_ofras.html","formulario_escala_de_painad.html"]],
+["Escalas de Enfermagem",["aldrete.html","apache.html","apgar.html","asa.html","ballard.html","barthel.html","berg.html","bishop.html","braden.html","bps.html","cam.html","capurro.html","cincinnati.html","classificacao_wifi.html","cornell.html","cries.html","curb-65.html","gds.html","downton.html","escalanumerica.html","elpo.html","flacc.html","fast.html","four.html","glasgow.html","fugulin.html","gosnell.html","hamilton.html","hendrich.html","humpty.html","johns.html","jouvet.html","katz.html","lachs.html","lanss.html","lawton.html","meem.html","meows.html","moca.html","morse.html","news.html","nips.html","nihss.html","norton.html","ofras.html","painad.html","pelod.html","perroca.html","pews.html","prism.html","qsofa.html","ramsay.html","rancholosamigos.html","richmond.html","saps.html","silverman.html","sistema_sinbad.html","sofa.html","tinetti.html","zarit.html","waterlow.html","downes.html","manchester.html"]],
+["Conteúdos",["checagem.html","regrasmedicacoes.html","vigilancia.html","metasinternacionais.html","sinan.html","lista-de-doencas-de-notificacao-compulsoria.html","genogramaeecomapa.html","principios_sus.html","rede_de_frios_pni.html","guia_rapido_pnab.html","participacao_popular_sus.html","guia_fundamental_humanizasus.html","legislacoes.html","codigo_de_etica_enfermagem.html","guia_fundamental_codigo_de_etica_enfermagem.html","guia_fundamental_processo_de_enfermagem.html","guia_rapido_lei5905-73_criacao_cofen_coren.html","lei-organica-saude-8080-1990.html","nanda.html","diagnosticosnanda.html","classificacao_intervencoes-enfermagem.html","teorias-de-enfermagem.html","terminologias-de-enfermagem.html","elisabeth-marques-plataforma-completa.html","nr1.html","adequar-nr1.html","copsoq.html","copsoq-curta.html","entenda_copsoq.html","copsoq3.html","5-hs-da-paradacardiorespiratoria.html","5-ts-da-paradacardiorespiratoria.html","time-de-resposta-rapida.html","suporte-avancado-de-vida.html","guia_rapido_desfibrilador.html","integracoes_calculadora_de_gasometria.html","instrumentais-cirurgicos.html","equipamentoscc.html","checklist-cirurgico-seguro.html","formulario-saep-enfermagem.html","rastreabilidade-cme.html","centro-cirurgico.html","integracoes_escala_de_fugulin.html","integracoes_escala_de_perroca.html","integracoes_classificacao_wifi.html","biblioteca-carinho-de-emergencia.html","escala_de_trabalho_enfermagem_12x36.html","guia_rapido_dimensionamento_de_enfermagem.html","guia_rapido_bundles.html","exemplo_de_processo_de_enfermagem.html","instrumento_de_coleta_de_dados.html","formulario_avaliacao_da_cabeca_aos_pes.html","guia_rapido_kanbam_na_enfermagem.html","normas-regulamentadoras.html","geradordir.html","matriz-de-risco.html","risktools.html","guia_rapido_dispositivos.html","tipos_de_seringas.html","guia_rapido_seringa_insulina.html","biblioteca-seringa.html","biblioteca-cirurgica.html","biblioteca-curativo.html","integracoes_metodo_de_capurro.html","hospital_amigo_da_crianca.html","aleitamento_materno_exclusivo.html"]],
+["Sites de Emprego",["vagasdeemprego.html"]],
+["Simulados",["simulado-de-enfermagem.html","simulado-de-enfermagem2.html","simulado-de-enfermagem3.html","simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html","simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html","simulado_vacinacao.html","simulado_pcr.html","flashcards_quiz.html","simulado_ibam_bebedouro_enfermeiro_2024.html","simulado_ibam_guarulhos_enfermeiro_2024.html","simulado_ibam_guarulhos_enfermeiro_esf_2024.html","simulado_ibam_japaratuba_sergipe_enfermeiro_2014.html","simulado_lei_organica_do_sus_8080-90.html","simulado_participacao_da_comunidade.html","simulado_humaniza_sus.html","simulado_codigo_de_etica_enfermagem.html","simulado_hospital_amigo_da_crianca.html","simulado_aleitamento_materno.html"]],
+["Biblioteca de Enfermagem",["downloads.html","album_enfermagem.html","biblioteca-provas.html"]],
+["Fale Conosco",["fale.html","forum-enfermagem.html","blog/index.html"]]
+];
+function $(id){return document.getElementById(id)}
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"})[c]})}
+function msg(text,bad){var el=$("dev-message");el.className="mb-4 rounded-xl border px-4 py-3 text-sm font-bold "+(bad?"border-red-300 bg-red-50 text-red-800":"border-green-300 bg-green-50 text-green-800");el.textContent=text;el.classList.remove("hidden")}
+function fmt(v){if(!v)return"—";var d=new Date(v);return isNaN(d.getTime())?String(v):d.toLocaleString("pt-BR",{dateStyle:"short",timeStyle:"short"})}
+async function token(){var u=window.Auth&&window.Auth.currentUser?window.Auth.currentUser():null;if(!u)throw new Error("not_authenticated");return u.getIdToken(false)}
+async function api(method,body){var t=await token();var res=await fetch(ENDPOINT,{method:method||"GET",headers:{Authorization:"Bearer "+t,Accept:"application/json","Content-Type":"application/json"},body:body?JSON.stringify(body):undefined,cache:"no-store"});var data=await res.json().catch(function(){return{}});if(!res.ok)throw new Error(data.error||("http_"+res.status));return data}
+function settingEnabled(key,fallback){var item=state.settings[key]||{};return typeof item.enabled==="boolean"?item.enabled:fallback}
+function renderSettings(){["free_global_lockdown","asaas_portal_enabled","stripe_portal_enabled"].forEach(function(key){var input=document.querySelector('[data-setting="'+key+'"]');var fallback=key!=="free_global_lockdown";var on=settingEnabled(key,fallback);if(input)input.checked=on;var label=$(key+"_state");if(label){label.textContent=on?"Ativado":"Desativado";label.className="tag "+(on?"green":"red")}})}
+function catalogRows(){var rows=[];CATALOG.forEach(function(group){group[1].forEach(function(path){rows.push({category:group[0],path:path,title:path})})});state.routes.forEach(function(route){if(!rows.some(function(row){return row.path===route.path}))rows.push({category:route.category||"Catálogo Premium vigente",path:route.path,title:route.title||route.path})});return rows}
+function renderCategoryOptions(){var select=$("route-category");var cats=["Todas"].concat(Array.from(new Set(catalogRows().map(function(r){return r.category}))).sort());select.innerHTML=cats.map(function(c){return'<option value="'+esc(c)+'">'+esc(c)+'</option>'}).join("")}
+function renderRoutes(){var q=($("route-search").value||"").toLowerCase();var cat=$("route-category").value||"Todas";var rows=catalogRows().filter(function(r){return(cat==="Todas"||r.category===cat)&&(!q||r.path.indexOf(q)!==-1||r.category.toLowerCase().indexOf(q)!==-1)});$("route-list").innerHTML=rows.map(function(r){var live=state.routeMap.get(r.path)||{};var active=!!live.premium_required;var enforcement=live.enforcement||"catalog_only";var tagClass=active?"green":"red";var enforcementClass=enforcement==="protected_content"?"green":enforcement==="client_guard"?"amber":"gray";return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span><span class="tag '+enforcementClass+'">'+esc(enforcement)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>'}).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>'}
+function renderGrants(){var active=state.grants.filter(function(g){return g.active});$("grant-list").innerHTML=active.length?active.map(function(g){return'<div class="client-row"><div><strong>'+esc(g.email)+'</strong><div class="text-slate-500">'+esc(g.reason||"Liberação manual")+'</div></div><div>Criado: '+esc(fmt(g.created_at))+'</div><div>Por: '+esc(g.created_by||"—")+'</div><div><button class="dev-btn danger" type="button" data-revoke="'+esc(g.email)+'">Excluir</button></div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhuma exceção manual ativa.</p>'}
+function renderBillingList(id,rows){$(id).innerHTML=rows&&rows.length?rows.map(function(r){return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="text-slate-500">'+esc(r.provider||"—")+'</div></div><div>Status: '+esc(r.status||r.plan||"—")+'</div><div>Fim: '+esc(fmt(r.current_period_end||r.premium_expires_at))+'</div><div>Criado: '+esc(fmt(r.created_at))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro.</p>'}
+function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderBillingList("billing-active",state.billing.active||[]);renderBillingList("billing-pending",state.billing.pending||[]);renderBillingList("billing-failed",state.billing.failed||[]);renderBillingList("billing-expired",state.billing.expired||[])}
+async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.grants=data.grants||[];state.billing=data.billing||{};renderAll()}
+async function saveSetting(input){input.disabled=true;try{await api("POST",{action:"set_setting",key:input.dataset.setting,enabled:input.checked});await reload();msg("Configuração salva.",false)}catch(e){input.checked=!input.checked;msg("Erro ao salvar configuração: "+e.message,true)}finally{input.disabled=false}}
+async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});state.routeMap.set(path,data.route);state.routes=Array.from(state.routeMap.values());renderRoutes();msg("Rota atualizada: "+path,false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
+async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
+async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
+function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",renderRoutes);$("route-category").addEventListener("change",renderRoutes);$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
+async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();await reload();$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+</script>
+<script>document.addEventListener("DOMContentLoaded",function(){fetch("/footer.html",{cache:"no-store"}).then(function(r){return r.ok?r.text():Promise.reject(new Error("footer"))}).then(function(html){var el=document.getElementById("footer-placeholder");if(el)el.innerHTML=html}).catch(function(){})});</script>
+</body>
+</html>

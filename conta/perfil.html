@@ -284,6 +284,7 @@
 <div class="grid grid-cols-2 gap-2.5">
 <a href="/conta/configuracoes.html" class="rounded-xl bg-slate-50 border border-slate-200 px-3 py-3 no-underline hover:bg-slate-100 text-center"><span class="block text-xs font-black text-[#1A3E74]">Configurações</span><span class="block text-[10px] text-slate-500 mt-0.5">Preferências</span></a>
 <a href="/conta/assinatura.html" class="rounded-xl bg-[#EEF4FB] border border-[#D9E6F4] px-3 py-3 no-underline hover:bg-[#E6F0FA] text-center"><span class="block text-xs font-black text-[#1A3E74]">Assinatura</span><span class="block text-[10px] text-slate-500 mt-0.5">Status Premium</span></a>
+<a id="developer-panel-link" href="/conta/desenvolvedor.html" class="hidden col-span-2 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] px-3 py-3 no-underline hover:bg-[#DCFCE7] text-center"><span class="block text-xs font-black text-[#166534]">Desenvolvedor</span><span class="block text-[10px] text-slate-500 mt-0.5">Controles Premium</span></a>
 <button id="btn-sair" type="button" class="col-span-2 rounded-xl bg-red-50 border border-red-200 px-3 py-3 text-red-700 text-xs font-black hover:bg-red-100">Sair da conta</button>
 </div>
 </section>
@@ -668,6 +669,12 @@ async function signOut(){
   try{if(window.Auth&&window.Auth.signOut)await timeout(window.Auth.signOut(),6000);window.location.replace("/");}
   catch(e){b.disabled=false;showMessage("Não foi possível sair da conta. Tente novamente.",true);}
 }
+function updateDeveloperLink(){
+  var link=$("developer-panel-link");
+  if(!link||!user)return;
+  var email=String(user.email||"").trim().toLowerCase();
+  if(email==="ciadeenfermagem@gmail.com")link.classList.remove("hidden");
+}
 async function loadAccount(){
   try{
     if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");
@@ -679,7 +686,7 @@ async function loadAccount(){
     favorites=results[1].status==="fulfilled"&&results[1].value.items?results[1].value.items:[];
     history=results[2].status==="fulfilled"&&results[2].value.items?results[2].value.items:[];
     billing=results[3].status==="fulfilled"&&results[3].value?results[3].value:{plan:"verifying"};
-    renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();renderPrintableForms();localizeResourceLinks();renderCalendar();
+    updateDeveloperLink();renderIdentity();renderBilling();renderCareer();renderContinue();renderFavorites();renderPerformance();renderCollections();renderPlan();renderNote();renderAchievements();renderPrintableForms();localizeResourceLinks();renderCalendar();
     $("stat-favorites").textContent=String(favorites.length);$("stat-history").textContent=String(history.length);
     $("edit-name-input").value=profile.displayName||"";
     $("profile-loading").style.display="none";$("profile-content").style.display="block";

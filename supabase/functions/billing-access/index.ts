@@ -23,11 +23,20 @@ async function identity(uid:string){
  if(error) throw new Error("identity_unavailable");
  return data?.id ? String(data.id) : null;
 }
+async function manualPremiumGrant(email:string|null){
+ if(!email) return false;
+ const {data,error}=await db().from("developer_premium_email_grants").select("email").eq("email",String(email).trim().toLowerCase()).eq("active",true).maybeSingle();
+ if(error) throw error;
+ return !!data;
+}
 serve(async req=>{
  if(req.method==="OPTIONS") return new Response(null,{status:204,headers:H});
  if(req.method!=="GET") return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
  try{
   const u=await firebaseUser(req); const identityId=await identity(u.uid); const sb=db();
+  if(await manualPremiumGrant(u.email)){
+   return new Response(JSON.stringify({plan:"premium",premium_expires_at:null,provider:"admin_exception",provider_customer_id:null,provider_subscription_id:null}),{status:200,headers:H});
+  }
   // A consulta de acesso é estritamente somente-leitura. Identidade/entitlement
   // só podem ser criados ou alterados por checkout/webhooks administrativos.
   if(!identityId) return new Response(JSON.stringify({plan:"free",premium_expires_at:null}),{status:200,headers:H});

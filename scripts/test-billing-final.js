@@ -25,15 +25,15 @@ const plans=read("js/auth/plan-service.js");
 
 assert(page.includes("var DEV_CHECKOUT_BLOCKED=false"),"checkout final deve estar ativado.");
 assert(page.includes('data-kind="monthly_card" class="billing-button billing-button-primary">Assinar com cartão'),"cartão brasileiro deve chamar monthly_card.");
-assert(page.includes('data-kind="pix" class="billing-button billing-button-pix">Pagar com Pix'),"Pix brasileiro deve chamar pix.");
-assert(page.includes('data-kind="stripe" class="billing-button billing-button-primary">Assinar com cartão'),"cartão internacional deve chamar stripe.");
+assert(page.includes('data-kind="pix_30d" class="billing-button billing-button-pix">Pagar com Pix'),"Pix brasileiro deve chamar pix_30d.");
+assert(page.includes('data-kind="stripe" class="billing-button billing-button-primary"'),"cartão internacional deve chamar stripe.");
 assert(!page.includes('class="billing-button billing-button-primary" disabled'),"botão azul não deve ficar visualmente desativado.");
 assert(!page.includes('class="billing-button billing-button-pix" disabled'),"botão Pix não deve ficar visualmente desativado.");
 assert(page.includes('btn.addEventListener("click",function(){start(btn.getAttribute("data-kind"),langCode);});'),"botões devem estar ligados ao comando de checkout.");
 
 assert(asaas.includes('if(kind!=="monthly_card"&&kind!=="pix_30d")'),"Asaas deve aceitar somente os dois tipos canônicos.");
 assert(asaas.includes('chargeTypes:isRecurring?["RECURRENT"]:["DETACHED"]'),"Asaas deve separar recorrência de Pix avulso.");
-assert(asaas.includes('if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate};'),"cartão Asaas deve criar Checkout recorrente.");
+assert(asaas.includes('if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate,externalReference:ref};'),"cartão Asaas deve criar Checkout recorrente com referência externa.");
 assert(stripe.includes('mode:"subscription"'),"Stripe deve usar Checkout em modo subscription.");
 assert(stripe.includes('"metadata[plan]":"premium"'),"Stripe deve gravar o plano no metadata do checkout.");
 assert(stripe.includes('"subscription_data[metadata][plan]":"premium"'),"Stripe deve gravar o plano no metadata da assinatura.");

@@ -28,6 +28,12 @@ async function identity(u:{uid:string,email:string|null}){
   if(error||!data)throw new Error("identity_unavailable");
   return String(data.id);
 }
+async function portalEnabled(){
+  const {data,error}=await db().from("developer_settings").select("value").eq("key","stripe_portal_enabled").maybeSingle();
+  if(error)throw error;
+  const value=data?.value as {enabled?: boolean}|undefined;
+  return value?.enabled!==false;
+}
 async function stripe(path:string,init:RequestInit={}){
   if(!STRIPE)throw new Error("stripe_not_configured");
   const r=await fetch("https://api.stripe.com/v1"+path,{...init,headers:{Authorization:"Bearer "+STRIPE,"Content-Type":"application/x-www-form-urlencoded",...(init.headers||{})}});
@@ -104,6 +110,7 @@ serve(async req=>{
   let lockClaimed=false;
   try{
     const u=await firebaseUser(req);
+    if(!await portalEnabled())throw new Error("stripe_portal_disabled");
     const id=await identity(u);
     identityId=id;
 

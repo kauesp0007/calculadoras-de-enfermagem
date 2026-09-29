@@ -107,6 +107,19 @@
     }
     return documentHtml.replace(/<\/body>/i,seal+"</body>");
   }
+  async function writePremiumDocument(res,key){
+    var html=await res.text();
+    if(!/^\s*<!doctype html/i.test(html)&&!/^\s*<html[\s>]/i.test(html)) throw new Error("invalid_premium_document");
+    // O catálogo protegido pode conter resíduos do shell público de versões
+    // anteriores. Removê-los aqui evita recursão do próprio loader após o
+    // document.write e garante que o documento final seja o conteúdo real.
+    html=html
+      .replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
+      .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
+    html=stripPremiumAds(html);
+    html=injectMedicamentosGovernanceSeal(html,key);
+    document.open();document.write(html);document.close();
+  }
   function loadScript(src){
     return new Promise(function(resolve,reject){
       var existing=document.querySelector('script[src="'+src+'"]');
@@ -156,9 +169,11 @@
   async function request(token,key){
     var controller=typeof AbortController==="function"?new AbortController():null;
     var timer=setTimeout(function(){if(controller)controller.abort();},REQUEST_TIMEOUT_MS);
+    var headers={Accept:"text/html"};
+    if(token) headers.Authorization="Bearer "+token;
     try{
       return await fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey()),{
-        headers:{Authorization:"Bearer "+token,Accept:"text/html"},
+        headers:headers,
         cache:"no-store",
         signal:controller?controller.signal:undefined
       });
@@ -167,6 +182,16 @@
   async function load(){
     try{
       showLoadingState();
+      var currentKey=pathKey();
+      var canonicalKey=canonicalPathKey();
+      var publicRes=await request(null,currentKey);
+      if(publicRes.status===404&&canonicalKey&&canonicalKey!==currentKey){
+        publicRes=await request(null,canonicalKey);
+      }
+      if(publicRes.ok){
+        await writePremiumDocument(publicRes,canonicalKey||currentKey);
+        return;
+      }
       await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"auth_bootstrap");
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
       if(!user){login();return;}
@@ -176,8 +201,6 @@
       // Uma falha transitória em billing-access não pode bloquear um assinante
       // válido antes que a própria entrega protegida seja consultada.
       var token=await withTimeout(user.getIdToken(false),TOKEN_TIMEOUT_MS,"token");
-      var currentKey=pathKey();
-      var canonicalKey=canonicalPathKey();
       var res=await request(token,currentKey);
 
       // Preferir a cópia privada traduzida. Quando ela ainda não existir,
@@ -236,17 +259,7 @@
       }
       if(res.status===404) throw new Error("premium_content_404");
       if(!res.ok) throw new Error("premium_content_"+res.status);
-      var html=await res.text();
-      if(!/^\s*<!doctype html/i.test(html)&&!/^\s*<html[\s>]/i.test(html)) throw new Error("invalid_premium_document");
-      // O catálogo protegido pode conter resíduos do shell público de versões
-      // anteriores. Removê-los aqui evita recursão do próprio loader após o
-      // document.write e garante que o documento final seja o conteúdo real.
-      html=html
-        .replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
-        .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
-      html=stripPremiumAds(html);
-      html=injectMedicamentosGovernanceSeal(html,canonicalKey||currentKey);
-      document.open();document.write(html);document.close();
+      await writePremiumDocument(res,canonicalKey||currentKey);
     }catch(e){
       console.error("[PremiumContent] protected content unavailable",e);
       var msg=e&&e.message==="premium_content_404"
