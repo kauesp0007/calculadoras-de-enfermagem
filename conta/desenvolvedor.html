@@ -50,7 +50,7 @@
 <section class="dev-hero mb-5">
 <p class="text-blue-200 text-xs font-black uppercase tracking-[.16em]">Admin Premium</p>
 <h1 class="text-[clamp(28px,5vw,46px)] font-black leading-tight mt-1">Área do Desenvolvedor</h1>
-<p class="text-blue-100 font-semibold max-w-4xl mt-2">Atalhos administrativos para o sistema Premium vigente: bloqueio Free, portais Asaas/Stripe, rotas exclusivas, exceções por e-mail e auditoria operacional.</p>
+<p class="text-blue-100 font-semibold max-w-4xl mt-2">Controles do sistema Premium vigente: bloqueio Free, portais Asaas/Stripe, rotas exclusivas e exceções por e-mail. Mudanças de páginas públicas entram em vigor após a publicação protegida.</p>
 </section>
 
 <div id="dev-message" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm font-bold"></div>
@@ -60,7 +60,7 @@
 <section class="dev-grid">
 <article class="dev-card p-5">
 <h2 class="text-xl">Bloqueio Global Free</h2>
-<p class="status-line mt-1">Bloqueia usuários Free em todo o site fora da área de conta.</p>
+<p class="status-line mt-1">Restringe a navegação Free no navegador fora da área de conta. HTML público continua acessível por URL.</p>
 <div class="mt-4 flex items-center justify-between gap-4">
 <span id="free_global_lockdown_state" class="tag red">Desativado</span>
 <label class="toggle" aria-label="Bloqueio global Free"><input type="checkbox" data-setting="free_global_lockdown"><span class="slider"></span><span class="toggle-label">Ativar</span></label>
@@ -122,7 +122,7 @@
 "use strict";
 var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
 var ADMIN_EMAIL="ciadeenfermagem@gmail.com";
-var state={settings:{},routes:[],grants:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
+var state={settings:{},routes:[],activationRequests:[],grants:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
 var LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
 var CATALOG=[
 ["Sobre Nós",["missao.html","objetivo.html","mapa-do-site.html","metricas.html","tecnologiaverde.html","responsbilidade_inteligencia_artificial.html","politica.html","termos.html","auditoria_governanca_regulatoria.html","reembolso.html"]],
@@ -159,7 +159,7 @@ function catalogRows(){
 function routeStatus(path){
   var rule=state.routeMap.get(path),inherited=false,parts=path.split("/");
   if(!rule&&parts.length>1&&LANGS.has(parts[0])){rule=state.routeMap.get(parts.slice(1).join("/"));inherited=!!rule}
-  return {active:!!(rule&&rule.premium_required),enforcement:inherited?"herdado de PT":(rule?rule.enforcement:"sem regra")};
+  return {active:!!(rule&&rule.premium_required),pending:state.activationRequests.some(function(r){return r.path===path}),enforcement:inherited?"herdado de PT":(rule?rule.enforcement:"sem regra")};
 }
 function renderCategoryOptions(){
   var select=$("route-category"),previous=select.value||"Todas";
@@ -170,19 +170,20 @@ function renderCategoryOptions(){
 function renderRoutes(){
   var all=catalogRows(),q=($("route-search").value||"").toLowerCase(),cat=$("route-category").value||"Todas";
   var rows=all.filter(function(r){return(cat==="Todas"||r.category===cat)&&(!q||r.path.indexOf(q)!==-1||r.category.toLowerCase().indexOf(q)!==-1)});
-  var visible=rows.slice(0,state.visibleRoutes),premium=all.filter(function(r){return routeStatus(r.path).active}).length;
-  $("route-summary").textContent=all.length+" páginas: "+premium+" Premium, "+(all.length-premium)+" Free. Mostrando "+visible.length+" de "+rows.length+" resultados.";
+  var visible=rows.slice(0,state.visibleRoutes),premium=all.filter(function(r){return routeStatus(r.path).active}).length,pending=state.activationRequests.length;
+  $("route-summary").textContent=all.length+" páginas: "+premium+" Premium, "+(all.length-premium)+" Free"+(pending?", "+pending+" aguardando publicação":"")+". Mostrando "+visible.length+" de "+rows.length+" resultados.";
   $("route-more").classList.toggle("hidden",visible.length>=rows.length);
   $("route-list").innerHTML=visible.map(function(r){
     var status=routeStatus(r.path),active=status.active,enforcement=status.enforcement;
-    var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="client_guard"||enforcement==="herdado de PT"?"amber":"gray";
-    return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span><span class="tag '+enforcementClass+'">'+esc(enforcement)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>';
+    var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="herdado de PT"?"amber":"gray";
+    var label=({protected_content:"conteúdo protegido",client_guard:"HTML público",catalog_only:"HTML público"})[enforcement]||enforcement;
+    return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span>'+(status.pending?'<span class="tag amber">Aguardando publicação</span>':'')+'<span class="tag '+enforcementClass+'">'+esc(label)+'</span></div></div><label class="toggle" aria-label="Alternar '+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(active?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(active?"Ativo":"Inativo")+'</span></label></div>';
   }).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>';
 }
 function renderGrants(){var active=state.grants.filter(function(g){return g.active});$("grant-list").innerHTML=active.length?active.map(function(g){return'<div class="client-row"><div><strong>'+esc(g.email)+'</strong><div class="text-slate-500">'+esc(g.reason||"Liberação manual")+'</div></div><div>Criado: '+esc(fmt(g.created_at))+'</div><div>Por: '+esc(g.created_by||"—")+'</div><div><button class="dev-btn danger" type="button" data-revoke="'+esc(g.email)+'">Excluir</button></div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhuma exceção manual ativa.</p>'}
 function renderBillingList(id,rows){$(id).innerHTML=rows&&rows.length?rows.map(function(r){return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="text-slate-500">'+esc(r.provider||"—")+'</div></div><div>Status: '+esc(r.status||r.plan||"—")+'</div><div>Fim: '+esc(fmt(r.current_period_end||r.premium_expires_at))+'</div><div>Criado: '+esc(fmt(r.created_at))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro.</p>'}
 function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderBillingList("billing-active",state.billing.active||[]);renderBillingList("billing-pending",state.billing.pending||[]);renderBillingList("billing-failed",state.billing.failed||[]);renderBillingList("billing-expired",state.billing.expired||[])}
-async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.grants=data.grants||[];state.billing=data.billing||{};renderAll()}
+async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.activationRequests=data.activation_requests||[];state.grants=data.grants||[];state.billing=data.billing||{};renderAll()}
 async function loadCatalog(){
   var res=await fetch("/conta/developer-route-catalog.json",{cache:"no-store"});
   if(!res.ok)throw new Error("catalog_http_"+res.status);
@@ -191,11 +192,11 @@ async function loadCatalog(){
   state.catalogPaths=data.paths;
 }
 async function saveSetting(input){input.disabled=true;try{await api("POST",{action:"set_setting",key:input.dataset.setting,enabled:input.checked});await reload();msg("Configuração salva.",false)}catch(e){input.checked=!input.checked;msg("Erro ao salvar configuração: "+e.message,true)}finally{input.disabled=false}}
-async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});state.routeMap.set(path,data.route);state.routes=Array.from(state.routeMap.values());renderRoutes();msg("Rota atualizada: "+path,false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
+async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});await reload();msg(data.activation_request?"Conversão solicitada: "+path+". Continua Free até a publicação protegida.":"Rota atualizada: "+path,false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
 async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
 async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
 function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",function(){state.visibleRoutes=100;renderRoutes()});$("route-category").addEventListener("change",function(){state.visibleRoutes=100;renderRoutes()});$("route-more").addEventListener("click",function(){state.visibleRoutes+=100;renderRoutes()});$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
-async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
+async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();setInterval(function(){if(!document.hidden)reload().catch(console.warn)},60000);$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>

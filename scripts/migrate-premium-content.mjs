@@ -11,6 +11,7 @@
  */
 import fs from "node:fs/promises";
 import path from "node:path";
+import { requestedPremiumPaths } from "./developer-premium-eligible.mjs";
 
 const ROOT=process.cwd();
 const SUPABASE_URL=String(process.env.SUPABASE_URL||"").replace(/\/$/,"");
@@ -161,7 +162,7 @@ if(!DRY&&!APPLY){
   process.exit(3);
 }
 
-const files=(await walk(ROOT)).filter(isEligible).sort();
+const files=[...new Set([...(await walk(ROOT)).filter(isEligible), ...await requestedPremiumPaths(ROOT)])].sort();
 await fs.writeFile(
   path.join(ROOT,MANIFEST),
   JSON.stringify({generatedAt:new Date().toISOString(),count:files.length,paths:files},null,2)+"\n",
