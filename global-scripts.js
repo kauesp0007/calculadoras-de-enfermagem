@@ -82,6 +82,23 @@ window.__ACCOUNT_PAGE_URL = function (path) {
   } catch (_) {
     lang = "pt-BR";
   }
+  // As quatro páginas da conta que possuem cópias localizadas usam a
+  // pasta do idioma para evitar que usuários internacionais caiam na versão PT.
+  // Favoritos permanece centralizado até que as cópias localizadas existam no
+  // repositório, evitando criar links para páginas 404.
+  var localizedAccountPages = {
+    "/conta/perfil.html": "perfil.html",
+    "/conta/configuracoes.html": "configuracoes.html",
+    "/conta/historico.html": "historico.html"
+  };
+  var normalizedPath = String(path || "").split(/[?#]/)[0];
+  var normalizedLang = String(lang || "").toLowerCase();
+  if (normalizedLang !== "pt" && normalizedLang !== "pt-br" && localizedAccountPages[normalizedPath]) {
+    var localizedTarget = "/" + normalizedLang + "/conta/" + localizedAccountPages[normalizedPath];
+    var sourceUrl = new URL(path, window.location.origin);
+    sourceUrl.searchParams.set("lang", normalizedLang);
+    return localizedTarget + sourceUrl.search + sourceUrl.hash;
+  }
   return path + separator + "lang=" + encodeURIComponent(lang);
 };
 
