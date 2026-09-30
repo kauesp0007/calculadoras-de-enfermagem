@@ -19,7 +19,7 @@ from automacoes.translation.extractor import deduplicar, texto_traduzivel
 from automacoes.translation.html_extractor import extrair_unidades_html
 from automacoes.translation.js_extractor import extrair_unidades_js
 from automacoes.translation.protection import proteger_html
-from automacoes.translation.providers import traduzir_payload
+from automacoes.translation.providers import resolver_providers, traduzir_payload
 from automacoes.translation.rebuild import gravar_arquivo, montar_html_final
 from automacoes.translation.schema_extractor import extrair_unidades_schema
 from automacoes.translation.seo_extractor import extrair_unidades_seo
@@ -125,18 +125,25 @@ def traduzir_arquivo(caminho_html, idioma_destino, modo="dry-run",
     lotes = _subdividir_templates(lotes)
     chars_enviados = sum(len(u.texto) for u in novas)
 
-    # ---- 5. Tradução (alternância deepseek ↔ openai com fallback) ----
+    # ---- 5. Tradução (rodízio de providers por lote + fallback) ----
     if modo == "real" and novas:
         registros_memoria = []
+        providers_ativos = resolver_providers() if not provider else [provider]
         for indice, lote in enumerate(lotes, 1):
             payload = montar_payload(lote)
+            # RODÍZIO: cada lote vai para o próximo provider da lista
+            # (ex.: deepseek, gemini, ...), dividindo o custo de tokens.
+            provider_lote = (
+                providers_ativos[(indice - 1) % len(providers_ativos)]
+                if providers_ativos else None
+            )
             logger.info(
                 f"Lote {indice}/{len(lotes)} ({len(lote)} itens) → "
-                f"alternância de providers"
+                f"provider preferido: {provider_lote or 'alternância'}"
             )
             try:
                 resposta = traduzir_payload(
-                    payload, idioma_destino, provider=provider
+                    payload, idioma_destino, provider=provider_lote
                 )
             except RuntimeError as e:
                 logger.erro(

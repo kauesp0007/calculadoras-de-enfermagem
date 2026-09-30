@@ -74,6 +74,13 @@ REGRAS INEGOCIÁVEIS:
 
 def _post_unico(provider, mensagens):
     """Uma única chamada HTTP. Levanta exceção em caso de falha."""
+    if provider == "gemini":
+        return _post_unico_gemini(mensagens)
+    return _post_unico_openai_style(provider, mensagens)
+
+
+def _post_unico_openai_style(provider, mensagens):
+    """Chamada no formato chat/completions (DeepSeek, OpenAI, etc.)."""
     chave = config.API_KEYS.get(provider)
     if not chave:
         raise ValueError(
@@ -104,12 +111,66 @@ def _post_unico(provider, mensagens):
     return _limpar_fences(conteudo)
 
 
+def _post_unico_gemini(mensagens):
+    """Chamada à API generativa do Google (Gemini) — generateContent.
+
+    Formato diferente do chat/completions: chave via query string,
+    system_instruction separado e conteúdo em parts[].
+    """
+    chave = config.API_KEYS.get("gemini")
+    if not chave:
+        raise ValueError(
+            "Chave de API ausente para 'gemini'. "
+            "Defina GEMINI_API_KEY no .env."
+        )
+
+    modelo = config.MODELOS["gemini"]
+    url = (
+        f"{config.ENDPOINTS['gemini']}/models/{modelo}:generateContent"
+        f"?key={chave}"
+    )
+    headers = {"Content-Type": "application/json"}
+
+    sistema = next(
+        (m["content"] for m in mensagens if m["role"] == "system"), ""
+    )
+    usuario = next(
+        (m["content"] for m in mensagens if m["role"] == "user"), ""
+    )
+
+    payload_api = {
+        "system_instruction": {"parts": [{"text": sistema}]},
+        "contents": [{"role": "user", "parts": [{"text": usuario}]}],
+        "generationConfig": {
+            "temperature": 0.0,
+            "responseMimeType": "application/json",
+        },
+    }
+
+    resposta = requests.post(
+        url,
+        headers=headers,
+        json=payload_api,
+        timeout=(config.TIMEOUT_CONEXAO, config.TIMEOUT_LEITURA),
+    )
+    resposta.raise_for_status()
+    dados = resposta.json()
+    conteudo = dados["candidates"][0]["content"]["parts"][0]["text"]
+    return _limpar_fences(conteudo)
+
+
 def _cadeia_providers(provider=None):
     """Cadeia de providers para alternância/fallback.
 
-    Sem provider forçado, usa a configuração (padrão: deepseek ↔ openai).
+    `provider` é o PREFERIDO (tentado primeiro); os demais providers
+    configurados entram como fallback na sequência. Sem provider, usa a
+    lista completa configurada.
     """
-    cadeia = [provider] if provider else resolver_providers()
+    configurados = resolver_providers()
+    if provider:
+        cadeia = [provider] + [p for p in configurados if p != provider]
+    else:
+        cadeia = configurados
     for p in cadeia:
         if p not in config.API_KEYS:
             raise ValueError(f"Provider desconhecido: '{p}'")
@@ -174,7 +235,20 @@ def traduzir_payload(payload, idioma_destino, provider=None):
 
 
 def resolver_providers():
-    """Lista de providers conforme a configuração (para dividir lotes)."""
-    if config.TRANSLATION_PROVIDER == "both":
-        return ["deepseek", "openai"]
-    return [config.TRANSLATION_PROVIDER]
+    """Lista de providers ativos conforme a configuração (para dividir lotes).
+
+    - TRANSLATION_PROVIDERS="deepseek,gemini" → ["deepseek", "gemini"].
+    - Senão, usa o legado TRANSLATION_PROVIDER ("both" → deepseek+openai).
+    - Providers sem chave no .env são removidos (economiza tentativas);
+      se nenhum tiver chave, retorna a lista completa para que o erro de
+      chave ausente seja reportado de forma clara.
+    """
+    if config.TRANSLATION_PROVIDERS:
+        lista = config.TRANSLATION_PROVIDERS
+    elif config.TRANSLATION_PROVIDER == "both":
+        lista = ["deepseek", "openai"]
+    else:
+        lista = [config.TRANSLATION_PROVIDER]
+
+    com_chave = [p for p in lista if config.API_KEYS.get(p)]
+    return com_chave or lista

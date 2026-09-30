@@ -15,24 +15,38 @@ load_dotenv()
 # ---------------------------------------------------------------
 # 1. PROVEDORES DE API
 # ---------------------------------------------------------------
-# Valores aceitos: "deepseek", "openai", "both" (padrão).
-# "both" = ALTERNÂNCIA com fallback: cada tentativa usa o próximo provider
-# (deepseek ↔ openai); se um falhar, o outro assume.
+# TRANSLATION_PROVIDERS: lista separada por vírgulas dos providers usados em
+# RODÍZIO por lote (ex.: "deepseek,gemini") — divide o custo de tokens entre
+# as APIs. Se vazio, usa o legado TRANSLATION_PROVIDER ("deepseek", "openai"
+# ou "both"). "both" = alternância deepseek ↔ openai (fallback por tentativa).
 TRANSLATION_PROVIDER = os.getenv("TRANSLATION_PROVIDER", "both").strip().lower()
+TRANSLATION_PROVIDERS = [
+    p.strip().lower()
+    for p in os.getenv("TRANSLATION_PROVIDERS", "").split(",")
+    if p.strip()
+]
 
 API_KEYS = {
     "deepseek": os.getenv("DEEPSEEK_API_KEY"),
     "openai": os.getenv("OPENAI_API_KEY"),
+    "gemini": os.getenv("GEMINI_API_KEY"),
 }
 
 MODELOS = {
     "deepseek": "deepseek-chat",
     "openai": "gpt-4o-mini",
+    # Modelos Gemini compatíveis com responseMimeType=application/json.
+    "gemini": os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
 }
 
 ENDPOINTS = {
     "deepseek": "https://api.deepseek.com/chat/completions",
     "openai": "https://api.openai.com/v1/chat/completions",
+    # Base da API generativa do Google (URL final montada em providers.py).
+    "gemini": os.getenv(
+        "GEMINI_ENDPOINT",
+        "https://generativelanguage.googleapis.com/v1beta",
+    ).rstrip("/"),
 }
 
 # ---------------------------------------------------------------
