@@ -108,8 +108,8 @@ for (const lang of internationalLanguages) {
     assert.equal(root.style.display, "block");
     test.advance(10000 + 180);
     assert.equal(root.style.display, "none");
-    test.advance(180000 - 10000 - 180);
-    assert.equal(root.style.display, "block", lang + " must repeat after three minutes");
+    test.advance(120000 - 10000 - 180);
+    assert.equal(root.style.display, "block", lang + " must repeat after two minutes");
     root.querySelector("[data-premium-promo-close]").click();
     test.advance(180);
     assert.equal(root.style.display, "none");
