@@ -116,19 +116,19 @@ img{max-width:100%;display:block}
 .refs a:hover{text-decoration:underline}
 
 @media print{
-  body{background:#fff!important;font-size:8pt!important}
-  .main-content{padding:0!important}
-  .no-print{display:none!important}
-  .form-container{gap:8px;margin-bottom:0}
-  .form-card{box-shadow:none;border:1px solid #000;padding:8px;border-radius:0;break-inside:avoid}
-  .form-header{background:#ccc!important;color:#000!important;border:1px solid #000;border-radius:0;print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:6px;margin-bottom:8px}
-  .form-header span.num{background:#000!important;color:#fff!important}
-  .form-subheader{border-bottom:1px solid #000;margin:8px 0 4px}
-  .input-line{border-bottom:1px solid #000}
-  .chk-box{border:1px solid #000;border-radius:0}
-  .chk-wrap input[type="checkbox"]:checked ~ .chk-box{background:#000!important;border-color:#000!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
-  .glasgow-tb th{background:#eee!important;color:#000!important;border:1px solid #000}
-  .glasgow-tb td{border:1px solid #000}
+body{background:#fff!important;font-size:8pt!important}
+.main-content{padding:0!important}
+.no-print{display:none!important}
+.form-container{gap:8px;margin-bottom:0}
+.form-card{box-shadow:none;border:1px solid #000;padding:8px;border-radius:0;break-inside:avoid}
+.form-header{background:#ccc!important;color:#000!important;border:1px solid #000;border-radius:0;print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:6px;margin-bottom:8px}
+.form-header span.num{background:#000!important;color:#fff!important}
+.form-subheader{border-bottom:1px solid #000;margin:8px 0 4px}
+.input-line{border-bottom:1px solid #000}
+.chk-box{border:1px solid #000;border-radius:0}
+.chk-wrap input[type="checkbox"]:checked ~ .chk-box{background:#000!important;border-color:#000!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+.glasgow-tb th{background:#eee!important;color:#000!important;border:1px solid #000}
+.glasgow-tb td{border:1px solid #000}
 }
 </style>
 
@@ -576,87 +576,87 @@ Imprimir Formulário
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    function imprimirFormulario() {
-        var originalContainer = document.getElementById("printable-sbar") || document.getElementById("printable-form");
-        var formClone = originalContainer.cloneNode(true);
-        
-        // Substituindo inputs preenchidos para a impressão
-        var originalTextInputs = originalContainer.querySelectorAll('input[type="text"]');
-        var cloneTextInputs = formClone.querySelectorAll('input[type="text"]');
-        
-        for(var i = 0; i < originalTextInputs.length; i++) {
-            var span = document.createElement('span');
-            span.style.borderBottom = "1px solid #000";
-            span.style.display = "inline-block";
-            span.style.padding = "0 4px";
-            span.style.fontWeight = "bold";
-            span.style.textTransform = "uppercase";
-            span.style.fontSize = "10px";
-            span.style.minWidth = "30px";
-            span.style.minHeight = "14px";
-            
-            // Check if it's the footer inputs to adjust colors if necessary
-            if (originalTextInputs[i].style.color === "rgb(255, 255, 255)") {
-               span.style.borderBottom = "1px solid #fff";
-               span.style.color = "#fff";
-            }
-            
-            span.textContent = originalTextInputs[i].value;
-            cloneTextInputs[i].parentNode.replaceChild(span, cloneTextInputs[i]);
-        }
-        
-        // Lidando com checkbox marcados
-        var originalChecks = originalContainer.querySelectorAll('input[type="checkbox"]');
-        var cloneChecks = formClone.querySelectorAll('input[type="checkbox"]');
-        
-        for(var j = 0; j < originalChecks.length; j++) {
-            var chkBox = cloneChecks[j].nextElementSibling;
-            if(chkBox && chkBox.classList.contains('chk-box')) {
-                if(originalChecks[j].checked) {
-                    chkBox.style.backgroundColor = "#000";
-                    chkBox.style.borderColor = "#000";
-                    chkBox.innerHTML = "<span style='color:white;font-size:10px;font-weight:bold;line-height:1;display:flex;align-items:center;justify-content:center;height:100%'>X</span>";
-                } else {
-                    chkBox.style.backgroundColor = "#fff";
-                    chkBox.style.borderColor = "#000";
-                    chkBox.innerHTML = "";
-                }
-            }
-        }
+function imprimirFormulario() {
+var originalContainer = document.getElementById("printable-sbar") || document.getElementById("printable-form");
+var formClone = originalContainer.cloneNode(true);
 
-        var finalHTML = formClone.innerHTML;
+// Substituindo inputs preenchidos para a impressão
+var originalTextInputs = originalContainer.querySelectorAll('input[type="text"]');
+var cloneTextInputs = formClone.querySelectorAll('input[type="text"]');
 
-        var htmlDoc = "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><title>Instrumento de Coleta de Dados</title>\n" +
-        "<style>\n" +
-        "*{margin:0;padding:0;box-sizing:border-box}\n" +
-        "body{font-family:Arial,sans-serif;font-size:8pt;color:#000;padding:12px}\n" +
-        ".form-container{display:flex;flex-direction:column;width:100%;gap:4px}\n" +
-        ".form-card{border:1px solid #000;padding:8px;break-inside:avoid;width:100%}\n" +
-        ".form-header{background:#eee!important;color:#000!important;padding:4px 6px;font-size:9pt;font-weight:bold;text-transform:uppercase;border:1px solid #000;margin-bottom:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;align-items:center;gap:6px}\n" +
-        ".form-header span.num{background:#000!important;color:#fff!important;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;border-radius:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
-        ".form-subheader{font-size:8pt;font-weight:bold;text-transform:uppercase;border-bottom:1px solid #000;padding-bottom:2px;margin:6px 0 4px}\n" +
-        ".grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}\n" +
-        ".grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}\n" +
-        ".grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}\n" +
-        ".col-flex{display:flex;flex-direction:column;gap:4px}\n" +
-        ".row-flex{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:2px}\n" +
-        ".lbl{font-size:7pt;font-weight:bold;text-transform:uppercase;white-space:nowrap}\n" +
-        ".chk-wrap{display:inline-flex;align-items:center;gap:4px;font-size:7pt;font-weight:bold;text-transform:uppercase}\n" +
-        ".chk-box{width:10px;height:10px;border:1px solid #000;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
-        ".glasgow-tb{width:100%;border-collapse:collapse;font-size:7pt;margin-bottom:4px;margin-top:2px}\n" +
-        ".glasgow-tb th{background:#eee!important;color:#000!important;font-weight:bold;text-align:left;padding:2px 4px;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
-        ".glasgow-tb td{border:1px solid #000;padding:2px 4px}\n" +
-        ".score{text-align:center;font-weight:bold;width:30px}\n" +
-        "</style></head><body>\n" +
-        finalHTML +
-        "\n<script>window.onload=function(){window.print()}<\/script></body></html>";
+for(var i = 0; i < originalTextInputs.length; i++) {
+var span = document.createElement('span');
+span.style.borderBottom = "1px solid #000";
+span.style.display = "inline-block";
+span.style.padding = "0 4px";
+span.style.fontWeight = "bold";
+span.style.textTransform = "uppercase";
+span.style.fontSize = "10px";
+span.style.minWidth = "30px";
+span.style.minHeight = "14px";
 
-        var windowPrint = window.open("", "_blank");
-        windowPrint.document.write(htmlDoc);
-        windowPrint.document.close();
-    }
+// Check if it's the footer inputs to adjust colors if necessary
+if (originalTextInputs[i].style.color === "rgb(255, 255, 255)") {
+span.style.borderBottom = "1px solid #fff";
+span.style.color = "#fff";
+}
 
-    document.getElementById("btnImprimir").addEventListener("click", imprimirFormulario);
+span.textContent = originalTextInputs[i].value;
+cloneTextInputs[i].parentNode.replaceChild(span, cloneTextInputs[i]);
+}
+
+// Lidando com checkbox marcados
+var originalChecks = originalContainer.querySelectorAll('input[type="checkbox"]');
+var cloneChecks = formClone.querySelectorAll('input[type="checkbox"]');
+
+for(var j = 0; j < originalChecks.length; j++) {
+var chkBox = cloneChecks[j].nextElementSibling;
+if(chkBox && chkBox.classList.contains('chk-box')) {
+if(originalChecks[j].checked) {
+chkBox.style.backgroundColor = "#000";
+chkBox.style.borderColor = "#000";
+chkBox.innerHTML = "<span style='color:white;font-size:10px;font-weight:bold;line-height:1;display:flex;align-items:center;justify-content:center;height:100%'>X</span>";
+} else {
+chkBox.style.backgroundColor = "#fff";
+chkBox.style.borderColor = "#000";
+chkBox.innerHTML = "";
+}
+}
+}
+
+var finalHTML = formClone.innerHTML;
+
+var htmlDoc = "<!DOCTYPE html><html lang=\"pt-BR\"><head><meta charset=\"UTF-8\"><title>Instrumento de Coleta de Dados</title>\n" +
+"<style>\n" +
+"*{margin:0;padding:0;box-sizing:border-box}\n" +
+"body{font-family:Arial,sans-serif;font-size:8pt;color:#000;padding:12px}\n" +
+".form-container{display:flex;flex-direction:column;width:100%;gap:4px}\n" +
+".form-card{border:1px solid #000;padding:8px;break-inside:avoid;width:100%}\n" +
+".form-header{background:#eee!important;color:#000!important;padding:4px 6px;font-size:9pt;font-weight:bold;text-transform:uppercase;border:1px solid #000;margin-bottom:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact;display:flex;align-items:center;gap:6px}\n" +
+".form-header span.num{background:#000!important;color:#fff!important;width:16px;height:16px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;border-radius:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
+".form-subheader{font-size:8pt;font-weight:bold;text-transform:uppercase;border-bottom:1px solid #000;padding-bottom:2px;margin:6px 0 4px}\n" +
+".grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}\n" +
+".grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}\n" +
+".grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}\n" +
+".col-flex{display:flex;flex-direction:column;gap:4px}\n" +
+".row-flex{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:2px}\n" +
+".lbl{font-size:7pt;font-weight:bold;text-transform:uppercase;white-space:nowrap}\n" +
+".chk-wrap{display:inline-flex;align-items:center;gap:4px;font-size:7pt;font-weight:bold;text-transform:uppercase}\n" +
+".chk-box{width:10px;height:10px;border:1px solid #000;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
+".glasgow-tb{width:100%;border-collapse:collapse;font-size:7pt;margin-bottom:4px;margin-top:2px}\n" +
+".glasgow-tb th{background:#eee!important;color:#000!important;font-weight:bold;text-align:left;padding:2px 4px;border:1px solid #000;-webkit-print-color-adjust:exact;print-color-adjust:exact}\n" +
+".glasgow-tb td{border:1px solid #000;padding:2px 4px}\n" +
+".score{text-align:center;font-weight:bold;width:30px}\n" +
+"</style></head><body>\n" +
+finalHTML +
+"\n<script>window.onload=function(){window.print()}<\/script></body></html>";
+
+var windowPrint = window.open("", "_blank");
+windowPrint.document.write(htmlDoc);
+windowPrint.document.close();
+}
+
+document.getElementById("btnImprimir").addEventListener("click", imprimirFormulario);
 });
 </script>
 
