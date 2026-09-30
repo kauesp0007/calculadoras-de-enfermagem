@@ -273,6 +273,7 @@ upgraded.advance(200_000);
 assert.equal(upgraded.window.document.getElementById("premium-promo-banner"), null);
 upgraded.close();
 
+// Cenário PT-BR: mantém o mesmo ciclo de 10s visível e 2min entre exibições.
 const test = scenario("/missao.html");
 try {
   const root = test.window.document.getElementById("premium-promo-banner");
