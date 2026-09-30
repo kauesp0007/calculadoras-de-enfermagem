@@ -176,12 +176,12 @@
 
         if (!isPromoEligible()) return;
 
-        // Uma única instância por página e intervalo de três minutos entre exibições, inclusive sem navegação.
+        // Uma única instância por página e intervalo de dois minutos entre exibições, inclusive sem navegação.
         if (window.__premiumPromoController) return;
 
         var STORAGE_KEY = lang === "pt" ? "premiumPromoLastShownAt" : "premiumPromoLastShownAt:" + lang;
         var DISPLAY_MS = 10000;
-        var INTERVAL_MS = 3 * 60 * 1000;
+        var INTERVAL_MS = 2 * 60 * 1000;
         var INITIAL_DELAY_MS = 1500;
         var lastShownInMemory = 0;
         var copy = PROMO_COPY[lang];
