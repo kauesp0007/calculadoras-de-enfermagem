@@ -558,36 +558,53 @@ margin-bottom: 0 !important;
 #index-hero-zone .google-auto-placed,
 #index-hero-zone ins.adsbygoogle,
 #index-hero-zone iframe[name^="google_ads_iframe"],
-#index-hero-zone [id^="google_ads_iframe"]{
-display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;
+#index-hero-zone [id^="google_ads_iframe"],
+#index-hero-zone > :not(.index-hero-main):not(.index-hero-visual):not(.index-hero-cards){
+display:none!important;height:0!important;min-height:0!important;max-height:0!important;width:0!important;min-width:0!important;margin:0!important;padding:0!important;border:0!important;overflow:hidden!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;grid-column:auto!important;grid-row:auto!important;
 }
 </style>
 <script id="disable-index-hero-ads">
 (function(){
-function collapseAd(el){
-var box=el.closest('.google-auto-placed,ins.adsbygoogle,[id^="aswift_"],[id^="google_ads_iframe"]')||el;
+var allowedHeroChildren={SECTION:1};
+function zeroBox(box){
+if(!box||box.classList&&box.classList.contains('index-hero-main')||box.classList&&box.classList.contains('index-hero-visual')||box.classList&&box.classList.contains('index-hero-cards'))return;
 box.style.setProperty('display','none','important');
 box.style.setProperty('height','0','important');
 box.style.setProperty('min-height','0','important');
+box.style.setProperty('max-height','0','important');
+box.style.setProperty('width','0','important');
+box.style.setProperty('min-width','0','important');
 box.style.setProperty('margin','0','important');
 box.style.setProperty('padding','0','important');
+box.style.setProperty('border','0','important');
 box.style.setProperty('overflow','hidden','important');
+box.style.setProperty('opacity','0','important');
+box.style.setProperty('visibility','hidden','important');
+box.style.setProperty('pointer-events','none','important');
 box.setAttribute('aria-hidden','true');
+}
+function collapseAd(el){
+var box=el.closest('.google-auto-placed,ins.adsbygoogle,[id^="aswift_"],[id^="google_ads_iframe"]')||el;
+zeroBox(box);
 }
 function hideHeroAds(){
 var hero=document.getElementById('index-hero-zone');
 if(!hero)return;
+Array.prototype.forEach.call(hero.children,function(child){
+if(!child.classList.contains('index-hero-main')&&!child.classList.contains('index-hero-visual')&&!child.classList.contains('index-hero-cards'))zeroBox(child);
+});
 var heroTop=hero.getBoundingClientRect().top+(window.scrollY||window.pageYOffset||0);
 var limit=heroTop+hero.offsetHeight+32;
-var ads=document.querySelectorAll('.google-auto-placed,ins.adsbygoogle,iframe[name^="google_ads_iframe"],[id^="google_ads_iframe"]');
+var ads=document.querySelectorAll('.google-auto-placed,ins.adsbygoogle,iframe[name^="google_ads_iframe"],[id^="google_ads_iframe"],[id^="aswift_"]');
 ads.forEach(function(ad){
 var rect=ad.getBoundingClientRect();
 var top=rect.top+(window.scrollY||window.pageYOffset||0);
-if(top<limit){collapseAd(ad);}
+if(hero.contains(ad)||top<limit){collapseAd(ad);}
 });
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideHeroAds);else hideHeroAds();
 window.addEventListener('load',hideHeroAds,{once:false});
+setTimeout(hideHeroAds,200);
 setTimeout(hideHeroAds,600);
 setTimeout(hideHeroAds,1800);
 setTimeout(hideHeroAds,3500);
@@ -609,7 +626,7 @@ try{new MutationObserver(hideHeroAds).observe(document.documentElement,{childLis
 <!-- HERO PRINCIPAL -->
 
 
-<section class="lg:col-span-5 relative w-full rounded-2xl overflow-hidden shadow-lg py-8 md:py-10 px-8 md:px-12"
+<section class="index-hero-main lg:col-span-5 relative w-full rounded-2xl overflow-hidden shadow-lg py-8 md:py-10 px-8 md:px-12"
 style="
 background:linear-gradient(
 135deg,
@@ -718,7 +735,7 @@ height="28">
 </section>
 
 <!-- ENFERMEIRA -->
-<div class="lg:col-span-3 flex items-end justify-center">
+<div class="index-hero-visual lg:col-span-3 flex items-end justify-center">
 
 <img
 src="img\enfermeira_indiana.webp"
@@ -730,7 +747,7 @@ fetchpriority="high" width="600" height="900" decoding="async">
 </div>
 
 <!-- MINI CARDS -->
-<div class="lg:col-span-4 space-y-4">
+<div class="index-hero-cards lg:col-span-4 space-y-4">
 
 <!-- ESCALA DE FUGULIN -->
 <a href="fugulin.html"
