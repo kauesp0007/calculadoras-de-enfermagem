@@ -1,15 +1,7 @@
 /*
- * Gerenciador central do estado publicitário.
+ * Card de divulgação do plano Premium em páginas portuguesas da raiz.
  *
- * Regra de segurança:
- * - visitante não autenticado: AdSense permitido;
- * - usuário free autenticado: AdSense permitido;
- * - Premium: AdSense permanece ativo;
- * - usuário autenticado sem perfil resolvido: AdSense permanece bloqueado;
- * - falha na leitura do perfil: AdSense permanece bloqueado.
- *
- * O banner de divulgação da assinatura pertence exclusivamente a
- * premium-welcome-banner.js e não é criado neste módulo.
+ * O controle canônico de AdSense é feito por global-scripts.js.
  */
 (function (window, document) {
     "use strict";
@@ -25,6 +17,30 @@
 
     function isAccountPage() {
         return (window.location.pathname || "").indexOf("/conta/") === 0;
+    }
+
+    function isPortugueseRootPage() {
+        var pathname = (window.location.pathname || "/").toLowerCase();
+        return pathname === "/" || /^\/[^/]+\.html$/.test(pathname);
+    }
+
+    function isPromoEligible() {
+        var auth = window.Auth;
+        if (!auth || !auth.isInitialized || !auth.isInitialized()) return false;
+        if (!auth.currentUser || !auth.currentUser()) return true;
+
+        // Um usuário logado só é Free depois que o billing confirma esse plano.
+        var billing = auth.billingStatus && auth.billingStatus();
+        return !!(billing && billing.resolved && !billing.unavailable &&
+            billing.plan === "free" && auth.hasPlan && !auth.hasPlan("premium"));
+    }
+
+    function syncPromoEligibility() {
+        if (isPromoEligible()) {
+            mountSubscriptionPromo();
+        } else if (window.__premiumPromoController) {
+            window.__premiumPromoController.dispose();
+        }
     }
 
     function isPremiumProfile(profile) {
@@ -105,16 +121,14 @@
         if (auth.onAuthChange) {
             auth.onAuthChange(function () {
                 syncAds();
-                if (auth.hasPlan && auth.hasPlan("premium") && _promoRoot) {
-                    if (_promoRoot.parentNode) _promoRoot.parentNode.removeChild(_promoRoot);
-                    _promoRoot = null;
-                }
+                syncPromoEligibility();
             });
         }
 
         if (auth.onProfileChange) {
             auth.onProfileChange(function () {
                 syncAds();
+                syncPromoEligibility();
             });
         }
 
@@ -124,52 +138,38 @@
     }
 
     function mountSubscriptionPromo() {
-        if ((window.location.pathname || "").indexOf("/conta/") === 0) return;
+        if (!isPortugueseRootPage()) return;
 
-        var auth = window.Auth;
-        if (auth && auth.isInitialized && auth.isInitialized() && auth.hasPlan && auth.hasPlan("premium")) return;
+        if (!isPromoEligible()) return;
 
-        // Uma única instância por página + intervalo global de 20 minutos entre exibições.
+        // Uma única instância por página e intervalo de três minutos entre exibições, inclusive sem navegação.
         if (window.__premiumPromoController) return;
 
         var STORAGE_KEY = "premiumPromoLastShownAt";
-        var DISPLAY_MS = 5000;
-        var INTERVAL_MS = 20 * 60 * 1000;
+        var DISPLAY_MS = 10000;
+        var INTERVAL_MS = 3 * 60 * 1000;
         var INITIAL_DELAY_MS = 1500;
+        var lastShownInMemory = 0;
 
         function readLastShown() {
             try {
                 var value = parseInt(localStorage.getItem(STORAGE_KEY) || "0", 10);
-                return Number.isFinite(value) ? value : 0;
+                return Number.isFinite(value) ? Math.max(value, lastShownInMemory) : lastShownInMemory;
             } catch (_) {
-                return 0;
+                return lastShownInMemory;
             }
         }
 
         function writeLastShown() {
-            try { localStorage.setItem(STORAGE_KEY, String(Date.now())); } catch (_) { }
+            lastShownInMemory = Date.now();
+            try { localStorage.setItem(STORAGE_KEY, String(lastShownInMemory)); } catch (_) { }
         }
-
-        function removePromo(root) {
-            if (!root) return;
-            root.style.opacity = "0";
-            root.style.pointerEvents = "none";
-            setTimeout(function () {
-                if (root && root.parentNode) root.parentNode.removeChild(root);
-                if (window.__premiumPromoController && window.__premiumPromoController.root === root) {
-                    window.__premiumPromoController = null;
-                }
-            }, 180);
-        }
-
-        var elapsed = Date.now() - readLastShown();
-        var waitMs = elapsed >= INTERVAL_MS ? INITIAL_DELAY_MS : (INTERVAL_MS - elapsed + INITIAL_DELAY_MS);
 
         var root = document.createElement("div");
         root.id = "premium-promo-banner";
         root.setAttribute("role", "complementary");
         root.setAttribute("aria-label", "Assinatura Premium");
-        root.style.cssText = "position:fixed;top:calc(var(--global-ad-top, 140px));right:16px;width:min(360px,calc(100vw - 24px));z-index:100010;display:none;opacity:0;transition:opacity .18s ease;";
+        root.style.cssText = "position:fixed;top:140px;right:12px;width:min(390px,calc(100vw - 24px));max-height:calc(100vh - 20px);overflow:auto;z-index:2147483000;display:none;opacity:0;transition:opacity .18s ease;";
 
         function positionPromo() {
             var bottoms = [0];
@@ -183,19 +183,26 @@
                 if (rect && rect.bottom > 0) bottoms.push(rect.bottom);
             });
             var top = Math.max.apply(null, bottoms) + 12;
-            var maxTop = Math.max(12, window.innerHeight - 16 - Math.min(190, window.innerWidth - 24));
+            var maxTop = Math.max(8, window.innerHeight - (root.getBoundingClientRect().height || 310) - 12);
             top = Math.min(top, maxTop);
-            document.documentElement.style.setProperty("--global-ad-top", Math.round(top) + "px");
+            root.style.top = Math.round(top) + "px";
         }
 
+        var checkIcon = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="flex:none;color:#15803d;margin-top:2px"><path d="m4 12 5 5L20 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         root.innerHTML =
-            '<div style="display:flex;flex-direction:column;gap:14px;padding:16px 17px;border-radius:16px;box-sizing:border-box;background:#ffffff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.16);text-align:left;">' +
-            '<div><p style="margin:0 0 8px;font-size:12px;line-height:1.2;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#1A3E74;">Acesso Premium</p>' +
-            '<p style="margin:0;font-size:18px;line-height:1.2;font-weight:900;color:#1A3E74;">Torne-se assinante Premium</p>' +
-            '<p style="margin:8px 0 0;font-size:13px;line-height:1.45;color:#475569;">Amplie seu acesso a conteúdos, escalas, formulários, simulados e recursos exclusivos para profissionais de enfermagem.</p></div>' +
-            '<div style="display:flex;align-items:center;justify-content:flex-start;gap:10px;"><a href="/conta/assinatura.html" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 13px;border-radius:10px;background:linear-gradient(135deg,#1A3E74,#1E4D8C);color:#fff;text-decoration:none;font-size:12px;font-weight:800;box-shadow:0 8px 18px rgba(15,23,42,.18);">Assinar agora</a>' +
-            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:0;background:transparent;color:#64748b;font-size:12px;font-weight:700;cursor:pointer;padding:8px 6px;">Fechar</button>' +
-            '</div></div>';
+            '<section style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;box-sizing:border-box;background:#fff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.19);font-family:Inter,Arial,sans-serif;text-align:left;color:#1f2937;">' +
+            '<div style="display:grid;grid-template-columns:minmax(0,1fr) 86px;align-items:center;gap:10px;">' +
+            '<div><p style="margin:0 0 5px;font-size:10px;line-height:1.25;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;">Faça parte da Equipe PREMIUM</p>' +
+            '<h2 style="margin:0;font-size:19px;line-height:1.2;font-weight:900;color:#1A3E74;">Faça parte do Plano PREMIUM</h2></div>' +
+            '<img src="/img/ilustracao_enfermeira.webp" alt="Ilustração de uma profissional de enfermagem" width="86" height="100" decoding="async" style="display:block;width:86px;height:100px;object-fit:contain;">' +
+            '</div><ul style="display:grid;gap:9px;margin:0;padding:0;list-style:none;font-size:13px;line-height:1.35;font-weight:650;">' +
+            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>Elimine todos os anúncios do site</span></li>' +
+            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>Tenha acesso a todas as calculadoras, escalas, formulários e simulados do site</span></li>' +
+            '</ul><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
+            '<div style="min-width:0;"><a href="/conta/assinatura.html" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border-radius:10px;background:#facc15;color:#163269;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 5px 12px rgba(15,23,42,.12);">Clique para assinar</a>' +
+            '<p style="margin:5px 0 0;font-size:10px;line-height:1.35;color:#475569;">Por apenas R$ 5,00 mensais. Aceitamos Pix e cartões.</p></div>' +
+            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer;padding:9px 10px;">Fechar</button>' +
+            '</div></section>';
 
         var insertionAnchor =
             document.getElementById("language-selector-placeholder") ||
@@ -208,30 +215,62 @@
         }
 
         _promoRoot = root;
-        window.__premiumPromoController = { root: root, timerShow: null, timerHide: null };
+        var controller = { root: root, timerShow: null, timerHide: null, timerFade: null, dispose: disposePromo };
+        window.__premiumPromoController = controller;
 
-        positionPromo();
-        window.addEventListener("resize", positionPromo);
+        function isCurrent() {
+            return window.__premiumPromoController === controller && !!root.parentNode;
+        }
 
-        window.__premiumPromoController.timerShow = setTimeout(function () {
-            if (!root || !root.parentNode) return;
+        function disposePromo() {
+            clearTimeout(controller.timerShow);
+            clearTimeout(controller.timerHide);
+            clearTimeout(controller.timerFade);
+            window.removeEventListener("resize", positionPromo);
+            if (root.parentNode) root.parentNode.removeChild(root);
+            if (window.__premiumPromoController === controller) window.__premiumPromoController = null;
+            if (_promoRoot === root) _promoRoot = null;
+        }
+
+        function scheduleNext() {
+            if (!isCurrent()) return;
+            var remaining = INTERVAL_MS - (Date.now() - readLastShown());
+            controller.timerShow = setTimeout(showPromo, Math.max(INITIAL_DELAY_MS, remaining));
+        }
+
+        function hidePromo() {
+            if (!isCurrent()) return;
+            clearTimeout(controller.timerHide);
+            root.style.opacity = "0";
+            root.style.pointerEvents = "none";
+            controller.timerFade = setTimeout(function () {
+                if (!isCurrent()) return;
+                root.style.display = "none";
+                scheduleNext();
+            }, 180);
+        }
+
+        function showPromo() {
+            if (!isCurrent()) return;
+            if (!isPromoEligible()) {
+                disposePromo();
+                return;
+            }
             writeLastShown();
             root.style.display = "block";
+            root.style.pointerEvents = "auto";
+            positionPromo();
             requestAnimationFrame(function () {
-                if (root && root.parentNode) root.style.opacity = "1";
+                if (isCurrent()) root.style.opacity = "1";
             });
+            controller.timerHide = setTimeout(hidePromo, DISPLAY_MS);
+        }
 
-            window.__premiumPromoController.timerHide = setTimeout(function () {
-                removePromo(root);
-            }, DISPLAY_MS);
-        }, waitMs);
+        window.addEventListener("resize", positionPromo);
+        scheduleNext();
 
         root.querySelector("[data-premium-promo-close]").addEventListener("click", function () {
-            if (window.__premiumPromoController) {
-                clearTimeout(window.__premiumPromoController.timerShow);
-                clearTimeout(window.__premiumPromoController.timerHide);
-            }
-            removePromo(root);
+            hidePromo();
         });
     }
 
