@@ -84,7 +84,9 @@
     ownIds = new Set();
     $('composerIdentity').innerHTML = user ? tri('Publicando como ' + (user.displayName || 'Usuário da comunidade'),'Posting as ' + (user.displayName || 'Community member'),'Publicando como ' + (user.displayName || 'Miembro de la comunidad')) : tri('Entre na sua conta para publicar.','Sign in to post.','Inicia sesión para publicar.');
     const expectedUID = user?.uid;
-    if (user) { try { const result = await api('mine'); if (window.Auth.currentUser()?.uid === expectedUID) ownIds = new Set(result.ids.map(String)); } catch (_) {} }
+    if (user) { try { const result = await api('mine'); if (window.Auth.currentUser()?.uid === expectedUID) { ownIds = new Set(result.ids.map(String));
+      const name = result.displayName || user.displayName || 'Usuário da comunidade';
+      $('composerIdentity').innerHTML = tri('Publicando como ' + name,'Posting as ' + name,'Publicando como ' + name); } } catch (_) {} }
     document.querySelectorAll('[data-owner-tools]').forEach(el => el.hidden = !ownIds.has(el.dataset.ownerTools));
   }
   function setDrawer(open) {

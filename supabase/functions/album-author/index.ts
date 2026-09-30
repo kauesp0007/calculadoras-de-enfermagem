@@ -82,7 +82,8 @@ Deno.serve(async req => {
     if (action === "mine") {
       const {data,error} = await sb.from("album_photo_owners").select("photo_id").eq("firebase_uid",uid);
       if (error) fail("read_failed",500);
-      return reply({ids:(data || []).map(p => p.photo_id)});
+      const {data:profile} = await sb.from("account_profiles").select("display_name,photo_url").eq("firebase_uid",uid).maybeSingle();
+      return reply({ids:(data || []).map(p => p.photo_id),displayName:profile?.display_name || claims.name || "Usuário da comunidade"});
     }
     if (!["create","update","delete"].includes(String(action))) fail("invalid_action");
     const id = Number(body.photo_id);
