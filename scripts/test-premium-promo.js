@@ -135,6 +135,7 @@ const recoveredPages = [
   "pl/integracoes_calculadora_de_gasometria.html",
   "sv/guia_rapido_dispositivos.html"
 ];
+const printLocales = { de: "de-DE", it: "it-IT", pl: "pl-PL", tr: "tr-TR", sv: "sv-SE" };
 for (const file of recoveredPages) {
   const lang = file.split("/")[0];
   const content = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
@@ -155,13 +156,37 @@ for (const file of recoveredPages) {
       assert.ok(doc.getElementById("btnGerarPDF"), "French PDF action must work");
       assert.match(doc.querySelector("main").textContent, /Dispositifs invasifs/);
     } else {
-      assert.equal(doc.querySelector("main").lang, "en");
-      assert.ok(doc.querySelector('main aside[lang="' + lang + '"]'));
-      const sourcePage = new JSDOM(fs.readFileSync(path.join(__dirname, "..", "en", path.basename(file)), "utf8")).window;
+      assert.notEqual(doc.querySelector("main").lang, "en");
+      assert.equal(doc.querySelector('main aside[lang="' + lang + '"][role="note"]'), null,
+        file + " still has the temporary English notice");
+      assert.equal(doc.querySelectorAll('link[rel="canonical"]').length, 1);
+      assert.equal(doc.querySelector('link[rel="canonical"]').href,
+        "https://www.calculadorasdeenfermagem.com.br/" + file);
+      assert.equal(doc.querySelector('link[hreflang="x-default"]'), null);
+      const sourcePage = new JSDOM(fs.readFileSync(path.join(__dirname, "..", path.basename(file)), "utf8")).window;
       try {
-        doc.querySelector("main aside").remove();
-        const normalize = value => value.replace(/\s+/g, " ").trim();
-        assert.equal(normalize(doc.querySelector("main").textContent), normalize(sourcePage.document.querySelector("main").textContent), file + " clinical content changed");
+        assert.equal(doc.querySelectorAll("main table").length,
+          sourcePage.document.querySelectorAll("main table").length, file + " clinical tables missing");
+        assert.equal(doc.querySelectorAll("main tr").length,
+          sourcePage.document.querySelectorAll("main tr").length, file + " clinical rows missing");
+        assert.ok(doc.querySelector("main").textContent.trim().length > 2000,
+          file + " clinical content incomplete");
+        if (file.includes("classificacao_wifi")) {
+          assert.doesNotMatch(doc.querySelector("main").textContent, /leucócitos|\bou\b/, file + " has Portuguese text in the SIRS criteria");
+          assert.match(doc.querySelector("main").textContent, /PaCO₂/);
+          const sirs = [...doc.querySelectorAll("main tr")]
+            .find(row => /SIRS/.test(row.textContent) && /12[.\s]000/.test(row.textContent));
+          assert.ok(sirs, file + " severe infection criteria missing");
+          const values = sirs.textContent.replace(/(\d)[.\s](?=\d{3}\b)/g, "$1");
+          for (const threshold of ["38", "36", "90", "20", "32", "12000", "4000", "10"]) {
+            assert.ok(values.includes(threshold), file + " lost SIRS threshold " + threshold);
+          }
+        } else if (file.includes("gasometria")) {
+          const values = doc.querySelector("main table").textContent.replace(/,/g, ".");
+          for (const range of ["7.35", "7.45", "35", "45", "22", "26", "80", "100"]) {
+            assert.ok(values.includes(range), file + " lost blood gas reference " + range);
+          }
+        }
       } finally { sourcePage.close(); }
     }
   } finally { page.close(); }
@@ -182,6 +207,12 @@ for (const file of recoveredPages) {
     runtime.window.document.getElementById("btnImprimir").click();
     assert.deepEqual(runtimeErrors, [], file + " has a runtime error");
     assert.ok(runtime.window.__printed && runtime.window.__printed.length > 500, file + " print action failed");
+    if (lang !== "fr") {
+      assert.match(runtime.window.__printed, new RegExp('<html lang="' + printLocales[lang] + '"'),
+        file + " print document language is wrong");
+      assert.doesNotMatch(runtime.window.__printed, /Guia Didatico Completo|Guia Rápido: Dispositivos Invasivos|Guia Completo — Interpretacao/,
+        file + " printed header is still Portuguese");
+    }
   } finally { runtime.window.close(); }
 
   const guest = scenario("/" + file);
