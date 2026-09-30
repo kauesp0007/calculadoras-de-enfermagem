@@ -869,7 +869,7 @@ function initializeAuthMenu() {
           ? window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")
           : "/conta/assinatura.html"));
     var label = isPremium ? "Premium" : copy.subscribe;
-    return '<a href="' + href + '" class="ml-2 inline-flex items-center rounded-md bg-[#1A3E74] px-2.5 py-1 text-[11px] font-bold text-white whitespace-nowrap no-underline" data-evento="click_menu_assine_ja">' + label + '</a>';
+    return '<a href="' + href + '" class="account-subscribe-card" data-evento="click_menu_assine_ja">' + label + '</a>';
   }
 
   function _premiumMenuItemHtml(isLoggedIn, isMobile) {
@@ -994,9 +994,9 @@ function initializeAuthMenu() {
           }
         }, 100);
       } else {
-        desktopItem.className = "flex items-center";
+        desktopItem.className = "flex items-center gap-2";
         desktopItem.innerHTML =
-          '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="text-gray-700 hover:text-[#1A3E74] font-medium flex items-center gap-1.5">' +
+          '<a href="' + window.__ACCOUNT_LOGIN_URL() + '" class="account-login-card">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="0.9em" height="0.9em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
           copy.login +
           "</a>" +
@@ -1041,9 +1041,9 @@ function initializeAuthMenu() {
       } else {
         mobileItem.className = "border-t border-gray-200 mt-2 pt-2";
         mobileItem.innerHTML =
-          '<a role="menuitem" href="' + window.__ACCOUNT_LOGIN_URL() + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold hover:bg-blue-50 flex items-center gap-2">' +
+          '<a role="menuitem" href="' + window.__ACCOUNT_LOGIN_URL() + '" class="account-login-card account-login-card-mobile">' +
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512" fill="currentColor" width="1em" height="1em" aria-hidden="true"><path d="M224 256A128 128 0 1 0 224 0a128 128 0 1 0 0 256zm-45.7 48C79.8 304 0 383.8 0 482.3 0 498.7 13.3 512 29.7 512l388.6 0c16.4 0 29.7-13.3 29.7-29.7 0-98.5-79.8-178.3-178.3-178.3l-91.4 0z"/></svg>' +
-          "Entrar" +
+          copy.login +
           "</a>" +
           _premiumCtaHtml(isLoggedIn);
       }
@@ -1066,9 +1066,12 @@ function initializeAuthMenu() {
         : window.__ACCOUNT_LOGIN_URL();
       var html = logged
         ? '<a href="' + href + '" class="text-gray-700 hover:text-[#1A3E74] font-medium whitespace-nowrap">' + displayName + '</a>'
-        : '<a href="' + href + '" class="text-gray-700 hover:text-[#1A3E74] font-medium whitespace-nowrap">' + copy.login + '</a>';
-      if (desktopItem) desktopItem.innerHTML = html;
-      if (mobileItem) mobileItem.innerHTML = logged ? html : '<a role="menuitem" href="' + href + '" class="block px-4 !py-1.5 text-[#1A3E74] font-bold">' + copy.login + '</a>';
+        : '<a href="' + href + '" class="account-login-card">' + copy.login + '</a>' + _premiumCtaHtml(false);
+      if (desktopItem) {
+        desktopItem.className = logged ? "flex items-center" : "flex items-center gap-2";
+        desktopItem.innerHTML = html;
+      }
+      if (mobileItem) mobileItem.innerHTML = logged ? html : '<a role="menuitem" href="' + href + '" class="account-login-card account-login-card-mobile">' + copy.login + '</a>' + _premiumCtaHtml(false);
     } catch (fallbackError) {
       console.error("[Auth] Fallback do menu também falhou:", fallbackError);
     }
