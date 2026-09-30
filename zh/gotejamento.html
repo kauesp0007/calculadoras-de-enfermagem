@@ -17,7 +17,7 @@
 <meta content="滴速计算, 滴速计算器, 每分钟滴数, 微滴, 大滴, 滴速公式, 输液疗法, 护理, 药物计算, 静脉输注" name="keywords"/>
 <meta content="Calculadoras de Enfermagem" name="author"/>
 <meta content="index, follow, max-snippet:320, max-image-preview:large, max-video-preview:-1" name="robots"/>
-<meta content="pt_BR" property="og:locale"/>
+<meta content="zh_CN" property="og:locale"/>
 <meta content="article" property="og:type"/>
 <meta content="输液滴速计算器：每分钟滴数与微滴数" property="og:title"/>
 <meta content="辅助计算每分钟大滴数和微滴数输液滴速的教学支持，必须由专业人员复核。" property="og:description"/>
@@ -885,43 +885,43 @@ return;
 let gotasPorMinuto;
 let fatorGotejamento; // 20 para macrogotas, 60 para microgotas
 
-if (equipo === "大滴") {
+if (equipo === "macrogotas") {
 fatorGotejamento = 20;
 } else {
 fatorGotejamento = 60;
 }
 
 // Se a unidade for horas, converte para minutos para o cálculo final em gotas/min
-let tempoEmMinutos = unidadeTempo === "小时" ? tempo * 60 : tempo;
+let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
 
 // Fórmula básica: (Volume * Fator) / Tempo em minutos
 gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
 
 const gotasArredondadas = Math.round(gotasPorMinuto);
 const equipoTexto = equipo === "macrogotas" ? "大滴（20 滴/ml）" : "微滴（60 滴/ml）";
-const unidadeTexto = unidadeTempo === "horas" ? "horas" : "分钟";
+const unidadeTexto = unidadeTempo === "horas" ? "小时" : "分钟";
 const tipoGotas = equipo === "macrogotas" ? "滴" : "微滴";
 
 // Preenche o Hero Card de Resultado
 scoreValor.textContent = gotasArredondadas;
 tipoGotasResultado.textContent = tipoGotas + '/min';
-resultadoMensagem.innerHTML = `Para os dados informados (<strong>${volume} ml</strong> em <strong>${tempo} ${unidadeTexto}</strong>, equipo <strong>${equipoTexto}</strong>), o resultado matemático de apoio é <strong class="text-white">${gotasArredondadas} ${tipoGotas} por minuto</strong>. Confira prescrição, equipo e protocolo institucional antes de qualquer uso assistencial.`;
+resultadoMensagem.innerHTML = `根据输入的数据（<strong>${volume} ml</strong> 在 <strong>${tempo} ${unidadeTexto}</strong>, 输液器 <strong>${equipoTexto}</strong>), 数学支持结果为 <strong class="text-white">${gotasArredondadas} ${tipoGotas} 每分钟</strong>. 任何临床使用前，请核对处方、输液器和机构方案。`;
 
 // Monta o passo a passo matemático detalhado
 const formulaTexto = equipo === "macrogotas" ? `(容量 × 20) ÷ 时间（分钟）` : `(容量 × 60) ÷ 时间（分钟）`;
 
 const passoTempo =
 unidadeTempo === "horas"
-? `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> Converter o tempo para minutos.<br>
-${tempo} horas × 60 = <strong>${tempoEmMinutos} minutos</strong>.</p>`
-: `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> O tempo já está em minutos (${tempo} min).</p>`;
+? `<p class="mb-2"><strong class="text-[#1A3E74]">第1步：</strong> 将时间转换为分钟。<br>
+${tempo} 小时 × 60 = <strong>${tempoEmMinutos} 分钟</strong>.</p>`
+: `<p class="mb-2"><strong class="text-[#1A3E74]">第1步：</strong> 时间已是分钟 (${tempo} min).</p>`;
 
 const calculoTexto = `
 <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-<h4 class="font-bold text-[#1A3E74] mb-3">Memória de Cálculo:</h4>
+<h4 class="font-bold text-[#1A3E74] mb-3">计算明细：</h4>
 ${passoTempo}
 
-<p class="mb-2"><strong class="text-[#1A3E74]">Passo 2:</strong> Aplicar a fórmula (${equipoTexto}).</p>
+<p class="mb-2"><strong class="text-[#1A3E74]">第2步：</strong> 套用公式 (${equipoTexto}).</p>
 <div class="font-mono text-sm bg-white p-3 rounded border border-gray-200 mb-3 overflow-x-auto">
 G = ${formulaTexto} <br>
 G = (${volume} × ${fatorGotejamento}) ÷ ${tempoEmMinutos} <br>
@@ -929,12 +929,12 @@ G = ${volume * fatorGotejamento} ÷ ${tempoEmMinutos} <br>
 G = ${gotasPorMinuto.toFixed(2)}
 </div>
 
-<p><strong class="text-[#1A3E74]">Passo 3:</strong> Arredondamento.<br>
-Como não é possível fracionar a gota, este apoio matemático arredonda para o número inteiro mais próximo: <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/minuto</strong>. O arredondamento deve ser conferido conforme prescrição, protocolo e dispositivo utilizado.</p>
+<p><strong class="text-[#1A3E74]">第3步：</strong> 四舍五入。<br>
+由于无法分割滴数，此数学支持将四舍五入到最接近的整数： <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/分钟</strong>. 四舍五入须根据处方、方案和所用设备核对。</p>
 </div>
 
 <div class="mt-4 p-4 border-l-4 border-[#1A3E74] bg-gray-50 rounded-r-lg">
-<p><strong>Resultado de apoio:</strong> para os dados informados, o cálculo matemático sugere <strong>${gotasArredondadas} ${tipoGotas} por minuto</strong>. Não utilize este número isoladamente; valide com prescrição, avaliação do paciente, equipo, protocolo institucional e conferência profissional.</p>
+<p><strong>支持结果：</strong> 根据输入的数据，数学计算建议 <strong>${gotasArredondadas} ${tipoGotas} 每分钟</strong>. 请勿单独使用该数字；请结合处方、患者评估、输液器、机构方案和专业复核进行验证。</p>
 </div>
 `;
 

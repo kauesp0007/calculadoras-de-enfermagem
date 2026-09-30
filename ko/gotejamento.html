@@ -17,7 +17,7 @@
 <meta content="점적 계산, 점적 계산기, 분당 방울, 미세방울, 대방울, 점적 공식, 수액 요법, 간호, 약물 계산, 정맥 주입" name="keywords"/>
 <meta content="Calculadoras de Enfermagem" name="author"/>
 <meta content="index, follow, max-snippet:320, max-image-preview:large, max-video-preview:-1" name="robots"/>
-<meta content="pt_BR" property="og:locale"/>
+<meta content="ko_KR" property="og:locale"/>
 <meta content="article" property="og:type"/>
 <meta content="수액 점적 계산기: 분당 방울 및 미세방울" property="og:title"/>
 <meta content="분당 대방울 및 미세방울에 대한 수액 점적 계산을 지원하는 교육 자료로, 전문가 확인이 필수입니다." property="og:description"/>
@@ -887,43 +887,43 @@ return;
 let gotasPorMinuto;
 let fatorGotejamento; // 20 para macrogotas, 60 para microgotas
 
-if (equipo === "대방울") {
+if (equipo === "macrogotas") {
 fatorGotejamento = 20;
 } else {
 fatorGotejamento = 60;
 }
 
 // Se a unidade for horas, converte para minutos para o cálculo final em gotas/min
-let tempoEmMinutos = unidadeTempo === "시간" ? tempo * 60 : tempo;
+let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
 
 // Fórmula básica: (Volume * Fator) / Tempo em minutos
 gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
 
 const gotasArredondadas = Math.round(gotasPorMinuto);
 const equipoTexto = equipo === "macrogotas" ? "대방울 (20방울/ml)" : "미세방울 (60방울/ml)";
-const unidadeTexto = unidadeTempo === "horas" ? "horas" : "분";
+const unidadeTexto = unidadeTempo === "horas" ? "시간" : "분";
 const tipoGotas = equipo === "macrogotas" ? "방울" : "미세방울";
 
 // Preenche o Hero Card de Resultado
 scoreValor.textContent = gotasArredondadas;
 tipoGotasResultado.textContent = tipoGotas + '/min';
-resultadoMensagem.innerHTML = `Para os dados informados (<strong>${volume} ml</strong> em <strong>${tempo} ${unidadeTexto}</strong>, equipo <strong>${equipoTexto}</strong>), o resultado matemático de apoio é <strong class="text-white">${gotasArredondadas} ${tipoGotas} por minuto</strong>. Confira prescrição, equipo e protocolo institucional antes de qualquer uso assistencial.`;
+resultadoMensagem.innerHTML = `입력된 데이터 (<strong>${volume} ml</strong> 동안 <strong>${tempo} ${unidadeTexto}</strong>, 수액세트 <strong>${equipoTexto}</strong>), 수학적 지원 결과는 <strong class="text-white">${gotasArredondadas} ${tipoGotas} 분당</strong>. 임상 사용 전 처방, 수액세트, 기관 프로토콜을 확인하세요.`;
 
 // Monta o passo a passo matemático detalhado
 const formulaTexto = equipo === "macrogotas" ? `(용량 × 20) ÷ 분 단위 시간` : `(용량 × 60) ÷ 분 단위 시간`;
 
 const passoTempo =
 unidadeTempo === "horas"
-? `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> Converter o tempo para minutos.<br>
-${tempo} horas × 60 = <strong>${tempoEmMinutos} minutos</strong>.</p>`
-: `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> O tempo já está em minutos (${tempo} min).</p>`;
+? `<p class="mb-2"><strong class="text-[#1A3E74]">1단계:</strong> 시간을 분으로 변환합니다.<br>
+${tempo} 시간 × 60 = <strong>${tempoEmMinutos} 분</strong>.</p>`
+: `<p class="mb-2"><strong class="text-[#1A3E74]">1단계:</strong> 시간은 이미 분 단위입니다 (${tempo} min).</p>`;
 
 const calculoTexto = `
 <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-<h4 class="font-bold text-[#1A3E74] mb-3">Memória de Cálculo:</h4>
+<h4 class="font-bold text-[#1A3E74] mb-3">계산 내역:</h4>
 ${passoTempo}
 
-<p class="mb-2"><strong class="text-[#1A3E74]">Passo 2:</strong> Aplicar a fórmula (${equipoTexto}).</p>
+<p class="mb-2"><strong class="text-[#1A3E74]">2단계:</strong> 공식 적용 (${equipoTexto}).</p>
 <div class="font-mono text-sm bg-white p-3 rounded border border-gray-200 mb-3 overflow-x-auto">
 G = ${formulaTexto} <br>
 G = (${volume} × ${fatorGotejamento}) ÷ ${tempoEmMinutos} <br>
@@ -931,12 +931,12 @@ G = ${volume * fatorGotejamento} ÷ ${tempoEmMinutos} <br>
 G = ${gotasPorMinuto.toFixed(2)}
 </div>
 
-<p><strong class="text-[#1A3E74]">Passo 3:</strong> Arredondamento.<br>
-Como não é possível fracionar a gota, este apoio matemático arredonda para o número inteiro mais próximo: <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/minuto</strong>. O arredondamento deve ser conferido conforme prescrição, protocolo e dispositivo utilizado.</p>
+<p><strong class="text-[#1A3E74]">3단계:</strong> 반올림.<br>
+방울은 나눌 수 없으므로 이 수학적 지원은 가장 가까운 정수로 반올림합니다: <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/분</strong>. 반올림은 처방, 프로토콜, 사용된 기기에 따라 확인해야 합니다.</p>
 </div>
 
 <div class="mt-4 p-4 border-l-4 border-[#1A3E74] bg-gray-50 rounded-r-lg">
-<p><strong>Resultado de apoio:</strong> para os dados informados, o cálculo matemático sugere <strong>${gotasArredondadas} ${tipoGotas} por minuto</strong>. Não utilize este número isoladamente; valide com prescrição, avaliação do paciente, equipo, protocolo institucional e conferência profissional.</p>
+<p><strong>지원 결과:</strong> 입력된 데이터에 대해 수학적 계산은 <strong>${gotasArredondadas} ${tipoGotas} 분당</strong>. 이 숫자를 단독으로 사용하지 마세요. 처방, 환자 평가, 수액세트, 기관 프로토콜, 전문가 검토와 함께 확인하세요.</p>
 </div>
 `;
 

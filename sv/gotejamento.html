@@ -17,7 +17,7 @@
 <meta content="droppberäkning, droppräknare, droppar per minut, mikrodroppar, makrodroppar, droppformel, vätsketerapi, omvårdnad, läkemedelsberäkning, intravenös infusion" name="keywords"/>
 <meta content="Calculadoras de Enfermagem" name="author"/>
 <meta content="index, follow, max-snippet:320, max-image-preview:large, max-video-preview:-1" name="robots"/>
-<meta content="pt_BR" property="og:locale"/>
+<meta content="sv_SE" property="og:locale"/>
 <meta content="article" property="og:type"/>
 <meta content="Droppräknare för infusion: Droppar och mikrodroppar per minut" property="og:title"/>
 <meta content="Pedagogiskt stöd för beräkning av dropphastighet för infusion av makrodroppar och mikrodroppar per minut, med obligatorisk professionell kontroll." property="og:description"/>
@@ -889,43 +889,43 @@ return;
 let gotasPorMinuto;
 let fatorGotejamento; // 20 para macrogotas, 60 para microgotas
 
-if (equipo === "makrodroppar") {
+if (equipo === "macrogotas") {
 fatorGotejamento = 20;
 } else {
 fatorGotejamento = 60;
 }
 
 // Se a unidade for horas, converte para minutos para o cálculo final em gotas/min
-let tempoEmMinutos = unidadeTempo === "timmar" ? tempo * 60 : tempo;
+let tempoEmMinutos = unidadeTempo === "horas" ? tempo * 60 : tempo;
 
 // Fórmula básica: (Volume * Fator) / Tempo em minutos
 gotasPorMinuto = (volume * fatorGotejamento) / tempoEmMinutos;
 
 const gotasArredondadas = Math.round(gotasPorMinuto);
 const equipoTexto = equipo === "macrogotas" ? "Makrodroppar (20 dr/ml)" : "Mikrodroppar (60 dr/ml)";
-const unidadeTexto = unidadeTempo === "horas" ? "horas" : "minuter";
+const unidadeTexto = unidadeTempo === "horas" ? "timmar" : "minuter";
 const tipoGotas = equipo === "macrogotas" ? "droppar" : "mikrodroppar";
 
 // Preenche o Hero Card de Resultado
 scoreValor.textContent = gotasArredondadas;
 tipoGotasResultado.textContent = tipoGotas + '/min';
-resultadoMensagem.innerHTML = `Para os dados informados (<strong>${volume} ml</strong> em <strong>${tempo} ${unidadeTexto}</strong>, equipo <strong>${equipoTexto}</strong>), o resultado matemático de apoio é <strong class="text-white">${gotasArredondadas} ${tipoGotas} por minuto</strong>. Confira prescrição, equipo e protocolo institucional antes de qualquer uso assistencial.`;
+resultadoMensagem.innerHTML = `För de angivna uppgifterna (<strong>${volume} ml</strong> på <strong>${tempo} ${unidadeTexto}</strong>, infusionsaggregat <strong>${equipoTexto}</strong>), är det matematiska stödresultatet <strong class="text-white">${gotasArredondadas} ${tipoGotas} per minut</strong>. Kontrollera ordination, infusionsaggregat och institutionellt protokoll före all klinisk användning.`;
 
 // Monta o passo a passo matemático detalhado
 const formulaTexto = equipo === "macrogotas" ? `(Volym × 20) ÷ Tid i minuter` : `(Volym × 60) ÷ Tid i minuter`;
 
 const passoTempo =
 unidadeTempo === "horas"
-? `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> Converter o tempo para minutos.<br>
-${tempo} horas × 60 = <strong>${tempoEmMinutos} minutos</strong>.</p>`
-: `<p class="mb-2"><strong class="text-[#1A3E74]">Passo 1:</strong> O tempo já está em minutos (${tempo} min).</p>`;
+? `<p class="mb-2"><strong class="text-[#1A3E74]">Steg 1:</strong> Omvandla tiden till minuter.<br>
+${tempo} timmar × 60 = <strong>${tempoEmMinutos} minuter</strong>.</p>`
+: `<p class="mb-2"><strong class="text-[#1A3E74]">Steg 1:</strong> Tiden är redan i minuter (${tempo} min).</p>`;
 
 const calculoTexto = `
 <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100">
-<h4 class="font-bold text-[#1A3E74] mb-3">Memória de Cálculo:</h4>
+<h4 class="font-bold text-[#1A3E74] mb-3">Beräkningsdetaljer:</h4>
 ${passoTempo}
 
-<p class="mb-2"><strong class="text-[#1A3E74]">Passo 2:</strong> Aplicar a fórmula (${equipoTexto}).</p>
+<p class="mb-2"><strong class="text-[#1A3E74]">Steg 2:</strong> Tillämpa formeln (${equipoTexto}).</p>
 <div class="font-mono text-sm bg-white p-3 rounded border border-gray-200 mb-3 overflow-x-auto">
 G = ${formulaTexto} <br>
 G = (${volume} × ${fatorGotejamento}) ÷ ${tempoEmMinutos} <br>
@@ -933,12 +933,12 @@ G = ${volume * fatorGotejamento} ÷ ${tempoEmMinutos} <br>
 G = ${gotasPorMinuto.toFixed(2)}
 </div>
 
-<p><strong class="text-[#1A3E74]">Passo 3:</strong> Arredondamento.<br>
-Como não é possível fracionar a gota, este apoio matemático arredonda para o número inteiro mais próximo: <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/minuto</strong>. O arredondamento deve ser conferido conforme prescrição, protocolo e dispositivo utilizado.</p>
+<p><strong class="text-[#1A3E74]">Steg 3:</strong> Avrundning.<br>
+Eftersom en droppe inte kan delas avrundar detta matematiska stöd till närmaste heltal: <strong class="text-lg text-[#1A3E74]">${gotasArredondadas} ${tipoGotas}/minut</strong>. Avrundningen måste kontrolleras enligt ordination, protokoll och använd utrustning.</p>
 </div>
 
 <div class="mt-4 p-4 border-l-4 border-[#1A3E74] bg-gray-50 rounded-r-lg">
-<p><strong>Resultado de apoio:</strong> para os dados informados, o cálculo matemático sugere <strong>${gotasArredondadas} ${tipoGotas} por minuto</strong>. Não utilize este número isoladamente; valide com prescrição, avaliação do paciente, equipo, protocolo institucional e conferência profissional.</p>
+<p><strong>Stödresultat:</strong> föreslår den matematiska beräkningen för de angivna uppgifterna <strong>${gotasArredondadas} ${tipoGotas} per minut</strong>. Använd inte detta tal isolerat; validera det mot ordination, patientbedömning, infusionsaggregat, institutionellt protokoll och professionell granskning.</p>
 </div>
 `;
 
