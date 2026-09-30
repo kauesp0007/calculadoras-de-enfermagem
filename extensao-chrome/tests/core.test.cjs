@@ -45,7 +45,7 @@ module.exports = function testCore() {
     });
     check("foto: pH elevado permanece no título mesmo com discrepância", () => {
         const result = calc(7.47, 40, 22);
-        assert.equal(result.title, "pH informado sugere alcalose (alcalemia)");
+        assert.equal(result.title, "Alcalose (alcalemia)");
         assert.equal(result.phState, "Alcalemia");
         assert.ok(result.summary.includes("7,36"));
         assert.ok(result.summary.includes("7,47"));
@@ -54,10 +54,22 @@ module.exports = function testCore() {
         assert.equal(result.compensation.expectedText, "");
         assert.ok(!result.compensation.message.includes("interpretação ácido-base fica suspensa"));
     });
+    check("foto 7,49/48/22: rótulo solicitado preserva a discrepância e não define tipo", () => {
+        const result = calc(7.49, 48, 22);
+        assert.equal(result.title, "Alcalose (alcalemia)");
+        assert.equal(result.phState, "Alcalemia");
+        assert.equal(result.code, "inconsistent");
+        assert.ok(Math.abs(result.consistency.estimatedPh - 7.2840601887) < 1e-8);
+        assert.ok(result.summary.includes("7,28"));
+        assert.ok(result.summary.includes("7,49"));
+        assert.ok(result.summary.includes("não define o tipo"));
+        assert.equal(result.compensation.kind, "none");
+        assert.equal(result.compensation.relation, "undetermined");
+    });
     check("pH reduzido permanece no título mesmo com discrepância", () => {
         const result = calc(7.28, 40, 24);
         assert.equal(result.code, "inconsistent");
-        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+        assert.equal(result.title, "Acidose (acidemia)");
         assert.equal(result.phState, "Acidemia");
         assert.equal(result.compensation.kind, "none");
     });
@@ -87,7 +99,7 @@ module.exports = function testCore() {
     check("foto: acidemia com CO2/HCO3 incompatíveis não recebe compensação", () => {
         const result = calc(7.29, 32, 21);
         assert.equal(result.code, "inconsistent");
-        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+        assert.equal(result.title, "Acidose (acidemia)");
         assert.ok(result.summary.includes("7,44"));
         assert.ok(result.summary.includes("7,29"));
         assert.equal(result.compensation.kind, "none");
@@ -96,12 +108,12 @@ module.exports = function testCore() {
     check("pH ácido coerente sem padrão simples continua visível", () => {
         const result = calc(7.34, 45, 23);
         assert.equal(result.code, "indeterminate");
-        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+        assert.equal(result.title, "Acidose (acidemia)");
     });
     check("pH alcalino coerente sem padrão simples continua visível", () => {
         const result = calc(7.46, 35, 24);
         assert.equal(result.code, "indeterminate");
-        assert.equal(result.title, "pH informado sugere alcalose (alcalemia)");
+        assert.equal(result.title, "Alcalose (alcalemia)");
     });
     for (const [ph, co2, hco3, title] of [
         [7.30, 25, 12, "Acidose metabólica (acidemia)"],

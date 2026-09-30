@@ -8,18 +8,18 @@ module.exports = async function testInterface() {
     const code = fs.readFileSync(path.join(__dirname, "../calculator.js"), "utf8");
     const css = fs.readFileSync(path.join(__dirname, "../calculator.css"), "utf8");
     let checks = 0;
-    const token = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
-
-    // DOM simulado: exerce os handlers da interface real, sem reproduzir os cálculos.
+    // DOM/APIs simulados: mede o card real e exerce handlers sem abrir janelas.
     function harness(options = {}) {
+        const elements = new Map(), observers = [], frames = new Map(), listeners = new Set(), closes = [];
+        let frameId = 0;
         class Element {
-            constructor() {
-                this.children = []; this.attributes = new Map(); this.events = new Map();
-                this.value = ""; this.hidden = false; this._text = ""; this.scrollTop = 0;
-                const classes = new Set();
-                this.classList = {
-                    toggle(name, enabled) { if (enabled) classes.add(name); else classes.delete(name); },
-                    contains(name) { return classes.has(name); }
+            constructor(id = "") {
+                this.id = id; this.children = []; this.attributes = new Map(); this.events = new Map();
+                this.value = ""; this.hidden = false; this.open = false; this._text = ""; this.scrollTop = 0;
+                const properties = new Map();
+                this.style = {
+                    setProperty(name, value) { properties.set(name, value); },
+                    getPropertyValue(name) { return properties.get(name); }
                 };
             }
             set textContent(value) { this._text = value; this.children = []; }
@@ -31,49 +31,79 @@ module.exports = async function testInterface() {
             appendChild(child) { this.children.push(child); }
             replaceChildren(...children) { this.children = children; this._text = ""; }
             addEventListener(name, fn) { this.events.set(name, fn); }
-            focus() { this.focused = true; }
-            scrollIntoView() { this.scrolled = true; }
-            async emit(name) { await this.events.get(name)?.({ preventDefault() {} }); }
+            focus() { this.focused = true; document.activeElement = this; }
+            contains(target) { return this === target || this.children.some(child => child.contains(target)); }
+            get scrollHeight() { return bodyHeight() + 22; }
+            getBoundingClientRect() {
+                const header = 100, footer = 40;
+                const height = parseFloat(get("calculator-shell").style.getPropertyValue("--card-height")) || 0;
+                if (this.id === "calculator-header") return { height: header, top: 0, bottom: header };
+                if (this.id === "calculator-footer") return { height: footer, top: height - footer, bottom: height };
+                if (this.id === "calculator-body") return { height: bodyHeight() };
+                if (this.id === "calculator-shell") return { top: 0, height, bottom: height, width: Math.min(window.innerWidth, 390) };
+                const mainTop = header + 1;
+                if (this.id === "main-content") return { top: mainTop, bottom: height - footer - 1, height: height - header - footer - 2 };
+                const resultTop = mainTop + 10 + (options.bodyHeight || 500) - get("main-content").scrollTop;
+                return { top: resultTop, bottom: resultTop + 420, height: 420 };
+            }
+            async emit(name, event = {}) { await this.events.get(name)?.({ preventDefault() {}, ...event }); }
         }
-        const elements = new Map();
-        const get = (id) => {
-            if (!elements.has(id)) elements.set(id, new Element());
+        const get = id => {
+            if (!elements.has(id)) elements.set(id, new Element(id));
             return elements.get(id);
         };
-        const messages = [], updates = [];
+        function bodyHeight() {
+            return (options.bodyHeight || 500) + (get("resultado-gasometria").hidden ? 0 : 420) +
+                (get("referencias").hidden ? 0 : 200) + (get("form-error").hidden ? 0 : 60) +
+                (get("view-feedback").hidden ? 0 : 60) + (get("panel-position-help").hidden ? 0 : 60);
+        }
+        for (const id of ["resultado-gasometria", "referencias", "form-error", "view-feedback", "panel-position-help"]) get(id).hidden = true;
         const window = {
-            innerHeight: options.height || 760, outerHeight: 800, screen: { availHeight: 1000 },
-            events: new Map(), addEventListener(name, fn) { this.events.set(name, fn); }, close() {}
+            innerHeight: options.height || 760, innerWidth: options.width || 390,
+            events: new Map(),
+            getComputedStyle() { return { paddingTop: "10px", paddingBottom: "12px" }; },
+            addEventListener(name, fn) { this.events.set(name, fn); },
+            removeEventListener(name, fn) { if (this.events.get(name) === fn) this.events.delete(name); }
         };
-        const current = { id: 41, type: options.windowType || "popup", height: 800 };
         const chrome = {
-            runtime: { id: "own-extension", async sendMessage(message) {
-                messages.push(message);
-                return { ok: !options.rejectView || message.type !== "gasometria:view" };
+            runtime: { id: "own-extension", onMessage: {
+                addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); }
             }},
-            windows: {
-                async getCurrent() { return { ...current }; },
-                async update(id, update) {
-                    updates.push({ id, ...update }); current.height = update.height;
-                    window.innerHeight = update.height - 40;
-                }
+            windows: { async getCurrent() { return { id: 41, type: "normal" }; } },
+            sidePanel: {
+                async getLayout() { return { side: options.side || "right" }; },
+                async close(value) { closes.push(value); if (options.rejectClose) throw new Error("close"); }
             }
         };
-        const document = { getElementById: get, createElement: () => new Element(), body: new Element(), addEventListener() {} };
-        get("gasometria-form").reset = async () => {
+        const document = { getElementById: get, createElement: () => new Element(), events: new Map(),
+            addEventListener(name, fn) { this.events.set(name, fn); } };
+        get("gasometria-form").reset = () => {
             Gasometria.FIELDS.forEach(field => { get(field.id).value = ""; });
-            await get("gasometria-form").emit("reset");
+            return get("gasometria-form").emit("reset");
         };
-        new Function("document", "location", "window", "chrome", "Gasometria", "requestAnimationFrame", code)(
-            document, { hash: options.embedded ? "#embedded" : "", search: "?session=" + token },
-            window, chrome, Gasometria, fn => fn()
+        class Observer {
+            constructor(callback) { this.callback = callback; this.targets = new Set(); observers.push(this); }
+            observe(target) { this.targets.add(target); }
+            disconnect() { this.targets.clear(); this.disconnected = true; }
+        }
+        new Function("document", "window", "chrome", "Gasometria", "requestAnimationFrame", "cancelAnimationFrame", "ResizeObserver", code)(
+            document, window, chrome, Gasometria,
+            fn => { const id = ++frameId; frames.set(id, fn); return id; }, id => frames.delete(id), Observer
         );
-        return { get, document, window, messages, updates,
+        function flush() { const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn()); }
+        return { get, document, window, closes, observers, listeners, frames, flush,
+            async ready() { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); flush(); },
             async calculate(values) {
                 Gasometria.FIELDS.forEach(field => { get(field.id).value = values[field.id] === undefined ? "" : String(values[field.id]); });
-                await get("gasometria-form").emit("submit");
+                await get("gasometria-form").emit("submit"); flush();
             },
-            row(id) { return get("resultado-details").children.find(row => row.getAttribute("data-parameter") === id); }
+            row(id) { return get("resultado-details").children.find(row => row.getAttribute("data-parameter") === id); },
+            height() { return parseFloat(get("calculator-shell").style.getPropertyValue("--card-height")); },
+            message(message, sender = { id: "own-extension" }) {
+                let response;
+                [...listeners][0](message, sender, value => { response = value; });
+                flush(); return response;
+            }
         };
     }
 
@@ -134,6 +164,7 @@ module.exports = async function testInterface() {
     checks += 1;
     await ui.calculate(normal);
     await ui.get("gasometria-form").reset();
+    ui.flush();
     assert.equal(ui.get("resultado-title").textContent, "");
     assert.equal(ui.get("resultado-status").textContent, "");
     assert.equal(ui.get("resultado-details").children.length, 0);
@@ -142,43 +173,99 @@ module.exports = async function testInterface() {
     assert.equal(ui.get("main-content").scrollTop, 0);
     checks += 1;
 
-    const embedded = harness({ embedded: true });
-    await embedded.calculate(normal);
-    assert.deepEqual(embedded.messages[0], { type: "gasometria:ready", session: token });
-    await embedded.get("btnAltura").emit("click");
-    assert.deepEqual(embedded.messages.at(-1), { type: "gasometria:view", session: token, mode: "compact" });
-    assert.equal(embedded.get("btnAltura").getAttribute("aria-pressed"), "true");
-    assert.equal(embedded.get("altura-label").textContent, "Altura completa");
-    assert.equal(embedded.get("ph").value, "7.4");
-    assert.equal(embedded.get("resultado-details").children.length, 6);
+    const fit = harness({ height: 1400 });
+    await fit.ready();
+    assert.equal(fit.height(), 664);
+    assert.equal(fit.get("calculator-shell").getBoundingClientRect().top, 0);
     checks += 1;
-    await embedded.get("btnAltura").emit("click");
-    assert.equal(embedded.messages.at(-1).mode, "full");
-    assert.equal(embedded.get("btnAltura").getAttribute("aria-pressed"), "false");
-    assert.ok(embedded.messages.every(message => Object.keys(message).every(key => ["type", "session", "mode"].includes(key))));
+    await fit.calculate(normal);
+    assert.equal(fit.height(), 1084);
+    assert.equal(fit.get("calculator-shell").getBoundingClientRect().top, 0);
+    assert.equal(fit.get("main-content").scrollTop, 0);
     checks += 1;
-    embedded.window.innerHeight = 310; embedded.window.events.get("resize")();
-    assert.equal(embedded.get("altura-label").textContent, "Compactar");
-    assert.ok(embedded.get("btnAltura").title.includes("240"));
+    await fit.get("btnAltura").emit("click");
+    assert.equal(fit.height(), 542);
+    assert.equal(fit.get("btnAltura").getAttribute("aria-pressed"), "true");
+    assert.equal(fit.get("altura-label").textContent, "Altura completa");
+    assert.equal(fit.get("ph").value, "7.4");
+    assert.equal(fit.get("resultado-details").children.length, 6);
     checks += 1;
-    const denied = harness({ embedded: true, rejectView: true });
-    await denied.get("btnAltura").emit("click");
-    assert.equal(denied.get("btnAltura").getAttribute("aria-pressed"), "false");
-    assert.equal(denied.get("btnAltura").disabled, false);
-    assert.equal(denied.get("view-feedback").hidden, false);
+    await fit.get("btnAltura").emit("click");
+    assert.equal(fit.height(), 1084);
+    assert.equal(fit.get("btnAltura").getAttribute("aria-pressed"), "false");
     checks += 1;
-    await ui.calculate(normal);
-    await ui.get("btnAltura").emit("click");
-    assert.deepEqual(ui.updates.at(-1), { id: 41, height: 420 });
-    assert.equal(ui.get("ph").value, "7.4");
-    assert.equal(ui.get("resultado-gasometria").hidden, false);
-    await ui.get("btnAltura").emit("click");
-    assert.deepEqual(ui.updates.at(-1), { id: 41, height: 800 });
+    fit.window.innerHeight = 600; fit.window.events.get("resize")(); fit.flush();
+    assert.equal(fit.height(), 600);
+    assert.equal(fit.get("calculator-shell").getBoundingClientRect().top, 0);
+    assert.equal(fit.get("ph").value, "7.4");
     checks += 1;
-    const ordinaryWindow = harness({ windowType: "normal" });
-    await ordinaryWindow.get("btnAltura").emit("click");
-    assert.equal(ordinaryWindow.updates.length, 0);
-    assert.equal(ordinaryWindow.document.body.classList.contains("page-compact"), true);
+    fit.window.innerHeight = 310; fit.window.events.get("resize")(); fit.flush();
+    assert.equal(fit.get("altura-label").textContent, "Compactar");
+    await fit.get("btnAltura").emit("click");
+    assert.equal(fit.height(), 240);
+    checks += 1;
+    const limited = harness();
+    await limited.calculate(normal);
+    assert.equal(limited.height(), 760);
+    assert.ok(limited.get("main-content").scrollTop > 0);
+    assert.equal(limited.get("calculator-shell").getBoundingClientRect().top, 0);
+    checks += 1;
+    await fit.get("gasometria-form").reset(); fit.flush();
+    assert.equal(fit.get("resultado-gasometria").hidden, true);
+    fit.window.innerHeight = 1400; fit.window.events.get("resize")(); fit.flush();
+    await fit.get("btnAltura").emit("click");
+    assert.equal(fit.height(), 664);
+    checks += 1;
+    await fit.get("btnReferencias").emit("click");
+    assert.equal(fit.get("referencias").hidden, false);
+    assert.equal(fit.get("btnReferencias").getAttribute("aria-expanded"), "true");
+    assert.ok(fit.height() > 664);
+    const referencesSummary = fit.get("references-summary");
+    fit.get("referencias").append(referencesSummary);
+    referencesSummary.focus();
+    fit.get("referencias").open = false;
+    await fit.get("referencias").emit("toggle"); fit.flush();
+    assert.equal(fit.get("btnReferencias").getAttribute("aria-expanded"), "false");
+    assert.equal(fit.document.activeElement, fit.get("btnReferencias"));
+    await fit.get("btnReferencias").emit("click");
+    assert.equal(fit.get("referencias").open, true);
+    checks += 1;
+    const native = harness();
+    await native.ready(); await native.calculate(normal);
+    native.message({ type: "gasometria:panel-closed", windowId: 41 }, { id: "other" });
+    assert.equal(native.get("ph").value, "7.4");
+    native.message({ type: "gasometria:panel-closed", windowId: 42 });
+    assert.equal(native.get("ph").value, "7.4");
+    checks += 1;
+    assert.deepEqual(native.message({ type: "gasometria:panel-closed", windowId: 41 }), { ok: true });
+    assert.equal(native.get("ph").value, "");
+    assert.equal(native.get("resultado-gasometria").hidden, true);
+    assert.equal(native.height(), 664);
+    checks += 1;
+    await native.calculate(normal);
+    await native.get("btnFechar").emit("click"); native.flush();
+    assert.deepEqual(native.closes.at(-1), { windowId: 41 });
+    assert.equal(native.get("ph").value, "");
+    checks += 1;
+    native.document.events.get("keydown")({ key: "Escape", preventDefault() {} });
+    await native.ready();
+    assert.equal(native.closes.length, 2);
+    checks += 1;
+    const rejected = harness({ rejectClose: true });
+    await rejected.get("btnFechar").emit("click");
+    assert.equal(rejected.get("view-feedback").hidden, false);
+    assert.ok(rejected.get("view-feedback").textContent.includes("Chrome"));
+    checks += 1;
+    const left = harness({ side: "left" }); await left.ready();
+    assert.equal(left.get("panel-position-help").hidden, false);
+    checks += 1;
+    fit.observers[0].callback();
+    fit.window.events.get("pagehide")();
+    assert.equal(fit.frames.size, 0);
+    assert.equal(fit.listeners.size, 0);
+    assert.equal(fit.window.events.has("resize"), false);
+    assert.equal(fit.window.events.has("focus"), false);
+    assert.ok(fit.observers.every(observer => observer.disconnected));
     checks += 1;
 
     function luminance(hex) {
