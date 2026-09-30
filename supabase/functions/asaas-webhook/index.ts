@@ -148,6 +148,7 @@ serve(async req=>{
     );
     const checkoutId=String(checkout?.id||"");
     const providerSubId=String(payment?.subscription||e?.subscription?.id||"");
+    const paymentId=String(payment?.id||"");
     const customerId=String(
       checkout?.customer||
       payment?.customer||
@@ -155,7 +156,45 @@ serve(async req=>{
       ""
     );
 
-    const sub=await findSub(ref,providerSubId,customerId,checkoutId);
+    let sub=await findSub(ref,providerSubId,customerId,checkoutId);
+
+    // Eventos do Asaas podem chegar antes de o checkout local terminar de
+    // persistir checkout_id/customer. Quando isso acontecer, resolva os
+    // identificadores pela API do próprio Asaas e tente novamente. Isso evita
+    // falsos billing_subscription_not_found sem criar registros paralelos.
+    if(!sub&&checkoutId){
+      try{
+        const remote=await asaasGet("/checkouts/"+encodeURIComponent(checkoutId));
+        sub=await findSub(
+          String(remote?.externalReference||ref||""),
+          providerSubId,
+          String(remote?.customer||customerId||""),
+          checkoutId
+        );
+      }catch(err){ console.warn("[asaas-webhook] checkout lookup fallback",String((err as Error)?.message||err)); }
+    }
+    if(!sub&&paymentId){
+      try{
+        const remote=await asaasGet("/payments/"+encodeURIComponent(paymentId));
+        sub=await findSub(
+          String(remote?.externalReference||ref||""),
+          String(remote?.subscription||providerSubId||""),
+          String(remote?.customer||customerId||""),
+          checkoutId
+        );
+      }catch(err){ console.warn("[asaas-webhook] payment lookup fallback",String((err as Error)?.message||err)); }
+    }
+    if(!sub&&providerSubId){
+      try{
+        const remote=await asaasGet("/subscriptions/"+encodeURIComponent(providerSubId));
+        sub=await findSub(
+          String(remote?.externalReference||ref||""),
+          providerSubId,
+          String(remote?.customer||customerId||""),
+          checkoutId
+        );
+      }catch(err){ console.warn("[asaas-webhook] subscription lookup fallback",String((err as Error)?.message||err)); }
+    }
 
     if(!sub){
       await db().rpc("fail_billing_webhook",{
