@@ -93,8 +93,8 @@ for (const required of [
 
 const banner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
 for (const required of [
-  "var DISPLAY_MS = 5000;",
-  "var INTERVAL_MS = 20 * 60 * 1000;",
+  "var DISPLAY_MS = 10000;",
+  "var INTERVAL_MS = 3 * 60 * 1000;",
   "mountSubscriptionPromo();",
   'href="/conta/assinatura.html"',
   'data-premium-promo-close'
@@ -110,3 +110,4 @@ if (mountBody.includes("root.innerHTML") || mountBody.includes("premiumCard(")) 
 }
 
 console.log("ACCOUNT PAGES TEST: PASS — estrutura, referências, scripts, persistência e banner verificados.");
+require("./test-premium-promo.js");
