@@ -64,15 +64,15 @@
         return "Na faixa de referência";
     }
 
-    // O pH observado continua visível quando o tipo de distúrbio não pode ser definido.
+    // Rótulo solicitado para o pH; o resumo mantém o tipo de distúrbio indefinido.
     function phFinding(ph) {
         if (ph < 7.35) return {
-            title: "pH informado sugere acidose (acidemia)",
-            summary: "O pH informado está reduzido (acidemia)."
+            title: "Acidose (acidemia)",
+            summary: "O pH informado está reduzido (acidemia). Esse achado isolado não define o tipo de distúrbio."
         };
         if (ph > 7.45) return {
-            title: "pH informado sugere alcalose (alcalemia)",
-            summary: "O pH informado está elevado (alcalemia)."
+            title: "Alcalose (alcalemia)",
+            summary: "O pH informado está elevado (alcalemia). Esse achado isolado não define o tipo de distúrbio."
         };
         return {
             title: "pH na faixa de referência — conferir valores",
