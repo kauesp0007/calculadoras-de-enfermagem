@@ -5,7 +5,7 @@ const base = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const file = process.env.PREMIUM_REQUESTS_FILE;
 const site = process.env.PREMIUM_PUBLIC_SITE || "https://www.calculadorasdeenfermagem.com.br";
-const verifyAttempts = process.env.PREMIUM_VERIFY_ATTEMPTS === "1" ? 1 : 5;
+const verifyAttempts = process.env.PREMIUM_VERIFY_ATTEMPTS === "1" ? 1 : 24;
 const mode = process.argv[2];
 if (!base || !key || !["--check", "--fetch", "--finalize"].includes(mode)) {
   throw new Error("Missing Premium queue credentials or invalid operation");
@@ -40,6 +40,7 @@ if (mode === "--fetch") {
 if (mode === "--finalize") {
   const rows = JSON.parse(await fs.readFile(file, "utf8"));
   let activated = 0;
+  const unpublished = [];
   for (const row of rows) {
     const current = await api("developer_premium_activation_requests?select=path,request_id&path=eq." + encodeURIComponent(row.path) + "&status=eq.pending&limit=1");
     if (current[0]?.request_id !== row.request_id) continue;
@@ -50,16 +51,24 @@ if (mode === "--finalize") {
     }
     let published = false;
     for (let attempt = 0; attempt < verifyAttempts; attempt++) {
-      const res = await fetch(site + "/" + row.path + "?developer_check=" + crypto.randomUUID(), { cache: "no-store" });
-      if (res.ok) {
-        const html = await res.text();
-        published = /id=["']premium-content-placeholder["']/i.test(html) && /premium-content-loader\.js/i.test(html);
+      let observed = "network_error";
+      try {
+        const res = await fetch(site + "/" + row.path + "?developer_check=" + crypto.randomUUID(), { cache: "no-store" });
+        observed = "HTTP " + res.status;
+        if (res.ok) {
+          const html = await res.text();
+          published = /id=["']premium-content-placeholder["']/i.test(html) && /premium-content-loader\.js/i.test(html);
+          if (!published) observed += " sem shell";
+        }
+      } catch (error) {
+        observed += ": " + String(error);
       }
       if (published) break;
-      if (attempt + 1 < verifyAttempts) await new Promise(resolve => setTimeout(resolve, 4000));
+      if (attempt === 0 || (attempt + 1) % 6 === 0) console.warn("Aguardando publicação de " + row.path + ": " + observed + " (" + (attempt + 1) + "/" + verifyAttempts + ")");
+      if (attempt + 1 < verifyAttempts) await new Promise(resolve => setTimeout(resolve, 8000));
     }
     if (!published) {
-      console.warn("Shell ainda não publicado: " + row.path);
+      unpublished.push(row.path);
       continue;
     }
     const result = await api("rpc/activate_developer_premium_route", {
@@ -68,5 +77,6 @@ if (mode === "--finalize") {
     });
     if (result) activated++;
   }
-  console.log(JSON.stringify({ requested: rows.length, activated }));
+  console.log(JSON.stringify({ requested: rows.length, activated, unpublished }));
+  if (unpublished.length) throw new Error("Shell ainda não confirmado no domínio: " + unpublished.join(", "));
 }
