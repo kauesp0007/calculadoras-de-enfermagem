@@ -107,6 +107,24 @@
     }
     return documentHtml.replace(/<\/body>/i,seal+"</body>");
   }
+  async function ensureGlobalChromeAfterWrite(){
+    // global-scripts.js é carregado pelo shell e também existe no documento
+    // privado. Após document.write(), o novo DOM precisa ser reidratado sem
+    // depender de um evento load que pode já ter pertencido ao shell anterior.
+    for(var attempt=0;attempt<20;attempt++){
+      if(document.body&&typeof window.__ENSURE_GLOBAL_CHROME==="function"){
+        try{
+          await window.__ENSURE_GLOBAL_CHROME();
+          return;
+        }catch(error){
+          console.warn("[PremiumContent] falha ao reidratar componentes globais",error);
+        }
+      }
+      await new Promise(function(resolve){setTimeout(resolve,25);});
+    }
+    console.warn("[PremiumContent] componentes globais não ficaram disponíveis após a entrega protegida");
+  }
+
   async function writePremiumDocument(res,key){
     var html=await res.text();
     if(!/^\s*<!doctype html/i.test(html)&&!/^\s*<html[\s>]/i.test(html)) throw new Error("invalid_premium_document");
@@ -119,6 +137,7 @@
     html=stripPremiumAds(html);
     html=injectMedicamentosGovernanceSeal(html,key);
     document.open();document.write(html);document.close();
+    await ensureGlobalChromeAfterWrite();
   }
   function loadScript(src){
     return new Promise(function(resolve,reject){

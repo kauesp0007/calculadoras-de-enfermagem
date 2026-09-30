@@ -370,42 +370,121 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   })
 });
 
-document.addEventListener("DOMContentLoaded", function () {
-  // 1. CARREGAMENTO CRÍTICO: Traz apenas o menu no primeiro instante
-  fetch(window.__FETCH_PREFIX + "menu-global.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro menu-global.html não encontrado")).then(e => {
-    const o = document.getElementById("global-header-container");
-    if (o) {
-      window.requestAnimationFrame(() => {
-        o.innerHTML = e;
-        // Corrige links relativos do menu para páginas em subpastas de idioma
-        if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(o);
-        // Proteção: uma falha no código de navegação nunca pode impedir
-        // a inicialização do estado de autenticação do usuário.
-        try {
-          initializeNavigationMenu();
-        } catch (navigationError) {
-          console.error("[Navigation] Falha ao inicializar o menu:", navigationError);
-        }
-        try {
-          initializeAuthMenu();
-        } catch (authMenuError) {
-          console.error("[Auth] Falha ao inicializar o menu de autenticação:", authMenuError);
-        }
-      });
+// -----------------------------------------------------------------------------
+// Componentes globais reutilizáveis.
+// Páginas Premium substituem o documento após validar o entitlement; por isso
+// menu e acessibilidade não podem depender exclusivamente de um único evento
+// DOMContentLoaded/load do shell público.
+// -----------------------------------------------------------------------------
+function ensureGlobalHeaderContainer() {
+  var container = document.getElementById("global-header-container");
+  if (container) return container;
+  if (!document.body) return null;
+
+  container = document.createElement("div");
+  container.id = "global-header-container";
+  container.setAttribute("data-global-header-created", "runtime");
+  container.style.display = "block";
+  container.style.width = "100%";
+  container.style.minHeight = (window.matchMedia && window.matchMedia("(max-width: 768px)").matches) ? "60px" : "96px";
+  document.body.insertBefore(container, document.body.firstChild);
+  return container;
+}
+
+function loadGlobalMenuComponent() {
+  var container = ensureGlobalHeaderContainer();
+  if (!container) return Promise.resolve(false);
+  if (container.dataset.globalMenuReady === "1") return Promise.resolve(true);
+  if (container.__globalMenuPromise) return container.__globalMenuPromise;
+
+  container.__globalMenuPromise = fetch(window.__FETCH_PREFIX + "menu-global.html")
+    .then(function (response) {
+      return response.ok ? response.text() : Promise.reject("Ficheiro menu-global.html não encontrado");
+    })
+    .then(function (html) {
+      if (container.dataset.globalMenuReady === "1") return true;
+      container.innerHTML = html;
+      if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(container);
+
+      try {
+        initializeNavigationMenu();
+      } catch (navigationError) {
+        console.error("[Navigation] Falha ao inicializar o menu:", navigationError);
+      }
+      try {
+        initializeAuthMenu();
+      } catch (authMenuError) {
+        console.error("[Auth] Falha ao inicializar o menu de autenticação:", authMenuError);
+      }
+
+      container.dataset.globalMenuReady = "1";
+      return true;
+    })
+    .catch(function (error) {
+      container.__globalMenuPromise = null;
+      console.warn("Não foi possível carregar o menu global:", error);
+      return false;
+    });
+
+  return container.__globalMenuPromise;
+}
+
+function loadGlobalBodyElementsComponent() {
+  if (!document.body) return Promise.resolve(false);
+  var body = document.body;
+  if (body.dataset.globalBodyReady === "1") return Promise.resolve(true);
+  if (body.__globalBodyPromise) return body.__globalBodyPromise;
+
+  body.__globalBodyPromise = Promise.resolve().then(function () {
+    var alreadyPresent = document.getElementById("barraAcessibilidade") ||
+      document.getElementById("pwaAcessibilidadeBar") ||
+      document.getElementById("accessibilityToggleButton");
+
+    if (alreadyPresent) return null;
+
+    return fetch(window.__FETCH_PREFIX + "global-body-elements.html").then(function (response) {
+      return response.ok ? response.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado");
+    });
+  }).then(function (html) {
+    if (html && !document.getElementById("barraAcessibilidade") &&
+        !document.getElementById("pwaAcessibilidadeBar")) {
+      document.body.insertAdjacentHTML("beforeend", html);
     }
-  }).catch(e => console.warn("Não foi possível carregar o menu global:", e));
+
+    if (document.body.dataset.globalFunctionsReady !== "1") {
+      initializeGlobalFunctions();
+      document.body.dataset.globalFunctionsReady = "1";
+    }
+    document.body.dataset.globalBodyReady = "1";
+    return true;
+  }).catch(function (error) {
+    body.__globalBodyPromise = null;
+    console.warn("Não foi possível carregar os elementos globais do corpo:", error);
+    return false;
+  });
+
+  return body.__globalBodyPromise;
+}
+
+window.__LOAD_GLOBAL_MENU = loadGlobalMenuComponent;
+window.__LOAD_GLOBAL_BODY_ELEMENTS = loadGlobalBodyElementsComponent;
+window.__ENSURE_GLOBAL_CHROME = function () {
+  return loadGlobalMenuComponent().then(function () {
+    return loadGlobalBodyElementsComponent();
+  });
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  loadGlobalMenuComponent();
 });
 
-// 2. CARREGAMENTO DIFERIDO: Adia a injeção da acessibilidade, cookies e modais (Alivia a Thread Principal)
+// Mantém a estratégia CWV das páginas comuns: acessibilidade/cookies entram
+// depois do load. O loader Premium pode antecipar esta etapa após a entrega
+// protegida chamando window.__ENSURE_GLOBAL_CHROME().
 window.addEventListener("load", function () {
-  setTimeout(() => {
-    fetch(window.__FETCH_PREFIX + "global-body-elements.html").then(e => e.ok ? e.text() : Promise.reject("Ficheiro global-body-elements.html não encontrado")).then(e => {
-      window.requestAnimationFrame(() => {
-        document.body.insertAdjacentHTML("beforeend", e);
-        initializeGlobalFunctions();
-      });
-    }).catch(e => console.warn("Não foi possível carregar os elementos globais do corpo:", e));
-  }, 50); // Pausa mínima de 50ms para garantir o encerramento da pintura crítica (LCP)
+  setTimeout(function () {
+    loadGlobalBodyElementsComponent();
+  }, 50);
 });
 
 function initializeNavigationMenu() {
