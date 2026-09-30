@@ -1,12 +1,12 @@
 "use strict";
 
 const pendingTabs = new Set();
-const embeddedMessages = new Set(["gasometria:ready", "gasometria:close"]);
+const embeddedMessages = new Set(["gasometria:ready", "gasometria:close", "gasometria:view"]);
 
 async function openStandalone() {
     await chrome.windows.create({
         url: chrome.runtime.getURL("calculator.html"),
-        type: "popup", width: 674, height: 370
+        type: "popup", width: 414, height: 800
     });
 }
 
@@ -44,10 +44,18 @@ chrome.action.onClicked.addListener(async (tab) => {
 });
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message?.type === "gasometria:fallback") {
+        if (sender.id !== chrome.runtime.id || !Number.isInteger(sender.tab?.id) || sender.frameId !== 0 ||
+            !/^https?:\/\//i.test(sender.url || "") || typeof message.session !== "string" ||
+            !/^[a-f0-9-]{36}$/i.test(message.session)) return false;
+        openStandalone().then(() => sendResponse({ ok: true }), () => sendResponse({ ok: false }));
+        return true;
+    }
     if (!message || !embeddedMessages.has(message.type) ||
         sender.id !== chrome.runtime.id || !Number.isInteger(sender.tab?.id) ||
         !Number.isInteger(sender.frameId) || sender.frameId <= 0 ||
         typeof message.session !== "string" || !/^[a-f0-9-]{36}$/i.test(message.session)) return false;
+    if (message.type === "gasometria:view" && !["full", "compact"].includes(message.mode)) return false;
 
     let url;
     try { url = new URL(sender.url); } catch (_) { return false; }
@@ -55,10 +63,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (url.protocol !== ownPage.protocol || url.hostname !== ownPage.hostname || url.pathname !== ownPage.pathname ||
         url.hash !== "#embedded" || url.searchParams.get("session") !== message.session) return false;
 
-    chrome.tabs.sendMessage(sender.tab.id, {
-        type: message.type, session: message.session
-    }, { frameId: 0 }).then(
-        () => sendResponse({ ok: true }),
+    const forwarded = { type: message.type, session: message.session };
+    if (message.type === "gasometria:view") forwarded.mode = message.mode;
+    chrome.tabs.sendMessage(sender.tab.id, forwarded, { frameId: 0 }).then(
+        (response) => sendResponse({ ok: response?.ok === true }),
         () => sendResponse({ ok: false })
     );
     return true;

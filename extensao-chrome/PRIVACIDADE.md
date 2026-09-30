@@ -4,11 +4,11 @@ Versão 0.1.0. Documento preparado em 30/09/2026 para revisão antes de publicar
 
 Os parâmetros digitados são processados localmente na página da extensão e ficam somente na memória do formulário. Esta versão não usa servidor, analytics, rastreamento, cookies ou armazenamento persistente para esses valores. Eles não são vendidos, compartilhados ou enviados ao site divulgado.
 
-Ao clicar no ícone, a extensão verifica o endereço da aba para escolher entre card na página e janela separada. Quando há um anúncio Premium e cabeçalhos conhecidos, consulta suas dimensões para posicionamento. Não extrai texto, formulários ou dados clínicos da página visitada, nem registra seu endereço.
+Ao clicar no ícone, a extensão verifica o endereço da aba para escolher entre card na página e janela separada. Consulta as dimensões dos cabeçalhos conhecidos para posicionar o card abaixo das barras superiores. Não extrai texto, formulários ou dados clínicos da página visitada, nem registra seu endereço.
 
 As permissões `activeTab` e `scripting` são usadas para inserir o card na aba atual após o clique do usuário. Não há permissão permanente para todos os sites nem scripts inseridos automaticamente durante a navegação.
 
-A comunicação entre o formulário e o controlador do card usa apenas mensagens de prontidão/fechamento e um identificador temporário. Os valores digitados não fazem parte das mensagens.
+A comunicação interna usa mensagens de prontidão, fechamento, modo de altura ou abertura alternativa e um identificador temporário. O modo de altura é somente `full` ou `compact`. Os valores digitados não fazem parte das mensagens.
 
 **Limpar** esvazia o formulário e oculta o resultado. Fechar o card ou a janela remove seu contexto; não há histórico salvo pela extensão.
 
