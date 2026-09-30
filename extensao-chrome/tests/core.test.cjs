@@ -19,7 +19,9 @@ module.exports = function testCore() {
         ["alcalose respiratória", 7.62, 20, 20, "respiratory-alkalosis"],
         ["acidose mista", 7.05, 60, 16, "mixed-acidosis"],
         ["alcalose mista", 7.70, 30, 36, "mixed-alkalosis"],
-        ["conferir coerência interna", 7.40, 80, 12, "inconsistent"]
+        ["conferir coerência interna", 7.40, 80, 12, "inconsistent"],
+        ["foto: pH elevado com parâmetros discrepantes", 7.47, 40, 22, "inconsistent"],
+        ["foto: alcalose respiratória coerente", 7.47, 32, 22, "respiratory-alkalosis"]
     ];
     for (const [name, ph, paco2, hco3, code] of patterns) {
         check(name, () => assert.equal(calc(ph, paco2, hco3).code, code));
@@ -41,6 +43,75 @@ module.exports = function testCore() {
         assert.equal(comp.acute, 19.6);
         assert.equal(comp.chronic, 16);
     });
+    check("foto: pH elevado permanece no título mesmo com discrepância", () => {
+        const result = calc(7.47, 40, 22);
+        assert.equal(result.title, "pH informado sugere alcalose (alcalemia)");
+        assert.equal(result.phState, "Alcalemia");
+        assert.ok(result.summary.includes("7,36"));
+        assert.ok(result.summary.includes("7,47"));
+        assert.equal(result.compensation.kind, "none");
+        assert.equal(result.compensation.relation, "undetermined");
+        assert.equal(result.compensation.expectedText, "");
+        assert.ok(!result.compensation.message.includes("interpretação ácido-base fica suspensa"));
+    });
+    check("pH reduzido permanece no título mesmo com discrepância", () => {
+        const result = calc(7.28, 40, 24);
+        assert.equal(result.code, "inconsistent");
+        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+        assert.equal(result.phState, "Acidemia");
+        assert.equal(result.compensation.kind, "none");
+    });
+    check("pH na referência não oculta discrepância dos demais parâmetros", () => {
+        const result = calc(7.40, 80, 12);
+        assert.equal(result.title, "pH na faixa de referência — conferir valores");
+        assert.equal(result.phState, "Na faixa de referência");
+        assert.equal(result.code, "inconsistent");
+        assert.ok(!result.title.includes("acidose"));
+        assert.ok(!result.title.includes("alcalose"));
+    });
+    check("foto: alcalose respiratória com termos comum e técnico", () => {
+        const result = calc(7.47, 32, 22);
+        assert.equal(result.title, "Alcalose respiratória (alcalemia)");
+        assert.equal(result.compensation.kind, "respiratory");
+        assert.equal(result.compensation.acute, 22.24);
+        assert.equal(result.compensation.chronic, 20.8);
+    });
+    check("foto: alcalose mista significa componente metabólico e respiratório", () => {
+        const result = calc(7.47, 32, 27);
+        assert.equal(result.code, "mixed-alkalosis");
+        assert.equal(result.title, "Alcalose mista (alcalemia)");
+        assert.equal(result.phState, "Alcalemia");
+        assert.ok(result.summary.includes("respiratório e metabólico"));
+        assert.ok(!result.title.includes("Grave"));
+    });
+    check("foto: acidemia com CO2/HCO3 incompatíveis não recebe compensação", () => {
+        const result = calc(7.29, 32, 21);
+        assert.equal(result.code, "inconsistent");
+        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+        assert.ok(result.summary.includes("7,44"));
+        assert.ok(result.summary.includes("7,29"));
+        assert.equal(result.compensation.kind, "none");
+        assert.equal(result.compensation.relation, "undetermined");
+    });
+    check("pH ácido coerente sem padrão simples continua visível", () => {
+        const result = calc(7.34, 45, 23);
+        assert.equal(result.code, "indeterminate");
+        assert.equal(result.title, "pH informado sugere acidose (acidemia)");
+    });
+    check("pH alcalino coerente sem padrão simples continua visível", () => {
+        const result = calc(7.46, 35, 24);
+        assert.equal(result.code, "indeterminate");
+        assert.equal(result.title, "pH informado sugere alcalose (alcalemia)");
+    });
+    for (const [ph, co2, hco3, title] of [
+        [7.30, 25, 12, "Acidose metabólica (acidemia)"],
+        [7.51, 47, 36, "Alcalose metabólica (alcalemia)"],
+        [7.26, 60, 26, "Acidose respiratória (acidemia)"],
+        [7.05, 60, 16, "Acidose mista (acidemia)"],
+        [7.70, 30, 36, "Alcalose mista (alcalemia)"]
+    ]) {
+        check("terminologia: " + title, () => assert.equal(calc(ph, co2, hco3).title, title));
+    }
     check("virgula decimal e BE negativo", () => {
         const result = calc("7,40", "40", "24", { be: "-2,0" });
         assert.equal(result.code, "reference");

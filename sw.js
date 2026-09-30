@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260930-180539";
+const CACHE_VERSION = "20260930-181020";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -230,6 +230,16 @@ const urlsToCache = [
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/lang-selector.js',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.codex-plugin/plugin.json',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.mcp.json',
+  'backups-temporarios/extensao-chrome-20260930-180927/calculator.css',
+  'backups-temporarios/extensao-chrome-20260930-180927/calculator.js',
+  'backups-temporarios/extensao-chrome-20260930-180927/content-script.js',
+  'backups-temporarios/extensao-chrome-20260930-180927/fonts/inter-700.woff2',
+  'backups-temporarios/extensao-chrome-20260930-180927/fonts/inter-900.woff2',
+  'backups-temporarios/extensao-chrome-20260930-180927/fonts/inter-regular.woff2',
+  'backups-temporarios/extensao-chrome-20260930-180927/fonts/nunito-900.woff2',
+  'backups-temporarios/extensao-chrome-20260930-180927/gasometria-core.js',
+  'backups-temporarios/extensao-chrome-20260930-180927/manifest.json',
+  'backups-temporarios/extensao-chrome-20260930-180927/service-worker.js',
   'backups-temporarios/inserir-menu-lei5905.js',
   'backups-temporarios/marketplace-before-copilot-bridge-20260902-151732.json',
   'backups-temporarios/output-before-icn-expansion-build-20260902-170533.css',

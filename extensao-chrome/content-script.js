@@ -35,14 +35,47 @@
     let disposed = false;
     let timeout;
     let animationFrame;
-    // 390px é a largura do anúncio. 310px é somente o fallback de seu posicionador.
-    let referenceWidth = 390;
-    let referenceHeight = 310;
-    const promo = document.getElementById("premium-promo-banner");
-    if (promo) {
-        const bounds = promo.getBoundingClientRect();
-        if (bounds.width > 0) referenceWidth = bounds.width;
-        if (bounds.height > 0) referenceHeight = bounds.height;
+    let viewMode = "full";
+    let anchorTop = 12;
+    const toolbarIds = ["barraAcessibilidade", "global-header-container", "language-selector-placeholder"];
+    const toolbars = new Set();
+    // 390px = 650px da versão anterior menos 40%. A altura independe do anúncio.
+    const cardWidth = 390;
+    const toolbarObserver = new ResizeObserver(() => requestPosition(true));
+    const pageObserver = new MutationObserver(() => {
+        if (connectToolbars()) requestPosition(true);
+    });
+    let measurePending = false;
+
+    function connectToolbars() {
+        const current = new Set(toolbarIds.map((id) => document.getElementById(id)).filter(Boolean));
+        let changed = false;
+        for (const el of toolbars) {
+            if (!current.has(el)) {
+                toolbarObserver.unobserve(el);
+                toolbars.delete(el);
+                changed = true;
+            }
+        }
+        for (const el of current) {
+            if (!toolbars.has(el)) {
+                toolbars.add(el);
+                toolbarObserver.observe(el);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
+    function measureAnchor() {
+        const bottoms = [];
+        for (const el of toolbars) {
+            const rect = el.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0 && rect.bottom > 0 && rect.top < window.innerHeight) {
+                bottoms.push(rect.bottom);
+            }
+        }
+        anchorTop = bottoms.length ? Math.max(...bottoms) + 12 : 12;
     }
 
     function settle(status) {
@@ -52,41 +85,50 @@
         resolveOpening({ status });
     }
 
-    function position() {
+    function position(measure = false) {
         if (disposed) return;
-        const width = Math.min(Math.round(referenceWidth * 5 / 3), Math.max(1, window.innerWidth - 24));
-        const height = Math.min(Math.round(referenceHeight), Math.max(1, window.innerHeight - 24));
-        let top = 140;
-        const bottoms = [];
-        ["barraAcessibilidade", "global-header-container", "language-selector-placeholder"].forEach((id) => {
-            const el = document.getElementById(id);
-            if (!el) return;
-            const rect = el.getBoundingClientRect();
-            if (rect.bottom > 0 && rect.top < window.innerHeight) bottoms.push(rect.bottom);
-        });
-        if (bottoms.length) top = Math.max(...bottoms) + 12;
-        top = Math.max(12, Math.min(top, window.innerHeight - height - 12));
+        if (measure) measureAnchor();
+        const width = Math.min(cardWidth, Math.max(1, window.innerWidth - 24));
+        const available = window.innerHeight - anchorTop - 12;
+        if (available < 240) {
+            const wasOpen = resolved;
+            settle("fallback");
+            close();
+            if (wasOpen) {
+                chrome.runtime.sendMessage({ type: "gasometria:fallback", session }).catch(() => {});
+            }
+            return false;
+        }
+        const height = viewMode === "compact" ? Math.min(available, Math.max(240, Math.round(available / 2))) : available;
         host.style.setProperty("width", width + "px", "important");
         host.style.setProperty("height", height + "px", "important");
-        host.style.setProperty("top", top + "px", "important");
+        host.style.setProperty("top", anchorTop + "px", "important");
+        return true;
     }
 
-    function requestPosition() {
+    function requestPosition(measure = false) {
+        if (disposed) return;
+        measurePending = measurePending || measure;
         if (!animationFrame) {
             animationFrame = requestAnimationFrame(() => {
                 animationFrame = null;
-                position();
+                const shouldMeasure = measurePending;
+                measurePending = false;
+                position(shouldMeasure);
             });
         }
     }
+
+    function onResize() { requestPosition(true); }
 
     function close() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timeout);
         cancelAnimationFrame(animationFrame);
-        window.removeEventListener("resize", requestPosition);
-        window.removeEventListener("scroll", requestPosition);
+        window.removeEventListener("resize", onResize);
+        toolbarObserver.disconnect();
+        pageObserver.disconnect();
         chrome.runtime.onMessage.removeListener(onMessage);
         host.remove();
         if (globalThis[KEY]?.close === close) delete globalThis[KEY];
@@ -106,6 +148,10 @@
         } else if (message.type === "gasometria:close") {
             close();
             sendResponse({ ok: true });
+        } else if (message.type === "gasometria:view" && ["full", "compact"].includes(message.mode)) {
+            viewMode = message.mode;
+            position();
+            sendResponse({ ok: true });
         }
         return false;
     }
@@ -113,10 +159,11 @@
     const opening = new Promise((resolve) => { resolveOpening = resolve; });
     globalThis[KEY] = { close };
     chrome.runtime.onMessage.addListener(onMessage);
-    window.addEventListener("resize", requestPosition);
-    window.addEventListener("scroll", requestPosition, { passive: true });
-    position();
+    window.addEventListener("resize", onResize);
+    connectToolbars();
+    if (!position(true)) return opening;
     (document.body || document.documentElement).appendChild(host);
+    pageObserver.observe(document.body || document.documentElement, { childList: true, subtree: true });
     timeout = setTimeout(() => {
         settle("fallback");
         close();
