@@ -99,7 +99,10 @@ Referências exibidas: pH 7,35–7,45; PaCO₂ 35–45 mmHg; HCO₃⁻ 22–26 m
 - Acidose respiratória: HCO₃⁻ estimado agudo = 24 + 0,10 × (PaCO₂ −40); crônico = 24 + 0,35 × (PaCO₂ −40).
 - Alcalose respiratória: HCO₃⁻ estimado agudo = 24 −0,22 × (40 −PaCO₂); crônico = 24 −0,40 × (40 −PaCO₂).
 - As estimativas respiratórias são apresentadas para comparação; a extensão não infere duração aguda/crônica só desses campos.
-- Confere coerência aproximada por pH = 6,1 + log10[HCO₃⁻/(0,03 × PaCO₂)]. Diferença >0,08 suspende a interpretação e pede conferência do laudo. **0,08 é um corte de triagem adotado nesta interface, não um limite clínico universal.**
+- Usa os termos acidose/alcalose no título, com acidemia/alcalemia entre parênteses quando o pH estiver reduzido/elevado. Acidemia e alcalemia descrevem o pH observado; acidose e alcalose descrevem os processos que precisam ser avaliados pelos demais parâmetros.
+- Confere coerência aproximada por pH = 6,1 + log10[HCO₃⁻/(0,03 × PaCO₂)]. Diferença >0,08 mantém a classificação do pH visível e pede conferência do laudo antes de definir o tipo de distúrbio e a compensação. Exibe também o pH calculado e o digitado. **0,08 é um corte de triagem adotado nesta interface, não um limite clínico universal.**
+- Exemplo: 7,47 / 40 / 22 mostra **pH informado sugere alcalose (alcalemia)** com aviso de discrepância; 7,47 / 32 / 22 mostra **Alcalose respiratória (alcalemia)** com estimativas de compensação.
+- **Alcalose/acidose mista** significa componentes metabólico e respiratório no mesmo sentido nesta calculadora. O nome do padrão não gera automaticamente um rótulo de gravidade.
 - PaO₂, BE e SatO₂ recebem comparação com a referência; não alteram sozinhos a classificação ácido-base.
 - Não calcula ânion gap, delta gap, FiO₂, lactato nem conduta terapêutica, pois esses dados não estão na primeira coluna.
 

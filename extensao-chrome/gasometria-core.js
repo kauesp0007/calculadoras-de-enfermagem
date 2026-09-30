@@ -64,6 +64,22 @@
         return "Na faixa de referência";
     }
 
+    // O pH observado continua visível quando o tipo de distúrbio não pode ser definido.
+    function phFinding(ph) {
+        if (ph < 7.35) return {
+            title: "pH informado sugere acidose (acidemia)",
+            summary: "O pH informado está reduzido (acidemia)."
+        };
+        if (ph > 7.45) return {
+            title: "pH informado sugere alcalose (alcalemia)",
+            summary: "O pH informado está elevado (alcalemia)."
+        };
+        return {
+            title: "pH na faixa de referência — conferir valores",
+            summary: "O pH informado está na faixa de referência; isso não confirma a normalidade dos demais parâmetros."
+        };
+    }
+
     function metabolicCompensation(values, acid) {
         const expected = acid ? 1.5 * values.hco3 + 8 : 40 + 0.7 * (values.hco3 - 24);
         const low = expected - 2;
@@ -127,7 +143,7 @@
         if ((acid && respAcid && metabAcid) || (alk && respAlk && metabAlk)) {
             return {
                 code: acid ? "mixed-acidosis" : "mixed-alkalosis", tone: "attention",
-                title: acid ? "Acidose metabólica e respiratória" : "Alcalose metabólica e respiratória",
+                title: acid ? "Acidose mista (acidemia)" : "Alcalose mista (alcalemia)",
                 summary: "Padrão compatível com componentes respiratório e metabólico no mesmo sentido.",
                 compensation: { ...none, message: "Alterações no mesmo sentido sugerem um padrão misto." }
             };
@@ -135,7 +151,7 @@
         if ((acid && metabAcid) || (alk && metabAlk)) {
             return {
                 code: acid ? "metabolic-acidosis" : "metabolic-alkalosis", tone: "attention",
-                title: acid ? "Acidose metabólica" : "Alcalose metabólica",
+                title: acid ? "Acidose metabólica (acidemia)" : "Alcalose metabólica (alcalemia)",
                 summary: "Padrão compatível com componente metabólico predominante nos valores informados.",
                 compensation: metabolicCompensation(values, acid)
             };
@@ -143,14 +159,15 @@
         if ((acid && respAcid) || (alk && respAlk)) {
             return {
                 code: acid ? "respiratory-acidosis" : "respiratory-alkalosis", tone: "attention",
-                title: acid ? "Acidose respiratória" : "Alcalose respiratória",
+                title: acid ? "Acidose respiratória (acidemia)" : "Alcalose respiratória (alcalemia)",
                 summary: "Padrão compatível com componente respiratório predominante nos valores informados.",
                 compensation: respiratoryCompensation(values, acid)
             };
         }
+        const finding = phFinding(ph);
         return {
-            code: "indeterminate", tone: "attention", title: "Padrão ácido-base inconclusivo",
-            summary: "O pH está alterado, mas PaCO₂/HCO₃⁻ não sustentam um padrão simples pelas faixas adotadas.",
+            code: "indeterminate", tone: "attention", title: finding.title,
+            summary: finding.summary + " PaCO₂ e HCO₃⁻ não sustentam um padrão metabólico ou respiratório simples pelas faixas adotadas.",
             compensation: none
         };
     }
@@ -186,13 +203,15 @@
             "PaO₂ e SatO₂ devem ser avaliadas com o oxigênio inspirado e o contexto clínico."
         ];
         if (discrepancy > CONSISTENCY_TOLERANCE) {
+            const finding = phFinding(values.ph);
             result = {
                 code: "inconsistent", tone: "attention",
-                title: "Conferir os valores informados",
-                summary: "pH, PaCO₂ e HCO₃⁻ apresentam discrepância interna. Confira o laudo e os campos antes de interpretar.",
+                title: finding.title,
+                summary: finding.summary + " PaCO₂ e HCO₃⁻ informados correspondem a um pH calculado de aproximadamente " +
+                    format(consistencyPh, 2) + ", diferente do pH digitado (" + format(values.ph, 2) + "). Confira os três valores no laudo.",
                 compensation: {
                     kind: "none", relation: "undetermined", expectedText: "",
-                    message: "A interpretação ácido-base fica suspensa até a conferência."
+                    message: "É preciso conferir os valores para definir o tipo de distúrbio (metabólico ou respiratório) e sua compensação."
                 }
             };
         }

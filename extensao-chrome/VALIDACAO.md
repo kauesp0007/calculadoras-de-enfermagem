@@ -44,3 +44,24 @@ A revisão clínica consultou ATS/UCSF e confirmou os seis campos e os problemas
 - Revisão profissional da interpretação antes de uso assistencial/publicação.
 
 A preparação do código não representa aprovação pela Chrome Web Store, publicação ou instalação no computador do usuário.
+
+## Revisão após os testes do usuário — 30/09/2026
+
+O ambiente passou a permitir Node.js. Antes da alteração, os 113 testes existentes também passaram em Node. Foi feito backup dos quatro arquivos editados em `backups-temporarios/20260930-gasometria/`, na cópia de trabalho usada nesta revisão.
+
+A classificação do pH permanece no título em resultados inconsistentes: "pH informado sugere alcalose (alcalemia)" ou "pH informado sugere acidose (acidemia)". O aviso mostra o pH calculado pela relação PaCO₂/HCO₃⁻ e limita a indefinição ao tipo de distúrbio e à compensação. Resultados válidos também apresentam acidemia/alcalemia entre parênteses. O padrão com componentes metabólico e respiratório no mesmo sentido passa a usar o nome "mista". Equações, faixas e corte de coerência não foram modificados.
+
+Foram revisadas as fontes institucionais ATS (coerência e padrões) e UCSF Hospital Handbook (compensação). A página pública atualmente usa direção das alterações para classificar compensação; não aplica Winter nem a conferência de Henderson–Hasselbalch. A diferença de algoritmo foi registrada, sem alteração da página pública nesta revisão da extensão.
+
+| Caso informado: pH / PaCO₂ / HCO₃⁻ | pH calculado aproximado | Resultado da extensão revisada |
+| --- | ---: | --- |
+| 7,47 / 40 / 22 | 7,36 | pH sugere alcalose (alcalemia); conferir valores |
+| 7,47 / 32 / 22 | 7,46 | Alcalose respiratória (alcalemia) |
+| 7,47 / 32 / 27 | 7,55 | Alcalose mista (alcalemia), pelo corte atual de 0,08 |
+| 7,29 / 32 / 21 | 7,44 | pH sugere acidose (acidemia); conferir valores |
+
+O caso misto está perto do corte de discrepância (diferença 0,0791); as equações são aproximações e o resultado continua sendo apoio, não confirmação de validade do laudo. O corte 0,08 é uma decisão da interface, não uma recomendação universal atribuída às fontes.
+
+Teste completo após o ajuste: **128 verificações aprovadas em Node.js** — 63 clínicas, 38 de runtime simulado e 27 estruturais. As novas regressões incluem os quatro conjuntos de valores das fotos, títulos comuns/técnicos, acidemia e pH na referência com discrepância e padrões limítrofes inconclusivos. O revisor clínico independente leu a implementação final, executou os 63 testes clínicos no Node e aprovou o ajuste sem bloqueios; registro também no PR.
+
+As imagens enviadas pelo usuário confirmam a abertura no Chrome, a janela alternativa em página restrita, o card no site, o cálculo e a apresentação de resultados da versão anterior. A comparação visual com a imagem original foi possível posteriormente. Isso complementa, mas não substitui, testes completos em Chrome da implementação atualizada, incluindo teclado/CSP, anúncio Premium, modo anônimo e empacotamento PowerShell.
