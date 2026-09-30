@@ -1,0 +1,38 @@
+name: Generate translations for recovered guides
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - scripts/translate-recovered-guides.py
+      - .github/workflows/translate-recovered-guides.yml
+
+permissions:
+  contents: read
+
+jobs:
+  translate:
+    environment: github-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      TRANSLATION_PROVIDER: deepseek
+      TRANSLATION_MAX_FALLBACK: '2'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install existing translation pipeline dependencies
+        run: python -m pip install requests python-dotenv
+      - name: Generate and validate translations without publishing
+        run: python scripts/translate-recovered-guides.py
+      - name: Store translations for review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recovered-guides-translations
+          path: /tmp/recovered-guides/
+          if-no-files-found: warn
