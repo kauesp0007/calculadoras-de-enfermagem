@@ -13,10 +13,15 @@ module.exports = function testStructure() {
 
     check(() => assert.equal(manifest.name, "calculadora de gasometria arterial"));
     check(() => assert.equal(manifest.manifest_version, 3));
-    check(() => assert.deepEqual(manifest.permissions, ["activeTab", "scripting"]));
+    check(() => assert.deepEqual(manifest.permissions, ["sidePanel"]));
     check(() => assert.equal(manifest.action.default_popup, undefined));
     check(() => assert.equal(manifest.host_permissions, undefined));
-    check(() => assert.deepEqual(manifest.web_accessible_resources[0].resources, ["calculator.html"]));
+    check(() => assert.equal(manifest.web_accessible_resources, undefined));
+    check(() => assert.deepEqual(manifest.side_panel, { default_path: "calculator.html" }));
+    check(() => assert.equal(manifest.minimum_chrome_version, "142"));
+    check(() => assert.equal(manifest.version, JSON.parse(read("package.json")).version));
+    check(() => assert.equal(manifest.content_scripts, undefined));
+    check(() => assert.equal(fs.existsSync(path.join(base, "content-script.js")), false));
     check(() => assert.ok(manifest.content_security_policy.extension_pages.includes("connect-src 'none'")));
     check(() => assert.equal((html.match(/<input\b/g) || []).length, 6));
     check(() => assert.deepEqual([...html.matchAll(/<input\b[^>]*\bid="([^"]+)"/g)].map(m => m[1]), ["ph", "paco2", "hco3", "pao2", "be", "sato2"]));
@@ -24,11 +29,23 @@ module.exports = function testStructure() {
     check(() => assert.ok(html.includes('href="https://www.calculadorasdeenfermagem.com.br/"')));
     check(() => assert.ok(!/\bon(?:click|load|submit|error)=/i.test(html)));
     check(() => assert.ok([...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)].every(match => /\bsrc=/.test(match[1]) && match[2].trim() === "")));
-    for (const file of ["gasometria-core.js", "calculator.js", "service-worker.js", "content-script.js"]) {
+    for (const file of ["gasometria-core.js", "calculator.js", "service-worker.js"]) {
         check(() => { new Function(read(file)); });
     }
     check(() => assert.ok(!/\b(?:fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB)\b/.test(read("calculator.js") + read("gasometria-core.js"))));
     check(() => assert.ok(!/innerHTML|document\.write/.test(read("calculator.js"))));
+    check(() => assert.ok(!/windows\.(?:create|update|remove)|scripting|executeScript|window\.close\(/.test(read("calculator.js") + read("service-worker.js"))));
+    check(() => assert.ok(!read("empacotar.ps1").includes("content-script.js")));
+    const assets = new Set([
+        manifest.side_panel.default_path, manifest.background.service_worker,
+        ...Object.values(manifest.icons), ...Object.values(manifest.action.default_icon),
+        ...[...html.matchAll(/<(?:script|link)\b[^>]*\b(?:src|href)="([^"]+)"/g)].map(m => m[1]),
+        ...[...read("calculator.css").matchAll(/url\("([^"]+)"\)/g)].map(m => m[1])
+    ]);
+    check(() => assert.ok([...assets].every(asset => !asset.includes("..") && fs.existsSync(path.join(base, asset)))));
+    for (const license of ["OFL-Inter.txt", "OFL-NunitoSans.txt"]) {
+        check(() => assert.ok(read("fonts/" + license).includes("SIL OPEN FONT LICENSE")));
+    }
     for (const size of [16, 32, 48, 128]) {
         check(() => {
             const png = fs.readFileSync(path.join(base, manifest.icons[String(size)]));

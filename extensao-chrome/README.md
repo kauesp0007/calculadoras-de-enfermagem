@@ -1,10 +1,20 @@
 # calculadora de gasometria arterial
 
-Extensão independente do Chrome, criada dentro de `extensao-chrome/`. Usa a primeira coluna de `gasometria.html` como modelo visual: uma coluna com pH, PaCO₂, HCO₃⁻, PaO₂, excesso de base (BE) e SatO₂, nessa ordem. O site existente não precisa ser alterado.
+Versão **0.2.0**. Extensão Manifest V3 independente, dentro de `extensao-chrome/`, com painel lateral nativo do Chrome. Mantém os seis campos da primeira coluna de `gasometria.html`, o hero navy, as fontes locais, as cores dos resultados e a divulgação do site.
 
-## 1. Trazer a pasta para o seu computador
+O visual segue o modelo do Gemini indicado pelo usuário: card de até 390 px, cantos de 16 px, sombra externa, título de 25 px e formulário branco com os mesmos espaçamentos e botões. A posição é a do painel nativo; o card não fica centralizado em uma página de demonstração.
 
-No terminal do VS Code, dentro do repositório:
+## Instalar ou atualizar no Windows
+
+1. Feche a janela separada da versão antiga pelo X do Windows.
+2. Guarde uma cópia da sua pasta atual. Extraia o pacote completo para `C:\calculadoras-de-enfermagem\extensao-chrome`, substituindo os arquivos dessa extensão. O `manifest.json` deve ficar diretamente nessa pasta.
+3. Apague o antigo `extensao-chrome/content-script.js`, caso ainda exista após a substituição. Ele foi retirado da versão 0.2.0.
+4. Abra `chrome://extensions`. Se a extensão já está carregada dessa pasta, clique em **Recarregar**. Para uma instalação nova, ative **Modo do desenvolvedor**, escolha **Carregar sem compactação** e selecione a pasta que contém o manifest.
+5. Fixe o ícone no menu de extensões do Chrome e clique nele.
+
+Requer **Chrome 142 ou posterior**. Não exige Node.js, instalação de dependências, compilação, deploy do site ou aprovação da conta da Chrome Web Store para o teste local. O ZIP deve ser extraído; não é um instalador que se abre com duplo clique.
+
+Para trazer os mesmos arquivos do GitHub ao repositório local, depois de guardar alterações próprias:
 
 ```powershell
 cd C:\calculadoras-de-enfermagem
@@ -12,98 +22,82 @@ git fetch origin codex/extensao-gasometria-arterial
 git restore --source=FETCH_HEAD -- extensao-chrome
 ```
 
-Esses comandos copiam os arquivos desta branch para a pasta local. Use-os sobre a pasta vazia que você criou; se houver trabalho local na pasta, faça uma cópia dele antes de restaurar.
+A restauração da pasta traz também a remoção do content-script antigo. Ela substitui os arquivos locais da extensão pela versão da branch.
 
-## 2. Instalar para testar no Chrome
+## Posição e altura
 
-1. Abra `chrome://extensions`.
-2. Ative **Modo do desenvolvedor**.
-3. Clique em **Carregar sem compactação**.
-4. Selecione `C:\calculadoras-de-enfermagem\extensao-chrome`, a pasta que contém o `manifest.json`.
-5. No menu de extensões do Chrome, fixe **calculadora de gasometria arterial**.
+O clique no ícone abre ou fecha o **painel lateral do próprio navegador**. A calculadora fica no topo desse painel, alinhada à direita. Não acompanha a rolagem da página e não cria uma janela independente.
 
-Não há instalação de dependências nem compilação para carregar a extensão. A versão mínima declarada é Chrome 102.
+O conteúdo da calculadora tem **largura máxima de 390 px**, redução de 40% sobre os 650 px iniciais. Em espaços menores, usa a largura disponível. **A largura externa e o lado do painel são controlados pelo Chrome**, não pela extensão. Para o painel à direita, escolha essa posição nas configurações de **Aparência / Painel lateral** do Chrome. A borda do painel permite ajustar sua largura. Se o navegador informar que o painel está à esquerda, a calculadora mostra uma orientação curta.
 
-## 3. Usar a calculadora
+A altura inicial acompanha o conteúdo: título, formulário, **Calcular/Limpar** e rodapé. Ao calcular, a caixa cresce **para baixo**, mantendo o topo na mesma posição, até o limite de altura do painel. Quando formulário e resultado ultrapassam esse limite, somente o corpo da calculadora rola; cabeçalho e rodapé permanecem visíveis. A página visitada não é deslocada pelo código de rolagem da calculadora.
 
-Abra uma página HTTP/HTTPS comum e clique no ícone da extensão. O card fica fixo à direita, logo abaixo da última barra superior reconhecida do site. Rolar a página não reposiciona o card. Outro clique no ícone, o botão **X** ou **Esc** fecha o card.
+**Meia altura** reduz a altura da caixa com rolagem interna. **Altura completa** restaura a altura necessária ao conteúdo, limitada ao espaço disponível. Campos e resultado são preservados na troca. Há mínimo de 240 px quando existe esse espaço; com menos de 480 px totais, o controle se chama **Compactar**, porque o mínimo pode impedir uma metade exata. Em um painel menor que 240 px, prevalece o espaço disponível.
 
-- Cabeçalho hero com o nome da calculadora.
-- Uma coluna com os seis campos e suas referências.
-- **Calcular** e **Limpar** abaixo do formulário.
-- Resultado em hero abaixo dos botões.
-- Rodapé com **Visite nosso site** e link para https://www.calculadorasdeenfermagem.com.br/.
-- pH, PaCO₂ e HCO₃⁻ são obrigatórios. PaO₂, BE e SatO₂ são opcionais.
-- Aceita ponto ou vírgula decimal. Campos vazios não são tratados como zero.
-- Alterar um campo oculta o resultado anterior. Limpar remove campos e resultado.
-- O botão **Meia altura** compacta o card com rolagem interna; **Altura completa** restaura a altura, mantendo os valores e o resultado.
+As referências ficam disponíveis no botão **Referências** do rodapé, para que a abertura inicial termine logo após os botões e a divulgação do site.
 
-Experimente pH `7,40`, PaCO₂ `40` e HCO₃⁻ `24`: o resultado deve indicar parâmetros ácido-base na faixa de referência.
+## Calcular
 
-O card tem **390 px de largura**, redução de **40% sobre os 650 px anteriores**, e se adapta a telas mais estreitas. Abre em **altura completa**, ocupando o espaço disponível entre as barras superiores e a margem inferior de 12 px. As dimensões independem do anúncio Premium.
+- Uma coluna, nesta ordem: pH, PaCO₂, HCO₃⁻, PaO₂, excesso de base (BE) e SatO₂.
+- pH, PaCO₂ e HCO₃⁻ são obrigatórios; os demais são opcionais.
+- Aceita ponto ou vírgula decimal. Campo vazio não vira zero.
+- O resultado aparece em hero abaixo de **Calcular/Limpar**.
+- Alterar um campo oculta o resultado anterior. **Limpar** remove campos e resultado.
+- **X**, **Esc**, o fechamento nativo e o fechamento pelo ícone limpam o formulário; não há histórico persistente.
+- Rodapé: **Visite nosso site**, com link para https://www.calculadorasdeenfermagem.com.br/.
 
-No modo **Meia altura**, usa metade desse espaço, com mínimo de 240 px para manter os controles acessíveis. Quando a altura completa é menor que 480 px, o botão se chama **Compactar**, pois esse mínimo impede uma redução exata à metade. O corpo tem **rolagem interna** sempre que o conteúdo excede a altura; título, controle de altura e rodapé permanecem visíveis.
-
-O posicionador reconhece `barraAcessibilidade`, `global-header-container` e `language-selector-placeholder`. Observa a inclusão e a mudança de tamanho dessas barras, sem acompanhar a rolagem da página. Em outros sites, começa no topo da área da página, com margem de 12 px; as barras nativas do Chrome já ficam fora dessa área.
-
-Em páginas restritas, como `chrome://extensions`, se o card não conseguir carregar ou houver menos de 240 px abaixo das barras, abre uma janela separada de 414 × 800 px, incluindo as bordas. O controle de altura também funciona nessa janela. A área útil e os limites dependem do Chrome e do sistema operacional. Se um redimensionamento retirar o espaço necessário de um card já aberto, a janela alternativa começa com um formulário novo.
-
-Os resultados mantêm o hero navy do site e recebem acentos e etiquetas com texto:
+Experimente pH `7,40`, PaCO₂ `40` e HCO₃⁻ `24`: parâmetros ácido-base na faixa de referência.
 
 | Cor | Uso |
 | --- | --- |
-| Verde | Parâmetro na referência ou conclusão ácido-base na referência. |
-| Vermelho | Acidose na conclusão; direção ácida de pH, PaCO₂, HCO₃⁻ ou BE. |
-| Violeta | Alcalose na conclusão; direção alcalina desses parâmetros. |
-| Âmbar | Oxigenação fora da referência, padrão misto, valores a conferir ou avaliação conjunta. |
-| Cinza | Parâmetro opcional não informado. |
+| Verde | Parâmetro ou conclusão na referência. |
+| Vermelho | Acidose na conclusão; direção ácida dos parâmetros ácido-base. |
+| Violeta | Alcalose na conclusão; direção alcalina dos parâmetros ácido-base. |
+| Âmbar | Oxigenação fora da referência, padrão misto, conferência ou avaliação conjunta. |
+| Cinza | Opcional não informado. |
 
-Cada parâmetro traz seu valor e uma etiqueta específica. A **Legenda das cores** explica os acentos; cor não representa gravidade nem substitui a interpretação em conjunto. As regras clínicas de `gasometria-core.js` foram preservadas neste ajuste visual.
+As etiquetas também apresentam texto. Cor não indica gravidade nem substitui a interpretação em conjunto. O título **Alcalose (alcalemia)** foi mantido para o achado de pH nos casos previamente ajustados, com o aviso de conferência quando necessário. A migração para painel nativo não altera o núcleo clínico.
 
-## 4. Arquivos
+## Arquivos
 
 | Arquivo | Função |
 | --- | --- |
-| `manifest.json` | Nome, versão, permissões e configuração Manifest V3. |
-| `service-worker.js` | Clique no ícone, abertura alternativa e mensagens de prontidão, fechamento e altura. |
-| `content-script.js` | Ancora o card abaixo das barras, alterna altura e remove o card na aba. |
-| `calculator.html` | Uma coluna de formulário, botões, resultado e rodapé. |
-| `calculator.css` | Gradiente navy, tipografia local, cores, bordas e sombras. |
-| `calculator.js` | Validação da interface, resultado, limpeza e fechamento. |
-| `gasometria-core.js` | Lógica de cálculo isolada da interface. |
-| `icons/` | Ícones PNG de 16, 32, 48 e 128 px. |
-| `fonts/` | Fontes Inter/Nunito Sans e respectivas licenças SIL OFL. |
-| `tests/` | Testes de cálculo, ciclo de vida, interface simulada, contraste e estrutura. |
-| `PRIVACIDADE.md` | Descrição de tratamento de dados para revisão da publicação. |
-| `VALIDACAO.md` | Evidências, escopo e verificações ainda pendentes. |
-| `empacotar.ps1` | Gera o ZIP com os arquivos necessários à extensão. |
+| `manifest.json` | Manifest V3, versão, painel nativo e permissão sidePanel. |
+| `service-worker.js` | Configura o clique no ícone e informa o fechamento do painel. |
+| `calculator.html` | Formulário, botões, resultado, referências e rodapé. |
+| `calculator.css` | Navy, fontes locais, cores, bordas, sombras e rolagem interna. |
+| `calculator.js` | Interface, cálculo da altura, limpeza e fechamento nativo. |
+| `gasometria-core.js` | Núcleo de cálculo separado da interface. |
+| `icons/` | PNGs de 16, 32, 48 e 128 px. |
+| `fonts/` | Inter/Nunito Sans e suas licenças SIL OFL. |
+| `tests/` | Cálculo, API/DOM simulados, estrutura, recursos e contraste. |
+| `INSTALAR.txt` | Instruções curtas para instalação local. |
+| `PRIVACIDADE.md` | Tratamento dos dados. |
+| `VALIDACAO.md` | Evidências e limites da verificação. |
+| `empacotar.ps1` | Valida e gera o ZIP de execução para distribuição. |
 
-O formulário roda em um iframe da própria extensão. As mensagens entre componentes contêm somente o tipo da ação, um identificador efêmero do card e, ao alterar a altura, o modo `full` ou `compact`. Valores clínicos não são enviados nessas mensagens.
+A interface roda na página da própria extensão, dentro do painel nativo. A permissão é somente `sidePanel`: não há permissões de host, activeTab, scripting ou content-script. A mensagem interna de fechamento contém apenas tipo e identificador da janela do navegador, nunca os valores clínicos.
 
-## 5. Conferir alterações
+## Verificar e empacotar
 
-Após editar um arquivo, clique no botão de recarregar da extensão em `chrome://extensions`, recarregue a página de teste e abra novamente a calculadora.
-
-Os testes podem ser executados com Node.js, sem baixar dependências:
+Após editar, recarregue a extensão em `chrome://extensions` e abra o painel novamente. Para executar os testes, se tiver Node.js:
 
 ```powershell
 cd C:\calculadoras-de-enfermagem\extensao-chrome
 node tests/run.cjs
 ```
 
-Ou use `npm test` nessa mesma pasta. Não execute esse comando na raiz do site esperando testar a extensão.
+Também funciona `npm test` nessa pasta. Não há dependências a baixar.
 
-## 6. Gerar o ZIP para a Chrome Web Store
-
-No terminal PowerShell, dentro da pasta da extensão:
+Para gerar o pacote de execução com manifest na raiz:
 
 ```powershell
 powershell -NoProfile -File .\empacotar.ps1
 ```
 
-O script executa os testes e cria `calculadora-gasometria-arterial-0.1.0.zip`. O manifest fica na raiz do ZIP. Documentação e testes não são enviados no pacote. Carregar localmente não depende da aprovação da conta da loja.
+O script executa os testes e cria `calculadora-gasometria-arterial-0.2.0.zip`, incluindo scripts, HTML/CSS, ícones, fontes e licenças. Documentação, testes, backups e arquivos antigos ficam fora desse pacote. O ZIP completo entregue para desenvolvimento também contém documentação e testes.
 
-Antes do envio, confira a extensão em Chrome real e revise a política de privacidade, a descrição e as capturas da loja. Esta versão não inclui cobrança, assinatura ou conta de usuário.
+Confira a integração e o visual no Chrome antes de enviar à loja. A extensão não inclui cobrança ou conta de usuário. Este código não foi publicado na Chrome Web Store.
 
 ## Critérios de cálculo
 
@@ -130,4 +124,4 @@ Fontes: [ATS — Interpretation of Arterial Blood Gases](https://member.thoracic
 
 ## Separar do repositório futuramente
 
-Copie apenas `extensao-chrome/` para uma nova pasta/repositório. Todos os caminhos de execução são relativos à própria extensão; ela não depende dos scripts globais, Firebase, anúncios ou build do site. Preserve as licenças das fontes ao distribuir.
+Copie apenas `extensao-chrome/` para uma nova pasta/repositório. Os caminhos de execução são relativos à extensão. Preserve as licenças das fontes. Ela não depende de autenticação, anúncios, scripts globais ou build do site.

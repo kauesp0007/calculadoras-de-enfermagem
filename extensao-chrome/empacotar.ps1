@@ -25,7 +25,6 @@ if (Test-Path -LiteralPath $Destino) {
 $extensionPackageEntries = @(
     "manifest.json",
     "service-worker.js",
-    "content-script.js",
     "calculator.html",
     "calculator.css",
     "calculator.js",

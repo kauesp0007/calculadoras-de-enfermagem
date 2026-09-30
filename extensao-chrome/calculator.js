@@ -4,13 +4,21 @@
     const form = document.getElementById("gasometria-form");
     const resultSection = document.getElementById("resultado-gasometria");
     const error = document.getElementById("form-error");
-    const embedded = location.hash === "#embedded";
-    const session = new URLSearchParams(location.search).get("session");
     const fieldIds = Gasometria.FIELDS.map((field) => field.id);
     const heightButton = document.getElementById("btnAltura");
     const viewFeedback = document.getElementById("view-feedback");
     let viewMode = "full";
-    let fullPopupHeight;
+    const shell = document.getElementById("calculator-shell");
+    const main = document.getElementById("main-content");
+    const body = document.getElementById("calculator-body");
+    const header = document.getElementById("calculator-header");
+    const footer = document.getElementById("calculator-footer");
+    const references = document.getElementById("referencias");
+    const referencesButton = document.getElementById("btnReferencias");
+    let fullCardHeight = 0;
+    let ownWindowId;
+    let pendingFrame;
+    let disposed = false;
 
     function resetFeedback() {
         resultSection.hidden = true;
@@ -20,6 +28,7 @@
         error.hidden = true;
         error.textContent = "";
         for (const id of fieldIds) document.getElementById(id).removeAttribute("aria-invalid");
+        fitCard();
     }
 
     // Cores de apresentação: não modificam a interpretação do núcleo clínico.
@@ -85,7 +94,12 @@
         document.getElementById("resultado-note").textContent = result.notes.join(" ");
         resultSection.hidden = false;
         resultSection.focus({ preventScroll: true });
-        resultSection.scrollIntoView({ block: "start", behavior: "auto" });
+        fitCard();
+        const resultBounds = resultSection.getBoundingClientRect();
+        const mainBounds = main.getBoundingClientRect();
+        if (resultBounds.bottom > mainBounds.bottom) {
+            main.scrollTop += resultBounds.top - mainBounds.top;
+        }
     }
 
     form.addEventListener("submit", (event) => {
@@ -97,6 +111,7 @@
             error.textContent = result.errors.map((item) => item.message).join(" ");
             error.hidden = false;
             for (const item of result.errors) document.getElementById(item.field).setAttribute("aria-invalid", "true");
+            fitCard();
             document.getElementById(result.errors[0].field).focus();
             return;
         }
@@ -112,17 +127,14 @@
             "resultado-esperado", "resultado-note", "resultado-status"
         ]) document.getElementById(id).textContent = "";
         requestAnimationFrame(() => {
-            document.getElementById("main-content").scrollTop = 0;
+            main.scrollTop = 0;
+            fitCard();
             document.getElementById("ph").focus({ preventScroll: true });
         });
     });
 
-    function send(type, options = {}) {
-        return chrome.runtime.sendMessage({ type, session, ...options });
-    }
-
     function refreshViewButton() {
-        const small = window.innerHeight < 480;
+        const small = fullCardHeight < 480;
         const compact = viewMode === "compact";
         heightButton.setAttribute("aria-pressed", String(compact));
         document.getElementById("altura-label").textContent = compact ? "Altura completa" : small ? "Compactar" : "Meia altura";
@@ -133,48 +145,90 @@
         heightButton.title = description;
     }
 
-    heightButton.addEventListener("click", async () => {
-        const next = viewMode === "full" ? "compact" : "full";
-        heightButton.disabled = true;
-        viewFeedback.hidden = true;
-        viewFeedback.textContent = "";
-        try {
-            if (embedded && typeof chrome !== "undefined" && chrome.runtime?.id) {
-                const response = await send("gasometria:view", { mode: next });
-                if (response?.ok !== true) throw new Error("resize");
-            } else if (typeof chrome !== "undefined" && chrome.windows?.getCurrent) {
-                const current = await chrome.windows.getCurrent();
-                if (current.type === "popup" && Number.isInteger(current.id)) {
-                    if (viewMode === "full") fullPopupHeight = current.height || window.outerHeight;
-                    const frameHeight = Math.max(0, (current.height || window.outerHeight) - window.innerHeight);
-                    const fullHeight = Math.min(fullPopupHeight, window.screen.availHeight);
-                    const height = next === "full" ? fullHeight :
-                        Math.min(fullHeight, Math.max(240, Math.round((fullHeight - frameHeight) / 2)) + frameHeight);
-                    await chrome.windows.update(current.id, { height });
-                } else {
-                    document.body.classList.toggle("page-compact", next === "compact");
-                }
-            } else {
-                document.body.classList.toggle("page-compact", next === "compact");
-            }
-            viewMode = next;
-            refreshViewButton();
-        } catch (_) {
-            viewFeedback.textContent = "Não foi possível alterar a altura. Recarregue a extensão e a página para tentar novamente.";
-            viewFeedback.hidden = false;
-        } finally {
-            heightButton.disabled = false;
-        }
+    function fitCard() {
+        if (disposed) return;
+        const padding = window.getComputedStyle(main);
+        const natural = Math.ceil(
+            header.getBoundingClientRect().height + footer.getBoundingClientRect().height +
+            body.getBoundingClientRect().height +
+            (parseFloat(padding.paddingTop) || 0) + (parseFloat(padding.paddingBottom) || 0) + 2
+        );
+        fullCardHeight = Math.min(Math.max(1, window.innerHeight), Math.max(1, natural));
+        const height = viewMode === "compact" ?
+            Math.min(fullCardHeight, Math.max(240, Math.round(fullCardHeight / 2))) : fullCardHeight;
+        shell.style.setProperty("--card-height", height + "px");
+        refreshViewButton();
+    }
+
+    function requestFit() {
+        if (disposed || pendingFrame) return;
+        pendingFrame = requestAnimationFrame(() => {
+            pendingFrame = null;
+            fitCard();
+        });
+    }
+
+    heightButton.addEventListener("click", () => {
+        viewMode = viewMode === "full" ? "compact" : "full";
+        fitCard();
     });
-    window.addEventListener("resize", refreshViewButton);
-    refreshViewButton();
+
+    referencesButton.addEventListener("click", () => {
+        const show = references.hidden || !references.open;
+        references.hidden = !show;
+        references.open = show;
+        referencesButton.setAttribute("aria-expanded", String(show));
+        fitCard();
+        if (show) main.scrollTop = main.scrollHeight;
+    });
+    references.addEventListener("toggle", () => {
+        if (!references.open) {
+            if (references.contains(document.activeElement)) referencesButton.focus({ preventScroll: true });
+            references.hidden = true;
+        }
+        referencesButton.setAttribute("aria-expanded", String(!references.hidden && references.open));
+        requestFit();
+    });
+
+    function resetPanel() {
+        viewMode = "full";
+        references.hidden = true;
+        references.open = false;
+        referencesButton.setAttribute("aria-expanded", "false");
+        viewFeedback.hidden = true;
+        form.reset();
+        fitCard();
+    }
+
+    function onNativeMessage(message, sender, sendResponse) {
+        if (sender.id !== chrome.runtime.id || message?.type !== "gasometria:panel-closed" ||
+            !Number.isInteger(message.windowId) || message.windowId !== ownWindowId) return false;
+        resetPanel();
+        sendResponse({ ok: true });
+        return false;
+    }
+
+    async function updateNativeContext() {
+        if (typeof chrome === "undefined" || !chrome.windows?.getCurrent) return;
+        try {
+            const current = await chrome.windows.getCurrent();
+            ownWindowId = current.id;
+            const layout = await chrome.sidePanel.getLayout();
+            document.getElementById("panel-position-help").hidden = layout.side !== "left";
+            fitCard();
+        } catch (_) { /* O Chrome controla a posição do painel. */ }
+    }
 
     async function closeCalculator() {
-        if (embedded && typeof chrome !== "undefined" && chrome.runtime?.id) {
-            try { await send("gasometria:close"); } catch (_) { /* Contexto recarregado. */ }
-        } else {
-            form.reset();
-            window.close();
+        resetPanel();
+        try {
+            if (typeof chrome === "undefined" || !chrome.sidePanel?.close) throw new Error("preview");
+            const current = await chrome.windows.getCurrent();
+            await chrome.sidePanel.close({ windowId: current.id });
+        } catch (_) {
+            viewFeedback.textContent = "Use o botão de fechar do painel lateral do Chrome.";
+            viewFeedback.hidden = false;
+            fitCard();
         }
     }
 
@@ -186,8 +240,23 @@
         }
     });
 
-    // Só prontidão, fechamento e modo de altura; nunca os valores do formulário.
-    if (embedded && session && typeof chrome !== "undefined" && chrome.runtime?.id) {
-        send("gasometria:ready").catch(() => {});
+    const observer = new ResizeObserver(requestFit);
+    [body, header, footer].forEach(el => observer.observe(el));
+    window.addEventListener("resize", requestFit);
+    window.addEventListener("focus", updateNativeContext);
+    if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+        chrome.runtime.onMessage.addListener(onNativeMessage);
     }
+    window.addEventListener("pagehide", () => {
+        disposed = true;
+        observer.disconnect();
+        cancelAnimationFrame(pendingFrame);
+        window.removeEventListener("resize", requestFit);
+        window.removeEventListener("focus", updateNativeContext);
+        if (typeof chrome !== "undefined" && chrome.runtime?.id) {
+            chrome.runtime.onMessage.removeListener(onNativeMessage);
+        }
+    });
+    fitCard();
+    updateNativeContext();
 })();
