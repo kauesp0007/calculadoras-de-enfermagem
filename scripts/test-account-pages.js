@@ -96,7 +96,7 @@ for (const required of [
   "var DISPLAY_MS = 10000;",
   "var INTERVAL_MS = 3 * 60 * 1000;",
   "mountSubscriptionPromo();",
-  'href="/conta/assinatura.html"',
+  '"/conta/assinatura.html?lang=" + lang',
   'data-premium-promo-close'
 ]) {
   if (!banner.includes(required)) fail(`premium-banner-manager.js: regra do banner ausente: ${required}`);

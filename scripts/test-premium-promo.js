@@ -63,13 +63,67 @@ function scenario(pathname, initialPlan = "guest") {
   };
 }
 
-for (const pathname of ["/en/missao.html", "/es/ballard.html", "/conta/perfil.html", "/blog/index.html"]) {
+for (const pathname of ["/conta/perfil.html", "/blog/index.html", "/en/conta/perfil.html", "/xx/index.html"]) {
   const test = scenario(pathname);
   try {
     test.advance(200_000);
-    assert.equal(test.window.document.getElementById("premium-promo-banner"), null, pathname + " must not display the PT promo");
+    assert.equal(test.window.document.getElementById("premium-promo-banner"), null, pathname + " must not display the promo");
   } finally { test.close(); }
 }
+
+const euroLanguages = new Set(["es", "de", "it", "fr", "ru", "tr", "nl", "pl", "sv", "uk"]);
+const internationalLanguages = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
+const subscriptionPage = fs.readFileSync(path.join(__dirname, "../conta/assinatura.html"), "utf8");
+const stripeCheckout = fs.readFileSync(path.join(__dirname, "../supabase/functions/stripe-checkout/index.ts"), "utf8");
+function languageSet(source, expression) {
+  const match = source.match(expression);
+  assert.ok(match, "currency list missing from checkout");
+  return [...match[1].matchAll(/"([a-z]{2})"/g)].map(result => result[1]).sort();
+}
+const expectedEur = [...euroLanguages].sort();
+assert.deepEqual(languageSet(source, /var EUR_LANGS = \[([^\]]+)\]/), expectedEur);
+assert.deepEqual(languageSet(subscriptionPage, /var stripeEur=\[([^\]]+)\]/), expectedEur);
+assert.deepEqual(languageSet(stripeCheckout, /const EUR=\[([^\]]+)\]/), expectedEur);
+assert.deepEqual(languageSet(stripeCheckout, /const INTERNATIONAL=\[([^\]]+)\]/), [...internationalLanguages].sort());
+for (const lang of internationalLanguages) {
+  assert.ok(fs.existsSync(path.join(__dirname, "..", lang, "index.html")), lang + " landing page missing");
+  const test = scenario("/" + lang + "/index.html");
+  try {
+    const root = test.window.document.getElementById("premium-promo-banner");
+    assert.ok(root, lang + " promo missing");
+    assert.equal(root.getAttribute("lang"), lang);
+    assert.equal(root.getAttribute("dir"), lang === "ar" ? "rtl" : null);
+    assert.equal(root.querySelector("img").getAttribute("src"), "/img/ilustracao_enfermeira.webp");
+    assert.equal(root.querySelectorAll("li svg").length, 2);
+    assert.equal(root.querySelector("[data-premium-promo-subscribe]").getAttribute("href"), "/conta/assinatura.html?lang=" + lang);
+    assert.equal(root.querySelector("[data-premium-promo-subscribe]").style.backgroundColor, "rgb(250, 204, 21)");
+    assert.ok(root.querySelector("[data-premium-promo-close]").textContent.trim());
+    assert.ok(root.querySelector("img").getAttribute("alt"));
+    assert.ok(root.textContent.trim().length > 45, lang + " translation missing");
+    assert.doesNotMatch(root.textContent, /Por apenas|Aceitamos Pix|Clique para assinar|Elimine todos/);
+    assert.doesNotMatch(root.textContent, /\bPix\b/i);
+    assert.match(root.textContent, euroLanguages.has(lang) ? /€ 5,00/ : /US\$ 5,00/);
+    test.advance(1500);
+    assert.equal(root.style.display, "block");
+    test.advance(10000 + 180);
+    assert.equal(root.style.display, "none");
+    test.advance(180000 - 10000 - 180);
+    assert.equal(root.style.display, "block", lang + " must repeat after three minutes");
+    root.querySelector("[data-premium-promo-close]").click();
+    test.advance(180);
+    assert.equal(root.style.display, "none");
+  } finally { test.close(); }
+
+  const subscribed = scenario("/" + lang + "/index.html", "premium");
+  assert.equal(subscribed.window.document.getElementById("premium-promo-banner"), null);
+  subscribed.close();
+  const pending = scenario("/" + lang + "/index.html", "pending");
+  pending.advance(200000);
+  assert.equal(pending.window.document.getElementById("premium-promo-banner"), null);
+  pending.close();
+}
+assert.match(subscriptionPage, /stripeEur\?"€ 5,00":"US\$ 5,00"/);
+assert.match(stripeCheckout, /EUR\.includes\(lang\)\?"EUR":"USD"/);
 
 const subscribed = scenario("/missao.html", "premium");
 assert.equal(subscribed.window.document.getElementById("premium-promo-banner"), null);
@@ -94,6 +148,17 @@ const loggedFree = scenario("/index.html", "free");
 loggedFree.advance(1500);
 assert.equal(loggedFree.window.document.getElementById("premium-promo-banner").style.display, "block");
 loggedFree.close();
+
+const internationalFree = scenario("/en/missao.html", "pending");
+assert.equal(internationalFree.window.document.getElementById("premium-promo-banner"), null);
+internationalFree.setPlan("free");
+internationalFree.advance(1500);
+assert.equal(internationalFree.window.document.getElementById("premium-promo-banner").style.display, "block");
+internationalFree.setPlan("premium");
+assert.equal(internationalFree.window.document.getElementById("premium-promo-banner"), null);
+internationalFree.advance(200000);
+assert.equal(internationalFree.window.document.getElementById("premium-promo-banner"), null);
+internationalFree.close();
 
 const home = scenario("/");
 assert.ok(home.window.document.getElementById("premium-promo-banner"));
@@ -143,4 +208,4 @@ try {
   assert.equal(root.style.display, "block", "close button must not disable the recurring schedule");
 } finally { test.close(); }
 
-console.log("Portuguese Premium promo: PASS");
+console.log("Localized Premium promo (PT + 18 languages): PASS");
