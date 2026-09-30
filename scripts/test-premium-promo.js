@@ -295,15 +295,15 @@ try {
   assert.equal(root.style.display, "block");
   test.advance(1 + 180);
   assert.equal(root.style.display, "none", "promo must disappear after ten seconds");
-  test.advance(169_819);
+  test.advance(109_819);
   assert.equal(root.style.display, "none");
   test.advance(1);
-  assert.equal(root.style.display, "block", "promo must repeat three minutes after its last display");
+  assert.equal(root.style.display, "block", "promo must repeat two minutes after its last display");
 
   root.querySelector("[data-premium-promo-close]").click();
   test.advance(180);
   assert.equal(root.style.display, "none", "close button must hide the card");
-  test.advance(179_820);
+  test.advance(119_820);
   assert.equal(root.style.display, "block", "close button must not disable the recurring schedule");
 } finally { test.close(); }
 
