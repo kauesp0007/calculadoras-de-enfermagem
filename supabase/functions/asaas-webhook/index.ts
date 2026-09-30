@@ -197,12 +197,21 @@ serve(async req=>{
     }
 
     if(!sub){
-      await db().rpc("fail_billing_webhook",{
-        p_provider:"asaas",
-        p_event_id:eventId,
-        p_error:"billing_subscription_not_found"
+      console.warn("[asaas-webhook] orphan_event",{
+        event,
+        eventId,
+        ref,
+        checkoutId,
+        providerSubId,
+        paymentId,
+        customerId
       });
-      return new Response(JSON.stringify({ok:true,ignored:true}),{status:200,headers:H});
+      const done=await db().rpc("complete_billing_webhook",{
+        p_provider:"asaas",
+        p_event_id:eventId
+      });
+      if(done.error)throw done.error;
+      return new Response(JSON.stringify({ok:true,ignored:true,reason:"no_local_subscription"}),{status:200,headers:H});
     }
 
     if(await isGuardBlocked(sub.user_id)){
