@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260930-080319";
+const CACHE_VERSION = "20260930-172729";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -363,10 +363,21 @@ const urlsToCache = [
   'convert-webp.js',
   'corrigir-badges.js',
   'css-duplicates-report.json',
+  'css/album-enfermagem.css',
   'de/favicon.ico',
   'docs/manifesto.json',
   'en/favicon.ico',
   'es/favicon.ico',
+  'extensao-chrome/calculator.css',
+  'extensao-chrome/calculator.js',
+  'extensao-chrome/content-script.js',
+  'extensao-chrome/fonts/inter-700.woff2',
+  'extensao-chrome/fonts/inter-900.woff2',
+  'extensao-chrome/fonts/inter-regular.woff2',
+  'extensao-chrome/fonts/nunito-900.woff2',
+  'extensao-chrome/gasometria-core.js',
+  'extensao-chrome/manifest.json',
+  'extensao-chrome/service-worker.js',
   'extrator-hospitais.js',
   'favicon.ico',
   'fonts/arabic/arabic-700.woff2',
@@ -431,6 +442,7 @@ const urlsToCache = [
   'js/account-page-localizer.js',
   'js/account-routing.js',
   'js/account/profile-page.js',
+  'js/album-enfermagem.js',
   'js/auth/auth-apple.js',
   'js/auth/auth-core.js',
   'js/auth/auth-email.js',
