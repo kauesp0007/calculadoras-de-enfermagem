@@ -93,3 +93,13 @@ As regressões verificam 390 px, adaptação à largura estreita, margem após a
 Os testes de interface e runtime usam mocks de DOM/APIs, não um navegador. Playwright está disponível, mas o executável Chromium não está instalado; nenhuma instalação de dependência foi realizada. A renderização, a interação real com as barras, o comportamento do popup e o carregamento CSP/Manifest continuam a exigir conferência no Chrome do usuário.
 
 Contra-prova independente: o revisor de layout consultou o padrão canônico e AGENTS.md, executou os 200 testes em Node e um harness separado de geometria. Confirmou largura de 390 px, margem após barras, alturas completa/compacta, mudança após resize, fallback único e limpeza dos recursos. Calculou contraste superior a 6:1 nas cinco etiquetas e verificou identidade byte a byte do núcleo clínico com a branch anterior. Parecer final: aprovado tecnicamente sem bloqueios, mantendo pendente a validação visual e de integração no Chrome.
+
+## Terminologia solicitada para o pH — 30/09/2026
+
+Após conferir a imagem com pH 7,49, PaCO₂ 48 e HCO₃⁻ 22, o usuário reconheceu a alcalemia e solicitou o título “Alcalose (alcalemia)”. O rótulo de pH em casos inconsistentes/indeterminados passou a “Alcalose (alcalemia)” ou “Acidose (acidemia)”. O resumo descreve o pH observado e esclarece que esse achado isolado não define o tipo de distúrbio. Os tipos já sustentados pelos parâmetros conservam seus títulos metabólico/respiratório/misto.
+
+O caso da imagem continua com `code: inconsistent`, pH calculado 7,28406, badge Conferir valores e compensação indefinida. Não foram modificadas equações, faixas, corte de coerência, cores, dimensões ou mensagens. O backup dos quatro arquivos foi criado em `backups-temporarios/20260930-termos-pH/` na cópia de trabalho.
+
+Teste completo: **201 verificações aprovadas em Node.js** — 64 clínicas, 62 runtime simulado, 48 interface simulada e 27 estruturais. A nova regressão cobre exatamente 7,49/48/22, verifica título, pH observado/calculado, esclarecimento do resumo, discrepância e ausência de tipo/compensação definidos. Esta revisão altera somente o texto apresentado e a sua documentação/testes.
+
+Contra-prova clínica independente: comparação com o backup confirmou somente alterações nos títulos, resumos de `phFinding` e comentário. Os 64 testes clínicos passaram em execução independente no Node. O revisor aprovou a apresentação solicitada, sem bloqueios: o caso permanece inconsistente, o resumo pede conferência e o tipo/compensação continuam indefinidos.
