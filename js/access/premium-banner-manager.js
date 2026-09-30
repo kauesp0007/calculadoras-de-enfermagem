@@ -1,5 +1,5 @@
 /*
- * Card de divulgação do plano Premium em páginas portuguesas da raiz.
+ * Card de divulgação do plano Premium nas páginas principais de cada idioma.
  *
  * O controle canônico de AdSense é feito por global-scripts.js.
  */
@@ -15,13 +15,46 @@
     var ADS_CLIENT = "ca-pub-6472730056006847";
     var _adsenseLoading = false;
 
+    // Preços e moedas seguem o checkout internacional de /conta/assinatura.html.
+    // A cobrança efetiva continua sendo definida pelo Price do Stripe no backend.
+    var EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
+    var PROMO_COPY = {
+        pt: { team: "Faça parte da Equipe PREMIUM", title: "Faça parte do Plano PREMIUM", ads: "Elimine todos os anúncios do site", access: "Tenha acesso a todas as calculadoras, escalas, formulários e simulados do site", subscribe: "Clique para assinar", price: "Por apenas R$ 5,00 mensais. Aceitamos Pix e cartões.", close: "Fechar", alt: "Ilustração de uma profissional de enfermagem", aria: "Assinatura Premium" },
+        en: { team: "Join the PREMIUM Team", title: "Join the PREMIUM Plan", ads: "Remove all ads from the site", access: "Access all calculators, scales, forms and practice exams on the site", subscribe: "Click to subscribe", price: "Only {price} per month. Credit cards accepted.", close: "Close", alt: "Illustration of a nurse", aria: "Premium subscription" },
+        es: { team: "Únete al equipo PREMIUM", title: "Forma parte del Plan PREMIUM", ads: "Elimina todos los anuncios del sitio", access: "Accede a todas las calculadoras, escalas, formularios y simulacros del sitio", subscribe: "Haz clic para suscribirte", price: "Por solo {price} al mes. Aceptamos tarjetas de crédito.", close: "Cerrar", alt: "Ilustración de una profesional de enfermería", aria: "Suscripción Premium" },
+        de: { team: "Werde Teil des PREMIUM-Teams", title: "Entscheide dich für den PREMIUM-Tarif", ads: "Entferne alle Anzeigen von der Website", access: "Erhalte Zugang zu allen Rechnern, Skalen, Formularen und Übungstests der Website", subscribe: "Jetzt abonnieren", price: "Nur {price} pro Monat. Zahlung per Kreditkarte.", close: "Schließen", alt: "Illustration einer Pflegefachperson", aria: "Premium-Abonnement" },
+        it: { team: "Entra nel team PREMIUM", title: "Scegli il piano PREMIUM", ads: "Elimina tutti gli annunci dal sito", access: "Accedi a tutti i calcolatori, le scale, i moduli e le simulazioni d'esame del sito", subscribe: "Clicca per abbonarti", price: "Solo {price} al mese. Accettiamo carte di credito.", close: "Chiudi", alt: "Illustrazione di un'infermiera", aria: "Abbonamento Premium" },
+        fr: { team: "Rejoignez l'équipe PREMIUM", title: "Adoptez l'offre PREMIUM", ads: "Supprimez toutes les publicités du site", access: "Accédez à tous les calculateurs, échelles, formulaires et examens blancs du site", subscribe: "Cliquez pour vous abonner", price: "Seulement {price} par mois. Cartes bancaires acceptées.", close: "Fermer", alt: "Illustration d'une infirmière", aria: "Abonnement Premium" },
+        hi: { team: "प्रीमियम टीम का हिस्सा बनें", title: "प्रीमियम प्लान से जुड़ें", ads: "साइट से सभी विज्ञापन हटाएँ", access: "साइट के सभी कैलकुलेटर, स्केल, फ़ॉर्म और अभ्यास परीक्षाएँ इस्तेमाल करें", subscribe: "सदस्यता लेने के लिए क्लिक करें", price: "सिर्फ़ {price} प्रति माह। क्रेडिट कार्ड स्वीकार किए जाते हैं।", close: "बंद करें", alt: "नर्स का चित्र", aria: "प्रीमियम सदस्यता" },
+        zh: { team: "加入高级会员团队", title: "加入高级会员计划", ads: "移除网站上的所有广告", access: "使用网站上的所有计算器、量表、表格和模拟考试", subscribe: "点击订阅", price: "每月仅需 {price}。接受信用卡付款。", close: "关闭", alt: "护士插画", aria: "高级会员订阅" },
+        ar: { team: "انضم إلى فريق بريميوم", title: "انضم إلى خطة بريميوم", ads: "تخلّص من جميع إعلانات الموقع", access: "احصل على جميع الحاسبات والمقاييس والنماذج والاختبارات التجريبية في الموقع", subscribe: "اضغط للاشتراك", price: "مقابل {price} شهريًا فقط. نقبل بطاقات الائتمان.", close: "إغلاق", alt: "رسم توضيحي لممرضة", aria: "اشتراك بريميوم" },
+        ja: { team: "プレミアムチームに参加", title: "プレミアムプランに加入", ads: "サイト上のすべての広告を非表示に", access: "サイトのすべての計算ツール、評価尺度、フォーム、模擬試験を利用", subscribe: "クリックして登録", price: "月額わずか{price}。クレジットカードをご利用いただけます。", close: "閉じる", alt: "看護師のイラスト", aria: "プレミアム会員" },
+        ru: { team: "Присоединяйтесь к команде ПРЕМИУМ", title: "Выберите тариф ПРЕМИУМ", ads: "Уберите всю рекламу с сайта", access: "Получите доступ ко всем калькуляторам, шкалам, формам и пробным тестам сайта", subscribe: "Нажмите, чтобы подписаться", price: "Всего {price} в месяц. Принимаем кредитные карты.", close: "Закрыть", alt: "Иллюстрация медсестры", aria: "Подписка Премиум" },
+        ko: { team: "프리미엄 팀에 참여하세요", title: "프리미엄 플랜에 가입하세요", ads: "사이트의 모든 광고 제거", access: "사이트의 모든 계산기, 평가 척도, 양식 및 모의시험 이용", subscribe: "클릭하여 구독", price: "월 {price}에 이용하세요. 신용카드 결제가 가능합니다.", close: "닫기", alt: "간호사 일러스트", aria: "프리미엄 구독" },
+        tr: { team: "PREMIUM ekibine katılın", title: "PREMIUM plana katılın", ads: "Sitedeki tüm reklamları kaldırın", access: "Sitedeki tüm hesaplayıcılara, ölçeklere, formlara ve deneme sınavlarına erişin", subscribe: "Abone olmak için tıklayın", price: "Ayda yalnızca {price}. Kredi kartı kabul edilir.", close: "Kapat", alt: "Hemşire çizimi", aria: "Premium abonelik" },
+        nl: { team: "Word lid van het PREMIUM-team", title: "Kies het PREMIUM-abonnement", ads: "Verwijder alle advertenties van de site", access: "Krijg toegang tot alle calculators, schalen, formulieren en oefentoetsen op de site", subscribe: "Klik om te abonneren", price: "Slechts {price} per maand. Creditcards worden geaccepteerd.", close: "Sluiten", alt: "Illustratie van een verpleegkundige", aria: "Premium-abonnement" },
+        pl: { team: "Dołącz do zespołu PREMIUM", title: "Wybierz plan PREMIUM", ads: "Usuń wszystkie reklamy ze strony", access: "Uzyskaj dostęp do wszystkich kalkulatorów, skal, formularzy i testów próbnych na stronie", subscribe: "Kliknij, aby subskrybować", price: "Tylko {price} miesięcznie. Akceptujemy karty kredytowe.", close: "Zamknij", alt: "Ilustracja pielęgniarki", aria: "Subskrypcja Premium" },
+        sv: { team: "Bli en del av PREMIUM-teamet", title: "Välj PREMIUM-abonnemanget", ads: "Ta bort alla annonser från webbplatsen", access: "Få tillgång till alla kalkylatorer, skalor, formulär och övningsprov på webbplatsen", subscribe: "Klicka för att prenumerera", price: "Endast {price} per månad. Kreditkort accepteras.", close: "Stäng", alt: "Illustration av en sjuksköterska", aria: "Premium-abonnemang" },
+        id: { team: "Bergabunglah dengan Tim PREMIUM", title: "Bergabunglah dengan Paket PREMIUM", ads: "Hilangkan semua iklan dari situs", access: "Akses semua kalkulator, skala, formulir, dan ujian latihan di situs", subscribe: "Klik untuk berlangganan", price: "Hanya {price} per bulan. Kartu kredit diterima.", close: "Tutup", alt: "Ilustrasi perawat", aria: "Langganan Premium" },
+        vi: { team: "Tham gia đội ngũ PREMIUM", title: "Tham gia gói PREMIUM", ads: "Loại bỏ mọi quảng cáo trên trang web", access: "Truy cập tất cả công cụ tính toán, thang đo, biểu mẫu và bài thi thử trên trang web", subscribe: "Nhấp để đăng ký", price: "Chỉ {price} mỗi tháng. Chấp nhận thẻ tín dụng.", close: "Đóng", alt: "Minh họa y tá", aria: "Gói đăng ký Premium" },
+        uk: { team: "Приєднуйтеся до команди ПРЕМІУМ", title: "Оберіть план ПРЕМІУМ", ads: "Приберіть усю рекламу із сайту", access: "Отримайте доступ до всіх калькуляторів, шкал, форм і пробних тестів на сайті", subscribe: "Натисніть, щоб підписатися", price: "Лише {price} на місяць. Приймаємо кредитні картки.", close: "Закрити", alt: "Ілюстрація медсестри", aria: "Преміум-підписка" }
+    };
+
     function isAccountPage() {
         return (window.location.pathname || "").indexOf("/conta/") === 0;
     }
 
-    function isPortugueseRootPage() {
+    function promoLanguage() {
         var pathname = (window.location.pathname || "/").toLowerCase();
-        return pathname === "/" || /^\/[^/]+\.html$/.test(pathname);
+        if (pathname === "/" || /^\/[^/]+\.html$/.test(pathname)) return "pt";
+        var match = /^\/([a-z]{2})\/[^/]+\.html$/.exec(pathname);
+        return match && Object.prototype.hasOwnProperty.call(PROMO_COPY, match[1]) ? match[1] : null;
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, function (char) {
+            return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[char];
+        });
     }
 
     function isPromoEligible() {
@@ -138,18 +171,23 @@
     }
 
     function mountSubscriptionPromo() {
-        if (!isPortugueseRootPage()) return;
+        var lang = promoLanguage();
+        if (!lang) return;
 
         if (!isPromoEligible()) return;
 
         // Uma única instância por página e intervalo de três minutos entre exibições, inclusive sem navegação.
         if (window.__premiumPromoController) return;
 
-        var STORAGE_KEY = "premiumPromoLastShownAt";
+        var STORAGE_KEY = lang === "pt" ? "premiumPromoLastShownAt" : "premiumPromoLastShownAt:" + lang;
         var DISPLAY_MS = 10000;
         var INTERVAL_MS = 3 * 60 * 1000;
         var INITIAL_DELAY_MS = 1500;
         var lastShownInMemory = 0;
+        var copy = PROMO_COPY[lang];
+        var price = lang === "pt" ? "" : (EUR_LANGS.indexOf(lang) !== -1 ? "€ 5,00" : "US$ 5,00");
+        var priceLine = copy.price.replace("{price}", price);
+        var subscribeUrl = lang === "pt" ? "/conta/assinatura.html" : "/conta/assinatura.html?lang=" + lang;
 
         function readLastShown() {
             try {
@@ -168,7 +206,9 @@
         var root = document.createElement("div");
         root.id = "premium-promo-banner";
         root.setAttribute("role", "complementary");
-        root.setAttribute("aria-label", "Assinatura Premium");
+        root.setAttribute("aria-label", copy.aria);
+        root.setAttribute("lang", lang === "pt" ? "pt-BR" : lang);
+        if (lang === "ar") root.setAttribute("dir", "rtl");
         root.style.cssText = "position:fixed;top:140px;right:12px;width:min(390px,calc(100vw - 24px));max-height:calc(100vh - 20px);overflow:auto;z-index:2147483000;display:none;opacity:0;transition:opacity .18s ease;";
 
         function positionPromo() {
@@ -191,17 +231,17 @@
         var checkIcon = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="flex:none;color:#15803d;margin-top:2px"><path d="m4 12 5 5L20 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         root.innerHTML =
             '<section style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;box-sizing:border-box;background:#fff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.19);font-family:Inter,Arial,sans-serif;text-align:left;color:#1f2937;">' +
-            '<div style="display:grid;grid-template-columns:minmax(0,1fr) 86px;align-items:center;gap:10px;">' +
-            '<div><p style="margin:0 0 5px;font-size:10px;line-height:1.25;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;">Faça parte da Equipe PREMIUM</p>' +
-            '<h2 style="margin:0;font-size:19px;line-height:1.2;font-weight:900;color:#1A3E74;">Faça parte do Plano PREMIUM</h2></div>' +
-            '<img src="/img/ilustracao_enfermeira.webp" alt="Ilustração de uma profissional de enfermagem" width="86" height="100" decoding="async" style="display:block;width:86px;height:100px;object-fit:contain;">' +
+            '<div style="display:grid;grid-template-columns:minmax(0,1fr) 86px;align-items:center;gap:10px;direction:ltr;">' +
+            '<div' + (lang === "ar" ? ' dir="rtl"' : '') + '><p style="margin:0 0 5px;font-size:10px;line-height:1.25;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;">' + escapeHtml(copy.team) + '</p>' +
+            '<h2 style="margin:0;font-size:19px;line-height:1.2;font-weight:900;color:#1A3E74;">' + escapeHtml(copy.title) + '</h2></div>' +
+            '<img src="/img/ilustracao_enfermeira.webp" alt="' + escapeHtml(copy.alt) + '" width="86" height="100" decoding="async" style="display:block;width:86px;height:100px;object-fit:contain;">' +
             '</div><ul style="display:grid;gap:9px;margin:0;padding:0;list-style:none;font-size:13px;line-height:1.35;font-weight:650;">' +
-            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>Elimine todos os anúncios do site</span></li>' +
-            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>Tenha acesso a todas as calculadoras, escalas, formulários e simulados do site</span></li>' +
+            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>' + escapeHtml(copy.ads) + '</span></li>' +
+            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>' + escapeHtml(copy.access) + '</span></li>' +
             '</ul><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
-            '<div style="min-width:0;"><a href="/conta/assinatura.html" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border-radius:10px;background:#facc15;color:#163269;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 5px 12px rgba(15,23,42,.12);">Clique para assinar</a>' +
-            '<p style="margin:5px 0 0;font-size:10px;line-height:1.35;color:#475569;">Por apenas R$ 5,00 mensais. Aceitamos Pix e cartões.</p></div>' +
-            '<button type="button" aria-label="Fechar" data-premium-promo-close style="border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer;padding:9px 10px;">Fechar</button>' +
+            '<div style="min-width:0;"><a href="' + subscribeUrl + '" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border-radius:10px;background:#facc15;color:#163269;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 5px 12px rgba(15,23,42,.12);">' + escapeHtml(copy.subscribe) + '</a>' +
+            '<p style="margin:5px 0 0;font-size:10px;line-height:1.35;color:#475569;">' + escapeHtml(priceLine) + '</p></div>' +
+            '<button type="button" aria-label="' + escapeHtml(copy.close) + '" data-premium-promo-close style="border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer;padding:9px 10px;">' + escapeHtml(copy.close) + '</button>' +
             '</div></section>';
 
         var insertionAnchor =
