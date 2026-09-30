@@ -3,7 +3,8 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { JSDOM } = require("jsdom");
+const vm = require("node:vm");
+const { JSDOM, VirtualConsole } = require("jsdom");
 
 const source = fs.readFileSync(path.join(__dirname, "../js/access/premium-banner-manager.js"), "utf8");
 
@@ -124,6 +125,73 @@ for (const lang of internationalLanguages) {
 }
 assert.match(subscriptionPage, /stripeEur\?"€ 5,00":"US\$ 5,00"/);
 assert.match(stripeCheckout, /EUR\.includes\(lang\)\?"EUR":"USD"/);
+
+const recoveredPages = [
+  "de/integracoes_classificacao_wifi.html",
+  "it/integracoes_classificacao_wifi.html",
+  "fr/guia_rapido_dispositivos.html",
+  "tr/integracoes_classificacao_wifi.html",
+  "pl/integracoes_classificacao_wifi.html",
+  "pl/integracoes_calculadora_de_gasometria.html",
+  "sv/guia_rapido_dispositivos.html"
+];
+for (const file of recoveredPages) {
+  const lang = file.split("/")[0];
+  const content = fs.readFileSync(path.join(__dirname, "..", file), "utf8");
+  assert.match(content, /^<!doctype html>/i, file);
+  assert.doesNotMatch(content, /OPENAI_BLOCK_/);
+  const page = new JSDOM(content).window;
+  try {
+    const doc = page.document;
+    assert.equal(doc.documentElement.lang.slice(0, 2), lang);
+    assert.equal(doc.querySelectorAll('script[src="/global-scripts.js"]').length, 1);
+    assert.ok(doc.querySelector("main h1"), file + " missing clinical guide heading");
+    assert.ok(doc.getElementById("btnImprimir"), file + " missing print action");
+    assert.ok(doc.getElementById("footer-placeholder"), file + " missing footer");
+    for (const script of doc.querySelectorAll('script:not([src]):not([type="application/ld+json"])')) {
+      assert.doesNotThrow(() => new vm.Script(script.textContent), file + " has broken JavaScript");
+    }
+    if (lang === "fr") {
+      assert.ok(doc.getElementById("btnGerarPDF"), "French PDF action must work");
+      assert.match(doc.querySelector("main").textContent, /Dispositifs invasifs/);
+    } else {
+      assert.equal(doc.querySelector("main").lang, "en");
+      assert.ok(doc.querySelector('main aside[lang="' + lang + '"]'));
+      const sourcePage = new JSDOM(fs.readFileSync(path.join(__dirname, "..", "en", path.basename(file)), "utf8")).window;
+      try {
+        doc.querySelector("main aside").remove();
+        const normalize = value => value.replace(/\s+/g, " ").trim();
+        assert.equal(normalize(doc.querySelector("main").textContent), normalize(sourcePage.document.querySelector("main").textContent), file + " clinical content changed");
+      } finally { sourcePage.close(); }
+    }
+  } finally { page.close(); }
+
+  const runtimeErrors = [];
+  const virtualConsole = new VirtualConsole();
+  virtualConsole.on("jsdomError", error => runtimeErrors.push(error.message));
+  const runtime = new JSDOM(content, {
+    url: "https://www.calculadorasdeenfermagem.com.br/" + file,
+    runScripts: "dangerously",
+    virtualConsole,
+    beforeParse(window) {
+      window.fetch = () => Promise.resolve({ text: () => Promise.resolve("<footer></footer>") });
+      window.open = () => ({ document: { write(markup) { window.__printed = markup; }, close() {} } });
+    }
+  });
+  try {
+    runtime.window.document.getElementById("btnImprimir").click();
+    assert.deepEqual(runtimeErrors, [], file + " has a runtime error");
+    assert.ok(runtime.window.__printed && runtime.window.__printed.length > 500, file + " print action failed");
+  } finally { runtime.window.close(); }
+
+  const guest = scenario("/" + file);
+  assert.equal(guest.window.document.querySelector("#premium-promo-banner").getAttribute("lang"), lang);
+  assert.equal(guest.window.document.querySelector("[data-premium-promo-subscribe]").getAttribute("href"), "/conta/assinatura.html?lang=" + lang);
+  guest.close();
+  const premium = scenario("/" + file, "premium");
+  assert.equal(premium.window.document.getElementById("premium-promo-banner"), null);
+  premium.close();
+}
 
 const subscribed = scenario("/missao.html", "premium");
 assert.equal(subscribed.window.document.getElementById("premium-promo-banner"), null);
