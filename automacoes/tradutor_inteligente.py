@@ -764,7 +764,7 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Pode ser um arquivo .html OU uma pasta (varre recursivamente os .html).
-    arquivos_originais = ["sistema_sinbad.html", "classificacao_wifi.html"] 
+    arquivos_originais = ["time-de-resposta-rapida.html", "suporte-avancado-de-vida.html"] 
      
     idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
