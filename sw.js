@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260930-191145";
+const CACHE_VERSION = "20260930-192442";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -388,8 +388,9 @@ const urlsToCache = [
   'extensao-chrome/gasometria-core.js',
   'extensao-chrome/manifest.json',
   'extensao-chrome/service-worker.js',
-  'extensao-escala-braden/content_script_injetor_de_ui.js',
-  'extensao-escala-braden/service_worker_background.js',
+  'extensao-escala-braden/content-script.js',
+  'extensao-escala-braden/manifest.json',
+  'extensao-escala-braden/service-worker.js',
   'extrator-hospitais.js',
   'favicon.ico',
   'fonts/arabic/arabic-700.woff2',
