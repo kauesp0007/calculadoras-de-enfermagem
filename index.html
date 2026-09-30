@@ -287,6 +287,46 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{ou
 <script id="anti-cls-acessibilidade">
 (function(){try{var f=localStorage.getItem("fontSize");if(f&&f!=="1"){var s=["1em","1.15em","1.3em","1.5em","2em"];var i=Math.min(Math.max(parseInt(f,10),1),s.length);document.documentElement.style.fontSize=s[i-1];}if(localStorage.getItem("darkMode")==="true"){document.documentElement.classList.add("dark-mode");}}catch(e){}})();
 </script>
+<style id="disable-index-hero-ads-css">
+#index-hero-zone .google-auto-placed,
+#index-hero-zone ins.adsbygoogle,
+#index-hero-zone iframe[name^="google_ads_iframe"],
+#index-hero-zone [id^="google_ads_iframe"]{
+display:none!important;height:0!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;
+}
+</style>
+<script id="disable-index-hero-ads">
+(function(){
+function collapseAd(el){
+var box=el.closest('.google-auto-placed,ins.adsbygoogle,[id^="aswift_"],[id^="google_ads_iframe"]')||el;
+box.style.setProperty('display','none','important');
+box.style.setProperty('height','0','important');
+box.style.setProperty('min-height','0','important');
+box.style.setProperty('margin','0','important');
+box.style.setProperty('padding','0','important');
+box.style.setProperty('overflow','hidden','important');
+box.setAttribute('aria-hidden','true');
+}
+function hideHeroAds(){
+var hero=document.getElementById('index-hero-zone');
+if(!hero)return;
+var heroTop=hero.getBoundingClientRect().top+(window.scrollY||window.pageYOffset||0);
+var limit=heroTop+hero.offsetHeight+32;
+var ads=document.querySelectorAll('.google-auto-placed,ins.adsbygoogle,iframe[name^="google_ads_iframe"],[id^="google_ads_iframe"]');
+ads.forEach(function(ad){
+var rect=ad.getBoundingClientRect();
+var top=rect.top+(window.scrollY||window.pageYOffset||0);
+if(top<limit){collapseAd(ad);}
+});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',hideHeroAds);else hideHeroAds();
+window.addEventListener('load',hideHeroAds,{once:false});
+setTimeout(hideHeroAds,600);
+setTimeout(hideHeroAds,1800);
+setTimeout(hideHeroAds,3500);
+try{new MutationObserver(hideHeroAds).observe(document.documentElement,{childList:true,subtree:true});}catch(e){}
+})();
+</script>
 </head>
 
 <body class="bg-gray-50 text-gray-800 font-sans">
@@ -297,7 +337,7 @@ a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{ou
 <main class="flex-grow p-4 sm:p-8">
 
 <!-- TOPO HOME -->
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+<div id="index-hero-zone" class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
 
 <!-- HERO PRINCIPAL -->
 <section class="lg:col-span-5 relative w-full rounded-2xl overflow-hidden shadow-lg py-8 md:py-10 px-8 md:px-12"
