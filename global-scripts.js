@@ -2586,3 +2586,39 @@ window.addEventListener('load', function () {
     document.head.appendChild(manifestLink);
   }, 1000); // Aguarda 1 segundo após o load completo da página
 });
+
+/* BILLING_RETURN_ANALYTICS_V1 */
+(function(){
+  try{
+    var p=location.pathname||"";
+    var q=new URLSearchParams(location.search||"");
+    var eventName="";
+    var provider="";
+    var status="";
+    if(/\/boas_vindas_assinante\.html$/i.test(p)&&q.get("payment")==="success"){
+      eventName="subscription_payment_success";
+      provider=String(q.get("provider")||"");
+      status="success";
+    }else if(/\/conta\/assinatura\.html$/i.test(p)){
+      if(q.get("asaas")==="cancel"){eventName="subscription_payment_cancelled";provider="asaas";status="cancel";}
+      else if(q.get("asaas")==="expired"){eventName="subscription_payment_expired";provider="asaas";status="expired";}
+      else if(q.get("stripe")==="cancel"){eventName="subscription_payment_cancelled";provider="stripe";status="cancel";}
+    }
+    if(!eventName)return;
+    var key="billing_return_"+eventName+"_"+provider+"_"+status;
+    if(sessionStorage.getItem(key)==="1")return;
+    sessionStorage.setItem(key,"1");
+    if(typeof window.__ENSURE_GA4==="function")window.__ENSURE_GA4();
+    setTimeout(function(){
+      try{
+        if(typeof window.gtag!=="function")return;
+        window.gtag("event",eventName,{
+          billing_flow:"subscription",
+          provider:provider,
+          payment_status:status,
+          page_path:p
+        });
+      }catch(_){}
+    },150);
+  }catch(_){}
+})();
