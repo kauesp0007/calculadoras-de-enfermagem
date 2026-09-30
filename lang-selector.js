@@ -60,9 +60,75 @@ function restoreLegacyLanguagePlaceholder(container) {
   container.style.margin = "0";
 }
 
-function getAccessibilityLanguageSlot() {
+const ACCESSIBILITY_FORUM_LABELS = {
+  "pt": "Fórum de Enfermagem Multilíngue",
+  "en": "Multilingual Nursing Forum",
+  "es": "Foro Multilingüe de Enfermería",
+  "de": "Mehrsprachiges Pflegeforum",
+  "it": "Forum Multilingue dell'Infermieristica",
+  "fr": "Forum multilingue des soins infirmiers",
+  "hi": "बहुभाषी नर्सिंग फोरम",
+  "zh": "多语言护理论坛",
+  "ar": "منتدى التمريض متعدد اللغات",
+  "ja": "多言語看護フォーラム",
+  "ru": "Многоязычный форум по сестринскому делу",
+  "ko": "다국어 간호 포럼",
+  "tr": "Çok Dilli Hemşirelik Forumu",
+  "nl": "Meertalig verpleegkundig forum",
+  "pl": "Wielojęzyczne forum pielęgniarstwa",
+  "sv": "Flerspråkigt forum för omvårdnad",
+  "id": "Forum Keperawatan Multibahasa",
+  "vi": "Diễn đàn điều dưỡng đa ngôn ngữ",
+  "uk": "Багатомовний форум медсестринства"
+};
+
+function normalizedSiteLanguage() {
+  const lang = String(window.__LANG || "pt").toLowerCase();
+  return lang === "pt-br" ? "pt" : lang;
+}
+
+function forumHrefForCurrentLanguage() {
+  const lang = normalizedSiteLanguage();
+  return lang === "pt" ? "/forum-enfermagem.html" : "/" + lang + "/forum-enfermagem.html";
+}
+
+function getAccessibilityLeadGroup() {
   const bar = document.getElementById("barraAcessibilidade");
   if (!bar) return null;
+
+  let group = document.getElementById("accessibility-lead-actions");
+  if (!group) {
+    group = document.createElement("div");
+    group.id = "accessibility-lead-actions";
+    group.className = "accessibility-lead-actions";
+    bar.insertBefore(group, bar.firstChild);
+  }
+  return group;
+}
+
+function ensureAccessibilityForumButton(group) {
+  if (!group) return;
+
+  let link = document.getElementById("accessibility-forum-button");
+  if (!link) {
+    link = document.createElement("a");
+    link.id = "accessibility-forum-button";
+    link.className = "accessibility-forum-button";
+    link.setAttribute("data-evento", "click_botao_forum_barra_acessibilidade");
+    group.appendChild(link);
+  }
+
+  const lang = normalizedSiteLanguage();
+  const label = ACCESSIBILITY_FORUM_LABELS[lang] || ACCESSIBILITY_FORUM_LABELS.pt;
+  link.href = forumHrefForCurrentLanguage();
+  link.textContent = label;
+  link.title = label;
+  link.setAttribute("aria-label", label);
+}
+
+function getAccessibilityLanguageSlot() {
+  const group = getAccessibilityLeadGroup();
+  if (!group) return null;
 
   let slot = document.getElementById("accessibility-language-selector-slot");
   if (!slot) {
@@ -70,8 +136,9 @@ function getAccessibilityLanguageSlot() {
     slot.id = "accessibility-language-selector-slot";
     slot.className = "accessibility-language-slot";
     slot.setAttribute("aria-label", "Seletor de idiomas");
-    bar.insertBefore(slot, bar.firstChild);
+    group.insertBefore(slot, group.firstChild);
   }
+  ensureAccessibilityForumButton(group);
   return slot;
 }
 
