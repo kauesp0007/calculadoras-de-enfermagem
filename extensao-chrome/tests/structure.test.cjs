@@ -33,6 +33,8 @@ module.exports = function testStructure() {
         check(() => { new Function(read(file)); });
     }
     check(() => assert.ok(!/\b(?:fetch|XMLHttpRequest|localStorage|sessionStorage|indexedDB)\b/.test(read("calculator.js") + read("gasometria-core.js"))));
+    check(() => assert.ok(read("service-worker.js").includes("code_challenge") && read("service-worker.js").includes("code_verifier")));
+    check(() => assert.ok(read("../js/auth/extension-login-bridge.js").includes("code_challenge")));
     check(() => assert.ok(!/innerHTML|document\.write/.test(read("calculator.js"))));
     check(() => assert.ok(!/windows\.(?:create|update|remove)|scripting|executeScript|window\.close\(/.test(read("calculator.js") + read("service-worker.js"))));
     check(() => assert.ok(!read("empacotar.ps1").includes("content-script.js")));

@@ -1,6 +1,6 @@
 # calculadora de gasometria arterial
 
-Versão **0.3.0**. Extensão Manifest V3 Premium, dentro de `extensao-chrome/`, com painel lateral nativo do Chrome. Mantém os seis campos da primeira coluna de `gasometria.html`, o hero navy, as fontes locais, as cores dos resultados e a divulgação do site.
+Versão **0.3.1**. Extensão Manifest V3 Premium, dentro de `extensao-chrome/`, com painel lateral nativo do Chrome. Mantém os seis campos da primeira coluna de `gasometria.html`, o hero navy, as fontes locais, as cores dos resultados e a divulgação do site.
 
 O visual segue o modelo do Gemini indicado pelo usuário: card de até 390 px, cantos de 16 px, sombra externa, título de 25 px e formulário branco com os mesmos espaçamentos e botões. A posição é a do painel nativo; o card não fica centralizado em uma página de demonstração.
 
@@ -76,7 +76,7 @@ As etiquetas também apresentam texto. Cor não indica gravidade nem substitui a
 | `VALIDACAO.md` | Evidências e limites da verificação. |
 | `empacotar.ps1` | Valida e gera o ZIP de execução para distribuição. |
 
-A interface roda na página da própria extensão, dentro do painel nativo. As permissões são `sidePanel` e `identity`; a única host permission é o projeto Supabase usado para trocar um código descartável pelo estado Free/Premium. Não há `activeTab`, `scripting` nem content-script, e a extensão não lê páginas visitadas. A mensagem interna de fechamento contém apenas tipo e identificador da janela do navegador, nunca os valores clínicos.\n\n## Acesso Premium\n\nA calculadora inteira permanece visível para todos os usuários. Enquanto o Premium não estiver confirmado, os seis campos, **Calcular** e **Limpar** ficam desabilitados. O card de acesso permite entrar/verificar a assinatura ou abrir a página de assinatura existente.\n\nO login acontece no domínio oficial do site. O token Firebase fica somente na página do site e é trocado no servidor por um código aleatório de uso único, válido por aproximadamente dois minutos e vinculado ao ID da extensão. A extensão recebe apenas esse código e o consome uma vez para consultar o mesmo `user_entitlements` usado pelo site. Falha de rede ou de validação nunca libera a calculadora.
+A interface roda na página da própria extensão, dentro do painel nativo. As permissões são `sidePanel` e `identity`; a única host permission é o projeto Supabase usado para trocar um código descartável pelo estado Free/Premium. Não há `activeTab`, `scripting` nem content-script, e a extensão não lê páginas visitadas. A mensagem interna de fechamento contém apenas tipo e identificador da janela do navegador, nunca os valores clínicos.\n\n## Acesso Premium\n\nA calculadora inteira permanece visível para todos os usuários. Enquanto o Premium não estiver confirmado, os seis campos, **Calcular** e **Limpar** ficam desabilitados. O card de acesso permite entrar/verificar a assinatura ou abrir a página de assinatura existente.\n\nO login acontece no domínio oficial do site. O token Firebase fica somente na página do site e é trocado no servidor por um código aleatório de uso único, válido por aproximadamente dois minutos e vinculado ao ID da extensão. A extensão recebe apenas esse código e o consome uma vez com um verificador criptográfico PKCE (S256) para consultar o mesmo `user_entitlements` usado pelo site. O backend não depende do cabeçalho `Origin` do service worker do Chrome. Falha de rede ou de validação nunca libera a calculadora.
 
 ## Verificar e empacotar
 
@@ -95,7 +95,7 @@ Para gerar o pacote de execução com manifest na raiz:
 powershell -NoProfile -File .\empacotar.ps1
 ```
 
-O script executa os testes e cria `calculadora-gasometria-arterial-0.3.0.zip`, incluindo scripts, HTML/CSS, ícones, fontes e licenças. Documentação, testes, backups e arquivos antigos ficam fora desse pacote. O ZIP completo entregue para desenvolvimento também contém documentação e testes.
+O script executa os testes e cria `calculadora-gasometria-arterial-0.3.1.zip`, incluindo scripts, HTML/CSS, ícones, fontes e licenças. Documentação, testes, backups e arquivos antigos ficam fora desse pacote. O ZIP completo entregue para desenvolvimento também contém documentação e testes.
 
 Confira a integração e o visual no Chrome antes de enviar à loja. A extensão reutiliza a conta e a assinatura Premium já existentes no site. Ela não cria cobrança própria: **Assinar Premium** abre a página de assinatura vigente, que mantém o fluxo nacional no Asaas e o internacional no Stripe. Este código ainda não foi publicado na Chrome Web Store.
 
