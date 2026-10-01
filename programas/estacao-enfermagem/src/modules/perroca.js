@@ -1,0 +1,27 @@
+(function(root,factory){const mod=factory();if(typeof module==='object'&&module.exports)module.exports=mod;else{root.NursingModules||={};root.NursingModules.perroca=mod;}})(typeof globalThis==='object'?globalThis:this,()=>{
+'use strict';
+const CRITERIA=[
+['mental','Estado mental e consciência','Lucidez, orientação no tempo e no espaço.',['Orientado no tempo e espaço','Períodos de desorientação temporal/espacial','Períodos de confusão mental','Desorientado no tempo e espaço','Inconsciente / coma']],
+['oxigenacao','Oxigenação','Dependência de oxigênio e suporte ventilatório.',['Não depende de oxigênio','Uso intermitente de O₂ / inalação','Uso contínuo de O₂ por máscara ou cateter','Uso contínuo de O₂ por traqueostomia','Ventilação mecânica contínua']],
+['sinais','Sinais vitais','Frequência necessária de controle dos sinais vitais.',['Controle de rotina (6/6 h ou 8/8 h)','Controle a cada 2 horas','Controle a cada 1 hora','Controle a cada 30 minutos','Controle contínuo / monitorização']],
+['nutricao','Nutrição e hidratação','Via e ajuda necessária para alimentação e hidratação.',['Alimenta-se sozinho por via oral','Necessita ajuda para alimentar-se','Alimentação por sonda (SNG/SNE/GTT)','Nutrição parenteral (NPT)','SNE/GTT e NPT simultâneos ou jejum grave']],
+['motilidade','Motilidade','Capacidade de movimentar segmentos e mudar de decúbito.',['Movimenta todos os segmentos corporais','Dificuldade leve; mudança de decúbito com ajuda','Limitação; mudança de decúbito programada','Restrito ao leito; mudança passiva','Incapaz; mudança em bloco']],
+['locomocao','Locomoção','Independência para deambular ou sair do leito.',['Locomove-se sozinho','Necessita auxílio, andador ou muleta','Locomove-se em cadeira de rodas','Restrito ao leito e poltrona com ajuda','Restrito totalmente ao leito']],
+['corporal','Cuidado corporal','Dependência para higiene corporal diária.',['Realiza higiene pessoal sozinho','Necessita auxílio para banho de aspersão','Banho de cadeira com auxílio total','Banho no leito com auxílio parcial','Banho no leito total / higiene íntima frequente']],
+['eliminacoes','Eliminações','Independência e necessidade de controle das eliminações.',['Usa vaso sanitário sozinho','Usa comadre/urinol no leito','Usa fraldas / trocas frequentes','Sonda vesical / controle de diurese','SVD, ostomias ou drenos com medição rigorosa']],
+['terapeutica','Terapêutica','Complexidade da via de administração e tratamento.',['Medicação oral (VO)','Medicação IM / SC / ID','Medicação EV intermitente','Medicação EV contínua / soroterapia','Drogas vasoativas / quimioterápicos / sangue']],
+['pele','Integridade cutânea','Condição da pele, mucosas e complexidade dos curativos.',['Pele íntegra','Hiperemia / solução de continuidade superficial','Ferida cirúrgica limpa / curativo simples','Ferida infectada / dreno / úlcera superficial','Ferida complexa / úlcera profunda / fístula']],
+['cuidado','Educação à saúde','Compreensão e receptividade às orientações.',['Receptivo às orientações','Solicita orientações frequentes','Dificuldade de compreensão; necessita reforço','Não aceita orientações / apresenta barreiras','Incapaz de receber orientações por condição cognitiva']],
+['comportamento','Comportamento','Estado emocional ou psiquiátrico que interfere na assistência.',['Calmo / cooperativo','Ansioso / agitado esporadicamente','Deprimido / retraído','Agressivo / confuso constantemente','Risco de suicídio / alucinações']],
+['relacoes','Relações interpessoais','Interação e presença de rede de apoio.',['Interage adequadamente com equipe/família','Interage pouco / isolamento voluntário','Conflitos familiares ou com a equipe','Ausência de rede de apoio / família ausente','Abandono social e familiar']]
+].map(([id,name,desc,texts])=>({id,name,desc,options:texts.map((text,i)=>({value:i+1,text}))}));
+const CLASSES=[
+{id:'minimos',min:13,max:26,name:'Cuidados mínimos',hours:4,nursePct:33,color:'#047857'},
+{id:'intermediarios',min:27,max:39,name:'Cuidados intermediários',hours:6,nursePct:33,color:'#a16207'},
+{id:'semi_intensivos',min:40,max:52,name:'Cuidados semi-intensivos',hours:10,nursePct:42,color:'#c2410c'},
+{id:'intensivos',min:53,max:65,name:'Cuidados intensivos',hours:18,nursePct:52,color:'#6d28d9'}];
+function progress(scores={}){return CRITERIA.filter(c=>Number.isInteger(scores[c.id])&&scores[c.id]>=1&&scores[c.id]<=5).length;}
+function calculate(scores){if(!scores||typeof scores!=='object'||Array.isArray(scores)||progress(scores)!==13)throw new Error('Preencha os 13 indicadores com pontuações de 1 a 5.');if(Object.keys(scores).length!==13||Object.keys(scores).some(k=>!CRITERIA.some(c=>c.id===k)))throw new Error('Critério desconhecido ou incompleto.');const total=CRITERIA.reduce((n,c)=>n+scores[c.id],0),cls=CLASSES.find(c=>total>=c.min&&total<=c.max);if(!cls)throw new Error('Pontuação fora da faixa da Escala de Perroca.');return {total,...cls,moduleId:'perroca',moduleVersion:'1.0.0'};}
+function priorities(scores){return CRITERIA.filter(c=>scores[c.id]>=4).map(c=>({name:c.name,score:scores[c.id],selected:c.options.find(o=>o.value===scores[c.id]).text}));}
+return Object.freeze({id:'perroca',version:'1.0.0',name:'Escala de Perroca',population:'Adultos hospitalizados',criteria:CRITERIA,classes:CLASSES,calculate,progress,priorities,sources:[{title:'Perroca (2011) — sistema de classificação de pacientes',url:'https://doi.org/10.1590/S0104-11692011000100009'},{title:'COFEN — Parecer Normativo nº 1/2024',url:'https://www.cofen.gov.br/parecer-normativo-no-1-2024-cofen/'}]});
+});
