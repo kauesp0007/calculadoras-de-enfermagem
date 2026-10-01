@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Gerador de Ícones</title>
+</head>
+<body style="font-family: Arial; padding: 40px; text-align: center; background: #f1f5f9;">
+    <h2>Gerando Ícones da Extensão...</h2>
+    <p>Verifique a sua pasta de Downloads. 4 arquivos PNG foram baixados.</p>
+    <p>Mova-os para a pasta "extensao-escala-braden" junto com o manifest.json.</p>
+    
+    <script>
+        // O desenho vetorial (SVG) do paciente na cama hospitalar
+        const svgContent = `
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+                <!-- Fundo/Chão -->
+                <rect width="128" height="128" fill="#f8fafc" rx="20"/>
+                <!-- Cruz Médica -->
+                <rect x="94" y="24" width="16" height="6" fill="#e11d48"/>
+                <rect x="99" y="19" width="6" height="16" fill="#e11d48"/>
+                <!-- Cama -->
+                <rect x="16" y="80" width="96" height="16" rx="4" fill="#1e4d8c"/>
+                <rect x="24" y="96" width="8" height="12" fill="#94a3b8"/>
+                <rect x="96" y="96" width="8" height="12" fill="#94a3b8"/>
+                <!-- Travesseiro -->
+                <rect x="24" y="64" width="30" height="16" rx="8" fill="#cbd5e1"/>
+                <!-- Cabeça do Paciente -->
+                <circle cx="36" cy="68" r="10" fill="#fbcfe8"/>
+                <!-- Cobertor/Corpo -->
+                <path d="M 46 80 Q 46 54 75 54 L 102 54 L 102 80 Z" fill="#93c5fd"/>
+            </svg>
+        `;
+
+        const sizes = [16, 32, 48, 128];
+        
+        sizes.forEach(size => {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            const img = new Image();
+            // Converte SVG para Base64
+            img.src = 'data:image/svg+xml;base64,' + btoa(svgContent);
+            
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, size, size);
+                const url = canvas.toDataURL('image/png');
+                
+                // Força o download
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${size}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            };
+        });
+    </script>
+</body>
+</html>

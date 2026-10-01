@@ -7,7 +7,7 @@ async function openStandalone() {
     await chrome.windows.create({
         url: chrome.runtime.getURL("braden.html"),
         type: "popup", 
-        width: 820, // Ajustado para a nova largura dupla
+        width: 820,
         height: 800
     });
 }

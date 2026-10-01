@@ -1,5 +1,6 @@
 (() => {
     "use strict";
+    
     const KEY = "__calculadoraBradenController_v1";
     if (globalThis[KEY]) {
         globalThis[KEY].close();
@@ -33,7 +34,7 @@
     let timeout;
     let anchorTop = 12;
     
-    // Largura dupla solicitada: 390px * 2 = 780px
+    // Largura dupla solicitada para Braden: 780px
     const cardWidth = 780; 
     
     const toolbarIds = ["barraAcessibilidade", "global-header-container", "language-selector-placeholder"];
@@ -63,7 +64,6 @@
         if (disposed) return;
         measureAnchor();
         
-        // Ajusta a largura se a tela for menor que 780px
         const width = Math.min(cardWidth, Math.max(1, window.innerWidth - 24));
         const available = window.innerHeight - anchorTop - 12;
         
