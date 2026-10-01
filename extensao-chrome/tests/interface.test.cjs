@@ -15,7 +15,7 @@ module.exports = async function testInterface() {
         class Element {
             constructor(id = "") {
                 this.id = id; this.children = []; this.attributes = new Map(); this.events = new Map();
-                this.value = ""; this.hidden = false; this.open = false; this._text = ""; this.scrollTop = 0;
+                this.value = ""; this.hidden = false; this.open = false; this._text = ""; this.scrollTop = 0; this.dataset = {};
                 const properties = new Map();
                 this.style = {
                     setProperty(name, value) { properties.set(name, value); },
@@ -32,6 +32,7 @@ module.exports = async function testInterface() {
             replaceChildren(...children) { this.children = children; this._text = ""; }
             addEventListener(name, fn) { this.events.set(name, fn); }
             focus() { this.focused = true; document.activeElement = this; }
+            scrollIntoView() {}
             contains(target) { return this === target || this.children.some(child => child.contains(target)); }
             get scrollHeight() { return bodyHeight() + 22; }
             getBoundingClientRect() {
@@ -66,9 +67,25 @@ module.exports = async function testInterface() {
             removeEventListener(name, fn) { if (this.events.get(name) === fn) this.events.delete(name); }
         };
         const chrome = {
-            runtime: { id: "own-extension", onMessage: {
-                addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); }
-            }},
+            runtime: {
+                id: "own-extension",
+                lastError: null,
+                onMessage: {
+                    addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); }
+                },
+                sendMessage(message, callback) {
+                    if (message && (message.type === "premium:get-state" || message.type === "premium:login")) {
+                        const premium = options.premium !== false;
+                        callback({ authenticated: true, premium, plan: premium ? "premium" : "free" });
+                        return;
+                    }
+                    if (message && message.type === "premium:subscribe") {
+                        callback({ ok: true });
+                        return;
+                    }
+                    callback({});
+                }
+            },
             windows: { async getCurrent() { return { id: 41, type: "normal" }; } },
             sidePanel: {
                 async getLayout() { return { side: options.side || "right" }; },
@@ -108,6 +125,7 @@ module.exports = async function testInterface() {
     }
 
     const ui = harness();
+    await ui.ready();
     const normal = { ph: 7.4, paco2: 40, hco3: 24, pao2: 95, be: 0, sato2: 98 };
     const outcomes = [
         [normal, "reference", "Na faixa de referência"],
@@ -205,6 +223,7 @@ module.exports = async function testInterface() {
     assert.equal(fit.height(), 240);
     checks += 1;
     const limited = harness();
+    await limited.ready();
     await limited.calculate(normal);
     assert.equal(limited.height(), 760);
     assert.ok(limited.get("main-content").scrollTop > 0);
@@ -266,6 +285,17 @@ module.exports = async function testInterface() {
     assert.equal(fit.window.events.has("resize"), false);
     assert.equal(fit.window.events.has("focus"), false);
     assert.ok(fit.observers.every(observer => observer.disconnected));
+    checks += 1;
+
+    const free = harness({ premium: false });
+    await free.ready();
+    assert.equal(free.get("ph").disabled, true);
+    assert.equal(free.get("btnCalcular").disabled, true);
+    assert.equal(free.get("btnLimpar").disabled, true);
+    assert.equal(free.get("calculator-shell").getAttribute("data-access"), "locked");
+    assert.ok(free.get("premium-access-status").textContent.includes("Free"));
+    await free.calculate(normal);
+    assert.equal(free.get("resultado-gasometria").hidden, true);
     checks += 1;
 
     function luminance(hex) {

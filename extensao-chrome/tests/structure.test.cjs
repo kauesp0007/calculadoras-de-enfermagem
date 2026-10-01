@@ -13,16 +13,16 @@ module.exports = function testStructure() {
 
     check(() => assert.equal(manifest.name, "calculadora de gasometria arterial"));
     check(() => assert.equal(manifest.manifest_version, 3));
-    check(() => assert.deepEqual(manifest.permissions, ["sidePanel"]));
+    check(() => assert.deepEqual(manifest.permissions, ["sidePanel", "identity"]));
     check(() => assert.equal(manifest.action.default_popup, undefined));
-    check(() => assert.equal(manifest.host_permissions, undefined));
+    check(() => assert.deepEqual(manifest.host_permissions, ["https://asjkftjfbkuuhilnqonx.supabase.co/*"]));
     check(() => assert.equal(manifest.web_accessible_resources, undefined));
     check(() => assert.deepEqual(manifest.side_panel, { default_path: "calculator.html" }));
     check(() => assert.equal(manifest.minimum_chrome_version, "142"));
     check(() => assert.equal(manifest.version, JSON.parse(read("package.json")).version));
     check(() => assert.equal(manifest.content_scripts, undefined));
     check(() => assert.equal(fs.existsSync(path.join(base, "content-script.js")), false));
-    check(() => assert.ok(manifest.content_security_policy.extension_pages.includes("connect-src 'none'")));
+    check(() => assert.ok(manifest.content_security_policy.extension_pages.includes("connect-src https://asjkftjfbkuuhilnqonx.supabase.co")));
     check(() => assert.equal((html.match(/<input\b/g) || []).length, 6));
     check(() => assert.deepEqual([...html.matchAll(/<input\b[^>]*\bid="([^"]+)"/g)].map(m => m[1]), ["ph", "paco2", "hco3", "pao2", "be", "sato2"]));
     check(() => assert.ok(html.indexOf('id="btnLimpar"') < html.indexOf('id="resultado-gasometria"')));

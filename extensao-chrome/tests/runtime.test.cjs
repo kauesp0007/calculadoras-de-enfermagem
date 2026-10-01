@@ -18,10 +18,19 @@ module.exports = async function testRuntime() {
                 onClosed: { addListener(fn) { closed = fn; } }
             },
             action: { async setTitle(value) { titles.push(value); } },
-            runtime: { async sendMessage(value) {
-                messages.push(value);
-                if (options.noReceiver) throw new Error("no receiver");
-            } }
+            runtime: {
+                id: "own-extension",
+                async sendMessage(value) {
+                    messages.push(value);
+                    if (options.noReceiver) throw new Error("no receiver");
+                },
+                onMessage: { addListener() {} }
+            },
+            identity: {
+                getRedirectURL(path) { return "https://abcdefghijklmnopabcdefghijklmnop.chromiumapp.org/" + path; },
+                async launchWebAuthFlow() { throw new Error("not interactive in this harness"); }
+            },
+            tabs: { async create() {} }
         };
         new Function("chrome", worker)(chrome);
         return { behavior, titles, messages, close: id => closed({ windowId: id }) };
