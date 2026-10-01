@@ -270,7 +270,7 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   function writeCachedPolicy(policy) {
     try {
       sessionStorage.setItem(CACHE_KEY + pathKey(), JSON.stringify({ savedAt: Date.now(), policy: policy }));
-    } catch (_) {}
+    } catch (_) { }
   }
 
   async function getPolicy() {
@@ -290,7 +290,7 @@ window.__FIX_RELATIVE_LINKS = function (container) {
       try {
         await auth.refreshProfile();
         status = auth.billingStatus ? auth.billingStatus() : status;
-      } catch (_) {}
+      } catch (_) { }
     }
     return !!(status && status.resolved && status.plan === "premium");
   }
@@ -447,7 +447,7 @@ function loadGlobalBodyElementsComponent() {
     });
   }).then(function (html) {
     if (html && !document.getElementById("barraAcessibilidade") &&
-        !document.getElementById("pwaAcessibilidadeBar")) {
+      !document.getElementById("pwaAcessibilidadeBar")) {
       document.body.insertAdjacentHTML("beforeend", html);
     }
 
@@ -899,25 +899,25 @@ function initializeAuthMenu() {
   // inseridos dinamicamente pelo estado de autenticação e também precisam
   // acompanhar o idioma atual.
   var _MENU_AUTH_I18N = {
-    pt: {login:"Entrar",profile:"Meu Perfil",settings:"Configurações",favorites:"Favoritos",history:"Histórico",subscribe:"Assine já",logout:"Sair"},
-    en: {login:"Sign in",profile:"My Profile",settings:"Settings",favorites:"Favorites",history:"History",subscribe:"Subscribe now",logout:"Sign out"},
-    es: {login:"Iniciar sesión",profile:"Mi perfil",settings:"Configuración",favorites:"Favoritos",history:"Historial",subscribe:"Suscríbete ya",logout:"Cerrar sesión"},
-    fr: {login:"Se connecter",profile:"Mon profil",settings:"Paramètres",favorites:"Favoris",history:"Historique",subscribe:"Abonnez-vous",logout:"Se déconnecter"},
-    de: {login:"Anmelden",profile:"Mein Profil",settings:"Einstellungen",favorites:"Favoriten",history:"Verlauf",subscribe:"Jetzt abonnieren",logout:"Abmelden"},
-    it: {login:"Accedi",profile:"Il mio profilo",settings:"Impostazioni",favorites:"Preferiti",history:"Cronologia",subscribe:"Abbonati ora",logout:"Esci"},
-    hi: {login:"साइन इन",profile:"मेरी प्रोफ़ाइल",settings:"सेटिंग्स",favorites:"पसंदीदा",history:"इतिहास",subscribe:"अभी सदस्यता लें",logout:"साइन आउट"},
-    zh: {login:"登录",profile:"我的个人资料",settings:"设置",favorites:"收藏夹",history:"历史记录",subscribe:"立即订阅",logout:"退出登录"},
-    ja: {login:"ログイン",profile:"プロフィール",settings:"設定",favorites:"お気に入り",history:"履歴",subscribe:"今すぐ購読",logout:"ログアウト"},
-    ru: {login:"Войти",profile:"Мой профиль",settings:"Настройки",favorites:"Избранное",history:"История",subscribe:"Подписаться сейчас",logout:"Выйти"},
-    ko: {login:"로그인",profile:"내 프로필",settings:"설정",favorites:"즐겨찾기",history:"기록",subscribe:"지금 구독",logout:"로그아웃"},
-    tr: {login:"Giriş yap",profile:"Profilim",settings:"Ayarlar",favorites:"Favoriler",history:"Geçmiş",subscribe:"Şimdi abone ol",logout:"Çıkış yap"},
-    nl: {login:"Inloggen",profile:"Mijn profiel",settings:"Instellingen",favorites:"Favorieten",history:"Geschiedenis",subscribe:"Abonneer nu",logout:"Uitloggen"},
-    pl: {login:"Zaloguj się",profile:"Mój profil",settings:"Ustawienia",favorites:"Ulubione",history:"Historia",subscribe:"Subskrybuj teraz",logout:"Wyloguj się"},
-    sv: {login:"Logga in",profile:"Min profil",settings:"Inställningar",favorites:"Favoriter",history:"Historik",subscribe:"Prenumerera nu",logout:"Logga ut"},
-    id: {login:"Masuk",profile:"Profil saya",settings:"Pengaturan",favorites:"Favorit",history:"Riwayat",subscribe:"Berlangganan sekarang",logout:"Keluar"},
-    vi: {login:"Đăng nhập",profile:"Hồ sơ của tôi",settings:"Cài đặt",favorites:"Yêu thích",history:"Lịch sử",subscribe:"Đăng ký ngay",logout:"Đăng xuất"},
-    uk: {login:"Увійти",profile:"Мій профіль",settings:"Налаштування",favorites:"Обране",history:"Історія",subscribe:"Підписатися зараз",logout:"Вийти"},
-    ar: {login:"تسجيل الدخول",profile:"ملفي الشخصي",settings:"الإعدادات",favorites:"المفضلة",history:"السجل",subscribe:"اشترك الآن",logout:"تسجيل الخروج"}
+    pt: { login: "Entrar", profile: "Meu Perfil", settings: "Configurações", favorites: "Favoritos", history: "Histórico", subscribe: "Assine já", logout: "Sair" },
+    en: { login: "Sign in", profile: "My Profile", settings: "Settings", favorites: "Favorites", history: "History", subscribe: "Subscribe now", logout: "Sign out" },
+    es: { login: "Iniciar sesión", profile: "Mi perfil", settings: "Configuración", favorites: "Favoritos", history: "Historial", subscribe: "Suscríbete ya", logout: "Cerrar sesión" },
+    fr: { login: "Se connecter", profile: "Mon profil", settings: "Paramètres", favorites: "Favoris", history: "Historique", subscribe: "Abonnez-vous", logout: "Se déconnecter" },
+    de: { login: "Anmelden", profile: "Mein Profil", settings: "Einstellungen", favorites: "Favoriten", history: "Verlauf", subscribe: "Jetzt abonnieren", logout: "Abmelden" },
+    it: { login: "Accedi", profile: "Il mio profilo", settings: "Impostazioni", favorites: "Preferiti", history: "Cronologia", subscribe: "Abbonati ora", logout: "Esci" },
+    hi: { login: "साइन इन", profile: "मेरी प्रोफ़ाइल", settings: "सेटिंग्स", favorites: "पसंदीदा", history: "इतिहास", subscribe: "अभी सदस्यता लें", logout: "साइन आउट" },
+    zh: { login: "登录", profile: "我的个人资料", settings: "设置", favorites: "收藏夹", history: "历史记录", subscribe: "立即订阅", logout: "退出登录" },
+    ja: { login: "ログイン", profile: "プロフィール", settings: "設定", favorites: "お気に入り", history: "履歴", subscribe: "今すぐ購読", logout: "ログアウト" },
+    ru: { login: "Войти", profile: "Мой профиль", settings: "Настройки", favorites: "Избранное", history: "История", subscribe: "Подписаться сейчас", logout: "Выйти" },
+    ko: { login: "로그인", profile: "내 프로필", settings: "설정", favorites: "즐겨찾기", history: "기록", subscribe: "지금 구독", logout: "로그아웃" },
+    tr: { login: "Giriş yap", profile: "Profilim", settings: "Ayarlar", favorites: "Favoriler", history: "Geçmiş", subscribe: "Şimdi abone ol", logout: "Çıkış yap" },
+    nl: { login: "Inloggen", profile: "Mijn profiel", settings: "Instellingen", favorites: "Favorieten", history: "Geschiedenis", subscribe: "Abonneer nu", logout: "Uitloggen" },
+    pl: { login: "Zaloguj się", profile: "Mój profil", settings: "Ustawienia", favorites: "Ulubione", history: "Historia", subscribe: "Subskrybuj teraz", logout: "Wyloguj się" },
+    sv: { login: "Logga in", profile: "Min profil", settings: "Inställningar", favorites: "Favoriter", history: "Historik", subscribe: "Prenumerera nu", logout: "Logga ut" },
+    id: { login: "Masuk", profile: "Profil saya", settings: "Pengaturan", favorites: "Favorit", history: "Riwayat", subscribe: "Berlangganan sekarang", logout: "Keluar" },
+    vi: { login: "Đăng nhập", profile: "Hồ sơ của tôi", settings: "Cài đặt", favorites: "Yêu thích", history: "Lịch sử", subscribe: "Đăng ký ngay", logout: "Đăng xuất" },
+    uk: { login: "Увійти", profile: "Мій профіль", settings: "Налаштування", favorites: "Обране", history: "Історія", subscribe: "Підписатися зараз", logout: "Вийти" },
+    ar: { login: "تسجيل الدخول", profile: "ملفي الشخصي", settings: "الإعدادات", favorites: "المفضلة", history: "السجل", subscribe: "اشترك الآن", logout: "تسجيل الخروج" }
   };
   function _menuAuthCopy() {
     try {
@@ -1846,7 +1846,7 @@ function ativarModoDislexia() {
     // Se o usuário sair antes do lazy-load normal (8,5 s/interação),
     // inicializa o GA4 imediatamente para não deixar o evento apenas na fila.
     if (typeof window.__ENSURE_GA4 === "function" && !window.__metricsLoaded) {
-      try { window.__ENSURE_GA4(); } catch (_) {}
+      try { window.__ENSURE_GA4(); } catch (_) { }
     }
 
     if (typeof window.gtag === "function") {
@@ -1864,7 +1864,7 @@ function ativarModoDislexia() {
 
   window.addEventListener("pagehide", enviarTempoPermanencia, { capture: true });
 })();
- 
+
 /* =========================
    Publicidade manual controlada
    =========================
@@ -1950,8 +1950,8 @@ function evaluatePremiumAdState(billing, authenticated) {
 function withPremiumAdTimeout(promise, timeoutMs) {
   return Promise.race([
     promise,
-    new Promise(function(_, reject) {
-      setTimeout(function() {
+    new Promise(function (_, reject) {
+      setTimeout(function () {
         reject(new Error("premium_ad_auth_timeout"));
       }, timeoutMs);
     })
@@ -1961,19 +1961,19 @@ function withPremiumAdTimeout(promise, timeoutMs) {
 function neutralizePremiumAdArtifacts() {
   document.querySelectorAll(
     ".controlled-display-ad, .controlled-multiplex-ad, #multiplex-ad-reserved"
-  ).forEach(function(container) {
+  ).forEach(function (container) {
     container.setAttribute("data-premium-ads-hidden", "true");
     container.style.display = "none";
   });
 
-  document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+  document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
     ad.style.display = "none";
     ad.setAttribute("aria-hidden", "true");
   });
 
   document.querySelectorAll(
     'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
-  ).forEach(function(script) {
+  ).forEach(function (script) {
     script.remove();
   });
 
@@ -1983,7 +1983,7 @@ function neutralizePremiumAdArtifacts() {
 function installPremiumAdMutationObserver() {
   if (__premiumAdMutationObserver || !document.body || !window.MutationObserver) return;
 
-  __premiumAdMutationObserver = new MutationObserver(function() {
+  __premiumAdMutationObserver = new MutationObserver(function () {
     if (__premiumAdState.resolved && __premiumAdState.premium) {
       neutralizePremiumAdArtifacts();
     }
@@ -2014,7 +2014,7 @@ async function resolvePremiumAdState(force) {
     return __premiumAdDecisionPromise;
   }
 
-  __premiumAdDecisionPromise = (async function() {
+  __premiumAdDecisionPromise = (async function () {
     try {
       if (!window.Auth || typeof window.Auth.init !== "function") {
         if (typeof window.__ENSURE_AUTH !== "function") {
@@ -2097,10 +2097,10 @@ function bindPremiumAdWatch(auth) {
   if (__premiumAdWatchBound || !auth) return;
   __premiumAdWatchBound = true;
 
-  var onStateChange = function() {
+  var onStateChange = function () {
     __premiumAdDecisionPromise = null;
 
-    resolvePremiumAdState(true).then(function(state) {
+    resolvePremiumAdState(true).then(function (state) {
       if (state.premium) {
         hideAdsForPremium();
       } else if (
@@ -2133,8 +2133,11 @@ function isPremiumContentShellPage() {
 
 function isAdsExcludedPage() {
   const path = window.location.pathname.toLowerCase();
+  const filename = path.split("/").pop() || "";
   return (
     isPremiumContentShellPage() ||
+    filename === "diagnosticosnanda.html" ||
+    filename === "classificacao_intervencoes-enfermagem.html" ||
     path.endsWith("/metricas.html") ||
     path.includes("/conta/") ||
     path.includes("/assinatura") ||
@@ -2154,44 +2157,44 @@ function styleControlledAds() {
   style.id = "controlled-ads-style";
   style.textContent =
     ".controlled-display-ad{" +
-      "box-sizing:border-box;" +
-      "width:min(100%,970px);" +
-      "min-height:100px;" +
-      "margin:28px auto;" +
-      "padding:8px 12px;" +
-      "text-align:center;" +
-      "contain:layout paint;" +
+    "box-sizing:border-box;" +
+    "width:min(100%,970px);" +
+    "min-height:100px;" +
+    "margin:28px auto;" +
+    "padding:8px 12px;" +
+    "text-align:center;" +
+    "contain:layout paint;" +
     "}" +
     ".controlled-display-ad .controlled-ad-label," +
     ".controlled-multiplex-ad .controlled-ad-label{" +
-      "display:block;" +
-      "font:600 10px/1.2 Arial,sans-serif;" +
-      "letter-spacing:.04em;" +
-      "text-transform:uppercase;" +
-      "color:#94a3b8;" +
-      "margin:0 0 6px;" +
+    "display:block;" +
+    "font:600 10px/1.2 Arial,sans-serif;" +
+    "letter-spacing:.04em;" +
+    "text-transform:uppercase;" +
+    "color:#94a3b8;" +
+    "margin:0 0 6px;" +
     "}" +
     ".controlled-display-ad ins.adsbygoogle{" +
-      "display:block;" +
-      "width:100%;" +
-      "min-height:90px;" +
-      "margin:0 auto;" +
+    "display:block;" +
+    "width:100%;" +
+    "min-height:90px;" +
+    "margin:0 auto;" +
     "}" +
     ".controlled-multiplex-ad{" +
-      "box-sizing:border-box;" +
-      "width:calc(100% - 32px);" +
-      "max-width:1200px;" +
-      "min-height:260px;" +
-      "margin:32px auto;" +
-      "overflow:visible;" +
+    "box-sizing:border-box;" +
+    "width:calc(100% - 32px);" +
+    "max-width:1200px;" +
+    "min-height:260px;" +
+    "margin:32px auto;" +
+    "overflow:visible;" +
     "}" +
     ".controlled-multiplex-ad ins.adsbygoogle{" +
-      "display:block;" +
-      "width:100%;" +
+    "display:block;" +
+    "width:100%;" +
     "}" +
     "@media(max-width:600px){" +
-      ".controlled-display-ad{min-height:90px;margin:22px auto;padding:6px 8px;}" +
-      ".controlled-multiplex-ad{width:calc(100% - 24px);min-height:220px;margin:24px auto;}" +
+    ".controlled-display-ad{min-height:90px;margin:22px auto;padding:6px 8px;}" +
+    ".controlled-multiplex-ad{width:calc(100% - 24px);min-height:220px;margin:24px auto;}" +
     "}";
   document.head.appendChild(style);
 }
@@ -2351,7 +2354,7 @@ function initializeManualAds() {
 
   placeControlledAds();
 
-  document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+  document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
     if (ad.hasAttribute("data-adsbygoogle-status")) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
@@ -2465,12 +2468,12 @@ function initLazyLoadServices() {
 
   function executeServices() {
     if ("requestIdleCallback" in window) {
-      requestIdleCallback(function() {
+      requestIdleCallback(function () {
         loadAnalytics();
         loadAdSenseOnce();
       });
     } else {
-      setTimeout(function() {
+      setTimeout(function () {
         loadAnalytics();
         loadAdSenseOnce();
       }, 100);
@@ -2504,7 +2507,7 @@ function initLazyLoadServices() {
     }
   }
 
-  window.applyConsent = function(consent) {
+  window.applyConsent = function (consent) {
     gtag("consent", "update", consent);
 
     if (consent.ad_storage === "granted") {
@@ -2512,7 +2515,7 @@ function initLazyLoadServices() {
       onUserInteraction();
     } else {
       adsBlocked = true;
-      document.querySelectorAll("ins.adsbygoogle").forEach(function(ad) {
+      document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
         ad.style.display = "none";
         ad.innerHTML = "";
       });
@@ -2522,7 +2525,7 @@ function initLazyLoadServices() {
     localStorage.setItem("ad_storage", consent.ad_storage);
   };
 
-  window.acceptAllCookies = function() {
+  window.acceptAllCookies = function () {
     localStorage.setItem("cookieConsent", "accepted");
     window.applyConsent({
       analytics_storage: "granted",
@@ -2532,7 +2535,7 @@ function initLazyLoadServices() {
     });
   };
 
-  window.rejectAllCookies = function() {
+  window.rejectAllCookies = function () {
     localStorage.setItem("cookieConsent", "refused");
     window.applyConsent({
       analytics_storage: "denied",
@@ -2543,28 +2546,28 @@ function initLazyLoadServices() {
   };
 }
 
-document.addEventListener("DOMContentLoaded",function(){
-  try{
-    var p=new URLSearchParams(window.location.search);
-    var provider=String(p.get("provider")||"");
-    var payment=String(p.get("payment")||"");
-    var stripeState=String(p.get("stripe")||"");
-    var lang=String(p.get("lang")||document.documentElement.lang||"en").toLowerCase().split("-")[0];
-    var eventName=null, key=null;
-    if(provider==="stripe"&&payment==="success"){eventName="subscription_payment_return_success";key="stripe_success_"+window.location.pathname;}
-    else if(stripeState==="cancel"){eventName="subscription_checkout_cancel";key="stripe_cancel_"+window.location.pathname;}
-    if(eventName){
-      if(typeof window.__ENSURE_GA4==="function")window.__ENSURE_GA4();
-      setTimeout(function(){
-        try{
-          var once="billing_analytics_"+key;
-          if(sessionStorage.getItem(once)==="1")return;
-          sessionStorage.setItem(once,"1");
-          if(typeof window.gtag==="function")window.gtag("event",eventName,{billing_flow:"subscription",provider:"stripe",lang:lang,page:window.location.pathname});
-        }catch(_){}
-      },250);
+document.addEventListener("DOMContentLoaded", function () {
+  try {
+    var p = new URLSearchParams(window.location.search);
+    var provider = String(p.get("provider") || "");
+    var payment = String(p.get("payment") || "");
+    var stripeState = String(p.get("stripe") || "");
+    var lang = String(p.get("lang") || document.documentElement.lang || "en").toLowerCase().split("-")[0];
+    var eventName = null, key = null;
+    if (provider === "stripe" && payment === "success") { eventName = "subscription_payment_return_success"; key = "stripe_success_" + window.location.pathname; }
+    else if (stripeState === "cancel") { eventName = "subscription_checkout_cancel"; key = "stripe_cancel_" + window.location.pathname; }
+    if (eventName) {
+      if (typeof window.__ENSURE_GA4 === "function") window.__ENSURE_GA4();
+      setTimeout(function () {
+        try {
+          var once = "billing_analytics_" + key;
+          if (sessionStorage.getItem(once) === "1") return;
+          sessionStorage.setItem(once, "1");
+          if (typeof window.gtag === "function") window.gtag("event", eventName, { billing_flow: "subscription", provider: "stripe", lang: lang, page: window.location.pathname });
+        } catch (_) { }
+      }, 250);
     }
-  }catch(_){}
+  } catch (_) { }
 });
 document.addEventListener("DOMContentLoaded", initLazyLoadServices);
 
@@ -2667,37 +2670,37 @@ window.addEventListener('load', function () {
 });
 
 /* BILLING_RETURN_ANALYTICS_V1 */
-(function(){
-  try{
-    var p=location.pathname||"";
-    var q=new URLSearchParams(location.search||"");
-    var eventName="";
-    var provider="";
-    var status="";
-    if(/\/boas_vindas_assinante\.html$/i.test(p)&&q.get("payment")==="success"){
-      eventName="subscription_payment_success";
-      provider=String(q.get("provider")||"");
-      status="success";
-    }else if(/\/conta\/assinatura\.html$/i.test(p)){
-      if(q.get("asaas")==="cancel"){eventName="subscription_payment_cancelled";provider="asaas";status="cancel";}
-      else if(q.get("asaas")==="expired"){eventName="subscription_payment_expired";provider="asaas";status="expired";}
-      else if(q.get("stripe")==="cancel"){eventName="subscription_payment_cancelled";provider="stripe";status="cancel";}
+(function () {
+  try {
+    var p = location.pathname || "";
+    var q = new URLSearchParams(location.search || "");
+    var eventName = "";
+    var provider = "";
+    var status = "";
+    if (/\/boas_vindas_assinante\.html$/i.test(p) && q.get("payment") === "success") {
+      eventName = "subscription_payment_success";
+      provider = String(q.get("provider") || "");
+      status = "success";
+    } else if (/\/conta\/assinatura\.html$/i.test(p)) {
+      if (q.get("asaas") === "cancel") { eventName = "subscription_payment_cancelled"; provider = "asaas"; status = "cancel"; }
+      else if (q.get("asaas") === "expired") { eventName = "subscription_payment_expired"; provider = "asaas"; status = "expired"; }
+      else if (q.get("stripe") === "cancel") { eventName = "subscription_payment_cancelled"; provider = "stripe"; status = "cancel"; }
     }
-    if(!eventName)return;
-    var key="billing_return_"+eventName+"_"+provider+"_"+status;
-    if(sessionStorage.getItem(key)==="1")return;
-    sessionStorage.setItem(key,"1");
-    if(typeof window.__ENSURE_GA4==="function")window.__ENSURE_GA4();
-    setTimeout(function(){
-      try{
-        if(typeof window.gtag!=="function")return;
-        window.gtag("event",eventName,{
-          billing_flow:"subscription",
-          provider:provider,
-          payment_status:status,
-          page_path:p
+    if (!eventName) return;
+    var key = "billing_return_" + eventName + "_" + provider + "_" + status;
+    if (sessionStorage.getItem(key) === "1") return;
+    sessionStorage.setItem(key, "1");
+    if (typeof window.__ENSURE_GA4 === "function") window.__ENSURE_GA4();
+    setTimeout(function () {
+      try {
+        if (typeof window.gtag !== "function") return;
+        window.gtag("event", eventName, {
+          billing_flow: "subscription",
+          provider: provider,
+          payment_status: status,
+          page_path: p
         });
-      }catch(_){}
-    },150);
-  }catch(_){}
+      } catch (_) { }
+    }, 150);
+  } catch (_) { }
 })();
