@@ -27,10 +27,15 @@ async function launchAuth(interactive) {
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("source", "chrome_extension");
 
-    const responseUrl = await chrome.identity.launchWebAuthFlow({
+    const flowDetails = {
         url: authUrl.toString(),
         interactive: !!interactive
-    });
+    };
+    if (!interactive) {
+        flowDetails.abortOnLoadForNonInteractive = false;
+        flowDetails.timeoutMsForNonInteractive = 10000;
+    }
+    const responseUrl = await chrome.identity.launchWebAuthFlow(flowDetails);
     if (!responseUrl) throw new Error("auth_cancelled");
     return parseCodeFromRedirect(responseUrl);
 }
