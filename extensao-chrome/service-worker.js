@@ -3,7 +3,6 @@
 const ACCESS_URL = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/extension-access";
 const AUTH_BRIDGE_URL = "https://www.calculadorasdeenfermagem.com.br/conta/extensao-login.html";
 const SUBSCRIBE_URL = "https://www.calculadorasdeenfermagem.com.br/conta/assinatura.html?utm_source=chrome_extension&utm_medium=extension&utm_campaign=gasometria_premium";
-const TOKEN_KEY = "gasometriaFirebaseIdToken";
 const ACCESS_TIMEOUT_MS = 8000;
 
 chrome.sidePanel.setPanelBehavior({ openPanelOnActionClick: true }).catch(() => {
@@ -14,45 +13,12 @@ chrome.sidePanel.onClosed.addListener(({ windowId }) => {
     chrome.runtime.sendMessage({ type: "gasometria:panel-closed", windowId }).catch(() => {});
 });
 
-function decodeJwtPayload(token) {
-    try {
-        const part = String(token || "").split(".")[1];
-        if (!part) return null;
-        const normalized = part.replace(/-/g, "+").replace(/_/g, "/");
-        const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
-        return JSON.parse(atob(padded));
-    } catch (_) {
-        return null;
-    }
-}
-
-function tokenIsFresh(token) {
-    const payload = decodeJwtPayload(token);
-    return !!(payload && Number(payload.exp) * 1000 > Date.now() + 60_000);
-}
-
-async function storedToken() {
-    const data = await chrome.storage.local.get(TOKEN_KEY);
-    const token = String(data[TOKEN_KEY] || "");
-    if (!tokenIsFresh(token)) {
-        if (token) await chrome.storage.local.remove(TOKEN_KEY);
-        return "";
-    }
-    return token;
-}
-
-async function saveToken(token) {
-    if (!tokenIsFresh(token)) throw new Error("invalid_or_expired_token");
-    await chrome.storage.local.set({ [TOKEN_KEY]: token });
-    return token;
-}
-
-function parseTokenFromRedirect(url) {
+function parseCodeFromRedirect(url) {
     const parsed = new URL(url);
-    const hash = new URLSearchParams(parsed.hash.replace(/^#/, ""));
-    const token = hash.get("id_token") || "";
-    if (!token) throw new Error("auth_token_missing");
-    return token;
+    const params = new URLSearchParams(parsed.hash.replace(/^#/, ""));
+    const code = String(params.get("code") || "");
+    if (!/^[A-Za-z0-9_-]{40,60}$/.test(code)) throw new Error("auth_code_missing");
+    return code;
 }
 
 async function launchAuth(interactive) {
@@ -66,27 +32,23 @@ async function launchAuth(interactive) {
         interactive: !!interactive
     });
     if (!responseUrl) throw new Error("auth_cancelled");
-    return saveToken(parseTokenFromRedirect(responseUrl));
+    return parseCodeFromRedirect(responseUrl);
 }
 
-async function accessFromToken(token) {
+async function exchangeCode(code) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), ACCESS_TIMEOUT_MS);
     try {
-        const response = await fetch(ACCESS_URL, {
+        const url = new URL(ACCESS_URL);
+        url.searchParams.set("code", code);
+        const response = await fetch(url.toString(), {
             method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token,
-                "Accept": "application/json"
-            },
+            headers: { "Accept": "application/json" },
             cache: "no-store",
             signal: controller.signal
         });
         const data = await response.json().catch(() => ({}));
-        if (response.status === 401) {
-            await chrome.storage.local.remove(TOKEN_KEY);
-            return { authenticated: false, premium: false, plan: "free", reason: "signed_out" };
-        }
+        if (response.status === 401) return { authenticated: false, premium: false, plan: "free", reason: "expired_code" };
         if (!response.ok) throw new Error(data.error || ("access_http_" + response.status));
         const premium = data.plan === "premium";
         return {
@@ -101,30 +63,23 @@ async function accessFromToken(token) {
 }
 
 async function resolveAccess({ interactive = false } = {}) {
-    let token = await storedToken();
-
-    if (!token) {
-        try {
-            token = await launchAuth(interactive);
-        } catch (error) {
-            if (interactive) throw error;
+    try {
+        const code = await launchAuth(interactive);
+        return await exchangeCode(code);
+    } catch (error) {
+        const name = String(error?.name || "");
+        const message = String(error?.message || error || "");
+        if (name === "AbortError") {
+            return { authenticated: false, premium: false, plan: "free", unavailable: true, reason: "timeout" };
+        }
+        if (!interactive && (message.includes("interaction_required") || message.includes("auth_cancelled") || message.includes("The user did not approve access"))) {
             return { authenticated: false, premium: false, plan: "free", reason: "signed_out" };
         }
-    }
-
-    try {
-        return await accessFromToken(token);
-    } catch (error) {
-        if (String(error?.name || "") === "AbortError") {
-            return { authenticated: true, premium: false, plan: "free", unavailable: true, reason: "timeout" };
+        if (!interactive) {
+            return { authenticated: false, premium: false, plan: "free", reason: "signed_out" };
         }
-        return { authenticated: true, premium: false, plan: "free", unavailable: true, reason: "access_unavailable" };
+        throw error;
     }
-}
-
-async function logout() {
-    await chrome.storage.local.remove(TOKEN_KEY);
-    return { authenticated: false, premium: false, plan: "free", reason: "signed_out" };
 }
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -135,10 +90,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             case "premium:get-state":
                 return resolveAccess({ interactive: false });
             case "premium:login":
-                await launchAuth(true);
-                return resolveAccess({ interactive: false });
-            case "premium:logout":
-                return logout();
+                return resolveAccess({ interactive: true });
             case "premium:subscribe":
                 await chrome.tabs.create({ url: SUBSCRIBE_URL });
                 return { ok: true };
