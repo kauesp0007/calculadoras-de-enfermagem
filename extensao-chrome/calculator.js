@@ -20,6 +20,8 @@
     let pendingFrame;
     let disposed = false;
     let premiumAccess = false;
+    let accessGeneration = 0;
+    let lastAccessCheckAt = 0;
     const premiumCard = document.getElementById("premium-access-card");
     const premiumStatus = document.getElementById("premium-access-status");
     const premiumMessage = document.getElementById("premium-access-message");
@@ -45,7 +47,7 @@
         });
     }
 
-    function lockCalculator(locked) {
+    function lockCalculator(locked, clearValues = locked) {
         premiumAccess = !locked;
         shell.setAttribute("data-access", locked ? "locked" : "premium");
         for (const field of Gasometria.FIELDS) {
@@ -53,11 +55,21 @@
         }
         calculateButton.disabled = locked;
         clearButton.disabled = locked;
-        if (locked) {
+        if (locked && clearValues) {
             resetFeedback();
             form.reset();
         }
         fitCard();
+    }
+
+    function invalidatePremiumAccess(message = "Acesso bloqueado. Verificando novamente ao abrir o painel.") {
+        accessGeneration += 1;
+        lastAccessCheckAt = 0;
+        premiumCard.dataset.state = "free";
+        loginButton.hidden = false;
+        subscribeButton.hidden = false;
+        premiumStatus.textContent = message;
+        lockCalculator(true, true);
     }
 
     function renderPremiumState(state) {
@@ -89,11 +101,15 @@
     }
 
     async function refreshPremiumState(interactive) {
+        const generation = ++accessGeneration;
+        lastAccessCheckAt = Date.now();
         loginButton.disabled = true;
         subscribeButton.disabled = true;
         premiumStatus.textContent = interactive ? "Abrindo login seguro..." : "Verificando acesso...";
+        if (!interactive) lockCalculator(true, false);
         try {
             const state = await runtimeMessage(interactive ? "premium:login" : "premium:get-state");
+            if (generation !== accessGeneration) return;
             if (state?.error && !state?.authenticated) {
                 renderPremiumState({ authenticated: false, premium: false });
                 premiumStatus.textContent = "Login não concluído. Você pode tentar novamente.";
@@ -101,12 +117,21 @@
             }
             renderPremiumState(state);
         } catch (_) {
+            if (generation !== accessGeneration) return;
             renderPremiumState({ authenticated: false, premium: false, unavailable: true });
         } finally {
-            loginButton.disabled = false;
-            subscribeButton.disabled = false;
-            fitCard();
+            if (generation === accessGeneration) {
+                loginButton.disabled = false;
+                subscribeButton.disabled = false;
+                fitCard();
+            }
         }
+    }
+
+    function revalidateOnReturn() {
+        if (disposed || document.visibilityState === "hidden") return;
+        if (Date.now() - lastAccessCheckAt < 1000) return;
+        refreshPremiumState(false);
     }
 
     function resetFeedback() {
@@ -294,6 +319,7 @@
     });
 
     function resetPanel() {
+        invalidatePremiumAccess();
         viewMode = "full";
         references.hidden = true;
         references.open = false;
@@ -345,8 +371,22 @@
 
     const observer = new ResizeObserver(requestFit);
     [body, header, footer].forEach(el => observer.observe(el));
+    function onWindowFocus() {
+        updateNativeContext();
+        revalidateOnReturn();
+    }
+
+    function onVisibilityChange() {
+        if (document.visibilityState === "hidden") {
+            invalidatePremiumAccess();
+            return;
+        }
+        revalidateOnReturn();
+    }
+
     window.addEventListener("resize", requestFit);
-    window.addEventListener("focus", updateNativeContext);
+    window.addEventListener("focus", onWindowFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
     if (typeof chrome !== "undefined" && chrome.runtime?.id) {
         chrome.runtime.onMessage.addListener(onNativeMessage);
     }
@@ -355,7 +395,8 @@
         observer.disconnect();
         cancelAnimationFrame(pendingFrame);
         window.removeEventListener("resize", requestFit);
-        window.removeEventListener("focus", updateNativeContext);
+        window.removeEventListener("focus", onWindowFocus);
+        document.removeEventListener("visibilitychange", onVisibilityChange);
         if (typeof chrome !== "undefined" && chrome.runtime?.id) {
             chrome.runtime.onMessage.removeListener(onNativeMessage);
         }
