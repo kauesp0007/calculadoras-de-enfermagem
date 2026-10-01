@@ -1,0 +1,35 @@
+name: Extension Gasometry Tests
+
+on:
+  pull_request:
+    paths:
+      - "extensao-chrome/**"
+      - "conta/extensao-login.html"
+      - "js/auth/extension-login-bridge.js"
+      - "js/auth/auth-ui.js"
+      - "supabase/functions/extension-auth/**"
+      - "supabase/functions/extension-access/**"
+      - "supabase/migrations/*extension_auth_codes.sql"
+      - ".github/workflows/extension-gasometry-test.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  extension-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Run gasometry extension tests
+        working-directory: extensao-chrome
+        run: npm test
+      - name: Validate bridge and edge function syntax markers
+        run: |
+          node --check js/auth/extension-login-bridge.js
+          grep -q "extension-auth" js/auth/extension-login-bridge.js
+          grep -q "extension-access" extensao-chrome/service-worker.js
+          grep -q "verify_jwt = false" supabase/config.toml
