@@ -1,15 +1,40 @@
 # Privacidade — calculadora de gasometria arterial
 
-Versão 0.2.0. Documento atualizado em 30/09/2026 para revisão antes da publicação.
+Versão 0.3.0. Documento atualizado em 30/09/2026 para revisão antes da publicação.
 
-Os parâmetros digitados são processados localmente na página da extensão e ficam somente na memória do formulário. Esta versão não usa servidor, analytics, rastreamento, cookies ou armazenamento persistente desses valores. Eles não são vendidos, compartilhados ou enviados ao site divulgado.
+## Dados clínicos
 
-A extensão abre no painel lateral nativo do Chrome. Usa somente a permissão `sidePanel`, para configurar a abertura pelo ícone, consultar o lado do painel e fechá-lo. Consulta o identificador da própria janela do navegador para direcionar o fechamento e limpar somente o contexto correspondente. Não lê endereços, texto, cabeçalhos, formulários ou dados das páginas visitadas; não injeta scripts nessas páginas.
+Os parâmetros digitados na calculadora são processados localmente dentro da extensão. pH, PaCO₂, HCO₃⁻, PaO₂, BE, SatO₂ e o resultado calculado **não são enviados ao site, ao Supabase, ao Asaas, ao Stripe ou a serviços de analytics**. A extensão não mantém histórico desses valores.
 
-A mensagem interna de fechamento contém o tipo da ação e o identificador da janela do navegador. Os parâmetros clínicos não fazem parte das mensagens. As fontes e os ícones usados pela interface estão no próprio pacote.
+## Conta e assinatura
 
-**Limpar** esvazia o formulário e oculta o resultado. O botão **X**, **Esc** e o fechamento nativo limpam o formulário. Não há histórico salvo pela extensão. Trocar entre altura completa e compacta mantém os valores somente no contexto atual.
+A versão 0.3.0 usa a conta já existente em **Calculadoras de Enfermagem** somente para confirmar se o usuário possui acesso Premium.
 
-Os links do rodapé e das referências abrem sites externos somente quando clicados. Esses sites tratam a visita segundo suas próprias políticas. Os links não contêm os valores do formulário.
+- O botão de login abre o domínio oficial `www.calculadorasdeenfermagem.com.br`.
+- A credencial Firebase permanece no site e não é entregue nem armazenada pela extensão.
+- O servidor gera um código aleatório de uso único, com curta validade, vinculado ao ID da extensão.
+- A extensão envia esse código somente ao projeto Supabase das Calculadoras de Enfermagem para receber o estado `free` ou `premium` e, quando aplicável, a expiração do Premium.
+- O código é consumido uma única vez e não contém os valores clínicos do formulário.
+- O botão **Assinar Premium** abre a página de assinatura já existente. O processamento de pagamentos continua sujeito às políticas do provedor utilizado pelo site (Asaas ou Stripe).
 
-Para o cadastro na Chrome Web Store, o responsável deve disponibilizar esta política em uma URL pública sob seu controle e informar seu canal de contato. Este arquivo ainda não foi publicado como página de política.
+## Permissões do Chrome
+
+A extensão usa:
+
+- `sidePanel`: abrir a calculadora no painel lateral nativo.
+- `identity`: realizar o retorno seguro do login do site para a extensão.
+- acesso de rede somente a `https://asjkftjfbkuuhilnqonx.supabase.co/*`, utilizado para a validação de acesso Premium.
+
+A extensão não solicita `activeTab`, permissão `tabs` para leitura, `scripting` nem content-script. Ela não lê URL, texto, cabeçalhos, formulários ou conteúdo das páginas visitadas.
+
+## Armazenamento
+
+A extensão não armazena o token Firebase e não usa armazenamento persistente para dados clínicos. O código temporário de autenticação é descartável. No backend, a tabela de códigos temporários possui RLS habilitado e não tem política pública de leitura ou escrita.
+
+**Limpar**, **X**, **Esc** e o fechamento do painel removem os valores do formulário da sessão atual. Alternar a altura do painel mantém os valores apenas enquanto a interface atual permanece aberta.
+
+## Links externos
+
+Os links do rodapé, referências e assinatura só abrem sites externos quando acionados pelo usuário. Os valores clínicos do formulário não são anexados a esses links.
+
+Para a Chrome Web Store, esta política deve ser disponibilizada também em uma URL pública sob controle do responsável pela extensão, junto com um canal de contato.
