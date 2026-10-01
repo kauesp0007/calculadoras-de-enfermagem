@@ -95,7 +95,7 @@ Para gerar o pacote de execução com manifest na raiz:
 powershell -NoProfile -File .\empacotar.ps1
 ```
 
-O script executa os testes e cria `calculadora-gasometria-arterial-0.2.0.zip`, incluindo scripts, HTML/CSS, ícones, fontes e licenças. Documentação, testes, backups e arquivos antigos ficam fora desse pacote. O ZIP completo entregue para desenvolvimento também contém documentação e testes.
+O script executa os testes e cria `calculadora-gasometria-arterial-0.3.0.zip`, incluindo scripts, HTML/CSS, ícones, fontes e licenças. Documentação, testes, backups e arquivos antigos ficam fora desse pacote. O ZIP completo entregue para desenvolvimento também contém documentação e testes.
 
 Confira a integração e o visual no Chrome antes de enviar à loja. A extensão reutiliza a conta e a assinatura Premium já existentes no site. Ela não cria cobrança própria: **Assinar Premium** abre a página de assinatura vigente, que mantém o fluxo nacional no Asaas e o internacional no Stripe. Este código ainda não foi publicado na Chrome Web Store.
 
