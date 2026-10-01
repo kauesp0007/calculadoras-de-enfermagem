@@ -541,6 +541,7 @@
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
       var isAccountRoute = normalizedReturn.indexOf("/conta/") === 0;
+      var isExtensionBridge = normalizedReturn === "/conta/extensao-login.html";
       var premiumPath = normalizedReturn;
       var parts = premiumPath.split("/").filter(Boolean);
       var languages = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
@@ -552,7 +553,9 @@
         window.__PREMIUM_PATHS[premiumPath]
       );
 
-      if (
+      if (isExtensionBridge) {
+        targetUrl = returnUrl;
+      } else if (
         !isAccountRoute &&
         normalizedReturn !== "/" &&
         normalizedReturn !== localizedHome
