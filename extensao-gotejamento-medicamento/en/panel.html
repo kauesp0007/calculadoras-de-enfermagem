@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1A3E74">
+    <title>Drip and Medication</title>
+    <link rel="icon" type="image/png" href="icons/icon-32.png">
+    <link rel="stylesheet" href="panel.css">
+    <script src="ce-calculadora-padrao.js" defer></script>
+    <script src="panel.js" defer></script>
+</head>
+<body>
+    <div id="calculator-shell" class="calculator-shell" data-height="full">
+        <header id="calculator-header" class="hero hero-heading">
+            <div class="hero-toolbar">
+                <p class="eyebrow">Infusion calculation</p>
+                <div class="view-actions">
+                    <button type="button" id="btnAltura" class="view-button" aria-pressed="false" aria-controls="main-content" aria-label="Half height" title="Half height">
+                        <span id="altura-label">Half height</span>
+                    </button>
+                    <button type="button" id="btnFechar" class="close-button" aria-label="Close calculator" title="Close (Esc)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                            <path d="M6 6 18 18M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="hero-text">
+                <h1 class="font-sans">Drip &amp; Medication</h1>
+                <h2 class="font-sans">Support for IV drip rate and medication (rule of three) calculations.</h2>
+            </div>
+        </header>
+
+        <main id="main-content" class="calculator-content" tabindex="-1">
+
+            <!-- DRIP RATE (small and discreet, at the top) -->
+            <section class="form-card form-card-compact" aria-labelledby="gotejamento-title">
+                <h2 id="gotejamento-title" class="section-heading">
+                    <span class="section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="15" height="15" aria-hidden="true" focusable="false">
+                            <path fill="currentColor" d="M224 96l32-32 32 32 32-32 32 32 1.3 0C352 35.5 385.5 0 426.7 0l85.3 0c22.1 0 40 17.9 40 40l0 85.3c0 41.2-35.5 74.7-74.7 74.7l-1.3 0-32 32 32 32-32 32-32-32-32 32-32-32-32 32-32-32-96 0c-53 0-96-43-96-96l0-96c0-53 43-96 96-96zm-32 96l0 96c0 17.7 14.3 32 32 32l96 0 0-96c0-17.7-14.3-32-32-32l-96 0c-17.7 0-32 14.3-32 32z"/>
+                        </svg>
+                    </span>
+                    IV drip rate
+                </h2>
+
+                <div class="fields">
+                    <div class="field">
+                        <label for="volume">Volume (ml)
+                            <span class="tooltip"><button type="button" aria-label="Information about volume">ⓘ</button><span class="tip">Total volume of solution to be infused, in millilitres.</span></span>
+                        </label>
+                        <input type="number" id="volume" min="0" step="any" inputmode="decimal" placeholder="e.g. 500">
+                    </div>
+                    <div class="field">
+                        <label for="tempo">Infusion time
+                            <span class="tooltip"><button type="button" aria-label="Information about time">ⓘ</button><span class="tip">Total time to administer the solution.</span></span>
+                        </label>
+                        <div class="field-row">
+                            <input type="number" id="tempo" min="0" step="any" inputmode="decimal" placeholder="e.g. 8">
+                            <select id="unidadeTempo" aria-label="Time unit">
+                                <option value="horas">Hours</option>
+                                <option value="minutos">Minutes</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="equipo">Tubing set type
+                            <span class="tooltip"><button type="button" aria-label="Information about tubing set">ⓘ</button><span class="tip">Macrodrip (20 drops/ml) or microdrip (60 drops/ml).</span></span>
+                        </label>
+                        <select id="equipo" aria-label="Tubing set type">
+                            <option value="macrogotas">Macrodrip (20 gtts/ml)</option>
+                            <option value="microgotas">Microdrip (60 gtts/ml)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="btnCalcularGotejamento" class="button button-primary">Calculate drip rate</button>
+                    <button type="button" id="btnLimparGotejamento" class="button button-secondary">Clear</button>
+                </div>
+
+                <p id="gotejamento-erro" class="error-message" role="alert" hidden></p>
+
+                <div id="gotejamento-resultado" class="mini-result" role="status" hidden>
+                    <div class="score-line">
+                        <span id="gotejamento-score" class="score">0</span>
+                        <span id="gotejamento-unit" class="unit">drops/min</span>
+                    </div>
+                    <p id="gotejamento-resumo"></p>
+                </div>
+
+                <details class="steps">
+                    <summary>How to calculate (step by step)</summary>
+                    <div id="gotejamento-steps" class="steps-body"></div>
+                </details>
+            </section>
+
+            <!-- MINI CALCULATOR (manual check) -->
+            <section class="form-card form-card-compact" aria-labelledby="prova-title">
+                <h2 id="prova-title" class="section-heading">
+                    <span class="section-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 512" width="15" height="15" aria-hidden="true" focusable="false"><path fill="currentColor" d="M64 0C28.7 0 0 28.7 0 64L0 448c0 35.3 28.7 64 64 64l256 0c35.3 0 64-28.7 64-64l0-384c0-35.3-28.7-64-64-64L64 0zM96 64l192 0c17.7 0 32 14.3 32 32l0 32c0 17.7-14.3 32-32 32L96 160c-17.7 0-32-14.3-32-32l0-32c0-17.7 14.3-32 32-32zm32 160a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm96 0a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm96 0a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm-192 96a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm96 0a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm96 0a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm-192 96a32 32 0 1 1 -64 0 32 32 0 1 1 64 0zm96 0a32 32 0 1 1 -64 0 32 32 0 1 1 64 0z"/></svg>
+                    </span>
+                    Manual check
+                </h2>
+                <p class="prova-desc">Use it to verify the calculations by hand.</p>
+                <div class="ce-calc" data-ce-calc>
+                    <div class="ce-screen" aria-live="polite">
+                        <div class="ce-expr" data-ce-expr>0</div>
+                        <div class="ce-result" data-ce-result></div>
+                    </div>
+                    <div class="ce-keys" data-ce-keys>
+                        <button class="ce-key ce-danger" type="button" data-ce-action="clear">C</button>
+                        <button class="ce-key" type="button" data-ce-action="back">⌫</button>
+                        <button class="ce-key ce-op" type="button" data-ce-key="/">÷</button>
+                        <button class="ce-key ce-op" type="button" data-ce-key="*">×</button>
+                        <button class="ce-key" type="button" data-ce-key="7">7</button>
+                        <button class="ce-key" type="button" data-ce-key="8">8</button>
+                        <button class="ce-key" type="button" data-ce-key="9">9</button>
+                        <button class="ce-key ce-op" type="button" data-ce-key="-">−</button>
+                        <button class="ce-key" type="button" data-ce-key="4">4</button>
+                        <button class="ce-key" type="button" data-ce-key="5">5</button>
+                        <button class="ce-key" type="button" data-ce-key="6">6</button>
+                        <button class="ce-key ce-op" type="button" data-ce-key="+">+</button>
+                        <button class="ce-key" type="button" data-ce-key="1">1</button>
+                        <button class="ce-key" type="button" data-ce-key="2">2</button>
+                        <button class="ce-key" type="button" data-ce-key="3">3</button>
+                        <button class="ce-key ce-op ce-tall" type="button" data-ce-action="equals">=</button>
+                        <button class="ce-key ce-zero" type="button" data-ce-key="0">0</button>
+                        <button class="ce-key" type="button" data-ce-key=",">,</button>
+                        <button class="ce-key ce-op" type="button" data-ce-action="equals">Ok</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- MEDICATION (rule of three, below) -->
+            <section class="form-card" aria-labelledby="medicamentos-title">
+                <h2 id="medicamentos-title" class="section-heading">
+                    <img class="section-icon-img" src="img/medicamentos.webp" alt="" width="27" height="27" decoding="async">
+                    Medication (rule of three)
+                </h2>
+
+                <div class="fields">
+                    <div class="field">
+                        <label for="prescricao">Prescribed dose
+                            <span class="tooltip"><button type="button" aria-label="Information about prescribed dose">ⓘ</button><span class="tip">Dose prescribed on the medical order (e.g. 500 mg). Use the same unit as the available dose.</span></span>
+                        </label>
+                        <input type="number" id="prescricao" min="0" step="any" inputmode="decimal" placeholder="e.g. 500">
+                    </div>
+                    <div class="field">
+                        <label for="disponivel">Available dose
+                            <span class="tooltip"><button type="button" aria-label="Information about available dose">ⓘ</button><span class="tip">Concentration available in the vial or ampoule (e.g. 1000 mg).</span></span>
+                        </label>
+                        <input type="number" id="disponivel" min="0" step="any" inputmode="decimal" placeholder="e.g. 1000">
+                    </div>
+                    <div class="field">
+                        <label for="volumeDisponivel">Available volume (ml)
+                            <span class="tooltip"><button type="button" aria-label="Information about available volume">ⓘ</button><span class="tip">Volume of solution in which the available dose is diluted (e.g. 10 ml).</span></span>
+                        </label>
+                        <input type="number" id="volumeDisponivel" min="0" step="any" inputmode="decimal" placeholder="e.g. 10">
+                    </div>
+
+                    <div class="mav-row">
+                        <input type="checkbox" id="mav">
+                        <label for="mav">High-Alert Medication (HAM)</label>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="btnCalcularMedicamentos" class="button button-primary">Calculate dose</button>
+                    <button type="button" id="btnLimparMedicamentos" class="button button-secondary">Clear</button>
+                </div>
+
+                <p id="medicamentos-erro" class="error-message" role="alert" hidden></p>
+                <p id="mav-alert" class="mav-alert" role="alert" hidden></p>
+
+                <div id="medicamentos-resultado" class="mini-result" role="status" hidden>
+                    <div class="score-line">
+                        <span id="medicamentos-score" class="score">0</span>
+                        <span id="medicamentos-unit" class="unit">ml</span>
+                    </div>
+                    <p id="medicamentos-resumo"></p>
+                </div>
+
+                <details class="steps">
+                    <summary>How to calculate (step by step)</summary>
+                    <div id="medicamentos-steps" class="steps-body"></div>
+                </details>
+            </section>
+
+            <!-- Clinical governance and internal controls -->
+            <section class="governance-seal" aria-label="Clinical governance and internal controls">
+                <div class="badges">
+                    <span class="badge badge-coso">COSO</span>
+                    <span class="badge badge-cobit">COBIT 2019</span>
+                    <strong>Clinical governance and internal controls</strong>
+                </div>
+                <p>Educational content supporting mathematical calculation. It does not replace prescription, institutional protocol, independent verification, double-checking or professional assessment. Results depend on the values entered and must be validated against the tubing set, route, solution, patient condition and institutional routine.</p>
+            </section>
+
+            <p class="version-log">version 1.0 · clinical governance, COSO and COBIT 2019</p>
+        </main>
+
+        <footer class="site-footer">
+            <a href="https://www.calculadorasdeenfermagem.com.br/" target="_blank" rel="noopener">www.calculadorasdeenfermagem.com.br</a>
+        </footer>
+    </div>
+</body>
+</html>
