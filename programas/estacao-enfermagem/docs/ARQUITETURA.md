@@ -25,7 +25,7 @@ Cada avaliação contém `patient_id`, `module_id`, `module_version`, `scores`, 
 
 ## Migrações e continuidade
 
-`PRAGMA user_version=2`. Migrações são aditivas. Banco do protótipo recebe versão clínica `legacy-prototype` e não é reinterpretado. Backups com schema mais novo ou módulos não reconhecidos são rejeitados. Inserção e retificação são transacionais; falha na persistência restaura a memória anterior. A exportação do sql.js reabre o banco, portanto `foreign_keys=ON` é reaplicado após cada exportação.
+`PRAGMA user_version=3`. Migrações são aditivas. Banco do protótipo recebe versão clínica `legacy-prototype` e não é reinterpretado. Backups com schema mais novo ou módulos não reconhecidos são rejeitados. Inserção e retificação são transacionais; falha na persistência restaura a memória anterior. A exportação do sql.js reabre o banco, portanto `foreign_keys=ON` é reaplicado após cada exportação.
 
 Persistência usa arquivo temporário e rename; mantém a cópia `.previous`. Não há promessa de recuperação automática dessa cópia: o programa falha com erro diante de corrupção, para não descartar dados silenciosamente. A pasta `recovery` guarda cópias anteriores a restaurações; para transferir para outra máquina use `.enfbackup` com senha.
 
@@ -42,3 +42,7 @@ Não há backend, coleta de dados, cloud, billing ou atualizador automático. Um
 3. Acrescentar Morse e formulários, usando os mesmos pacientes e históricos.
 4. Validar o desenho de prontuário, perfis de acesso e retenção de dados com a instituição.
 5. Assinar os instaladores e definir canal de distribuição/atualização.
+
+## Anamnese na versão 0.2.0
+
+Consulte [ANAMNESE.md](ANAMNESE.md). O cadastro e a criptografia são os mesmos da Fugulin; `clinical_records` e `clinical_drafts` adicionam registros sem pontuação, agrupados no histórico do paciente.

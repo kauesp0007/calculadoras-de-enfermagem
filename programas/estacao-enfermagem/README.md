@@ -1,16 +1,30 @@
-# Estação de Enfermagem — versão inicial 0.1.0
+# Estação de Enfermagem — versão 0.2.0
 
 Aplicação Windows para avaliação de pacientes adultos pelo instrumento de Fugulin complementado (12 áreas). Desenvolvida a partir do protótipo enviado, com a identidade visual de Calculadoras de Enfermagem. Não é uma extensão do Chrome.
 
 ## Instalar e usar
 
-1. Execute `Estacao-Enfermagem-Setup-0.1.0-x64.exe` no Windows 10 ou 11 de 64 bits.
+1. Execute `Estacao-Enfermagem-Setup-0.2.0-x64.exe` no Windows 10 ou 11 de 64 bits.
 2. Escolha a pasta e conclua a instalação para sua conta do Windows. Não requer Node.js nem acesso de administrador.
 3. Abra **Estação de Enfermagem** no menu Iniciar ou pelo atalho.
 4. Em **Fugulin**, identifique o paciente, preencha as 12 áreas e informe o profissional.
 5. Revise o resultado e salve. Use **Pacientes e histórico** para consultar, iniciar nova avaliação ou retificar.
 
 O instalador desta versão não tem assinatura Authenticode. O Windows pode mostrar o aviso de editor desconhecido. A assinatura comercial será uma etapa posterior de distribuição. Esta versão é uma base funcional para homologação, não uma declaração de validação clínica institucional.
+
+## Anamnese e exame físico (novo na 0.2.0)
+
+Em **Pacientes e histórico**, cadastre ou escolha o paciente e abra seu **Histórico**. Escolha **Modelo brasileiro — Coleta de dados** (Barros, seis seções e 198 campos) ou **Modelo americano — Cabeça aos pés** (dez seções e 165 campos). Os nomes identificam os dois modelos do site, não um padrão nacional universal.
+
+Marque as caixas e escreva os achados. O programa guarda um rascunho por paciente e por modelo. Alternar métodos, pacientes ou telas preserva esse preenchimento; **Fichas em andamento** permite retomá-lo após fechar/reabrir. **Salvar ficha no histórico** cria o registro datado, com enfermeiro e COREN. **Abrir / retificar / imprimir** permite consultar, corrigir, gerar PDF ou imprimir. Uma retificação preserva a versão anterior no registro local de alterações e a identificação histórica.
+
+**Impressão/PDF:** reproduz o método do arquivo `instrumento_de_coleta_de_dados.html`: ficha dedicada em A4, texto preenchido convertido em linhas de impressão, caixas marcadas com X, títulos numerados, bordas e apresentação em preto e branco. PDF e impressora usam a mesma ficha estática. Textos extensos fluem por mais páginas, sem limite fixo de página. Pode imprimir a ficha atualmente preenchida, mesmo antes de salvá-la no histórico, desde que a identificação do profissional e a data/hora estejam válidas.
+
+Todos os campos dos dois modelos de referência foram preservados. Dados normais não são preenchidos automaticamente e nenhuma conduta clínica é inferida das marcações. Os campos não marcados ou em branco significam ausência de registro. Identificação, idade calculada quando há nascimento, profissional e rodapé são vinculados ao cadastro/snapshot e aos dados do registro para evitar divergências. Veja [docs/ANAMNESE.md](docs/ANAMNESE.md).
+
+## Atualizar da 0.1.0
+
+Feche o programa anterior. Faça backup protegido por senha antes da atualização e execute o instalador 0.2.0 na mesma conta Windows. A identificação e a pasta de dados permanecem iguais. O banco é migrado para a versão 3 adicionando fichas/rascunhos, sem apagar pacientes ou avaliações Fugulin. Backups da 0.1.0 continuam importáveis. Depois de migrar o banco, use a 0.2.0 ou posterior; não reabra esse banco com o executável antigo.
 
 ## Recursos implementados
 
