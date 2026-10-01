@@ -1,10 +1,10 @@
-# Registro de validação — extensão 0.3.1
+# Registro de validação — extensão 0.3.2
 
 Data: 30/09/2026.
 
 ## Resultado e escopo
 
-A versão 0.3.1 mantém a abertura no **painel lateral nativo do Chrome** e adiciona controle de acesso Premium reutilizando a autenticação e o entitlement do site. Remove a janela popup independente, a injeção na página e o content-script. A calculadora fica no topo do painel e cresce para baixo quando o resultado aparece, com rolagem apenas no corpo quando falta espaço.
+A versão 0.3.2 mantém a abertura no **painel lateral nativo do Chrome** e adiciona controle de acesso Premium reutilizando a autenticação e o entitlement do site. Remove a janela popup independente, a injeção na página e o content-script. A calculadora fica no topo do painel e cresce para baixo quando o resultado aparece, com rolagem apenas no corpo quando falta espaço.
 
 As alterações se limitam a `extensao-chrome/`. Foram consultados AGENTS.md, AI_RULES.md, HTML_RULES.md, HTML_PAGE_TEMPLATE_RULES.md e o padrão visual canônico. Foram mantidos o navy, a tipografia local, os seis campos da primeira coluna e o hero de resultado. Os arquivos do site, catálogo, menus, regras, package.json da raiz, autenticação e deploy não foram alterados. Builds de Tailwind e do SW do site não se aplicam à extensão sem build.
 
@@ -14,9 +14,10 @@ Foi feito backup de 14 arquivos considerados nesta revisão em `backups-temporar
 
 ## Integração e geometria
 
-- Manifest V3, versão 0.3.1, Chrome mínimo 142, permissões `sidePanel` e `identity`, com host permission restrita ao projeto Supabase da aplicação.
+- Manifest V3, versão 0.3.2, Chrome mínimo 142, permissões `sidePanel` e `identity`, com host permission restrita ao projeto Supabase da aplicação.
 - Usuário Free visualiza a calculadora inteira, mas campos, Calcular e Limpar permanecem bloqueados.
 - Usuário Premium é liberado somente após troca de código descartável + verificador PKCE por entitlement válido; falhas de rede permanecem bloqueadas.
+- Fechar/ocultar o painel invalida a liberação em memória. Ao retornar ou recuperar foco, a extensão revalida silenciosamente o Premium antes de habilitar os campos.
 - O Firebase ID token não é entregue nem persistido na extensão; a ponte web emite código de uso único com validade curta.
 - O checkout não foi duplicado: o CTA abre a página de assinatura já existente.
 - `side_panel.default_path` aponta para calculator.html local.
