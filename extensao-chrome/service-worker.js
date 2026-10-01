@@ -21,11 +21,32 @@ function parseCodeFromRedirect(url) {
     return code;
 }
 
+function base64Url(bytes) {
+    let binary = "";
+    for (const byte of bytes) binary += String.fromCharCode(byte);
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function createVerifier() {
+    const bytes = new Uint8Array(32);
+    crypto.getRandomValues(bytes);
+    return base64Url(bytes);
+}
+
+async function sha256Base64Url(value) {
+    const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+    return base64Url(new Uint8Array(digest));
+}
+
 async function launchAuth(interactive) {
     const redirectUri = chrome.identity.getRedirectURL("gasometria-auth");
+    const verifier = createVerifier();
+    const challenge = await sha256Base64Url(verifier);
     const authUrl = new URL(AUTH_BRIDGE_URL);
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("source", "chrome_extension");
+    authUrl.searchParams.set("code_challenge", challenge);
+    authUrl.searchParams.set("code_challenge_method", "S256");
 
     const flowDetails = {
         url: authUrl.toString(),
@@ -37,15 +58,17 @@ async function launchAuth(interactive) {
     }
     const responseUrl = await chrome.identity.launchWebAuthFlow(flowDetails);
     if (!responseUrl) throw new Error("auth_cancelled");
-    return parseCodeFromRedirect(responseUrl);
+    return { code: parseCodeFromRedirect(responseUrl), verifier };
 }
 
-async function exchangeCode(code) {
+async function exchangeCode(code, verifier) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), ACCESS_TIMEOUT_MS);
     try {
         const url = new URL(ACCESS_URL);
         url.searchParams.set("code", code);
+        url.searchParams.set("code_verifier", verifier);
+        url.searchParams.set("extension_id", chrome.runtime.id);
         const response = await fetch(url.toString(), {
             method: "GET",
             headers: { "Accept": "application/json" },
@@ -69,8 +92,8 @@ async function exchangeCode(code) {
 
 async function resolveAccess({ interactive = false } = {}) {
     try {
-        const code = await launchAuth(interactive);
-        return await exchangeCode(code);
+        const auth = await launchAuth(interactive);
+        return await exchangeCode(auth.code, auth.verifier);
     } catch (error) {
         const name = String(error?.name || "");
         const message = String(error?.message || error || "");
