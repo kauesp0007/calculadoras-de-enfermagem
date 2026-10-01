@@ -223,6 +223,7 @@ module.exports = async function testInterface() {
     assert.equal(fit.height(), 240);
     checks += 1;
     const limited = harness();
+    await limited.ready();
     await limited.calculate(normal);
     assert.equal(limited.height(), 760);
     assert.ok(limited.get("main-content").scrollTop > 0);
