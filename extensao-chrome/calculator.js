@@ -46,9 +46,11 @@
     function lockCalculator(locked) {
         premiumAccess = !locked;
         document.body.dataset.access = locked ? "locked" : "premium";
-        for (const element of form.querySelectorAll("input, button")) {
-            element.disabled = locked;
+        for (const field of Gasometria.FIELDS) {
+            document.getElementById(field.id).disabled = locked;
         }
+        calculateButton.disabled = locked;
+        clearButton.disabled = locked;
         if (locked) {
             resetFeedback();
             form.reset();
