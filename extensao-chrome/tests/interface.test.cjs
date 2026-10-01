@@ -15,7 +15,7 @@ module.exports = async function testInterface() {
         class Element {
             constructor(id = "") {
                 this.id = id; this.children = []; this.attributes = new Map(); this.events = new Map();
-                this.value = ""; this.hidden = false; this.open = false; this._text = ""; this.scrollTop = 0;
+                this.value = ""; this.hidden = false; this.open = false; this._text = ""; this.scrollTop = 0; this.dataset = {};
                 const properties = new Map();
                 this.style = {
                     setProperty(name, value) { properties.set(name, value); },
@@ -32,6 +32,7 @@ module.exports = async function testInterface() {
             replaceChildren(...children) { this.children = children; this._text = ""; }
             addEventListener(name, fn) { this.events.set(name, fn); }
             focus() { this.focused = true; document.activeElement = this; }
+            scrollIntoView() {}
             contains(target) { return this === target || this.children.some(child => child.contains(target)); }
             get scrollHeight() { return bodyHeight() + 22; }
             getBoundingClientRect() {
@@ -124,6 +125,7 @@ module.exports = async function testInterface() {
     }
 
     const ui = harness();
+    await ui.ready();
     const normal = { ph: 7.4, paco2: 40, hco3: 24, pao2: 95, be: 0, sato2: 98 };
     const outcomes = [
         [normal, "reference", "Na faixa de referência"],
