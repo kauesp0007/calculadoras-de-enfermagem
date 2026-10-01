@@ -1,10 +1,10 @@
-# Estação de Enfermagem — versão 0.2.0
+# Estação de Enfermagem — versão 0.2.1
 
 Aplicação Windows para avaliação de pacientes adultos pelo instrumento de Fugulin complementado (12 áreas). Desenvolvida a partir do protótipo enviado, com a identidade visual de Calculadoras de Enfermagem. Não é uma extensão do Chrome.
 
 ## Instalar e usar
 
-1. Execute `Estacao-Enfermagem-Setup-0.2.0-x64.exe` no Windows 10 ou 11 de 64 bits.
+1. Execute `Estacao-Enfermagem-Setup-0.2.1-x64.exe` no Windows 10 ou 11 de 64 bits.
 2. Escolha a pasta e conclua a instalação para sua conta do Windows. Não requer Node.js nem acesso de administrador.
 3. Abra **Estação de Enfermagem** no menu Iniciar ou pelo atalho.
 4. Em **Fugulin**, identifique o paciente, preencha as 12 áreas e informe o profissional.
@@ -12,7 +12,7 @@ Aplicação Windows para avaliação de pacientes adultos pelo instrumento de Fu
 
 O instalador desta versão não tem assinatura Authenticode. O Windows pode mostrar o aviso de editor desconhecido. A assinatura comercial será uma etapa posterior de distribuição. Esta versão é uma base funcional para homologação, não uma declaração de validação clínica institucional.
 
-## Anamnese e exame físico (novo na 0.2.0)
+## Anamnese e exame físico (novo na 0.2.1)
 
 Em **Pacientes e histórico**, cadastre ou escolha o paciente e abra seu **Histórico**. Escolha **Modelo brasileiro — Coleta de dados** (Barros, seis seções e 198 campos) ou **Modelo americano — Cabeça aos pés** (dez seções e 165 campos). Os nomes identificam os dois modelos do site, não um padrão nacional universal.
 
@@ -24,7 +24,7 @@ Todos os campos dos dois modelos de referência foram preservados. Dados normais
 
 ## Atualizar da 0.1.0
 
-Feche o programa anterior. Faça backup protegido por senha antes da atualização e execute o instalador 0.2.0 na mesma conta Windows. A identificação e a pasta de dados permanecem iguais. O banco é migrado para a versão 3 adicionando fichas/rascunhos, sem apagar pacientes ou avaliações Fugulin. Backups da 0.1.0 continuam importáveis. Depois de migrar o banco, use a 0.2.0 ou posterior; não reabra esse banco com o executável antigo.
+Feche o programa anterior. Faça backup protegido por senha antes da atualização e execute o instalador 0.2.1 na mesma conta Windows. A identificação e a pasta de dados permanecem iguais. O banco é migrado para a versão 3 adicionando fichas/rascunhos, sem apagar pacientes ou avaliações Fugulin. Backups da 0.1.0 continuam importáveis. Depois de migrar o banco, use a 0.2.1 ou posterior; não reabra esse banco com o executável antigo.
 
 ## Recursos implementados
 
@@ -78,3 +78,9 @@ Veja [docs/ARQUITETURA.md](docs/ARQUITETURA.md). Cada escala é um módulo regis
 - Resolução COFEN nº 743/2024 (revoga a Resolução 543/2017). https://www.cofen.gov.br/resolucao-cofen-no-743-de-12-de-marco-de-2024/
 
 Descrições sintetizadas com base nas fontes. Intervalos de tempo apresentados como no instrumento; situações de fronteira devem seguir a orientação institucional. Novas versões clínicas não reinterpretam automaticamente registros legados.
+
+## Identidade e assinatura do editor
+
+Estação de Enfermagem é um programa de Calculadoras de Enfermagem: https://www.calculadorasdeenfermagem.com.br/ · ciadeenfermagem@gmail.com.br. A versão 0.2.1 aplica a marca fornecida pelo responsável aos ícones, janela, instalador e timbre dos relatórios. Veja [identidade](docs/IDENTIDADE.md).
+
+O responsável ainda não tem certificado Code Signing: o instalador desta entrega continua **sem assinatura digital**. O comando separado `npm run dist:win:signed` prepara a assinatura Authenticode e bloqueia ausência de certificado válido; a assinatura real permanece pendente da emissão. Veja [procedimento e limitações](docs/ASSINATURA-WINDOWS.md).
