@@ -1,207 +1,128 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#1A3E74">
     <title>Escala de Braden</title>
-    <!-- O script é chamado de forma externa e segura -->
+    <link rel="icon" type="image/png" href="icons/icon-32.png">
+    <link rel="stylesheet" href="braden.css">
     <script src="braden.js" defer></script>
-    <style>
-        :root {
-            --navy: #1a3e74;
-            --navy-light: #1e4d8c;
-            --navy-dark: #163269;
-        }
-        * { box-sizing: border-box; font-family: 'Inter', Arial, sans-serif; }
-        body { background-color: #f1f5f9; display: flex; justify-content: center; margin: 0; height: 100vh; overflow: hidden; }
-        
-        /* SCROLL E ESTRUTURA GERAL */
-        .calculator-shell { width: 100%; max-width: 780px; height: 100%; background: white; display: flex; flex-direction: column; }
-        #scroll-container { flex-grow: 1; overflow-y: auto; padding: 20px; background-color: #f8fafc; scroll-behavior: smooth; }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #64748b; }
-
-        /* HERO FIXO NO TOPO */
-        .header-hero {
-            background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
-            color: white; padding: 20px 24px; flex-shrink: 0; position: relative; z-index: 10;
-            box-shadow: 0 10px 25px rgba(26,62,116,0.3); border-bottom: 4px solid var(--navy-light);
-            display: flex; justify-content: space-between; align-items: flex-end;
-        }
-        
-        /* CAIXAS E SOMBREAMENTOS ESCUROS */
-        .section-card {
-            background: white; border-radius: 12px; padding: 20px; margin-bottom: 24px;
-            border: 2px solid #cbd5e1; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-        }
-        .item-card {
-            background: white; border-radius: 12px; padding: 16px; 
-            border: 2px solid #cbd5e1; box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
-            display: flex; flex-direction: column; justify-content: space-between;
-        }
-        .item-card.error { border-color: #e11d48; box-shadow: 0 0 0 4px rgba(225, 29, 72, 0.15); }
-
-        /* INPUTS COMPACTOS (DADOS ASSISTENCIAIS) */
-        .input-compact {
-            width: 100%; padding: 6px 10px; border-radius: 6px; border: 2px solid #94a3b8;
-            font-size: 11px; font-weight: 900; color: #0f172a; outline: none;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08); background: #f8fafc; height: 28px;
-        }
-        .input-compact:focus { border-color: var(--navy); background: white; box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
-
-        /* INPUTS SELECT (FORMULÁRIO BRADEN) */
-        .item-select {
-            width: 100%; padding: 10px 14px; border-radius: 8px; border: 2px solid #94a3b8;
-            font-size: 13px; font-weight: 900; color: #0f172a; outline: none;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08); background: #f8fafc;
-        }
-        .item-select:focus { border-color: var(--navy); background: white; box-shadow: 0 0 0 3px rgba(26, 62, 116, 0.2); }
-        .item-select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f172a' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; margin-top: auto; }
-
-        /* UTILITARIOS CSS */
-        .grid { display: grid; } .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); } .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-        .gap-2 { gap: 8px; } .gap-3 { gap: 12px; } .gap-4 { gap: 16px; } 
-        .col-span-1 { grid-column: span 1 / span 1; } .col-span-2 { grid-column: span 2 / span 2; } .col-span-4 { grid-column: span 4 / span 4; }
-        .flex { display: flex; } .justify-between { justify-content: space-between; } .items-center { align-items: center; } 
-        .font-black { font-weight: 900; } .uppercase { text-transform: uppercase; } .hidden { display: none; }
-        .text-xs { font-size: 12px; } .text-sm { font-size: 14px; } .text-lg { font-size: 18px; } .text-7xl { font-size: 72px; }
-        .text-white { color: white; } .text-navy { color: var(--navy); } .text-slate-800 { color: #1e293b; } .text-slate-600 { color: #475569; }
-        .mb-1 { margin-bottom: 4px; } .mb-2 { margin-bottom: 8px; } .mb-4 { margin-bottom: 16px; } .mb-6 { margin-bottom: 24px; } .mt-6 { margin-top: 24px; }
-        
-        /* BOTOES HERO TOPO */
-        .btn-top-calc { background: white; color: var(--navy); border: 2px solid #bfdbfe; font-weight: 900; padding: 10px 24px; border-radius: 10px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 10px rgba(0,0,0,0.15); transition: 0.2s; }
-        .btn-top-calc:hover { background: #eff6ff; transform: translateY(-2px); }
-        .btn-top-limp { background: rgba(255,255,255,0.1); color: white; border: 2px solid rgba(255,255,255,0.3); font-weight: 900; padding: 10px 24px; border-radius: 10px; cursor: pointer; text-transform: uppercase; transition: 0.2s; }
-        .btn-top-limp:hover { background: rgba(255,255,255,0.2); }
-
-        /* PROGRESSO */
-        .mini-bar-wrap { height: 6px; background: #e2e8f0; border-radius: 4px; overflow: hidden; margin-top: 10px; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
-        .mini-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background-color 0.4s ease; background-color: #cbd5e1; }
-        .item-badge { font-size: 11px; font-weight: 900; padding: 4px 10px; border-radius: 20px; background: #eff6ff; color: var(--navy); border: 1px solid #bfdbfe; }
-    </style>
 </head>
 <body>
-
-<div class="calculator-shell">
-    
-    <!-- HEADER HERO -->
-    <header class="header-hero">
-        <div>
-            <h1 class="font-black text-white" style="font-size: 28px; margin: 0 0 4px 0; line-height: 1;">Escala de Braden</h1>
-            <p class="font-black uppercase" style="color: #bfdbfe; font-size: 12px; margin: 0; letter-spacing: 1px;">Avaliação de Risco para LPP</p>
-        </div>
-        <div class="flex gap-3">
-            <button type="button" id="btnLimpar" class="btn-top-limp">Limpar</button>
-            <button type="button" id="btnCalcular" class="btn-top-calc">Calcular Escore</button>
-        </div>
-    </header>
-
-    <!-- ÁREA DE ROLAGEM PRINCIPAL -->
-    <main id="scroll-container">
-        
-        <!-- DADOS ASSISTENCIAIS (Compacto, metade da altura) -->
-        <div class="section-card" style="padding: 12px 16px; margin-bottom: 16px;">
-            <h2 class="text-navy font-black uppercase text-sm mb-2" style="border-bottom: 2px solid #e2e8f0; padding-bottom: 4px; margin-top: 0;">Dados Assistenciais</h2>
-            
-            <div class="grid grid-cols-4 gap-2">
-                <div class="col-span-4" style="grid-column: span 2;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Nome</label>
-                    <input type="text" id="pacNome" class="input-compact" placeholder="Nome do Paciente" />
-                </div>
-                <div class="col-span-2" style="grid-column: span 1;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Data</label>
-                    <input type="date" id="pacData" class="input-compact" />
-                </div>
-                <div class="col-span-2" style="grid-column: span 1;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Data Nasc.</label>
-                    <input type="date" id="pacDataNasc" class="input-compact" />
-                </div>
-                <div class="col-span-4" style="grid-column: span 2;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Nome da Mãe</label>
-                    <input type="text" id="pacMae" class="input-compact" placeholder="Filiação" />
-                </div>
-                <div class="col-span-4" style="grid-column: span 2;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Nº de Atendimento</label>
-                    <input type="text" id="pacAtendimento" class="input-compact" placeholder="Registro/Prontuário" />
-                </div>
-                <div class="col-span-4" style="grid-column: span 1;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Quarto</label>
-                    <input type="text" id="pacQuarto" class="input-compact" placeholder="Ex: 104" />
-                </div>
-                <div class="col-span-4" style="grid-column: span 1;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Leito</label>
-                    <input type="text" id="pacLeito" class="input-compact" placeholder="Ex: A" />
-                </div>
-                <div class="col-span-4" style="grid-column: span 2;">
-                    <label class="font-black text-slate-800 uppercase block mb-1" style="font-size: 10px;">Setor</label>
-                    <input type="text" id="pacSetor" class="input-compact" placeholder="Ex: UTI" />
+    <div id="calculator-shell" class="calculator-shell">
+        <header id="calculator-header" class="hero hero-heading">
+            <div class="hero-toolbar">
+                <p class="eyebrow">Avaliação de risco</p>
+                <div class="view-actions">
+                    <button type="button" id="btnFechar" class="close-button" aria-label="Fechar calculadora" title="Fechar (Esc)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+                            <path d="M6 6 18 18M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
-        </div>
-
-        <!-- MENSAGEM DE ERRO -->
-        <div id="msgValidacaoErro" class="hidden mb-4 p-3" style="background-color: #fef2f2; border: 2px solid #ef4444; border-left: 8px solid #ef4444; border-radius: 8px; color: #991b1b; font-weight: 900; font-size: 13px;">
-            Atenção: Por favor, preencha todos os 6 critérios de avaliação.
-        </div>
-
-        <!-- CRITÉRIOS (FORMULÁRIO BRADEN) -->
-        <div class="section-card">
-            <div class="flex justify-between items-center mb-4" style="border-bottom: 2px solid #e2e8f0; padding-bottom: 8px;">
-                <h2 class="text-navy font-black uppercase text-sm m-0">Critérios Clínicos</h2>
-                <div style="background: #eff6ff; padding: 4px 12px; border-radius: 8px; border: 2px solid #bfdbfe; font-size: 11px; font-weight: 900; color: var(--navy);">
-                    PREENCHIDO: <span id="contadorPreenchidos" style="color: #2563eb;">0</span>/6
-                </div>
+            <div class="hero-text">
+                <h1 class="font-sans">Escala de Braden</h1>
+                <h2 class="font-sans">Preencha os 6 critérios para avaliar o risco de lesão por pressão.</h2>
             </div>
-            
-            <!-- Sem evento inline de onsubmit para evitar o erro CSP -->
-            <form id="bradenForm" class="grid grid-cols-3 gap-4">
-                <!-- Cards injetados via JS -->
+        </header>
+
+        <main id="main-content" class="calculator-content" tabindex="-1">
+            <p id="msgValidacaoErro" class="error-message" role="alert" hidden>Atenção: preencha todos os 6 critérios de avaliação.</p>
+
+            <form id="bradenForm" novalidate autocomplete="off">
+                <section class="form-card" aria-labelledby="dados-title">
+                    <h2 id="dados-title" class="section-heading">
+                        <span class="section-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M342.6 9.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l9.4 9.4L28.1 342.6C10.1 360.6 0 385 0 410.5L0 416c0 53 43 96 96 96l5.5 0c25.5 0 49.9-10.1 67.9-28.1L448 205.3l9.4 9.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-32-32-96-96-32-32zM205.3 256L352 109.3 402.7 160l-96 96-101.5 0z"></path>
+                            </svg>
+                        </span>
+                        Dados Assistenciais
+                    </h2>
+                    <div class="fields">
+                        <div class="field">
+                            <label for="pacNome">Nome</label>
+                            <input type="text" id="pacNome" placeholder="Nome do paciente" spellcheck="false">
+                        </div>
+                        <div class="field">
+                            <label for="pacData">Data</label>
+                            <input type="date" id="pacData">
+                        </div>
+                        <div class="field">
+                            <label for="pacDataNasc">Data de nascimento</label>
+                            <input type="date" id="pacDataNasc">
+                        </div>
+                        <div class="field">
+                            <label for="pacMae">Nome da mãe</label>
+                            <input type="text" id="pacMae" placeholder="Filiação" spellcheck="false">
+                        </div>
+                        <div class="field">
+                            <label for="pacAtendimento">Nº de atendimento</label>
+                            <input type="text" id="pacAtendimento" placeholder="Registro / prontuário" spellcheck="false">
+                        </div>
+                        <div class="field">
+                            <label for="pacQuarto">Quarto</label>
+                            <input type="text" id="pacQuarto" placeholder="Ex.: 104" spellcheck="false">
+                        </div>
+                        <div class="field">
+                            <label for="pacLeito">Leito</label>
+                            <input type="text" id="pacLeito" placeholder="Ex.: A" spellcheck="false">
+                        </div>
+                        <div class="field">
+                            <label for="pacSetor">Setor</label>
+                            <input type="text" id="pacSetor" placeholder="Ex.: UTI" spellcheck="false">
+                        </div>
+                    </div>
+                </section>
+
+                <section class="form-card" aria-labelledby="criterios-title">
+                    <h2 id="criterios-title" class="section-heading">
+                        <span class="section-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="16" height="16" aria-hidden="true" focusable="false">
+                                <path fill="currentColor" d="M342.6 9.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l9.4 9.4L28.1 342.6C10.1 360.6 0 385 0 410.5L0 416c0 53 43 96 96 96l5.5 0c25.5 0 49.9-10.1 67.9-28.1L448 205.3l9.4 9.4c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3l-32-32-96-96-32-32zM205.3 256L352 109.3 402.7 160l-96 96-101.5 0z"></path>
+                            </svg>
+                        </span>
+                        Critérios Clínicos
+                    </h2>
+                    <div class="progress-row">
+                        <span class="progress-label">Preenchido: <span id="contadorPreenchidos">0</span>/6</span>
+                        <div class="progress-track"><div id="progressFill" class="progress-fill"></div></div>
+                    </div>
+                    <div id="itensBraden" class="items"></div>
+                </section>
+
+                <div class="actions">
+                    <button type="submit" id="btnCalcular" class="button button-primary">Calcular</button>
+                    <button type="button" id="btnLimpar" class="button button-secondary">Limpar</button>
+                </div>
             </form>
-        </div>
 
-        <!-- RESULTADO (Oculto Inicialmente) -->
-        <div id="resultado-section" class="hidden mt-6 mb-6">
-            
-            <div class="section-card" style="background: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%); text-align: center; border: 4px solid var(--navy-light); box-shadow: 0 15px 30px rgba(0,0,0,0.3); margin-bottom: 16px;">
-                <p class="font-black uppercase text-white" style="font-size: 12px; letter-spacing: 2px; margin-bottom: 16px; opacity: 0.8;">Pontuação Final Braden</p>
-                
-                <div class="flex items-end justify-center gap-3 mb-6">
-                    <span id="scoreValor" class="text-7xl font-black text-white" style="line-height: 0.8; text-shadow: 0 4px 10px rgba(0,0,0,0.5);">0</span>
-                    <span class="text-lg font-black text-white" style="opacity: 0.7; margin-bottom: 4px;">/ 23</span>
+            <section id="resultado-section" class="hero result-hero" aria-labelledby="resultado-title" tabindex="-1" hidden>
+                <p class="eyebrow">Resultado de apoio</p>
+                <p id="statusPill" class="status-badge"></p>
+                <h2 id="resultado-title">Escala de Braden</h2>
+                <p id="scoreTexto" class="result-score"></p>
+                <p id="resultadoMensagem" class="result-summary"></p>
+                <div class="actions result-actions">
+                    <button type="button" id="btnImprimir" class="button button-primary">Imprimir</button>
+                    <button type="button" id="btnGerarPDF" class="button button-secondary">Salvar PDF</button>
                 </div>
-                
-                <div id="statusPill" style="display: inline-block; padding: 12px 32px; border-radius: 50px; font-size: 16px; font-weight: 900; text-transform: uppercase; color: white; box-shadow: 0 8px 20px rgba(0,0,0,0.3); margin-bottom: 24px;">Risco</div>
-                
-                <div style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 16px; margin: 0 auto 24px auto; max-width: 600px;">
-                    <p id="resultadoMensagem" class="text-white font-bold" style="font-size: 14px; margin: 0; line-height: 1.5;"></p>
-                </div>
+            </section>
 
-                <!-- Botões de Impressão -->
-                <div class="flex justify-center gap-4" style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px;">
-                    <button type="button" id="btnGerarPDF" style="background: #dc2626; color: white; border: 2px solid #f87171; font-weight: 900; text-transform: uppercase; padding: 12px 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 15px rgba(220, 38, 38, 0.4); transition: 0.2s;">Salvar PDF</button>
-                    <button type="button" id="btnImprimir" style="background: white; color: var(--navy); border: 2px solid #bfdbfe; font-weight: 900; text-transform: uppercase; padding: 12px 24px; border-radius: 12px; cursor: pointer; box-shadow: 0 6px 15px rgba(0,0,0,0.2); transition: 0.2s;">Imprimir</button>
-                </div>
-            </div>
+            <details class="references">
+                <summary>Referências</summary>
+                <ol>
+                    <li>BRADEN, B.; BERGSTROM, N. A conceptual schema for the study of the etiology of pressure sores. Rehabilitation Nursing, v. 12, n. 1, p. 8-12, 1987.</li>
+                    <li>PARANHOS, W. Y.; SANTOS, V. L. C. G. Avaliação de risco para úlceras de pressão por meio da escala de Braden. Revista da Escola de Enfermagem da USP, v. 33, p. 191-206, 1999.</li>
+                </ol>
+            </details>
+        </main>
 
-            <!-- BIBLIOGRAFIA E SITE -->
-            <div class="section-card" style="background: white; text-align: center; padding: 16px;">
-                <h3 class="font-black uppercase text-slate-800" style="font-size: 11px; letter-spacing: 1px; margin: 0 0 8px 0;">Referência Científica</h3>
-                <p class="text-slate-600 font-bold" style="font-size: 10px; line-height: 1.5; margin: 0;">
-                    BRADEN, B.; BERGSTROM, N. A conceptual schema for the study of the etiology of pressure sores. Rehabilitation Nursing, v. 12, n. 1, p. 8-12, 1987.<br>
-                    PARANHOS, W. Y.; SANTOS, V. L. C. G. Avaliação de risco para úlceras de pressão por meio da escala de Braden. Revista da Escola de Enfermagem da USP, v. 33, p. 191-206, 1999.
-                </p>
-                <div style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-                    <span style="font-size: 11px; color: #64748b; font-weight: bold; margin-right: 4px;">Visite nosso site:</span>
-                    <a href="https://www.calculadorasdeenfermagem.com.br/" target="_blank" class="font-black text-navy uppercase" style="font-size: 11px; text-decoration: none;">www.calculadorasdeenfermagem.com.br</a>
-                </div>
-            </div>
-
-        </div>
-    </main>
-</div>
-
+        <footer class="site-footer">
+            <a href="https://www.calculadorasdeenfermagem.com.br/" target="_blank" rel="noopener">www.calculadorasdeenfermagem.com.br</a>
+        </footer>
+    </div>
 </body>
 </html>

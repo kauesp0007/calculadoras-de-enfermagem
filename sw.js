@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20260930-221507";
+const CACHE_VERSION = "20260930-224646";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -387,8 +387,13 @@ const urlsToCache = [
   'extensao-chrome/gasometria-core.js',
   'extensao-chrome/manifest.json',
   'extensao-chrome/service-worker.js',
+  'extensao-escala-braden/braden.css',
   'extensao-escala-braden/braden.js',
   'extensao-escala-braden/content-script.js',
+  'extensao-escala-braden/fonts/inter-700.woff2',
+  'extensao-escala-braden/fonts/inter-900.woff2',
+  'extensao-escala-braden/fonts/inter-regular.woff2',
+  'extensao-escala-braden/fonts/nunito-900.woff2',
   'extensao-escala-braden/manifest.json',
   'extensao-escala-braden/service-worker.js',
   'extrator-hospitais.js',
@@ -1001,6 +1006,10 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-09-30T09-18-08.json',
   'relatorios/cwv-gate/2026-09-30T09-31-24.json',
   'relatorios/cwv-gate/2026-09-30T09-36-32.json',
+  'relatorios/cwv-gate/2026-10-01T01-35-49.json',
+  'relatorios/cwv-gate/2026-10-01T01-37-04.json',
+  'relatorios/cwv-gate/2026-10-01T01-42-03.json',
+  'relatorios/cwv-gate/2026-10-01T01-44-20.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1406,6 +1415,10 @@ const urlsToCache = [
   'relatorios/impacto/2026-09-30T09-18-09.json',
   'relatorios/impacto/2026-09-30T09-31-26.json',
   'relatorios/impacto/2026-09-30T09-36-33.json',
+  'relatorios/impacto/2026-10-01T01-35-50.json',
+  'relatorios/impacto/2026-10-01T01-37-05.json',
+  'relatorios/impacto/2026-10-01T01-42-04.json',
+  'relatorios/impacto/2026-10-01T01-44-21.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
