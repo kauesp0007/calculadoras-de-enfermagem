@@ -15,6 +15,10 @@ Regras canônicas: `AI_RULES.md` (prioridade máxima), `HTML_RULES.md`,
 VALIDAÇÃO → AUDITORIA → PROVA → CONTRA-PROVA → APROVAÇÃO → REGISTRO →
 CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificada como concluída.**
 
+## Sistema de contas — leitura obrigatória
+
+Antes de alterar login, perfil, assinatura, pagamentos, anúncios por plano, rotas Premium, painel do desenvolvedor, extensões de assinatura ou deploy de conteúdo protegido, ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md` e `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md`. Depois da mudança, atualizar o catálogo e regenerar o inventário com o estado real do banco; registrar testes, limitações, commit e deploy. Configurações do painel são dinâmicas e prevalecem sobre listas históricas.
+
 ## Fontes de verdade
 
 - Regras: `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`.
