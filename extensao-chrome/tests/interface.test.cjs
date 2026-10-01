@@ -74,7 +74,8 @@ module.exports = async function testInterface() {
                 },
                 sendMessage(message, callback) {
                     if (message && (message.type === "premium:get-state" || message.type === "premium:login")) {
-                        callback({ authenticated: true, premium: true, plan: "premium" });
+                        const premium = options.premium !== false;
+                        callback({ authenticated: true, premium, plan: premium ? "premium" : "free" });
                         return;
                     }
                     if (message && message.type === "premium:subscribe") {
@@ -281,6 +282,17 @@ module.exports = async function testInterface() {
     assert.equal(fit.window.events.has("resize"), false);
     assert.equal(fit.window.events.has("focus"), false);
     assert.ok(fit.observers.every(observer => observer.disconnected));
+    checks += 1;
+
+    const free = harness({ premium: false });
+    await free.ready();
+    assert.equal(free.get("ph").disabled, true);
+    assert.equal(free.get("btnCalcular").disabled, true);
+    assert.equal(free.get("btnLimpar").disabled, true);
+    assert.equal(free.get("calculator-shell").getAttribute("data-access"), "locked");
+    assert.ok(free.get("premium-access-status").textContent.includes("Free"));
+    await free.calculate(normal);
+    assert.equal(free.get("resultado-gasometria").hidden, true);
     checks += 1;
 
     function luminance(hex) {
