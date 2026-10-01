@@ -19,6 +19,94 @@
     let ownWindowId;
     let pendingFrame;
     let disposed = false;
+    let premiumAccess = false;
+    const premiumCard = document.getElementById("premium-access-card");
+    const premiumStatus = document.getElementById("premium-access-status");
+    const premiumMessage = document.getElementById("premium-access-message");
+    const loginButton = document.getElementById("btnEntrarPremium");
+    const subscribeButton = document.getElementById("btnAssinarPremium");
+    const logoutButton = document.getElementById("btnSairPremium");
+
+    function runtimeMessage(type) {
+        return new Promise((resolve, reject) => {
+            if (typeof chrome === "undefined" || !chrome.runtime?.id) {
+                reject(new Error("extension_runtime_unavailable"));
+                return;
+            }
+            chrome.runtime.sendMessage({ type }, (response) => {
+                const runtimeError = chrome.runtime.lastError;
+                if (runtimeError) {
+                    reject(new Error(runtimeError.message));
+                    return;
+                }
+                resolve(response || {});
+            });
+        });
+    }
+
+    function lockCalculator(locked) {
+        premiumAccess = !locked;
+        document.body.dataset.access = locked ? "locked" : "premium";
+        for (const element of form.querySelectorAll("input, button")) {
+            element.disabled = locked;
+        }
+        if (locked) {
+            resetFeedback();
+            form.reset();
+        }
+        fitCard();
+    }
+
+    function renderPremiumState(state) {
+        const premium = !!state?.premium;
+        const authenticated = !!state?.authenticated;
+        const unavailable = !!state?.unavailable;
+        premiumCard.dataset.state = premium ? "premium" : unavailable ? "error" : "free";
+
+        if (premium) {
+            premiumStatus.textContent = "Premium ativo — calculadora liberada.";
+            premiumMessage.textContent = "Sua assinatura foi confirmada pelo mesmo sistema Premium do site. Os campos e o cálculo estão liberados.";
+            loginButton.hidden = true;
+            subscribeButton.hidden = true;
+            logoutButton.hidden = false;
+            lockCalculator(false);
+            return;
+        }
+
+        lockCalculator(true);
+        loginButton.hidden = false;
+        subscribeButton.hidden = false;
+        logoutButton.hidden = !authenticated;
+
+        if (unavailable) {
+            premiumStatus.textContent = "Não foi possível confirmar a assinatura agora. Por segurança, o uso permanece bloqueado.";
+        } else if (authenticated) {
+            premiumStatus.textContent = "Conta verificada: plano Free. Assine o Premium para liberar o preenchimento e o cálculo.";
+        } else {
+            premiumStatus.textContent = "Entre para verificar uma assinatura Premium existente.";
+        }
+    }
+
+    async function refreshPremiumState(interactive) {
+        loginButton.disabled = true;
+        subscribeButton.disabled = true;
+        premiumStatus.textContent = interactive ? "Abrindo login seguro..." : "Verificando acesso...";
+        try {
+            const state = await runtimeMessage(interactive ? "premium:login" : "premium:get-state");
+            if (state?.error && !state?.authenticated) {
+                renderPremiumState({ authenticated: false, premium: false });
+                premiumStatus.textContent = "Login não concluído. Você pode tentar novamente.";
+                return;
+            }
+            renderPremiumState(state);
+        } catch (_) {
+            renderPremiumState({ authenticated: false, premium: false, unavailable: true });
+        } finally {
+            loginButton.disabled = false;
+            subscribeButton.disabled = false;
+            fitCard();
+        }
+    }
 
     function resetFeedback() {
         resultSection.hidden = true;
@@ -104,6 +192,11 @@
 
     form.addEventListener("submit", (event) => {
         event.preventDefault();
+        if (!premiumAccess) {
+            premiumStatus.textContent = "Assinatura Premium necessária para calcular.";
+            premiumCard.scrollIntoView({ block: "nearest" });
+            return;
+        }
         resetFeedback();
         const raw = Object.fromEntries(fieldIds.map((id) => [id, document.getElementById(id).value]));
         const result = Gasometria.calculate(raw);
@@ -167,6 +260,25 @@
             fitCard();
         });
     }
+
+    loginButton.addEventListener("click", () => refreshPremiumState(true));
+    subscribeButton.addEventListener("click", async () => {
+        subscribeButton.disabled = true;
+        try {
+            await runtimeMessage("premium:subscribe");
+        } finally {
+            subscribeButton.disabled = false;
+        }
+    });
+    logoutButton.addEventListener("click", async () => {
+        logoutButton.disabled = true;
+        try {
+            const state = await runtimeMessage("premium:logout");
+            renderPremiumState(state);
+        } finally {
+            logoutButton.disabled = false;
+        }
+    });
 
     heightButton.addEventListener("click", () => {
         viewMode = viewMode === "full" ? "compact" : "full";
@@ -257,6 +369,8 @@
             chrome.runtime.onMessage.removeListener(onNativeMessage);
         }
     });
+    lockCalculator(true);
     fitCard();
     updateNativeContext();
+    refreshPremiumState(false);
 })();
