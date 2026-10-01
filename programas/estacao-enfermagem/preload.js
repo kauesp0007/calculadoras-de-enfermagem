@@ -1,0 +1,4 @@
+'use strict';
+const {contextBridge,ipcRenderer}=require('electron');
+const call=channel=>(...args)=>ipcRenderer.invoke(channel,...args);
+contextBridge.exposeInMainWorld('nursing',Object.freeze({init:call('app:init'),patients:call('data:patients'),history:call('data:history'),save:call('data:save'),archive:call('data:archive'),deletePatient:call('data:deletePatient'),deleteAssessment:call('data:deleteAssessment'),draft:call('data:draft'),settings:call('data:settings'),assessments:call('data:assessments'),dirty:call('app:dirty'),closeReady:call('app:closeReady'),reference:call('app:reference'),pdf:call('report:pdf'),print:call('report:print'),backup:call('backup:export'),restore:call('backup:restore'),csv:call('export:csv'),onAction:callback=>{const listener=(_event,name)=>callback(name);ipcRenderer.on('app:action',listener);return ()=>ipcRenderer.removeListener('app:action',listener);}}));
