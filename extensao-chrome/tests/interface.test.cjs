@@ -66,9 +66,24 @@ module.exports = async function testInterface() {
             removeEventListener(name, fn) { if (this.events.get(name) === fn) this.events.delete(name); }
         };
         const chrome = {
-            runtime: { id: "own-extension", onMessage: {
-                addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); }
-            }},
+            runtime: {
+                id: "own-extension",
+                lastError: null,
+                onMessage: {
+                    addListener(fn) { listeners.add(fn); }, removeListener(fn) { listeners.delete(fn); }
+                },
+                sendMessage(message, callback) {
+                    if (message && (message.type === "premium:get-state" || message.type === "premium:login")) {
+                        callback({ authenticated: true, premium: true, plan: "premium" });
+                        return;
+                    }
+                    if (message && message.type === "premium:subscribe") {
+                        callback({ ok: true });
+                        return;
+                    }
+                    callback({});
+                }
+            },
             windows: { async getCurrent() { return { id: 41, type: "normal" }; } },
             sidePanel: {
                 async getLayout() { return { side: options.side || "right" }; },
