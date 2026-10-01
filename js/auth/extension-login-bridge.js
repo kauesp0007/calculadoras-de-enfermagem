@@ -20,7 +20,12 @@ function showError(message){
 async function init(){
   var params=new URLSearchParams(window.location.search);
   var redirectUri=params.get("redirect_uri")||"";
+  var codeChallenge=params.get("code_challenge")||"";
+  var codeChallengeMethod=params.get("code_challenge_method")||"";
   if(!validRedirect(redirectUri)){showError("Destino da extensão inválido.");return;}
+  if(!/^[A-Za-z0-9_-]{43}$/.test(codeChallenge)||codeChallengeMethod!=="S256"){
+    showError("Verificação segura da extensão inválida.");return;
+  }
   try{
     await window.Auth.init();
     if(!window.Auth.isLoggedIn()){
@@ -35,7 +40,7 @@ async function init(){
       method:"POST",
       headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json","Accept":"application/json"},
       cache:"no-store",
-      body:JSON.stringify({redirect_uri:redirectUri})
+      body:JSON.stringify({redirect_uri:redirectUri,code_challenge:codeChallenge,code_challenge_method:"S256"})
     });
     var data=await response.json().catch(function(){return{};});
     if(!response.ok||!data.code)throw new Error("Não foi possível autorizar a extensão.");

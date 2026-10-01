@@ -1,6 +1,6 @@
 # Privacidade — calculadora de gasometria arterial
 
-Versão 0.3.0. Documento atualizado em 30/09/2026 para revisão antes da publicação.
+Versão 0.3.1. Documento atualizado em 30/09/2026 para revisão antes da publicação.
 
 ## Dados clínicos
 
@@ -8,11 +8,11 @@ Os parâmetros digitados na calculadora são processados localmente dentro da ex
 
 ## Conta e assinatura
 
-A versão 0.3.0 usa a conta já existente em **Calculadoras de Enfermagem** somente para confirmar se o usuário possui acesso Premium.
+A versão 0.3.1 usa a conta já existente em **Calculadoras de Enfermagem** somente para confirmar se o usuário possui acesso Premium.
 
 - O botão de login abre o domínio oficial `www.calculadorasdeenfermagem.com.br`.
 - A credencial Firebase permanece no site e não é entregue nem armazenada pela extensão.
-- O servidor gera um código aleatório de uso único, com curta validade, vinculado ao ID da extensão.
+- O servidor gera um código aleatório de uso único, com curta validade, vinculado ao ID da extensão e a um desafio criptográfico PKCE (S256).
 - A extensão envia esse código somente ao projeto Supabase das Calculadoras de Enfermagem para receber o estado `free` ou `premium` e, quando aplicável, a expiração do Premium.
 - O código é consumido uma única vez e não contém os valores clínicos do formulário.
 - O botão **Assinar Premium** abre a página de assinatura já existente. O processamento de pagamentos continua sujeito às políticas do provedor utilizado pelo site (Asaas ou Stripe).

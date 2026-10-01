@@ -4,24 +4,26 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
 const db=()=>createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+const H={
+  "Access-Control-Allow-Origin":"*",
+  "Access-Control-Allow-Methods":"GET,OPTIONS",
+  "Access-Control-Allow-Headers":"Content-Type",
+  "Content-Type":"application/json; charset=utf-8",
+  "Cache-Control":"no-store"
+};
 
-function extensionIdFromOrigin(origin:string){
-  const m=origin.match(/^chrome-extension:\/\/([a-p]{32})$/);
-  return m?m[1]:"";
+function base64Url(bytes:Uint8Array){
+  let binary="";
+  for(const b of bytes)binary+=String.fromCharCode(b);
+  return btoa(binary).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
 }
-function headers(origin:string){
-  return {
-    "Access-Control-Allow-Origin":origin,
-    "Access-Control-Allow-Methods":"GET,OPTIONS",
-    "Access-Control-Allow-Headers":"Content-Type",
-    "Vary":"Origin",
-    "Content-Type":"application/json; charset=utf-8",
-    "Cache-Control":"no-store"
-  };
-}
-async function sha256(value:string){
+async function sha256Hex(value:string){
   const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));
   return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function sha256Base64Url(value:string){
+  const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value));
+  return base64Url(new Uint8Array(digest));
 }
 async function manualPremiumGrant(email:string|null){
   if(!email)return false;
@@ -31,24 +33,25 @@ async function manualPremiumGrant(email:string|null){
 }
 
 serve(async req=>{
-  const origin=req.headers.get("Origin")||"";
-  const extensionId=extensionIdFromOrigin(origin);
-  const H=headers(extensionId?origin:"null");
-  if(req.method==="OPTIONS"){
-    if(!extensionId)return new Response(null,{status:403,headers:H});
-    return new Response(null,{status:204,headers:H});
-  }
+  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:H});
   if(req.method!=="GET")return new Response(JSON.stringify({error:"method_not_allowed"}),{status:405,headers:H});
-  if(!extensionId)return new Response(JSON.stringify({error:"invalid_extension_origin"}),{status:403,headers:H});
   try{
-    const code=String(new URL(req.url).searchParams.get("code")||"");
+    const params=new URL(req.url).searchParams;
+    const code=String(params.get("code")||"");
+    const verifier=String(params.get("code_verifier")||"");
+    const extensionId=String(params.get("extension_id")||"");
     if(!/^[A-Za-z0-9_-]{40,60}$/.test(code))throw new Error("invalid_code");
-    const codeHash=await sha256(code);
+    if(!/^[A-Za-z0-9_-]{43}$/.test(verifier))throw new Error("invalid_verifier");
+    if(!/^[a-p]{32}$/.test(extensionId))throw new Error("invalid_extension_id");
+
+    const codeHash=await sha256Hex(code);
+    const challenge=await sha256Base64Url(verifier);
     const sb=db();
     const now=new Date().toISOString();
     const {data:grant,error:grantError}=await sb.from("extension_auth_codes")
       .delete()
       .eq("code_hash",codeHash)
+      .eq("code_challenge",challenge)
       .eq("extension_id",extensionId)
       .gt("expires_at",now)
       .select("firebase_uid,email")
@@ -81,7 +84,7 @@ serve(async req=>{
     }),{status:200,headers:H});
   }catch(e){
     const msg=String((e as Error)?.message||e);
-    const status=msg==="invalid_code"||msg==="invalid_or_expired_code"?401:500;
+    const status=["invalid_code","invalid_verifier","invalid_extension_id","invalid_or_expired_code"].includes(msg)?401:500;
     return new Response(JSON.stringify({error:status===500?"extension_access_unavailable":msg}),{status,headers:H});
   }
 });
