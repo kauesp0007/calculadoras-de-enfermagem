@@ -25,7 +25,6 @@
     const premiumMessage = document.getElementById("premium-access-message");
     const loginButton = document.getElementById("btnEntrarPremium");
     const subscribeButton = document.getElementById("btnAssinarPremium");
-    const logoutButton = document.getElementById("btnSairPremium");
 
     function runtimeMessage(type) {
         return new Promise((resolve, reject) => {
@@ -68,7 +67,6 @@
             premiumMessage.textContent = "Sua assinatura foi confirmada pelo mesmo sistema Premium do site. Os campos e o cálculo estão liberados.";
             loginButton.hidden = true;
             subscribeButton.hidden = true;
-            logoutButton.hidden = false;
             lockCalculator(false);
             return;
         }
@@ -76,7 +74,6 @@
         lockCalculator(true);
         loginButton.hidden = false;
         subscribeButton.hidden = false;
-        logoutButton.hidden = !authenticated;
 
         if (unavailable) {
             premiumStatus.textContent = "Não foi possível confirmar a assinatura agora. Por segurança, o uso permanece bloqueado.";
@@ -270,16 +267,6 @@
             subscribeButton.disabled = false;
         }
     });
-    logoutButton.addEventListener("click", async () => {
-        logoutButton.disabled = true;
-        try {
-            const state = await runtimeMessage("premium:logout");
-            renderPremiumState(state);
-        } finally {
-            logoutButton.disabled = false;
-        }
-    });
-
     heightButton.addEventListener("click", () => {
         viewMode = viewMode === "full" ? "compact" : "full";
         fitCard();
