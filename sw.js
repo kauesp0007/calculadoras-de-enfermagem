@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20261001-023842";
+const CACHE_VERSION = "20261001-044017";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -1502,6 +1502,7 @@ const urlsToCache = [
   'scripts/orquestrador.js',
   'scripts/parse-dictionary.js',
   'scripts/parse-glossario.js',
+  'scripts/pdf_builder/base_style.css',
   'scripts/relatorio-icones-fa.json',
   'scripts/relatorio-substituicao-fa.json',
   'scripts/remove-static-glossary.js',
