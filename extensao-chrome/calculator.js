@@ -25,6 +25,8 @@
     const premiumMessage = document.getElementById("premium-access-message");
     const loginButton = document.getElementById("btnEntrarPremium");
     const subscribeButton = document.getElementById("btnAssinarPremium");
+    const calculateButton = document.getElementById("btnCalcular");
+    const clearButton = document.getElementById("btnLimpar");
 
     function runtimeMessage(type) {
         return new Promise((resolve, reject) => {
@@ -45,7 +47,7 @@
 
     function lockCalculator(locked) {
         premiumAccess = !locked;
-        document.body.dataset.access = locked ? "locked" : "premium";
+        shell.setAttribute("data-access", locked ? "locked" : "premium");
         for (const field of Gasometria.FIELDS) {
             document.getElementById(field.id).disabled = locked;
         }
