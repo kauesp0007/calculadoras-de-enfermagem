@@ -12,6 +12,7 @@ module.exports = async function testInterface() {
     function harness(options = {}) {
         const elements = new Map(), observers = [], frames = new Map(), listeners = new Set(), closes = [];
         let frameId = 0;
+        let premiumState = options.premium !== false;
         class Element {
             constructor(id = "") {
                 this.id = id; this.children = []; this.attributes = new Map(); this.events = new Map();
@@ -75,7 +76,7 @@ module.exports = async function testInterface() {
                 },
                 sendMessage(message, callback) {
                     if (message && (message.type === "premium:get-state" || message.type === "premium:login")) {
-                        const premium = options.premium !== false;
+                        const premium = premiumState;
                         callback({ authenticated: true, premium, plan: premium ? "premium" : "free" });
                         return;
                     }
@@ -92,8 +93,14 @@ module.exports = async function testInterface() {
                 async close(value) { closes.push(value); if (options.rejectClose) throw new Error("close"); }
             }
         };
-        const document = { getElementById: get, createElement: () => new Element(), events: new Map(),
-            addEventListener(name, fn) { this.events.set(name, fn); } };
+        const document = {
+            getElementById: get,
+            createElement: () => new Element(),
+            events: new Map(),
+            visibilityState: "visible",
+            addEventListener(name, fn) { this.events.set(name, fn); },
+            removeEventListener(name, fn) { if (this.events.get(name) === fn) this.events.delete(name); }
+        };
         get("gasometria-form").reset = () => {
             Gasometria.FIELDS.forEach(field => { get(field.id).value = ""; });
             return get("gasometria-form").emit("reset");
@@ -108,7 +115,9 @@ module.exports = async function testInterface() {
             fn => { const id = ++frameId; frames.set(id, fn); return id; }, id => frames.delete(id), Observer
         );
         function flush() { const pending = [...frames.values()]; frames.clear(); pending.forEach(fn => fn()); }
-        return { get, document, window, closes, observers, listeners, frames, flush,
+        return {
+            get, document, window, closes, observers, listeners, frames, flush,
+            setPremium(value) { premiumState = !!value; },
             async ready() { await Promise.resolve(); await Promise.resolve(); await Promise.resolve(); flush(); },
             async calculate(values) {
                 Gasometria.FIELDS.forEach(field => { get(field.id).value = values[field.id] === undefined ? "" : String(values[field.id]); });
@@ -259,7 +268,18 @@ module.exports = async function testInterface() {
     assert.deepEqual(native.message({ type: "gasometria:panel-closed", windowId: 41 }), { ok: true });
     assert.equal(native.get("ph").value, "");
     assert.equal(native.get("resultado-gasometria").hidden, true);
+    assert.equal(native.get("ph").disabled, true);
+    assert.equal(native.get("btnCalcular").disabled, true);
+    assert.equal(native.get("calculator-shell").getAttribute("data-access"), "locked");
     assert.equal(native.height(), 664);
+    checks += 1;
+
+    native.setPremium(false);
+    native.window.events.get("focus")();
+    await native.ready();
+    assert.equal(native.get("ph").disabled, true);
+    assert.equal(native.get("calculator-shell").getAttribute("data-access"), "locked");
+    assert.ok(native.get("premium-access-status").textContent.includes("Free"));
     checks += 1;
     await native.calculate(normal);
     await native.get("btnFechar").emit("click"); native.flush();
@@ -284,6 +304,7 @@ module.exports = async function testInterface() {
     assert.equal(fit.listeners.size, 0);
     assert.equal(fit.window.events.has("resize"), false);
     assert.equal(fit.window.events.has("focus"), false);
+    assert.equal(fit.document.events.has("visibilitychange"), false);
     assert.ok(fit.observers.every(observer => observer.disconnected));
     checks += 1;
 
