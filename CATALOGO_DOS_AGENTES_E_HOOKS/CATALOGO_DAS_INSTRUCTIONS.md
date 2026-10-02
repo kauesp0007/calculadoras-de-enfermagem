@@ -1,6 +1,6 @@
 # 📐 Catálogo das Instructions (regras por extensão)
 
-**Local:** `.github/instructions/*.instructions.md` · **Total:** 5 · **Mecanismo:** `applyTo` (carregadas automaticamente quando um arquivo da extensão é tocado).
+**Local:** `.github/instructions/*.instructions.md` · **Total:** 7 · **Mecanismo:** `applyTo` (carregadas automaticamente quando um arquivo da extensão é tocado).
 
 | Instruction | applyTo | Cobre |
 |---|---|---|
@@ -9,5 +9,7 @@
 | `css.instructions.md` | `**/*.css` | Tailwind, tokens do design system, cores, largura, hero, responsividade |
 | `js.instructions.md` | `**/*.js` | Padrões de código, reutilização, restrições |
 | `json.instructions.md` | `**/*.json` | Validade JSON, preservação de schema, arquivos sensíveis |
+| `planos-de-acesso.instructions.md` | `**/*.html` | Ler catálogo canônico de contas e Premium antes de alterar acesso em HTML |
+| `ecossistema-login-assinaturas.instructions.md` | `—` (global) | Apontador obrigatório: ler catálogo e inventário do sistema de contas antes de mudar login/assinatura/entitlement/Premium |
 
 **Complementaridade:** as instructions **orientam**; os hooks correspondentes (`check-layout`, `check-head`, `check-json`, `content-governance`) **garantem** deterministicamente.

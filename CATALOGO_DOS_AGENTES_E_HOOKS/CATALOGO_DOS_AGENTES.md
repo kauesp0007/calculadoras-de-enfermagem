@@ -2,7 +2,7 @@
 
 **Projeto:** Calculadoras de Enfermagem  
 **Local:** `.github/agents/*.agent.md`  
-**Total:** 15 agentes (todos `user-invocable: true`)
+**Total:** 16 agentes (todos `user-invocable: true`)
 
 ## 📊 Resumo Geral
 
@@ -23,6 +23,7 @@
 | 13 | Auditor do Ecossistema | `auditor-ecossistema.agent.md` | read, search | ❌ | Auditoria |
 | 14 | Auditor de Conformidade Técnica | `auditor-conformidade-tecnica.agent.md` | read, search, execute | ❌ | Auditoria |
 | 15 | Agente Alfandegário | `agente-alfandegario.agent.md` | read, search | ❌ | Gate (processo) |
+| 16 | Gerador de Formulários PDF | `gerador-formularios-pdf.agent.md` | read, edit, execute, search | ✅ | Criação |
 
 ---
 
@@ -343,6 +344,35 @@ Julga o **processo** (etapas e evidências), não o conteúdo. Complementa o
 
 ---
 
+## 16. Gerador de Formulários PDF
+
+- **Arquivo:** `gerador-formularios-pdf.agent.md`
+- **Ferramentas:** `read`, `edit`, `execute`, `search`
+- **Natureza:** criação (edita e executa) com contra-prova determinística
+
+**Competência**
+Gerar formulários hospitalares em branco (fichas de beira-leito) em PDF A4 nativo de
+1 página, e a página HTML hospedeira, a partir de uma escala/calculadora do portal.
+Cobre as duas etapas do catálogo canônico: Etapa 1 (PDF via `FormPDFEngine` +
+`msedge --headless`) e Etapa 2 (página HTML com visualizador 100% e download).
+
+**Fontes de verdade**
+`CATALOGO_INTRUCOES_CRIACAO_DE_FORMULARIOS/` (manual canônico, motor, CSS, template e
+validadores), `AI_RULES.md`, `HTML_RULES.md`, `.github/instructions/html.instructions.md`,
+`.github/instructions/pdf-form-page.instructions.md`, builders por idioma em `scripts/pdf_builder*/`.
+
+**Quando inicia**
+Quando o usuário pede um formulário em branco (PDF) de uma escala, ou a regeneração/
+recalibração de formulários existentes para caber em 1 página A4.
+
+**Diferenciação**
+É o agente de **formulários em branco (PDF)** — distinto do `Nova Calculadora`, que cria
+páginas HTML interativas de cálculo. Não se auto-aprova: a contra-prova é o script
+`AUDITOR_GEOMETRIA_FORMULARIOS_PDF.py` (1 página, ocupação 70–92%) e o
+`VALIDADOR_PAGINAS_HTML_FORMULARIOS.py`.
+
+---
+
 ## 🧭 Tabela de Diferenciação Rápida
 
 | Agente | Pergunta que responde | Saída típica |
@@ -362,3 +392,4 @@ Julga o **processo** (etapas e evidências), não o conteúdo. Complementa o
 | Auditor do Ecossistema | O ecossistema tem duplicações/órfãos? | Relatório de divergências |
 | Auditor de Conformidade Técnica | A página está 100% conforme (CWV/mobile/a11y)? | Relatório consolidado + CONFORME/NÃO CONFORME |
 | Agente Alfandegário | A etapa cumpriu pré-condições e deixou evidência? | APROVADO / REPROVADO COM PENDÊNCIAS |
+| Gerador de Formulários PDF | O formulário PDF + página hospedeira estão prontos e auditados? | PDF A4 (1 pág) + HTML + evidência de auditoria |
