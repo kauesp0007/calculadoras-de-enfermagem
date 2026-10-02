@@ -1,9 +1,6 @@
 (() => {
   "use strict";
 
-  const dataInput = document.getElementById("pacData");
-  if (dataInput) dataInput.value = new Date().toISOString().split("T")[0];
-
   const ITENS_BRADEN = [
     { id: "percepcao", label: "1. Percepção Sensorial", max: 4, desc: "Reação ao desconforto por pressão.", opts: [{ val: "", text: "Selecione..." }, { val: 1, text: "1 - Totalmente Limitada" }, { val: 2, text: "2 - Muito Limitada" }, { val: 3, text: "3 - Levemente Limitada" }, { val: 4, text: "4 - Nenhuma Limitação" }] },
     { id: "umidade", label: "2. Umidade", max: 4, desc: "Exposição da pele a fluidos.", opts: [{ val: "", text: "Selecione..." }, { val: 1, text: "1 - Constantemente Úmida" }, { val: 2, text: "2 - Muito Úmida" }, { val: 3, text: "3 - Ocasionalmente Úmida" }, { val: 4, text: "4 - Raramente Úmida" }] },
@@ -117,10 +114,6 @@
       bar.style.width = "0%";
       bar.dataset.tone = "empty";
     });
-    ["pacNome", "pacDataNasc", "pacMae", "pacAtendimento", "pacQuarto", "pacLeito", "pacSetor"].forEach(id => {
-      document.getElementById(id).value = "";
-    });
-    document.getElementById("pacData").value = new Date().toISOString().split("T")[0];
     document.getElementById("msgValidacaoErro").hidden = true;
     document.getElementById("resultado-section").hidden = true;
     atualizarBarraGlobal();
@@ -137,17 +130,6 @@
     else if (soma <= 12) { classe = "Risco Alto"; pillColor = "#ea580c"; }
     else if (soma <= 14) { classe = "Risco Moderado"; pillColor = "#eab308"; }
     else if (soma <= 18) { classe = "Risco Baixo"; pillColor = "#65a30d"; }
-
-    const camposPaciente = {
-      nome: document.getElementById("pacNome").value,
-      data: document.getElementById("pacData").value ? document.getElementById("pacData").value.split("-").reverse().join("/") : "",
-      dataNasc: document.getElementById("pacDataNasc").value ? document.getElementById("pacDataNasc").value.split("-").reverse().join("/") : "",
-      mae: document.getElementById("pacMae").value,
-      atend: document.getElementById("pacAtendimento").value,
-      quarto: document.getElementById("pacQuarto").value,
-      leito: document.getElementById("pacLeito").value,
-      setor: document.getElementById("pacSetor").value
-    };
 
     const linhas = ITENS_BRADEN.map(i => {
       const val = parseInt(document.getElementById(i.id).value) || 0;
@@ -169,18 +151,6 @@
     .grid-dados{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:9pt;}
   </style></head><body>
   <div class="hdr"><h2>Escala de Braden</h2></div>
-  <div class="secao"><div class="sec-titulo">Dados Assistenciais</div>
-    <div class="grid-dados">
-      ${camposPaciente.nome ? `<div><strong>Nome:</strong> ${camposPaciente.nome}</div>` : ""}
-      ${camposPaciente.data ? `<div><strong>Data:</strong> ${camposPaciente.data}</div>` : ""}
-      ${camposPaciente.dataNasc ? `<div><strong>Data Nasc.:</strong> ${camposPaciente.dataNasc}</div>` : ""}
-      ${camposPaciente.mae ? `<div><strong>Nome da Mãe:</strong> ${camposPaciente.mae}</div>` : ""}
-      ${camposPaciente.atend ? `<div><strong>Nº Atendimento:</strong> ${camposPaciente.atend}</div>` : ""}
-      ${camposPaciente.quarto ? `<div><strong>Quarto:</strong> ${camposPaciente.quarto}</div>` : ""}
-      ${camposPaciente.leito ? `<div><strong>Leito:</strong> ${camposPaciente.leito}</div>` : ""}
-      ${camposPaciente.setor ? `<div><strong>Setor:</strong> ${camposPaciente.setor}</div>` : ""}
-    </div>
-  </div>
   <div class="secao"><div class="res-box"><h1 style="color:#1A3E74;margin:0;font-size:36pt">${soma} / 23</h1><div style="background:${pillColor};color:white;display:inline-block;padding:6px 16px;border-radius:20px;margin-top:10px;font-weight:900;text-transform:uppercase;">${classe}</div></div></div>
   <div class="secao"><div class="sec-titulo">Memória da Avaliação Clínica</div><table><thead><tr><th>Fator</th><th style="text-align:center">Obtido</th><th style="text-align:center">Máx</th></tr></thead><tbody>${linhas}</tbody><tfoot><tr><td>TOTAL</td><td style="text-align:center">${soma}</td><td style="text-align:center">23</td></tr></tfoot></table></div>
   <div style="margin-top:40px;text-align:center;font-size:8pt;color:#64748b;border-top:1px solid #ccc;padding-top:10px">Assinatura do Profissional<br><br>www.calculadorasdeenfermagem.com.br</div>
