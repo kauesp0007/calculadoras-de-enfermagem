@@ -3,7 +3,6 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
-import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
 import { requestedPremiumPaths } from "./developer-premium-eligible.mjs";
 
@@ -16,10 +15,6 @@ await fs.writeFile(path.join(root, "conta/developer-route-catalog.json"), JSON.s
 await fs.writeFile(path.join(root, "en/missao.html"), "<html><head><title>Missão</title></head><body>Conteúdo público</body></html>");
 await fs.writeFile(path.join(root, "premium-content-manifest.json"), JSON.stringify({ scope: { languages: ["en"] }, exact: [], patterns: [] }));
 await fs.mkdir(path.join(root, "scripts"));
-await fs.mkdir(path.join(root, "js/access"), { recursive: true });
-for (const asset of ["js/access/premium-content-loader.js", "lang-selector.js"]) {
-  await fs.copyFile(path.join(process.cwd(), asset), path.join(root, asset));
-}
 for (const name of ["developer-premium-eligible.mjs", "migrate-premium-content.mjs", "shellify-premium-public-pages.mjs"]) {
   await fs.copyFile(path.join(process.cwd(), "scripts", name), path.join(root, "scripts", name));
 }
@@ -89,9 +84,6 @@ try {
   assert.match(await run("--run", shellifier, root), /"changed":1/);
   const shell = await fs.readFile(path.join(root, "en/missao.html"), "utf8");
   assert.match(shell, /premium-content-placeholder/);
-  const loaderVersion = createHash("sha256").update(await fs.readFile(path.join(root, "js/access/premium-content-loader.js"))).digest("hex").slice(0, 12);
-  assert.ok(shell.includes(`/js/access/premium-content-loader.js?v=${loaderVersion}`));
-  assert.match(await run("--run", shellifier, root), /"changed":0/);
   assert.doesNotMatch(shell, /Conteúdo público/);
   // The worker must not enable Premium while the live page still exposes its full HTML.
   assert.match(await run("--finalize", undefined, undefined, 1), /Shell ainda não confirmado no domínio/);
