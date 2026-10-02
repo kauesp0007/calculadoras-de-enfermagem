@@ -15,7 +15,8 @@ const checks=[
   [loader.includes('var res=await request(token,currentKey);'),"loader deve consultar premium-content diretamente."],
   [loader.includes('if(res.status===403){'),"loader deve tratar 403 do servidor."],
   [loader.includes('res=await request(token,canonicalKey);'),"loader deve preservar fallback localizado após refresh."],
-  [loader.includes('document.open();document.write(html);document.close();'),"loader deve entregar o HTML protegido."],
+  [loader.includes('document.open();') && loader.includes('document.write(html);') && loader.includes('document.close();'),"loader deve entregar o HTML protegido."],
+  [loader.includes('await ensurePremiumFooterAfterWrite();'),"loader deve reidratar o rodapé após a entrega protegida."],
 ];
 
 const failed=checks.filter(x=>!x[0]);
