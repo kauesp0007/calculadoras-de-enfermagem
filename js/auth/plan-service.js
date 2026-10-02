@@ -4,7 +4,7 @@
   var LEVELS={free:0,premium:10};
   var PLANS={
     free:{id:"free",label:"Gratuito",level:0,available:true,permissions:[]},
-    premium:{id:"premium",label:"Premium",level:10,available:true,permissions:["viewPremium","downloadPremium"]}
+    premium:{id:"premium",label:"Premium",level:10,available:true,permissions:["viewPremium","downloadPremium","printPremium"]}
   };
   function normalize(plan){return plan==="premium"?"premium":"free";}
   function levelOf(plan){return PLANS[normalize(plan)].level;}
