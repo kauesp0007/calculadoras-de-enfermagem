@@ -107,7 +107,32 @@
     }
     return documentHtml.replace(/<\/body>/i,seal+"</body>");
   }
+  function premiumComponentPrefix(){
+    var match=window.location.pathname.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
+    return match?"/"+match[1]+"/":"/";
+  }
+  async function ensurePremiumFooterAfterWrite(){
+    var container=document.getElementById("footer-placeholder");
+    if(!container) return false;
+    if(container.dataset.globalFooterReady==="1"||container.querySelector("footer")){
+      container.dataset.globalFooterReady="1";
+      return true;
+    }
+    try{
+      var prefix=window.__FETCH_PREFIX||premiumComponentPrefix();
+      var response=await fetch(prefix+"footer.html",{cache:"no-store"});
+      if(!response.ok) throw new Error("footer_"+response.status);
+      container.innerHTML=await response.text();
+      if(typeof window.__FIX_RELATIVE_LINKS==="function") window.__FIX_RELATIVE_LINKS(container);
+      container.dataset.globalFooterReady="1";
+      return true;
+    }catch(error){
+      console.warn("[PremiumContent] falha ao carregar o rodapé global",error);
+      return false;
+    }
+  }
   async function ensureGlobalChromeAfterWrite(){
+    await ensurePremiumFooterAfterWrite();
     // global-scripts.js é carregado pelo shell e também existe no documento
     // privado. Após document.write(), o novo DOM precisa ser reidratado sem
     // depender de um evento load que pode já ter pertencido ao shell anterior.
