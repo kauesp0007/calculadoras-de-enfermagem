@@ -52,7 +52,7 @@
 <section class="dev-hero mb-5">
 <p class="text-blue-200 text-xs font-black uppercase tracking-[.16em]">Admin Premium</p>
 <h1 class="text-[clamp(28px,5vw,46px)] font-black leading-tight mt-1">Área do Desenvolvedor</h1>
-<p class="text-blue-100 font-semibold max-w-4xl mt-2">Controles do sistema Premium vigente: bloqueio Free, portais Asaas/Stripe, rotas exclusivas e exceções por e-mail. Mudanças de páginas públicas entram em vigor após a publicação protegida.</p>
+<p class="text-blue-100 font-semibold max-w-4xl mt-2">Controles do sistema Premium vigente: proteção das ações Premium, portais Asaas/Stripe, classificação de páginas e exceções por e-mail. Ao tornar uma página Premium, o conteúdo continua visível e apenas calcular, interpretar, iniciar, imprimir ou baixar exige assinatura.</p>
 </section>
 
 <div id="dev-message" class="hidden mb-4 rounded-xl border px-4 py-3 text-sm font-bold"></div>
@@ -96,7 +96,7 @@
 
 <section class="dev-card p-5">
 <div class="flex flex-wrap items-end justify-between gap-3 mb-4">
-<div><h2 class="text-2xl">Páginas Exclusivas Premium</h2><p class="status-line">Verde significa bloqueio Free ativo. Vermelho significa acesso Free liberado. Páginas sem regra cadastrada também aparecem como Free.</p></div>
+<div><h2 class="text-2xl">Classificação Free ou Premium por página</h2><p class="status-line">Verde significa que as ações da página exigem assinatura Premium. Vermelho significa acesso Free integral. O conteúdo, os campos, o menu e o rodapé continuam visíveis nos dois modos.</p></div>
 <div class="route-toolbar"><input id="route-search" class="dev-input" type="search" placeholder="Pesquisar página..."><select id="route-category" class="dev-input"></select></div>
 </div>
 <p id="route-summary" class="status-line mb-2" aria-live="polite"></p>
@@ -183,8 +183,8 @@ $("route-summary").textContent=all.length+" páginas: "+premium+" Premium, "+(al
 $("route-more").classList.toggle("hidden",visible.length>=rows.length);
 $("route-list").innerHTML=visible.map(function(r){
 var status=routeStatus(r.path),active=status.active,enforcement=status.enforcement;
-var tagClass=active?"green":"red",enforcementClass=enforcement==="protected_content"?"green":enforcement==="herdado de PT"?"amber":"gray";
-var label=({protected_content:"conteúdo protegido",client_guard:"HTML público",catalog_only:"HTML público"})[enforcement]||enforcement;
+var tagClass=active?"green":"red",enforcementClass=enforcement==="client_guard"?"green":enforcement==="protected_content"||enforcement==="herdado de PT"?"amber":"gray";
+var label=({protected_content:"modelo antigo",client_guard:"ações Premium protegidas",catalog_only:"acesso Free integral"})[enforcement]||enforcement;
 return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="font-black text-[#1A3E74]">'+esc(r.path)+'</p><div class="switch-meta"><span class="tag gray">'+esc(r.category)+'</span><span class="tag '+tagClass+'">'+(active?"Premium ativo":"Free liberado")+'</span>'+(status.pending?'<span class="tag amber">Aguardando publicação</span>':'')+'<span class="tag '+enforcementClass+'">'+esc(label)+'</span></div></div><label class="toggle" aria-label="'+(status.pending?"Cancelar solicitação Premium para ":"Alternar ")+esc(r.path)+'"><input type="checkbox" data-route="'+esc(r.path)+'" data-category="'+esc(r.category)+'" '+(status.pending?'data-pending="true" ':'')+(active||status.pending?"checked":"")+'><span class="slider"></span><span class="toggle-label">'+(status.pending?"Pendente":active?"Ativo":"Inativo")+'</span></label></div>';
 }).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>';
 }
@@ -202,7 +202,7 @@ if(!Array.isArray(data.paths)||data.paths.length<100)throw new Error("catalog_in
 state.catalogPaths=data.paths;
 }
 async function saveSetting(input){input.disabled=true;try{await api("POST",{action:"set_setting",key:input.dataset.setting,enabled:input.checked});await reload();msg("Configuração salva e decisão do desenvolvedor registrada.",false)}catch(e){input.checked=!input.checked;msg("Erro ao salvar configuração: "+e.message,true)}finally{input.disabled=false}}
-async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});await reload();msg(data.activation_request?"Decisão registrada: Premium solicitado para "+path+". Continua Free até a publicação protegida.":"Decisão do desenvolvedor registrada: "+path+" — "+(data.route&&data.route.premium_required?"Premium":"Free"),false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
+async function saveRoute(input){input.disabled=true;var path=input.dataset.route;try{var data=await api("POST",{action:"set_route",path:path,title:path,category:input.dataset.category,premium_required:input.checked});await reload();msg(data.activation_request?"Decisão registrada: Premium solicitado para "+path+". Continua Free até a publicação do controle de ações.":"Decisão do desenvolvedor registrada: "+path+" — "+(data.route&&data.route.premium_required?"Premium com ações protegidas":"Free com acesso integral"),false)}catch(e){input.checked=!input.checked;msg("Erro ao atualizar rota: "+e.message,true)}finally{input.disabled=false}}
 async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
 async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
 function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",function(){state.visibleRoutes=100;renderRoutes()});$("route-category").addEventListener("change",function(){state.visibleRoutes=100;renderRoutes()});$("route-more").addEventListener("click",function(){state.visibleRoutes+=100;renderRoutes()});$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
