@@ -6,4 +6,5 @@ Alteração: 63 prévias WebP geradas dos PDFs espanhóis existentes, mapa e ger
 
 Validação: node --check do teste; compilação Python do gerador; teste localizado EN/ES com PDFs reais; 63 WebPs decodificáveis; revisão independente de idioma e correspondência imagem/PDF. O teste passa a rejeitar prévias EN no catálogo privado ES quando executado com acesso ao banco.
 
-Publicação: imagens e testes via GitHub Pages; documento atualizado no Supabase somente após deploy bem-sucedido, com comparação do conteúdo anterior para não sobrescrever mudanças concorrentes.
+Publicação: imagens e testes via GitHub Pages; documento atualizado no Supabase antes da etapa de validação do deploy, pois o teste consulta o banco real; com comparação do conteúdo anterior para não sobrescrever mudanças concorrentes.
+Imagens usam versão na URL para evitar cache de respostas antigas/404 na CDN.

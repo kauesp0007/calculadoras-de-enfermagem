@@ -63,7 +63,7 @@ if(base&&key){
   }
   const esHtml=byPath.get(paths[2]).content;
   assert(!esHtml.includes("/img/formularios-previas/en/"),"Catálogo ES não pode exibir prévias inglesas");
-  const esSources=[...esHtml.matchAll(/src=["'](\/img\/formularios-previas\/es\/form-\d+\.webp)["']/g)].map(m=>m[1]);
+  const esSources=[...esHtml.matchAll(/src=["'](\/img\/formularios-previas\/es\/form-\d+\.webp)(?:\?v=[^"']+)?["']/g)].map(m=>m[1]);
   assert.equal(esSources.length,63,"Catálogo ES precisa exibir 63 prévias espanholas");
   for(const item of esPreviewMap) assert(esSources.includes("/img/formularios-previas/es/"+item.id+".webp"),"Prévia ES ausente: "+item.id);
   const root=registry(paths[0]), en=registry(paths[1]), es=registry(paths[2]);
