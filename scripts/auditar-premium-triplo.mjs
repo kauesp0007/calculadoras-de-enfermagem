@@ -5,12 +5,11 @@
  * Camada 1 — catálogo/arquitetura:
  *   um único manifesto define o conteúdo Premium.
  * Camada 2 — frontend:
- *   após a shellificação, todo HTML Premium é shell + loader;
- *   durante o estágio pré-shell do pipeline, conteúdo completo é aceito
- *   como fonte intermediária válida e será convertido pelo deploy.
+ *   o shell carrega a página completa para demonstração e bloqueia somente
+ *   calcular, interpretar, iniciar simulado, imprimir e baixar.
  * Camada 3 — backend:
- *   a Edge Function valida Firebase ID token + entitlement Supabase e
- *   entrega somente conteúdo privado armazenado em premium_content_pages.
+ *   a Edge Function entrega a demonstração e mantém uma verificação separada
+ *   de Firebase ID token + entitlement para liberar as ações.
  *
  * Não altera arquivos. Falha com exit code 1.
  */
@@ -87,6 +86,10 @@ const routeGuard=read("js/auth/route-guard.js");
 const policy=read("js/access/content-policy.js");
 if(loader.includes("window.__IS_PREMIUM_ROUTE = true;")) ok("loader marca rota Premium");
 else fail("loader não marca rota Premium");
+if(loader.includes("function installPremiumActionGate()")&&loader.includes('accessCheck?"&access=check":""')) ok("frontend bloqueia ações e consulta entitlement no clique");
+else fail("frontend sem gate canônico de ações Premium");
+if(!loader.includes("showLoadingState();")) ok("tela antiga de preparação Premium removida");
+else fail("loader ainda exibe a tela antiga de preparação Premium");
 if(!global.includes("__PREMIUM_PATHS")&&!global.includes("Premium gate central")) ok("global-scripts sem catálogo/gate Premium legado");
 else fail("global-scripts ainda contém catálogo/gate Premium legado");
 if(!/<script[^>]+premium-content-loader\\.js/i.test(global)) ok("global não injeta o loader diretamente");
