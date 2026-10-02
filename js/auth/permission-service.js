@@ -1,7 +1,7 @@
 /** Canonical permission resolver for FREE/PREMIUM plus RBAC roles. */
 (function(window){"use strict";
   window.AuthorizationModules=window.AuthorizationModules||{};
-  var ALL=["viewPremium","downloadPremium","accessCourses","accessCertificates","downloadProtocols","viewBiblioteca","createForumTopic","replyForum","moderateForum","manageUsers","managePremium","managePayments","manageCourses","manageDownloads","manageCertificates","manageBlog","manageAds","manageSystem"];
+  var ALL=["viewPremium","downloadPremium","printPremium","accessCourses","accessCertificates","downloadProtocols","viewBiblioteca","createForumTopic","replyForum","moderateForum","manageUsers","managePremium","managePayments","manageCourses","manageDownloads","manageCertificates","manageBlog","manageAds","manageSystem"];
   function resolve(profile){var set={};function add(x){if(x==="ALL"){ALL.forEach(function(p){set[p]=true;});}else if(x)set[x]=true;}
     if(profile&&window.AuthorizationModules.roleService)window.AuthorizationModules.roleService.permissionsFor(profile.role).forEach(add);
     var premium=!!(window.Auth&&window.Auth.hasPlan&&window.Auth.hasPlan("premium"));
