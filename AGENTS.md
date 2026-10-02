@@ -17,7 +17,7 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 
 ## Sistema de contas — leitura obrigatória
 
-Antes de alterar login, perfil, assinatura, pagamentos, anúncios por plano, rotas Premium, painel do desenvolvedor, extensões de assinatura ou deploy de conteúdo protegido, ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md` e `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md`. Depois da mudança, atualizar o catálogo e regenerar o inventário com o estado real do banco; registrar testes, limitações, commit e deploy. Configurações do painel são dinâmicas e prevalecem sobre listas históricas.
+Antes de alterar login, perfil, assinatura, pagamentos, anúncios por plano, rotas Premium, botões protegidos, download, impressão/PDF, painel do desenvolvedor, extensões de assinatura ou deploy, ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`, `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md` e `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`. O **CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md é a única fonte documental do método de autenticação, entitlement, gate de ações, impressão e PDF**; não duplicar esse método neste arquivo. Depois de mudar comportamento, atualizar o catálogo canônico; depois de mudar estado dinâmico Free/Premium, regenerar o inventário. Configurações do painel prevalecem sobre listas históricas.
 
 ### Decisões do desenvolvedor — consulta obrigatória
 
@@ -133,15 +133,11 @@ Os scripts determinísticos continuam válidos — rode-os manualmente no Codex:
 - `node scripts/knowledge-discover.js` / `node scripts/build-knowledge-index.js` (base `/knowledge/`)
 - `node scripts/validate-content-governance.js` (governança editorial)
 
-## Impressão e PDF (regra absoluta)
+## Assinatura, botões, impressão e PDF — regra canônica
 
-- **Escalas e calculadoras**: modelo `fugulin.html` — `btnGerarPDF` (jsPDF via
-  `jspdf.umd.min.js` + `jspdf-autotable`, usando `window.jspdf.jsPDF`) + `btnImprimir`
-  (`imprimirLaudo()` em nova janela + `window.print()`).
-- **Páginas educativas**: modelo `integracoes_classificacao_wifi.html` — somente
-  `btnImprimir` capturando `.article-content` (ou `.guide`). NÃO usar jsPDF aqui.
-- **Ao modernizar**: apagar configurações antigas e reescrever do zero.
-- **Ao criar**: escrever já seguindo o modelo referenciado.
+Não implementar autorização local ou fluxo paralelo. Para criar/alterar páginas, botões de calcular/resultado/download/impressão/gerar PDF/simulados ou tratamento de `Ctrl+P`/Salvar como PDF, seguir **exclusivamente** `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`, seção “Método canônico de verificação, validação e proteção vigente”.
+
+A página deve reutilizar o bootstrap global e os guards existentes. Exceções `data-premium-action="allow"` e `data-premium-print="allow"` só podem ser usadas mediante decisão explícita do desenvolvedor. Em mudança de impressão, executar `scripts/ensure-premium-print-guard.mjs --apply` e `--audit`.
 
 ## Atualização e criação de páginas HTML
 
