@@ -1,5 +1,7 @@
 # Decisões do desenvolvedor — protocolo operacional
 
+Este arquivo governa **origem, precedência e auditoria das decisões administrativas**. Ele não descreve o método técnico de autenticação, gate, download ou impressão; essa fonte única é `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`. O estado agregado de rotas fica em `INVENTARIO_ROTAS_VIGENTES.md`.
+
 O painel `/conta/desenvolvedor.html` é uma entrada administrativa autenticada. As decisões de Free/Premium, bloqueio global Free e disponibilidade Asaas/Stripe são dinâmicas. O manifesto é configuração inicial; documentos e conversas anteriores são históricos.
 
 ## Registro e comunicação
@@ -16,7 +18,7 @@ Ativar uma página pública pode gerar uma solicitação de publicação. Nessa 
 
 ## Procedimento obrigatório para IAs
 
-1. Ler o catálogo canônico e este protocolo.
+1. Ler `CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`, `INVENTARIO_ROTAS_VIGENTES.md` e este protocolo.
 2. Consultar a política atual para o caminho exato, inclusive prefixo do idioma. Examinar `decision` e configuração vigente, sem cache antigo.
 3. Se a origem estiver ausente ou houver conflito, consultar `developer_admin_audit_log` e a fila pendente por ferramentas autorizadas. Exemplo read-only: `select action,target_key,before_state,after_state,created_at from developer_admin_audit_log where target_type='route' and target_key='fugulin.html' order by created_at desc limit 10;`.
 4. Distinguir decisão solicitada, publicação pendente e estado aplicado. Preservar a escolha mais recente do desenvolvedor. Substituir apenas quando um pedido atual explícito abranger a rota e o plano desejado; esclarecer conflitos concretos antes de mutações.
