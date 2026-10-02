@@ -10,6 +10,38 @@
  var _billing={plan:"free",premium_expires_at:null,provider:null,provider_customer_id:null,provider_subscription_id:null,billingUnavailable:false,resolved:false};
  var BILLING_ACCESS_URL="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/billing-access";
 
+ function ensureFirebaseInit(){
+   if(window.FirebaseInit&&typeof window.FirebaseInit.init==="function") return Promise.resolve(window.FirebaseInit);
+   var src="/js/firebase/firebase-init.js";
+   window.__AUTH_SCRIPT_PROMISES=window.__AUTH_SCRIPT_PROMISES||{};
+   if(window.__AUTH_SCRIPT_PROMISES[src]){
+     return window.__AUTH_SCRIPT_PROMISES[src].then(function(){
+       if(!window.FirebaseInit||typeof window.FirebaseInit.init!=="function") throw new Error("firebase_init_unavailable");
+       return window.FirebaseInit;
+     });
+   }
+   var existing=document.querySelector('script[src="'+src+'"]');
+   var promise=new Promise(function(resolve,reject){
+     var script=existing||document.createElement("script");
+     var settled=false;
+     function done(){
+       if(settled)return;settled=true;
+       if(script.dataset)script.dataset.authBootstrapLoaded="1";
+       if(!window.FirebaseInit||typeof window.FirebaseInit.init!=="function"){reject(new Error("firebase_init_unavailable"));return;}
+       resolve(window.FirebaseInit);
+     }
+     function fail(){if(settled)return;settled=true;reject(new Error("firebase_init_load_failed"));}
+     script.addEventListener("load",done,{once:true});
+     script.addEventListener("error",fail,{once:true});
+     if(existing&&window.FirebaseInit&&typeof window.FirebaseInit.init==="function"){done();return;}
+     if(!existing){
+       script.src=src;script.async=false;script.dataset.authBootstrap="true";document.head.appendChild(script);
+     }
+   });
+   window.__AUTH_SCRIPT_PROMISES[src]=promise;
+   return promise;
+ }
+
  async function loadBilling(user){
    if(!user||typeof user.getIdToken!=="function") return {plan:"free"};
    var token=await user.getIdToken(false);
@@ -43,7 +75,8 @@
    if(_initialized) return Promise.resolve();
    if(_initPromise) return _initPromise;
    _initPromise=(async function(){
-     var fb=await window.FirebaseInit.init(),auth=fb.auth;
+     var firebaseInit=await ensureFirebaseInit();
+     var fb=await firebaseInit.init(),auth=fb.auth;
      await new Promise(function(resolve){
        var done=false;
        function finish(){if(!done){done=true;resolve();}}
