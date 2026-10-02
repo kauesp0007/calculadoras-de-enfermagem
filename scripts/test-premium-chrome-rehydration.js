@@ -60,3 +60,14 @@ assert(versioned.includes('/global-scripts.js"'));
 assert.equal(versionContext.versionChromeAssets(versioned),versioned,"Versionamento idempotente");
 assert(generator.includes("return versionChromeAssets(source);"),"Shells existentes também devem atualizar as URLs");
 console.log("PASS: versionamento dos dois assets sem alterar demais scripts.");
+
+const validator=fs.readFileSync("scripts/validate-printable-scale-forms.mjs","utf8");
+const validationContext={BASE:"https://www.calculadorasdeenfermagem.com.br/"};
+vm.createContext(validationContext);
+vm.runInContext(validator.slice(validator.indexOf("function fail("),validator.indexOf("async function catalogRows(")),validationContext);
+const validShell='<html lang="pt-BR"><title>Formulário</title><meta name="description"><link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/formulario_teste.html"><link hreflang="pt-br"><link hreflang="x-default"><script type="application/ld+json"></script><link rel="icon" href="/favicon.ico"><script src="/global-scripts.js"></script>'+versioned+'<div id="premium-content-placeholder"></div>';
+validationContext.validatePublicShell("formulario_teste.html",validShell);
+validationContext.validatePublicShell("formulario_teste.html",validShell.replaceAll("?v=langhash","").replaceAll("?v=loaderhash",""));
+assert.throws(()=>validationContext.validatePublicShell("formulario_teste.html",validShell.replace("/lang-selector.js?v=langhash","/lang-selector.js.bak")),/sem lang-selector/);
+assert.throws(()=>validationContext.validatePublicShell("formulario_teste.html",validShell.replace("/js/access/premium-content-loader.js?v=loaderhash","/js/access/premium-content-loader.js.bak")),/sem premium-content-loader/);
+console.log("PASS: validador aceita versões de cache e rejeita arquivos incorretos.");

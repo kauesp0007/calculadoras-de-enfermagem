@@ -80,7 +80,7 @@ function validateFull(rel, html, source) {
   if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) fail(source + ": JSON-LD ausente: " + rel);
   if (!linkHas(html, "icon", "/favicon.ico")) fail(source + ": favicon ausente: " + rel);
   if (!/<script\b[^>]*src=["']\/global-scripts\.js["'][^>]*>/i.test(html)) fail(source + ": global-scripts.js ausente: " + rel);
-  if (!/<script\b[^>]*src=["']\/lang-selector\.js(?:\?[^"']*)?["'][^>]*>/i.test(html)) fail(source + ": lang-selector.js ausente: " + rel);
+  if (!/<script\b[^>]*src=["']\/lang-selector\.js["'][^>]*>/i.test(html)) fail(source + ": lang-selector.js ausente: " + rel);
 
   const markerCount = count(/MULTIPLEX_AD_RESERVED_START/gi, html);
   const slotCount = count(/data-ad-slot=["']3341197364["']/gi, html);
@@ -144,8 +144,8 @@ function validatePublicShell(rel, html) {
   if (!/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>/i.test(html)) fail("Shell público sem JSON-LD: " + rel);
   if (!linkHas(html, "icon", "/favicon.ico")) fail("Shell público sem favicon: " + rel);
   if (!/<script\b[^>]*src=["']\/global-scripts\.js["'][^>]*>/i.test(html)) fail("Shell público sem global-scripts.js: " + rel);
-  if (!/<script\b[^>]*src=["']\/lang-selector\.js(?:\?[^"']*)?["'][^>]*>/i.test(html)) fail("Shell público sem lang-selector.js: " + rel);
-  if (!/<script\b[^>]*src=["']\/js\/access\/premium-content-loader\.js(?:\?[^"']*)?["'][^>]*>/i.test(html)) fail("Shell público sem premium-content-loader.js: " + rel);
+  if (!/<script\b[^>]*src=["']\/lang-selector\.js["'][^>]*>/i.test(html)) fail("Shell público sem lang-selector.js: " + rel);
+  if (!/<script\b[^>]*src=["']\/js\/access\/premium-content-loader\.js["'][^>]*>/i.test(html)) fail("Shell público sem premium-content-loader.js: " + rel);
   if (!/id=["']premium-content-placeholder["']/i.test(html)) fail("Shell público sem placeholder Premium: " + rel);
 }
 
