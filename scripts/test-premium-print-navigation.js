@@ -67,3 +67,12 @@ async function run(){
   console.log("PASS: navegação EN/ES/PT no primeiro clique; impressão Free bloqueada e Premium permitida.");
 }
 run().catch(e=>{console.error(e);process.exitCode=1;});
+
+for(const asset of ["/global-scripts.js?rev=586075514988","/js/access/premium-print-guard.js?rev=0772184768dc"]){
+  const url=new URL(asset,"https://site.test");
+  const revision=url.searchParams.get("rev");
+  url.searchParams.set("v","previous-pwa-cache");
+  assert.equal(url.searchParams.get("rev"),revision,"PWA preserva revisão explícita do asset");
+}
+assert.ok(fs.readFileSync("global-scripts.js","utf8").includes("premium-print-guard.js?rev=0772184768dc"));
+for(const language of ["en","es"])assert.ok(fs.readFileSync(language+"/index.html","utf8").includes("global-scripts.js?rev=586075514988"));
