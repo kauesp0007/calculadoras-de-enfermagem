@@ -429,6 +429,40 @@ function loadGlobalMenuComponent() {
   return container.__globalMenuPromise;
 }
 
+function loadGlobalFooterComponent() {
+  var container = document.getElementById("footer-placeholder");
+  if (!container) return Promise.resolve(false);
+
+  if (container.dataset.globalFooterReady === "1" || container.querySelector("footer")) {
+    container.dataset.globalFooterReady = "1";
+    return Promise.resolve(true);
+  }
+  if (container.__globalFooterPromise) return container.__globalFooterPromise;
+
+  container.__globalFooterPromise = fetch(window.__FETCH_PREFIX + "footer.html")
+    .then(function (response) {
+      return response.ok ? response.text() : Promise.reject("Ficheiro footer.html não encontrado");
+    })
+    .then(function (html) {
+      if (container.dataset.globalFooterReady === "1" || container.querySelector("footer")) {
+        container.dataset.globalFooterReady = "1";
+        return true;
+      }
+
+      container.innerHTML = html;
+      if (window.__FIX_RELATIVE_LINKS) window.__FIX_RELATIVE_LINKS(container);
+      container.dataset.globalFooterReady = "1";
+      return true;
+    })
+    .catch(function (error) {
+      container.__globalFooterPromise = null;
+      console.warn("Não foi possível carregar o rodapé global:", error);
+      return false;
+    });
+
+  return container.__globalFooterPromise;
+}
+
 function loadGlobalBodyElementsComponent() {
   if (!document.body) return Promise.resolve(false);
   var body = document.body;
@@ -467,9 +501,12 @@ function loadGlobalBodyElementsComponent() {
 }
 
 window.__LOAD_GLOBAL_MENU = loadGlobalMenuComponent;
+window.__LOAD_GLOBAL_FOOTER = loadGlobalFooterComponent;
 window.__LOAD_GLOBAL_BODY_ELEMENTS = loadGlobalBodyElementsComponent;
 window.__ENSURE_GLOBAL_CHROME = function () {
   return loadGlobalMenuComponent().then(function () {
+    return loadGlobalFooterComponent();
+  }).then(function () {
     return loadGlobalBodyElementsComponent();
   });
 };
