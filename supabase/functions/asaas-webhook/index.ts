@@ -7,7 +7,16 @@ const TOKEN=Deno.env.get("ASAAS_WEBHOOK_TOKEN")??"";
 const ASAAS=Deno.env.get("ASAAS_API_TOKEN")??"";
 const H={"Content-Type":"application/json; charset=utf-8"};
 const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
-const iso=(d:any)=>d?new Date(d).toISOString():null;
+function iso(value:any,endOfDay=false){
+  if(value===null||value===undefined)return null;
+  const raw=String(value).trim();
+  if(!raw)return null;
+  const normalized=/^\d{4}-\d{2}-\d{2}$/.test(raw)
+    ? raw+(endOfDay?"T23:59:59-03:00":"T00:00:00-03:00")
+    : raw;
+  const parsed=new Date(normalized);
+  return Number.isNaN(parsed.getTime())?null:parsed.toISOString();
+}
 const addDays=(n:number)=>new Date(Date.now()+n*86400000).toISOString();
 
 async function asaasGet(path:string){
@@ -115,10 +124,12 @@ serve(async req=>{
   if(req.method!=="POST")return new Response("method_not_allowed",{status:405,headers:H});
   if(!TOKEN||req.headers.get("asaas-access-token")!==TOKEN)return new Response("unauthorized",{status:401,headers:H});
 
+  let claimedEventId="";
   try{
     const e=await req.json();
     const event=String(e?.event||"");
     const eventId=String(e?.id||"");
+    claimedEventId=eventId;
 
     if(!event||!eventId){
       return new Response(JSON.stringify({ok:true,ignored:true}),{status:200,headers:H});
@@ -250,7 +261,7 @@ serve(async req=>{
       if(kind==="monthly_card"){
         const checkoutNextDue=String(checkout?.subscription?.nextDueDate||"");
         if(checkoutNextDue){
-          expiry=iso(checkoutNextDue+"T23:59:59-03:00")||expiry;
+          expiry=iso(checkoutNextDue,true)||expiry;
           metadata.checkout_subscription_next_due_date=checkoutNextDue;
         }
 
@@ -263,7 +274,7 @@ serve(async req=>{
         if(subId){
           const remote=await asaasGet("/subscriptions/"+encodeURIComponent(subId));
           if(remote?.nextDueDate){
-            expiry=iso(String(remote.nextDueDate)+"T23:59:59-03:00")||expiry;
+            expiry=iso(remote.nextDueDate,true)||expiry;
           }
           metadata.provider_subscription_id=subId;
           if(remote?.customer)metadata.asaas_customer_id=String(remote.customer);
@@ -271,6 +282,8 @@ serve(async req=>{
       }
 
       metadata.checkout_paid=true;
+      metadata.first_payment_confirmed_at=new Date().toISOString();
+      metadata.access_expires_at=expiry;
       await setPremium({...sub,metadata},expiry,metadata);
 
     }else if(event==="SUBSCRIPTION_CREATED"||event==="SUBSCRIPTION_UPDATED"){
@@ -278,26 +291,32 @@ serve(async req=>{
       if(sid)metadata.provider_subscription_id=sid;
       if(subscription?.customer)metadata.asaas_customer_id=String(subscription.customer);
 
-      const expiry=subscription?.nextDueDate
-        ? iso(String(subscription.nextDueDate)+"T23:59:59-03:00")||addDays(30)
-        : addDays(30);
+      const nextDueDate=subscription?.nextDueDate
+        ? iso(subscription.nextDueDate,true)
+        : null;
+      if(nextDueDate)metadata.subscription_next_due_date=nextDueDate;
 
-      const u=await db().from("billing_subscriptions").update({
-        status:subscription?.status==="ACTIVE"
-          ?"active"
-          :String(subscription?.status||"active").toLowerCase(),
+      // Creating an Asaas subscription is not proof that its first charge was
+      // paid. Keep the local record pending until a financial confirmation.
+      const firstPaymentConfirmed=metadata.checkout_paid===true;
+      const remoteStatus=String(subscription?.status||"").toUpperCase();
+      const status=firstPaymentConfirmed
+        ? (remoteStatus==="ACTIVE"?"active":remoteStatus.toLowerCase()||sub.status)
+        : "checkout_pending";
+
+      const update:any={
+        status,
         metadata,
-        current_period_end:expiry,
         updated_at:new Date().toISOString()
-      }).eq("id",sub.id);
+      };
+      if(firstPaymentConfirmed&&nextDueDate)update.current_period_end=nextDueDate;
+
+      const u=await db().from("billing_subscriptions").update(update).eq("id",sub.id);
       if(u.error)throw u.error;
 
-      // Do not grant Premium merely because a subscription exists.
-      // The initial access grant requires confirmed payment/checkout.
-      if(
-        metadata.checkout_paid===true &&
-        String(subscription?.status||"").toUpperCase()==="ACTIVE"
-      ){
+      if(firstPaymentConfirmed&&remoteStatus==="ACTIVE"){
+        const expiry=nextDueDate||sub.current_period_end||addDays(30);
+        metadata.access_expires_at=expiry;
         await setPremium({...sub,metadata},expiry,metadata);
       }
 
@@ -320,7 +339,7 @@ serve(async req=>{
       if(paymentSubId){
         const remote=await asaasGet("/subscriptions/"+encodeURIComponent(paymentSubId));
         if(remote?.nextDueDate){
-          expiry=iso(String(remote.nextDueDate)+"T23:59:59-03:00")||expiry;
+          expiry=iso(remote.nextDueDate,true)||expiry;
         }
         metadata.provider_subscription_id=paymentSubId;
         metadata.asaas_customer_id=String(
@@ -331,6 +350,10 @@ serve(async req=>{
         );
       }
 
+      metadata.checkout_paid=true;
+      metadata.first_payment_confirmed_at=
+        metadata.first_payment_confirmed_at||new Date().toISOString();
+      metadata.access_expires_at=expiry;
       await setPremium({...sub,metadata},expiry,metadata);
 
     }else if(["CHECKOUT_CANCELED","CHECKOUT_EXPIRED"].includes(event)){
@@ -356,7 +379,17 @@ serve(async req=>{
 
     return new Response(JSON.stringify({ok:true}),{status:200,headers:H});
   }catch(e){
-    console.error("[asaas-webhook]",e);
-    return new Response(JSON.stringify({error:"webhook_processing_failed"}),{status:500,headers:H});
+    const detail=String((e as Error)?.message||e);
+    console.error("[asaas-webhook]",detail);
+    try{
+      if(claimedEventId){
+        await db().rpc("fail_billing_webhook",{
+          p_provider:"asaas",
+          p_event_id:claimedEventId,
+          p_error:detail
+        });
+      }
+    }catch(_){}
+    return new Response(JSON.stringify({error:"webhook_processing_failed",detail,retryable:true}),{status:500,headers:H});
   }
 });
