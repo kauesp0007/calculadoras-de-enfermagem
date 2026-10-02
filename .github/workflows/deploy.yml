@@ -70,6 +70,12 @@ jobs:
       - name: 📦 Instalar dependências
         run: npm ci
 
+      - name: 🌐 Normalizar páginas internacionais da conta
+        run: |
+          node --check scripts/normalize-account-pages.mjs
+          node scripts/normalize-account-pages.mjs --apply
+          node scripts/normalize-account-pages.mjs --audit
+
       - name: 📚 Reconstruir Biblioteca de Enfermagem
         run: |
           node --check build-biblioteca.js
@@ -110,6 +116,7 @@ jobs:
           node --check scripts/validate-printable-scale-forms.mjs
           node --check scripts/test-english-assistential-previews.mjs
           node --check scripts/test-localized-assistential-catalog.mjs
+          node --check scripts/normalize-account-pages.mjs
           node --check scripts/migrate-premium-content.mjs
           node --check scripts/test-premium-auth-delivery-flow.js
           node --check scripts/test-premium-simulados-access.js
@@ -172,7 +179,7 @@ jobs:
             exit 0
           fi
           git add -- '*.html'
-          git commit -m "chore(access): proteger páginas Premium públicas"
+          git commit -m "chore(site): persistir HTMLs normalizados e protegidos"
 
           # A main pode avançar enquanto o deploy executa. Rebaseia o commit gerado
           # antes do push para nunca sobrescrever commits concorrentes.
