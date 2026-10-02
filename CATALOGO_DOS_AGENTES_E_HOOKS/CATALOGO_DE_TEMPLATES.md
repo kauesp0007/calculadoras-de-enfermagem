@@ -19,5 +19,5 @@
 - **Barra de ações** compacta após o H1 (Favoritar, Compartilhar, Imprimir, Reportar correção, etc.).
 - **Referências** ao final (ABNT, `data-references-section="v1"`) + nota de governança (`data-governance-disclosure="v1"`, `data-professional-review="required"`).
 - **Head** na ordem: charset/viewport → DNS/preconnect → title/metas → critical fonts → CSS → preload fontes → canonical/hreflang → favicon → Schema.org → styles → preload IconTopBar → anti-CLS → scripts `defer`.
-- **Impressão/PDF:** calculadora/escala → jsPDF; texto/artigo → só `btnImprimir`.
+- **Acesso/Impressão/PDF:** seguir `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`; este catálogo não define autorização.
 - **Identificação do tipo** antes de escolher o template (calculadora, escala, formulário, texto, simulado, guia, blog, biblioteca, fórum, premium, pública, login/conta).
