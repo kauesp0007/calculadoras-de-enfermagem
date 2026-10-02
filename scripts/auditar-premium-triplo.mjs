@@ -167,9 +167,9 @@ for(const rel of ["braden.html","fugulin.html","dimensionamento.html"]){
   const hasPlaceholder=/premium-content-placeholder/i.test(html);
   if(hasLoader!==hasPlaceholder){fail(rel+" possui shell incompleto");continue;}
   if(route?.premium_required===true){
-    if(route.enforcement!=="protected_content") fail(rel+" Premium sem enforcement privado");
-    else if(!isPremiumShell(html)) fail(rel+" Premium expõe conteúdo público");
-    else ok(rel+" Premium dinâmico possui shell protegido");
+    if(route.enforcement!=="client_guard") fail(rel+" Premium sem enforcement de ação");
+    else if(!isPremiumShell(html)) fail(rel+" Premium sem loader do gate de ações");
+    else ok(rel+" Premium dinâmico possui página pública com ações protegidas");
   }else if(isPremiumShell(html)){
     ok(rel+(route ? " Free servido pelo loader e política do backend" : " shell válido; plano verificado pelo backend"));
   }else if(isCompletePremiumSource(html)&&!/__IS_PREMIUM_ROUTE|required-plan|content-access/i.test(html)){
