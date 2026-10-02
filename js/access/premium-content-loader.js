@@ -112,13 +112,13 @@
     return match?"/"+match[1]+"/":"/";
   }
   // O CSS global estiliza <header>; o hero dos formulários precisa neutralizar altura e deslocamento.
-  function ensurePremiumEnglishFormLayoutAfterWrite(){
+  function ensurePremiumLocalizedFormLayoutAfterWrite(){
     if(!/^\/en\/formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
     if(!document.querySelector("main.main-content > header.hero")) return false;
     var style=document.getElementById("premium-english-form-layout-fix");
     if(!style){
       style=document.createElement("style");
-      style.id="premium-english-form-layout-fix";
+      style.id="premium-localized-form-layout-fix";
       style.textContent=
         "#global-header-container{position:relative!important;z-index:2000!important;isolation:isolate;overflow:visible!important}"+
         "main.main-content>header.hero{position:relative!important;top:auto!important;left:auto!important;height:auto!important;min-height:0!important;z-index:0}"+
@@ -149,7 +149,7 @@
     }
   }
   async function ensureGlobalChromeAfterWrite(){
-    ensurePremiumEnglishFormLayoutAfterWrite();
+    ensurePremiumLocalizedFormLayoutAfterWrite();
     await ensurePremiumFooterAfterWrite();
     // global-scripts.js é carregado pelo shell e também existe no documento
     // privado. Após document.write(), o novo DOM precisa ser reidratado sem
