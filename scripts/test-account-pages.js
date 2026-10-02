@@ -93,7 +93,7 @@ for (const required of [
 
 const banner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
 for (const required of [
-  "var DISPLAY_MS = 10000;",
+  "var DISPLAY_MS = 20000;",
   "var INTERVAL_MS = 2 * 60 * 1000;",
   "mountSubscriptionPromo();",
   '"/conta/assinatura.html?lang=" + lang',
