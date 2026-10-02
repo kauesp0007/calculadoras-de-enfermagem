@@ -2,6 +2,8 @@
 
 Fonte: SELECT read-only de public.developer_premium_route_rules e premium_content_pages no projeto asjkftjfbkuuhilnqonx, após liberação de consulta do catálogo no PR #123. O painel altera estas regras em tempo real. premium-content usa regra exata e fallback da raiz por idioma; conteúdo privado sem regra exige Premium por padrão.
 
+**Atualização operacional de cobrança — 01/10/2026:** PRs #124 e #125 corrigiram tratamento de datas, confirmação do primeiro pagamento e primeira cobrança imediata no cartão Asaas. Não houve alteração em `developer_premium_route_rules` nem em `premium_content_pages`; por isso os totais e caminhos abaixo permanecem válidos.
+
 ## Totais por escopo
 
 | Escopo | Regras | Premium | Free |
