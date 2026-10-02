@@ -310,7 +310,11 @@ function currentAccountLanguage() {
     }
   } catch (e) {}
   const langParam = new URLSearchParams(window.location.search).get("lang");
-  return langParam === "pt-br" ? "pt" : (langParam || "pt").toLowerCase();
+  if (langParam) return langParam.toLowerCase() === "pt-br" ? "pt" : langParam.toLowerCase();
+  const pathMatch = (window.location.pathname || "").match(/^\/(en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/conta\//i);
+  if (pathMatch) return pathMatch[1].toLowerCase();
+  const fallback = String(window.__LANG || document.documentElement.lang || "pt").toLowerCase();
+  return fallback === "pt-br" ? "pt" : fallback;
 }
 
 function translateNodeText(node, dictionary) {

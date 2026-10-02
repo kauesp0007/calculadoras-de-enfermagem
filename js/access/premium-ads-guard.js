@@ -13,7 +13,7 @@
   var ADS_SRC = "pagead2.googlesyndication.com/pagead/js/adsbygoogle.js";
 
   function accountPage() {
-    return (window.location.pathname || "").indexOf("/conta/") === 0;
+    return /^\\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\\/)?conta\\//i.test(window.location.pathname || "");
   }
 
   function premium(profile) {

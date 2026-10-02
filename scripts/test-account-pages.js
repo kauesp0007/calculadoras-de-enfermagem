@@ -121,6 +121,19 @@ if (langSelector.includes('const isAccountPage = pathName.indexOf("/conta/") ===
   fail("lang-selector.js: detector antigo root-only de conta ainda presente.");
 }
 
+const authUi = fs.readFileSync(path.join(ROOT, "js", "auth", "auth-ui.js"), "utf8");
+if (authUi.includes('normalizedReturn.indexOf("/conta/") === 0')) {
+  fail("auth-ui.js: retorno de login ainda usa detector root-only de conta.");
+}
+const premiumBanner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
+if (premiumBanner.includes('window.location.pathname || "").indexOf("/conta/") === 0')) {
+  fail("premium-banner-manager.js: detector root-only ainda permite promo na conta localizada.");
+}
+const accountLangSelector = fs.readFileSync(path.join(ROOT, "lang-selector.js"), "utf8");
+if (!accountLangSelector.includes("const pathMatch = (window.location.pathname || \"\").match(")) {
+  fail("lang-selector.js: idioma da conta não possui fallback pelo path localizado.");
+}
+
 const routeLocalizer = fs.readFileSync(path.join(ROOT, "js", "access", "route-localizer.js"), "utf8");
 if (routeLocalizer.includes("max-width:86px!important")) {
   fail("route-localizer.js: hotfix antigo ainda comprime o menu global da conta.");
