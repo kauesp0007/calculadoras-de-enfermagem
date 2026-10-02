@@ -265,7 +265,7 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   }
 
   function isAccountArea() {
-    return /^\/conta\//.test(window.location.pathname);
+    return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(window.location.pathname || "");
   }
 
   function isPremiumShell() {
@@ -753,7 +753,7 @@ function initializeAuthMenu() {
       if (user && user.uid) {
         window.History.init(user.uid).then(function () {
           var path = window.location.pathname || "/";
-          if (path.indexOf("/conta/") !== 0) {
+          if (!/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(path)) {
             window.History.record(window.History.getPageContext());
           }
         }).catch(function () { });
@@ -816,7 +816,7 @@ function initializeAuthMenu() {
   var _premiumPromoOnlyLoading = false;
 
   function loadPremiumPromoOnly() {
-    if (/^\/conta\//.test(window.location.pathname || "")) return;
+    if (/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(window.location.pathname || "")) return;
 
     function mountPromo() {
       if (window.AccessModules && window.AccessModules.bannerManager) {
@@ -959,7 +959,7 @@ function initializeAuthMenu() {
     if (window.Access.guard) {
       window.Access.guard();
     }
-    if (window.AccessModules.bannerManager && !/^\/conta\//.test(window.location.pathname || "")) {
+    if (window.AccessModules.bannerManager && !/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(window.location.pathname || "")) {
       window.AccessModules.bannerManager.mount({ plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free" });
     }
   }
