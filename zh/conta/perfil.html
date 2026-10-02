@@ -671,10 +671,9 @@ catch(e){b.disabled=false;showMessage("Não foi possível sair da conta. Tente n
 }
 async function loadAccount(){
 try{
-if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");
-await timeout(window.Auth.init(),10000);
+if(typeof window.__ENSURE_AUTH==="function"){await timeout(window.__ENSURE_AUTH(),20000);}else{if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await timeout(window.Auth.init(),20000);}
 user=window.Auth.currentUser?window.Auth.currentUser():null;
-if(!user){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return;}
+if(!user){location.replace(typeof window.__ACCOUNT_LOGIN_URL==="function"?window.__ACCOUNT_LOGIN_URL(location.pathname+location.search):"/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));return;}
 var results=await Promise.allSettled([api("profile"),api("favorites"),api("history","GET",undefined,{limit:"1000"}),billingApi()]);
 profile=results[0].status==="fulfilled"&&results[0].value.profile?results[0].value.profile:{};
 favorites=results[1].status==="fulfilled"&&results[1].value.items?results[1].value.items:[];
