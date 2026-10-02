@@ -220,14 +220,14 @@ A extensão de gasometria tem side panel e impede cálculo sem premiumAccess. O 
 
 ## Documentação substituída
 
-Este arquivo substitui o dossiê de contra-auditoria na raiz, o plano de anúncios em conta, a política js/access/ACCESS_POLICY.md, a instrução antiga de ecossistema e os relatórios históricos de contas/Stripe em auditorias removidos nesta consolidação. As instruções de IA remanescentes apontam para este documento. Código, scripts de teste, manifest, migrations e histórico Git continuam como evidência técnica. Não ressuscitar regras antigas de Junior, R$ 10, anúncios para Premium ou lista fixa Free por referência a uma revisão anterior.
+Este arquivo substitui instruções antigas ou parciais sobre login, Premium, anúncios por plano, gate de ações, download, impressão e PDF. Não ressuscitar regras antigas a partir de relatórios, PRs, manifestos ou snapshots anteriores.
 
-### Auditoria alinhada ao painel dinâmico — 02/10/2026
+Os arquivos `AGENTS.md`, `.github/copilot-instructions.md`, `.github/instructions/ecossistema-login-assinaturas.instructions.md`, `.github/instructions/planos-de-acesso.instructions.md` e `AI_ORCHESTRATION/ADAPTER_DEEPSEEK.md` são apenas **ponteiros** para esta fonte e não devem manter uma segunda descrição do método.
 
-O histórico administrativo confirmou as ativações de Fugulin e Dimensionamento como Premium pelo responsável em 30/09/2026. Braden continua Free. A tentativa de reconciliar as duas rotas como Free nesta sessão foi desfeita antes de publicar qualquer HTML e registrada por ação compensatória; decisões do painel preservadas. Nenhum HTML público ou conteúdo privado foi alterado.
+### Decisões administrativas
 
-`Premium Access Audit` consulta a política pública vigente com `--live-policy`. As três antigas exceções do manifesto podem agora ser shells íntegros, inclusive Free servido pelo backend sem autenticação. Rotas Premium dinâmicas exigem shell e enforcement privado; conteúdo público para uma rota Premium ou shell parcial falha. Política indisponível falha a auditoria online, sem assumir Free. Execução offline valida somente estrutura, não confirma o plano vigente. Detalhes e revisão de PRs: `auditorias/20261002-premium-audit-pr-cleanup.md`.
+A origem e precedência das mudanças feitas em `conta/desenvolvedor.html` estão documentadas em `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`. O histórico `developer_admin_audit_log` e a política vigente devem ser consultados antes de qualquer alteração de Free/Premium. Uma execução de deploy, uma auditoria ou uma IA não substitui a decisão do desenvolvedor.
 
-### Origem das decisões administrativas — 02/10/2026
+### Regra final para agentes
 
-O histórico `developer_admin_audit_log` é reutilizado, sem novo sistema de plano. Novas mutações do painel incluem `_decision` gerada pelo servidor: origem developer_panel, ator developer, ação, alvo, data e motivo descritivo. A política pública retorna `route.decision` e `settings_decisions` com whitelist de campos, sem e-mails ou dados privados. Decisões anteriores são resolvidas pelas ações administrativas autenticadas existentes, incluindo solicitações em fila; execução do deploy não substitui a ordem original. O GET administrativo inclui últimas 50 entradas do histórico e o painel as exibe. Protocolo obrigatório para manutenção: `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`, referenciado em AGENTS e instruções do Copilot. IAs devem reconsultar decisão vigente antes de mutações e não reclassificar páginas para satisfazer listas antigas. Testes de proveniência fazem parte de Premium Access Audit.
+Quando uma nova página ou funcionalidade for criada, a IA deve primeiro classificar **o que está sendo protegido**: acesso à página, ação de cálculo/resultado, download, impressão/PDF ou entrega de arquivo. Em seguida deve reutilizar o sistema existente descrito neste catálogo. É proibido criar uma segunda fonte de verdade, um segundo Auth, uma lista Premium local ou um bypass de impressão para resolver um problema pontual.
