@@ -330,7 +330,8 @@
   }
   async function resolveActionAccess(force){
     if(actionAccess==="premium"&&!force){setPrintAccess(true);return true;}
-    if(actionAccess==="free"&&!force){setPrintAccess(false);return false;}
+    // Não reutilizar indefinidamente uma decisão Free: pagamento, concessão
+    // administrativa ou reconciliação podem mudar durante a sessão.
     if(actionAccessPromise&&!force) return actionAccessPromise;
     actionAccessPromise=(async function(){
       try{
