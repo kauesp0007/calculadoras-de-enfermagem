@@ -46,3 +46,17 @@ async function lifecycle(){
   assert.equal(inits,1);assert.equal(syncs,1);
 }
 lifecycle().then(()=>console.log("PASS: 19 rotas, CSS idempotente, reidratação após troca de DOM e inicialização sem duplicação.")).catch(e=>{console.error(e);process.exitCode=1;});
+
+
+const generator=fs.readFileSync("scripts/shellify-premium-public-pages.mjs","utf8");
+const versionFunction=generator.slice(generator.indexOf("function versionChromeAssets("),generator.indexOf("const PLACEHOLDER="));
+const versionContext={CHROME_ASSET_VERSIONS:{"premium-content-loader.js":"loaderhash","lang-selector.js":"langhash"}};
+vm.createContext(versionContext);vm.runInContext(versionFunction,versionContext);
+const shell='<script src="/lang-selector.js" defer></script><script src="/js/access/premium-content-loader.js?old=1" defer></script><script src="/global-scripts.js" defer></script>';
+const versioned=versionContext.versionChromeAssets(shell);
+assert(versioned.includes('/lang-selector.js?v=langhash"'));
+assert(versioned.includes('/js/access/premium-content-loader.js?v=loaderhash"'));
+assert(versioned.includes('/global-scripts.js"'));
+assert.equal(versionContext.versionChromeAssets(versioned),versioned,"Versionamento idempotente");
+assert(generator.includes("return versionChromeAssets(source);"),"Shells existentes também devem atualizar as URLs");
+console.log("PASS: versionamento dos dois assets sem alterar demais scripts.");

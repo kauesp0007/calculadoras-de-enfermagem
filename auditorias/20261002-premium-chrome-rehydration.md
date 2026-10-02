@@ -7,3 +7,7 @@ Correção: reparo localizado para raiz e 18 idiomas; z-index do hero com priori
 Validação antes da publicação: node --check nos scripts; teste de entrega Premium existente; teste comportamental com Node VM em 19 rotas e simulação de substituição do DOM, chamada concorrente e resposta obsoleta. Revisão independente somente leitura aprovou o diff. O teste de reidratação integra scripts/test-premium-auth-delivery-flow.js, já executado no deploy.
 
 Build de Tailwind, Service Worker, auditoria Premium e publicação são executados pelo pipeline canônico do GitHub Pages. A confirmação de publicação depende da conclusão do workflow e da inspeção posterior no site.
+
+## Conferência da primeira publicação e correção de cache
+
+O deploy 37061683524 passou, mas o navegador real continuou recebendo scripts antigos. Curl confirmou conteúdo diferente entre a URL sem versão e a URL com query de versão. O gerador canônico agora aplica hash do conteúdo nas URLs dos dois assets em shells existentes e regenerados, sem modificar políticas comerciais. Teste adicional garante versionamento idempotente e preservação dos demais scripts. A verificação final deve confirmar z-index 0 do hero e uma instância de idioma/fórum no DOM.

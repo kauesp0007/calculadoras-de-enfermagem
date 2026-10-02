@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
 import path from "node:path";
+import { createHash } from "node:crypto";
 import { requestedPremiumPaths } from "./developer-premium-eligible.mjs";
 
 const ROOT=process.cwd();
@@ -10,7 +11,18 @@ const CATALOG=JSON.parse(await fs.readFile(path.join(ROOT,"premium-content-manif
 const LANGS=new Set(CATALOG.scope.languages);
 const EXACT=new Set(CATALOG.exact.map(x=>x.toLowerCase()));
 const RE=CATALOG?.patterns ? new RegExp("(?:"+CATALOG.patterns.join("|")+")","i") : /^$/;
-const LOADER='<script src="/js/access/premium-content-loader.js" defer></script>';
+const CHROME_ASSET_VERSIONS = {
+  "premium-content-loader.js": createHash("sha256").update(await fs.readFile(path.join(ROOT,"js/access/premium-content-loader.js"))).digest("hex").slice(0,12),
+  "lang-selector.js": createHash("sha256").update(await fs.readFile(path.join(ROOT,"lang-selector.js"))).digest("hex").slice(0,12)
+};
+const LOADER='<script src="/js/access/premium-content-loader.js?v='+CHROME_ASSET_VERSIONS["premium-content-loader.js"]+'" defer></script>';
+
+function versionChromeAssets(source){
+  return source.replace(/(<script\b[^>]*src=["'])([^"']*(?:premium-content-loader|lang-selector)\.js)(?:\?[^"']*)?(["'][^>]*>)/gi,function(tag,start,src,end){
+    const name=src.split("/").at(-1).toLowerCase();
+    return start+src+"?v="+CHROME_ASSET_VERSIONS[name]+end;
+  });
+}
 const PLACEHOLDER='<div id="premium-content-placeholder" aria-live="polite" style="min-height:60vh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif">Carregando conteúdo protegido…</div>';
 
 // Esses 34 formulários têm conteúdo completo no catálogo privado e devem
@@ -138,7 +150,7 @@ function shellify(html){
     bodyStart>actualHeadEnd &&
     !isInsideOpenScript(source,loaderIndex)
   ){
-    return source;
+    return versionChromeAssets(source);
   }
 
   const headSource=source.slice(headStart,headEnd);
@@ -149,7 +161,7 @@ function shellify(html){
 
   const head=source.slice(0,headStart)+cleanedHeadSource;
   const body=bodyOpen?.[0]||"<body>";
-  return head+"\n"+LOADER+"\n</head>\n"+body+"\n"+PLACEHOLDER+"\n</body>\n</html>";
+  return versionChromeAssets(head+"\n"+LOADER+"\n</head>\n"+body+"\n"+PLACEHOLDER+"\n</body>\n</html>");
 }
 
 const files=[...new Set([...(await walk(ROOT)).filter(eligible), ...await requestedPremiumPaths(ROOT)])].sort();

@@ -115,7 +115,7 @@ Quando o servidor confirma Premium, o clique/submissão original é reproduzido.
 
 ### Reidratação dos componentes globais após entrega do documento
 
-O loader conserva as instâncias globais do shell e reidrata menu, rodapé e barra de acessibilidade após `document.write()`. Em seguida chama `window.__INIT_LANGUAGE_SELECTOR()` para montar o seletor de idiomas e o botão do fórum no DOM atual, sem esperar o fallback defensivo de 12 segundos. O seletor reutiliza o markup, distingue a raiz atual do documento, ignora respostas obsoletas e evita registrar eventos duplicados. O observer acompanha `document`, que permanece durante a substituição da raiz.
+O loader conserva as instâncias globais do shell e reidrata menu, rodapé e barra de acessibilidade após `document.write()`. Em seguida chama `window.__INIT_LANGUAGE_SELECTOR()` para montar o seletor de idiomas e o botão do fórum no DOM atual, sem esperar o fallback defensivo de 12 segundos. O seletor reutiliza o markup, distingue a raiz atual do documento, ignora respostas obsoletas e evita registrar eventos duplicados. O observer acompanha `document`, que permanece durante a substituição da raiz. O gerador canônico dos shells versiona as URLs de `premium-content-loader.js` e `lang-selector.js` pelo hash dos arquivos, incluindo shells existentes, para impedir que caches da CDN ou do navegador mantenham versões anteriores.
 
 Formulários da raiz e dos 18 idiomas com `main.main-content > header.hero` recebem o reparo localizado de layout: posição relativa, altura automática e `z-index:0!important`, mantendo o menu global acima do hero. O ajuste não altera regras de plano, conteúdo clínico, catálogo de PDFs nem autorização das ações.
 
