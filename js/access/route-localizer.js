@@ -52,7 +52,6 @@
       "body{overflow-x:hidden}",
       "#global-header-container{min-height:100px!important;background:#fff!important;position:relative;z-index:50}",
       "#language-selector-placeholder{min-height:44px!important;position:relative;z-index:40}",
-      "@media(max-width:1100px){header .desktop-nav>ul{gap:.35rem!important}header .desktop-nav>ul>li>a,header .desktop-nav>ul>li>button{font-size:10px!important;line-height:1.05!important;padding:.1rem 0!important;white-space:normal!important;max-width:86px!important;text-align:center!important;justify-content:center!important}}",
       ".dashboard-main{max-width:1600px!important;margin-left:auto!important;margin-right:auto!important;padding-top:.65rem!important}",
       ".dashboard-main .grid{gap:.7rem!important}",
       ".dashboard-main .space-y-4>:not([hidden])~:not([hidden]),.dashboard-main .space-y-5>:not([hidden])~:not([hidden]){margin-top:.7rem!important}",
