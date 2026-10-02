@@ -50,11 +50,14 @@ if (!accessRouter.includes('if (window.__IS_PREMIUM_ROUTE === true) return true;
 if (!routeGuard.includes('if (window.__IS_PREMIUM_ROUTE === true) return true;')) {
   fail("route-guard.js não possui defesa contra redirecionamento em rota Premium");
 }
-if (!loader.includes('if(billing&&billing.resolved&&billing.plan==="premium")')) {
-  fail("premium-content-loader.js não confirma explicitamente Premium antes de tratar 403");
+if (!loader.includes('function installPremiumActionGate()')) {
+  fail("premium-content-loader.js não bloqueia ações Premium");
 }
-if (!loader.includes('function subscription(){')) {
-  fail("premium-content-loader.js não possui fluxo de bloqueio Free");
+if (!loader.includes('simulad|quiz|start|iniciar')) {
+  fail("premium-content-loader.js não reconhece o início dos simulados");
+}
+if (!loader.includes('function actionSubscription(){')) {
+  fail("premium-content-loader.js não possui redirecionamento localizado para assinatura");
 }
 
 const expectedCore = [
@@ -117,5 +120,5 @@ console.log(JSON.stringify({
   ok: true,
   simulatedMenuLinks: links.length,
   menuSignatureRedirects: badMenuLinks.length,
-  protectedFlow: "premium-content-loader"
+  protectedFlow: "public simulator -> start button gate -> entitlement check"
 }, null, 2));
