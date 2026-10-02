@@ -75,7 +75,7 @@ def traduzir_meta_seo_com_deepseek(html, idioma_alvo):
     }
 
     try:
-        response = requests.post(url, headers=headers, json=payload, timeout=40)
+        response = requests.post(url, headers=headers, json=payload, timeout=20)
         response.raise_for_status()
         resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -166,7 +166,7 @@ def traduzir_schema_ld_json_com_deepseek(html, idioma_alvo):
                 "response_format": {"type": "json_object"}
             }
 
-            response = requests.post(url, headers=headers, json=payload, timeout=40)
+            response = requests.post(url, headers=headers, json=payload, timeout=20)
             response.raise_for_status()
             resultado = response.json()["choices"][0]["message"]["content"].strip()
 
@@ -764,13 +764,13 @@ if __name__ == "__main__":
     # =========================================================================
     
     # Pode ser um arquivo .html OU uma pasta (varre recursivamente os .html).
-    arquivos_originais = ["time-de-resposta-rapida.html", "suporte-avancado-de-vida.html"] 
+    arquivos_originais = ["conteudos_da_pagina.html", "formularios_de_escalas_assistenciais.html"] 
      
-    idiomas_alvo = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
+    idiomas_alvo = ["en", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"]
 
     MODO_DRY_RUN = False      # True = testa tudo SEM chamar a API nem gravar
     COM_AUDITORIA = True      # relatório pós-tradução (estrutura, pt restante, legado)
-    PAUSA_ENTRE_EXECUCOES_SEGUNDOS = 40  # evita rate-limit entre páginas/idiomas
+    PAUSA_ENTRE_EXECUCOES_SEGUNDOS = 20  # evita rate-limit entre páginas/idiomas
 
     # =========================================================================
 
@@ -938,8 +938,8 @@ if __name__ == "__main__":
                     is_last_lang = (idioma_alvo == idiomas_alvo[-1])
                     
                     if not (is_last_file and is_last_lang):
-                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 40 segundos para evitar bloqueios da API...{RESET}")
-                        time.sleep(40)
+                        print(f"\n{C_AMARELO}⏳ Pausa de segurança: Aguardando 20 segundos para evitar bloqueios da API...{RESET}")
+                        time.sleep(20)
                     # === FIM DA PAUSA DE SEGURANÇA ===
             else:
                 print(f"\n{C_AMARELO}Atenção: O arquivo '{arquivo_original}' não foi encontrado na raiz.{RESET}")
