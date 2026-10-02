@@ -161,7 +161,16 @@
       .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
     html=stripPremiumAds(html);
     html=injectMedicamentosGovernanceSeal(html,key);
-    document.open();document.write(html);document.close();
+    document.open();
+    document.write(html);
+    try{
+      document.close();
+    }catch(error){
+      // Alguns scripts legados do documento privado podem já existir no shell.
+      // A entrega do conteúdo deve continuar e os componentes globais precisam
+      // ser reidratados mesmo quando o navegador rejeita uma redeclaração.
+      console.warn("[PremiumContent] document.close concluiu com aviso",error);
+    }
     await ensureGlobalChromeAfterWrite();
   }
   function loadScript(src){
