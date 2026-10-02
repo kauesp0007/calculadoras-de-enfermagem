@@ -26,7 +26,8 @@ assert.match(developerAdmin, /set_route/);
 assert.match(developerAdmin, /grant_email/);
 assert.match(developerAdmin, /revoke_email/);
 assert.doesNotMatch(developerAdmin, /SUPABASE_ANON_KEY/);
-assert.match(developerAdmin, /hasPrivateContent \? "client_guard"/);
+assert.match(developerAdmin, /enforcement: requestedPremium \? "client_guard" : "catalog_only"/);
+assert.match(developerAdmin, /Página Free com conteúdo e ações liberados/);
 assert.match(developerAdmin, /publishedShell\(path\)/);
 assert.match(developerAdmin, /developer_premium_activation_requests/);
 

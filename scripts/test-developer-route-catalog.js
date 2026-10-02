@@ -14,9 +14,9 @@ const html = fs.readFileSync(path.join(root, "conta/desenvolvedor.html"), "utf8"
 const dom = new JSDOM(html, { url: "https://www.calculadorasdeenfermagem.com.br/conta/desenvolvedor.html", runScripts: "outside-only" });
 const { window } = dom;
 const routes = [
-  { path: "braden.html", premium_required: false, enforcement: "protected_content" },
-  { path: "en/braden.html", premium_required: false, enforcement: "protected_content" },
-  { path: "missao.html", premium_required: false, enforcement: "client_guard" },
+  { path: "braden.html", premium_required: false, enforcement: "catalog_only" },
+  { path: "en/braden.html", premium_required: false, enforcement: "catalog_only" },
+  { path: "missao.html", premium_required: false, enforcement: "catalog_only" },
   { path: "perroca.html", premium_required: true, enforcement: "client_guard" },
   { path: "en/perroca.html", premium_required: true, enforcement: "client_guard" }
 ];
@@ -64,7 +64,7 @@ setTimeout(async () => {
         assert.equal(input.checked, true, "pending request should be visually on for cancellation");
         assert.equal(input.dataset.pending, "true");
       }
-      if (route === "missao.html") assert.match(input.closest("[data-route-row]").textContent, /HTML público/);
+      if (route === "missao.html") assert.match(input.closest("[data-route-row]").textContent, /acesso Free integral/);
     }
     search.value = "ar/missao.html";
     search.dispatchEvent(new window.Event("input"));

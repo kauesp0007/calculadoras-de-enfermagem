@@ -307,7 +307,7 @@ async function mutate(req: Request) {
     const ready = requestedPremium && hasPrivateContent && await publishedShell(path);
     const pending = requestedPremium && !ready;
     const { data: before } = await sb.from("developer_premium_route_rules").select("*").eq("path", path).maybeSingle();
-    // A page with public HTML must stay Free until the private catalog and public shell are deployed.
+    // A newly selected Premium page stays Free until its canonical content and action-gate loader are published.
     if (pending) {
       const { data: existing, error: existingError } = await sb.from("developer_premium_activation_requests")
         .select("*").eq("path", path).maybeSingle();
@@ -324,7 +324,7 @@ async function mutate(req: Request) {
       const next = {
         path, title: request.title, category: request.category, premium_required: false,
         enforcement: "catalog_only", source: "developer_panel",
-        notes: "Aguardando migração do conteúdo e publicação do shell protegido.",
+        notes: "Aguardando migração do conteúdo e publicação do controle de ações Premium.",
         updated_by: actor.email, updated_at: new Date().toISOString()
       };
       const { data, error } = await sb.from("developer_premium_route_rules").upsert(next, { onConflict: "path" }).select("*").single();
@@ -341,9 +341,11 @@ async function mutate(req: Request) {
       title: String(body.title || path).slice(0, 180),
       category: String(body.category || "Catálogo administrativo").slice(0, 120),
       premium_required: requestedPremium,
-      enforcement: hasPrivateContent ? "client_guard" : "catalog_only",
-      source: hasPrivateContent ? "premium_content_pages" : "developer_panel",
-      notes: hasPrivateContent ? "Página pública com ações Premium protegidas pelo entitlement canônico." : "Rota pública Free.",
+      enforcement: requestedPremium ? "client_guard" : "catalog_only",
+      source: requestedPremium && hasPrivateContent ? "premium_content_pages" : "developer_panel",
+      notes: requestedPremium
+        ? "Página pública com ações Premium protegidas pelo entitlement canônico."
+        : "Página Free com conteúdo e ações liberados.",
       updated_by: actor.email,
       updated_at: new Date().toISOString()
     };
