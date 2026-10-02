@@ -227,6 +227,27 @@ window.__FIX_RELATIVE_LINKS = function (container) {
 })(window, document);
 
 // -----------------------------------------------------------------------------
+// Guard global de impressão Premium.
+// Carregado de forma assíncrona depois do bootstrap de Auth para não bloquear
+// renderização/LCP. Páginas Premium mantêm o gate próprio do content-loader.
+// -----------------------------------------------------------------------------
+(function loadPremiumPrintGuard(window, document) {
+  "use strict";
+  if (window.__PREMIUM_PRINT_GUARD_LOADER) return;
+  window.__PREMIUM_PRINT_GUARD_LOADER = true;
+  if (/\/conta\//i.test(window.location.pathname || "")) return;
+
+  var src = "/js/access/premium-print-guard.js";
+  if (document.querySelector('script[src="' + src + '"]')) return;
+
+  var script = document.createElement("script");
+  script.src = src;
+  script.async = true;
+  script.dataset.premiumPrintGuard = "true";
+  (document.head || document.documentElement).appendChild(script);
+})(window, document);
+
+// -----------------------------------------------------------------------------
 // Developer Premium runtime guard.
 // Static GitHub Pages cannot strongly hide HTML that is already public, but this
 // guard applies the admin route switches at runtime. Strong protection remains
