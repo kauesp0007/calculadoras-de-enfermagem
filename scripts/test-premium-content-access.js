@@ -86,8 +86,11 @@ if (!accessRouter.includes('if (window.__IS_PREMIUM_ROUTE === true) return true;
 if (!routeGuard.includes('if (window.__IS_PREMIUM_ROUTE === true) return true;')) {
   fail("route-guard permite decisão legada em rota Premium");
 }
-if (!loader.includes('billing&&billing.resolved&&billing.plan==="premium"')) {
-  fail("loader não protege Premium contra falso 403");
+if (!loader.includes('function installPremiumActionGate()')) {
+  fail("loader não possui o gate de ações Premium");
+}
+if (!loader.includes('accessCheck?"&access=check":""')) {
+  fail("loader não consulta o entitlement apenas no momento da ação");
 }
 if (!loader.includes('function canonicalPathKey()')) {
   fail("loader não possui fallback canônico de idioma");
@@ -151,7 +154,7 @@ console.log(JSON.stringify({
   premiumHtmlFilesAudited: premiumFiles.length,
   menuPremiumLinksAudited: menuLinks.length,
   shellFailures,
-  protectedFlow: "premium-content-loader -> billing-access -> premium-content"
+  protectedFlow: "public preview -> premium action gate -> entitlement check"
 }, null, 2));
 
 if (process.exitCode === 1) process.exit(1);
