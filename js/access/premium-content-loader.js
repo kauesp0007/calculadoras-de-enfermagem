@@ -237,22 +237,123 @@
       Promise.resolve(promise).then(function(value){clearTimeout(timer);resolve(value);},function(error){clearTimeout(timer);reject(error);});
     });
   }
-  async function request(token,key){
+  async function request(token,key,accessCheck){
     var controller=typeof AbortController==="function"?new AbortController():null;
     var timer=setTimeout(function(){if(controller)controller.abort();},REQUEST_TIMEOUT_MS);
     var headers={Accept:"text/html"};
     if(token) headers.Authorization="Bearer "+token;
     try{
-      return await fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey()),{
+      return await fetch(ENDPOINT+"?path="+encodeURIComponent(key||pathKey())+(accessCheck?"&access=check":""),{
         headers:headers,
         cache:"no-store",
         signal:controller?controller.signal:undefined
       });
     }finally{clearTimeout(timer);}
   }
+  var actionAccess="unknown";
+  var actionAccessPromise=null;
+  var replayingControl=null;
+  var replayingForm=null;
+  var ACTION_PATTERN=/(?:calcul|compute|calcola|berechn|bereken|oblicz|hesapla|tính|hitung|рассчит|розрах|計算|计算|계산|गणना|احسب|result|resultado|resultado|résultat|ergebnis|risultat|wynik|sonuç|kết quả|hasil|результ|結果|结果|결과|परिणाम|نتيجة|interpret|auswert|download|baixar|descarg|télécharg|scaric|herunterlad|pobierz|indir|tải|unduh|скач|завантаж|ダウンロード|下载|다운로드|डाउनलोड|تحميل|print|imprimir|imprime|stampa|drucken|afdruk|drukuj|yazdır|cetak|печ|друк|印刷|打印|인쇄|प्रिंट|طباعة|simulad|quiz|start|iniciar|começar|comenzar|commencer|inizia|starten|begin|rozpoczn|başla|bắt đầu|mulai|нача|поча|開始|开始|시작|शुरू|ابدأ|gerar[^a-z]{0,8}pdf|generate[^a-z]{0,8}pdf)/i;
+  function localizedSubscriptionFallback(){
+    var first=(window.location.pathname.split("/").filter(Boolean)[0]||"").toLowerCase();
+    var langs={en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
+    return langs[first]?"/"+first+"/conta/assinatura.html":"/conta/assinatura.html";
+  }
+  function actionSubscription(){
+    var u=encodeURIComponent(returnUrl());
+    if(typeof window.__ACCOUNT_PAGE_URL==="function"){
+      window.location.assign(window.__ACCOUNT_PAGE_URL("/conta/assinatura.html")+"&returnUrl="+u);
+    }else{
+      window.location.assign(localizedSubscriptionFallback()+"?returnUrl="+u);
+    }
+  }
+  function actionDescriptor(control){
+    return [
+      control.id||"",control.className||"",control.getAttribute("name")||"",
+      control.getAttribute("aria-label")||"",control.getAttribute("title")||"",
+      control.getAttribute("value")||"",control.getAttribute("href")||"",
+      control.getAttribute("onclick")||"",control.textContent||""
+    ].join(" ").replace(/\s+/g," ").trim();
+  }
+  function premiumActionControl(target){
+    var control=target&&target.closest?target.closest("button,input[type=button],input[type=submit],a"):null;
+    if(!control) return null;
+    if(control.closest("#global-header-container,#language-selector-placeholder,#footer-placeholder,#barraAcessibilidade,.off-canvas-menu,.menu-overlay,#cookieConsentBanner,.modal-overlay")) return null;
+    if(control.closest('[data-premium-action="allow"]')) return null;
+    if(control.closest('[data-premium-action="block"]')) return control;
+    if(control.matches("a[download]")) return control;
+    var href=control.getAttribute("href")||"";
+    if(/\.pdf(?:$|[?#])/i.test(href)) return control;
+    return ACTION_PATTERN.test(actionDescriptor(control))?control:null;
+  }
+  async function resolveActionAccess(force){
+    if(actionAccess==="premium"&&!force) return true;
+    if(actionAccess==="free"&&!force) return false;
+    if(actionAccessPromise&&!force) return actionAccessPromise;
+    actionAccessPromise=(async function(){
+      try{
+        await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"action_auth");
+        var auth=window.Auth;
+        var user=auth&&auth.currentUser?auth.currentUser():null;
+        if(!user){actionAccess="free";return false;}
+        if(auth&&auth.hasPlan&&auth.hasPlan("premium")){actionAccess="premium";return true;}
+        var token=await withTimeout(user.getIdToken(!!force),TOKEN_TIMEOUT_MS,"action_token");
+        var currentKey=pathKey();
+        var canonicalKey=canonicalPathKey();
+        var res=await request(token,currentKey,true);
+        if(res.status===404&&canonicalKey&&canonicalKey!==currentKey) res=await request(token,canonicalKey,true);
+        if(res.status===401&&!force) return resolveActionAccess(true);
+        actionAccess=res.ok?"premium":"free";
+        return actionAccess==="premium";
+      }catch(error){
+        console.warn("[PremiumActionGate] não foi possível confirmar o plano",error);
+        var auth=window.Auth;
+        actionAccess=auth&&auth.hasPlan&&auth.hasPlan("premium")?"premium":"free";
+        return actionAccess==="premium";
+      }finally{
+        actionAccessPromise=null;
+      }
+    })();
+    return actionAccessPromise;
+  }
+  function replayControl(control){
+    replayingControl=control;
+    try{control.click();}finally{setTimeout(function(){replayingControl=null;},0);}
+  }
+  function replayForm(form,submitter){
+    replayingForm=form;
+    try{
+      if(typeof form.requestSubmit==="function") form.requestSubmit(submitter||undefined);
+      else form.submit();
+    }finally{setTimeout(function(){replayingForm=null;},0);}
+  }
+  function installPremiumActionGate(){
+    window.__PREMIUM_ACTION_GATE=true;
+    document.addEventListener("click",function(event){
+      var control=premiumActionControl(event.target);
+      if(!control||control===replayingControl) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      resolveActionAccess(false).then(function(allowed){
+        if(allowed) replayControl(control); else actionSubscription();
+      });
+    },true);
+    document.addEventListener("submit",function(event){
+      var form=event.target;
+      if(!form||form===replayingForm||form.closest('[data-premium-action="allow"]')) return;
+      if(!form.closest("main,.main-content,#main-content")) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      resolveActionAccess(false).then(function(allowed){
+        if(allowed) replayForm(form,event.submitter); else actionSubscription();
+      });
+    },true);
+  }
   async function load(){
     try{
-      showLoadingState();
+      var placeholder=document.getElementById("premium-content-placeholder");
+      if(placeholder){placeholder.hidden=true;placeholder.textContent="";}
       var currentKey=pathKey();
       var canonicalKey=canonicalPathKey();
       var publicRes=await request(null,currentKey);
@@ -261,81 +362,36 @@
       }
       if(publicRes.ok){
         await writePremiumDocument(publicRes,canonicalKey||currentKey);
+        installPremiumActionGate();
+        resolveActionAccess(false);
         return;
       }
+
+      // Compatibilidade segura durante a publicação da nova Edge Function:
+      // enquanto a entrega pública ainda não estiver ativa, o fluxo anterior
+      // continua liberando somente assinantes reconhecidos.
       await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"auth_bootstrap");
       var auth=window.Auth,user=auth&&auth.currentUser?auth.currentUser():null;
-      if(!user){login();return;}
-
-      // A Edge Function premium-content é a autoridade final de entrega.
-      // Ela valida diretamente token + identidade de billing + entitlement.
-      // Uma falha transitória em billing-access não pode bloquear um assinante
-      // válido antes que a própria entrega protegida seja consultada.
+      if(!user){subscription();return;}
       var token=await withTimeout(user.getIdToken(false),TOKEN_TIMEOUT_MS,"token");
       var res=await request(token,currentKey);
-
-      // Preferir a cópia privada traduzida. Quando ela ainda não existir,
-      // utilizar a cópia canônica da raiz para impedir 404 em rotas Premium
-      // localizadas. A versão traduzida, quando cadastrada, nunca é substituída.
-      if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
-        res=await request(token,canonicalKey);
-      }
-
+      if(res.status===404&&canonicalKey&&canonicalKey!==currentKey) res=await request(token,canonicalKey);
       if(res.status===401){
         token=await withTimeout(user.getIdToken(true),TOKEN_TIMEOUT_MS,"token_refresh");
         res=await request(token,currentKey);
-        if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
-          res=await request(token,canonicalKey);
-        }
+        if(res.status===404&&canonicalKey&&canonicalKey!==currentKey) res=await request(token,canonicalKey);
       }
-      if(res.status===403){
-        // A Edge Function negou o entitlement. Faça uma última sincronização
-        // do estado local/token antes de concluir que a conta é Free.
-        var billing=auth&&auth.billingStatus?auth.billingStatus():null;
-        if(typeof auth.refreshProfile==="function"){
-          try{
-            await auth.refreshProfile();
-            token=await withTimeout(user.getIdToken(true),TOKEN_TIMEOUT_MS,"token_refresh");
-            res=await request(token,currentKey);
-            if(res.status===404&&canonicalKey&&canonicalKey!==currentKey){
-              res=await request(token,canonicalKey);
-            }
-          }catch(_){}
-        }
-        if(res.status===403){
-          billing=auth&&auth.billingStatus?auth.billingStatus():billing;
-          if(billing&&billing.resolved&&billing.plan==="premium"){
-            showError("Seu acesso Premium foi reconhecido, mas o conteúdo protegido não foi entregue pelo serviço. Tente novamente.");
-          }else{
-            subscription();
-          }
-          return;
-        }
-      }
-      if(res.status>=500){
-        for(var attempt=2;attempt<=MAX_ATTEMPTS&&res.status>=500;attempt++){
-          await new Promise(function(resolve){setTimeout(resolve,500*attempt);});
-          res=await request(await withTimeout(user.getIdToken(false),TOKEN_TIMEOUT_MS,"token_retry"),currentKey);
-        }
-      }
-      if(res.status===401){login();return;}
-      if(res.status===403){
-        var finalBilling=auth.billingStatus?auth.billingStatus():null;
-        if(finalBilling&&finalBilling.resolved&&finalBilling.plan==="premium"){
-          showError("Seu acesso Premium foi reconhecido, mas o conteúdo protegido não foi entregue pelo serviço. Tente novamente.");
-        }else{
-          subscription();
-        }
-        return;
-      }
+      if(res.status===403){subscription();return;}
       if(res.status===404) throw new Error("premium_content_404");
       if(!res.ok) throw new Error("premium_content_"+res.status);
       await writePremiumDocument(res,canonicalKey||currentKey);
+      actionAccess="premium";
+      installPremiumActionGate();
     }catch(e){
-      console.error("[PremiumContent] protected content unavailable",e);
+      console.error("[PremiumContent] content unavailable",e);
       var msg=e&&e.message==="premium_content_404"
-        ?"A página Premium não foi encontrada no catálogo protegido. Nenhuma cobrança foi afetada."
-        :"Não foi possível validar sua assinatura neste momento. Sua assinatura não foi cancelada.";
+        ?"O conteúdo desta página não foi encontrado."
+        :"Não foi possível carregar esta página neste momento. Tente novamente.";
       showError(msg);
     }
   }
