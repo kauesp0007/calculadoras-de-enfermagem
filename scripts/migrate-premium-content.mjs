@@ -135,6 +135,16 @@ async function privateCatalogHas(rel){
   return Array.isArray(rows)&&rows.length>0;
 }
 
+async function premiumRequiredForPath(rel){
+  const url=SUPABASE_URL+"/rest/v1/developer_premium_route_rules?select=premium_required&path=eq."+encodeURIComponent(rel)+"&limit=1";
+  const res=await fetch(url,{
+    headers:{apikey:SERVICE_KEY,Authorization:"Bearer "+SERVICE_KEY,Accept:"application/json"}
+  });
+  if(!res.ok) throw new Error("Supabase "+res.status+" ao consultar regra de "+rel+": "+await res.text());
+  const rows=await res.json();
+  return !!(Array.isArray(rows)&&rows[0]&&rows[0].premium_required===true);
+}
+
 async function upsert(rel,content){
   const res=await fetch(SUPABASE_URL+"/rest/v1/premium_content_pages?on_conflict=path",{
     method:"POST",
@@ -172,6 +182,7 @@ await fs.writeFile(
 const missingShellCatalog=[];
 let migrated=0;
 let alreadyCataloged=0;
+let skippedInactiveShells=0;
 
 for(const rel of files){
   const abs=path.join(ROOT,rel);
@@ -182,7 +193,8 @@ for(const rel of files){
       alreadyCataloged++;
       continue;
     }
-    missingShellCatalog.push(rel);
+    if(await premiumRequiredForPath(rel)) missingShellCatalog.push(rel);
+    else skippedInactiveShells++;
     continue;
   }
 
@@ -207,5 +219,6 @@ console.log(JSON.stringify({
   eligible:files.length,
   migrated,
   alreadyCataloged,
+  skippedInactiveShells,
   dryRun:DRY
 },null,2));
