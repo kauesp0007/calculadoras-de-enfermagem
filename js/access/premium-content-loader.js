@@ -291,6 +291,10 @@
   var actionAccessPromise=null;
   var replayingControl=null;
   var replayingForm=null;
+  var browserPrintAttempt=false;
+  function setPrintAccess(allowed){
+    if(document.documentElement) document.documentElement.setAttribute("data-premium-print-access",allowed?"premium":"free");
+  }
   var ACTION_PATTERN=/(?:calcul|compute|calcola|berechn|bereken|oblicz|hesapla|tính|hitung|рассчит|розрах|計算|计算|계산|गणना|احسب|result|resultado|resultado|résultat|ergebnis|risultat|wynik|sonuç|kết quả|hasil|результ|結果|结果|결과|परिणाम|نتيجة|interpret|auswert|download|baixar|descarg|télécharg|scaric|herunterlad|pobierz|indir|tải|unduh|скач|завантаж|ダウンロード|下载|다운로드|डाउनलोड|تحميل|print|imprimir|imprime|stampa|drucken|afdruk|drukuj|yazdır|cetak|печ|друк|印刷|打印|인쇄|प्रिंट|طباعة|simulad|quiz|start|iniciar|começar|comenzar|commencer|inizia|starten|begin|rozpoczn|başla|bắt đầu|mulai|нача|поча|開始|开始|시작|शुरू|ابدأ|gerar[^a-z]{0,8}pdf|generate[^a-z]{0,8}pdf)/i;
   function localizedSubscriptionFallback(){
     var first=(window.location.pathname.split("/").filter(Boolean)[0]||"").toLowerCase();
@@ -325,16 +329,16 @@
     return ACTION_PATTERN.test(actionDescriptor(control))?control:null;
   }
   async function resolveActionAccess(force){
-    if(actionAccess==="premium"&&!force) return true;
-    if(actionAccess==="free"&&!force) return false;
+    if(actionAccess==="premium"&&!force){setPrintAccess(true);return true;}
+    if(actionAccess==="free"&&!force){setPrintAccess(false);return false;}
     if(actionAccessPromise&&!force) return actionAccessPromise;
     actionAccessPromise=(async function(){
       try{
         await withTimeout(ensureAuth(),AUTH_TIMEOUT_MS,"action_auth");
         var auth=window.Auth;
         var user=auth&&auth.currentUser?auth.currentUser():null;
-        if(!user){actionAccess="free";return false;}
-        if(auth&&auth.hasPlan&&auth.hasPlan("premium")){actionAccess="premium";return true;}
+        if(!user){actionAccess="free";setPrintAccess(false);return false;}
+        if(auth&&auth.hasPlan&&auth.hasPlan("premium")){actionAccess="premium";setPrintAccess(true);return true;}
         var token=await withTimeout(user.getIdToken(!!force),TOKEN_TIMEOUT_MS,"action_token");
         var currentKey=pathKey();
         var canonicalKey=canonicalPathKey();
@@ -342,11 +346,13 @@
         if(res.status===404&&canonicalKey&&canonicalKey!==currentKey) res=await request(token,canonicalKey,true);
         if(res.status===401&&!force) return resolveActionAccess(true);
         actionAccess=res.ok?"premium":"free";
+        setPrintAccess(actionAccess==="premium");
         return actionAccess==="premium";
       }catch(error){
         console.warn("[PremiumActionGate] não foi possível confirmar o plano",error);
         var auth=window.Auth;
         actionAccess=auth&&auth.hasPlan&&auth.hasPlan("premium")?"premium":"free";
+        setPrintAccess(actionAccess==="premium");
         return actionAccess==="premium";
       }finally{
         actionAccessPromise=null;
@@ -386,8 +392,29 @@
         if(allowed) replayForm(form,event.submitter); else actionSubscription();
       });
     },true);
+    document.addEventListener("keydown",function(event){
+      var key=String(event.key||"").toLowerCase();
+      if(key!=="p"||(!event.ctrlKey&&!event.metaKey)||event.altKey) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      resolveActionAccess(false).then(function(allowed){
+        if(allowed) window.print(); else actionSubscription();
+      });
+    },true);
+    window.addEventListener("beforeprint",function(){
+      if(document.documentElement.getAttribute("data-premium-print-access")==="premium") return;
+      browserPrintAttempt=true;
+      setPrintAccess(false);
+      resolveActionAccess(true);
+    });
+    window.addEventListener("afterprint",function(){
+      if(!browserPrintAttempt) return;
+      browserPrintAttempt=false;
+      if(document.documentElement.getAttribute("data-premium-print-access")!=="premium") actionSubscription();
+    });
   }
   async function load(){
+    setPrintAccess(false);
     try{
       var placeholder=document.getElementById("premium-content-placeholder");
       if(placeholder){placeholder.hidden=true;placeholder.textContent="";}
@@ -423,6 +450,7 @@
       if(!res.ok) throw new Error("premium_content_"+res.status);
       await writePremiumDocument(res,canonicalKey||currentKey);
       actionAccess="premium";
+      setPrintAccess(true);
       installPremiumActionGate();
     }catch(e){
       console.error("[PremiumContent] content unavailable",e);
