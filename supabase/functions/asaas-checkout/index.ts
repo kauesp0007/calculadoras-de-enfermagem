@@ -130,12 +130,26 @@ serve(async req=>{
     ref="premium_"+crypto.randomUUID();
     const isRecurring=kind==="monthly_card";
     const now=new Date();
-    const firstDue=new Date(now.getTime()+24*60*60*1000);
-    const pad=(n:number)=>String(n).padStart(2,"0");
-    const nextDueDate=`${firstDue.getFullYear()}-${pad(firstDue.getMonth()+1)}-${pad(firstDue.getDate())} ${pad(firstDue.getHours())}:${pad(firstDue.getMinutes())}:${pad(firstDue.getSeconds())}`;
+    const brazilDateParts=new Intl.DateTimeFormat("en-US",{
+      timeZone:"America/Sao_Paulo",
+      year:"numeric",
+      month:"2-digit",
+      day:"2-digit"
+    }).formatToParts(now);
+    const datePart=(type:string)=>brazilDateParts.find(part=>part.type===type)?.value||"";
+    const firstChargeDate=`${datePart("year")}-${datePart("month")}-${datePart("day")}`;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(firstChargeDate))throw new Error("first_charge_date_invalid");
+
+    const initialMetadata:any={kind,lang,external_reference:ref};
+    if(isRecurring){
+      initialMetadata.first_charge_policy="immediate";
+      initialMetadata.first_charge_due_date=firstChargeDate;
+      initialMetadata.recurrence_cycle="MONTHLY";
+    }
+
     const ins=await db().from("billing_subscriptions").insert({
       user_id:id,provider:"asaas",external_id:ref,status:"checkout_pending",plan:"premium",currency:"BRL",
-      metadata:{kind,lang,external_reference:ref}
+      metadata:initialMetadata
     });
     if(ins.error)throw ins.error;
 
@@ -155,14 +169,21 @@ serve(async req=>{
     // cadastrais obrigatórios quando esse objeto é informado. O Checkout
     // coleta os dados do pagador diretamente, evitando rejeição por CPF/endereço
     // ausentes no perfil Firebase.
-    if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate,externalReference:ref};
+    // The first card charge is due on the checkout date. The MONTHLY cycle
+    // controls only subsequent renewals; a future renewal date never proves
+    // that the initial payment was made.
+    if(isRecurring)payload.subscription={
+      cycle:"MONTHLY",
+      nextDueDate:firstChargeDate,
+      externalReference:ref
+    };
 
     const checkout=await asaas("/checkouts",{method:"POST",body:JSON.stringify(payload)});
     checkoutId=String(checkout?.id||"");
     if(!checkoutId)throw new Error("checkout_id_missing");
     const checkoutUrl=String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`);
     const upd=await db().from("billing_subscriptions").update({
-      metadata:{kind,lang,external_reference:ref,checkout_id:checkoutId},
+      metadata:{...initialMetadata,checkout_id:checkoutId},
       updated_at:new Date().toISOString()
     }).eq("provider","asaas").eq("external_id",ref);
     if(upd.error)throw upd.error;
