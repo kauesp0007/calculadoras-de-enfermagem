@@ -59,11 +59,33 @@ function repairNestedProfileStyles(html){
   return html;
 }
 
+function normalizeAccountAuth(html){
+  var next=html;
+
+  // Padrão antigo: o HTML dependia de window.Auth já existir e abortava antes
+  // do bootstrap global terminar. Agora aguarda o bootstrap canônico.
+  next=next.replace(
+    /if\s*\(\s*!window\.Auth\s*\|\|\s*!window\.Auth\.init\s*\)\s*throw new Error\(["']auth_unavailable["']\);\s*await\s+(timeout|race)\(window\.Auth\.init\(\),\s*10000\s*\);/g,
+    function(_,helper){
+      return 'if(typeof window.__ENSURE_AUTH==="function"){await '+helper+'(window.__ENSURE_AUTH(),20000);}else{if(!window.Auth||!window.Auth.init)throw new Error("auth_unavailable");await '+helper+'(window.Auth.init(),20000);}';
+    }
+  );
+
+  // Login sempre preserva idioma/returnUrl através do helper central.
+  next=next.replace(
+    /location\.replace\("\/conta\/login\.html\?returnUrl="\+encodeURIComponent\(location\.pathname\+location\.search\)\);/g,
+    'location.replace(typeof window.__ACCOUNT_LOGIN_URL==="function"?window.__ACCOUNT_LOGIN_URL(location.pathname+location.search):"/conta/login.html?returnUrl="+encodeURIComponent(location.pathname+location.search));'
+  );
+
+  return next;
+}
+
 function normalize(html,lang){
   var next=html;
   next=normalizePrefetch(next,lang);
   next=removeLegacyFooterFetchers(next);
   next=repairNestedProfileStyles(next);
+  next=normalizeAccountAuth(next);
   return next;
 }
 
@@ -83,6 +105,9 @@ function problems(html,lang,rel){
     const close=html.indexOf("</style>",a);
     if(b>=0&&(close<0||b<close)) list.push("style perfil aninhado/malformado");
   }
+  if(/if\s*\(\s*!window\.Auth\s*\|\|\s*!window\.Auth\.init\s*\)\s*throw new Error\(["']auth_unavailable["']\);\s*await\s+(?:timeout|race)\(window\.Auth\.init\(\),\s*10000\s*\);/.test(html)) list.push("bootstrap Auth legado de 10s");
+  if(/location\.replace\("\/conta\/login\.html\?returnUrl="/.test(html)) list.push("redirect de login não canônico");
+  if(!html.includes("__ENSURE_AUTH") && /window\.Auth\.init\(/.test(html)) list.push("página de conta não usa bootstrap canônico");
   if(lang!=="pt"){
     const expectedBody=prefix+"global-body-elements.html";
     const expectedFooter=prefix+"footer.html";
