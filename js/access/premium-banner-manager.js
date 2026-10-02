@@ -19,7 +19,7 @@
     // A cobrança efetiva continua sendo definida pelo Price do Stripe no backend.
     var EUR_LANGS = ["tr", "nl", "pl", "ru", "fr", "es", "de", "it", "uk", "sv"];
     var PROMO_COPY = {
-        pt: { team: "Faça parte da Equipe PREMIUM", title: "Faça parte do Plano PREMIUM", ads: "Elimine todos os anúncios do site", access: "Tenha acesso a todas as calculadoras, escalas, formulários e simulados do site", subscribe: "Clique para assinar", price: "Por apenas R$ 5,00 mensais. Aceitamos Pix e cartões.", close: "Fechar", alt: "Ilustração de uma profissional de enfermagem", aria: "Assinatura Premium" },
+        pt: { title: "Faça parte da equipe do Plano PREMIUM", benefits: ["Elimine 100% dos anúncios indesejados", "Tenha acesso a mais de 30 calculadoras para a enfermagem", "Acesse mais de 30 escalas assistenciais interativas", "Salve ou imprima os formulários em branco das escalas assistenciais para usar no plantão", "São mais de 25 simulados por categorias e provas de bancas para você treinar", "Você terá acesso a extensões gratuitas do Chrome de Gasometria Arterial e Escala de Braden, e em breve serão lançadas novas extensões para o navegador", "Em breve será lançado um programa de computador e um app para auxiliar você durante o plantão", "Ajude este projeto a unificar em um único site tudo o que a enfermagem precisa", "Nossos conteúdos educativos contam com um sistema de auditoria e governança de fontes, com o princípio de garantir, checar, revisar e auditar a literatura apresentada, com referências científicas seguras"], subscribe: "Assine o Plano PREMIUM e faça parte da equipe!", price: "Por apenas R$ 5,00 mensais. Aceitamos Pix e cartões.", close: "Fechar", alt: "Ilustração de uma profissional de enfermagem", aria: "Assinatura Premium" },
         en: { team: "Join the PREMIUM Team", title: "Join the PREMIUM Plan", ads: "Remove all ads from the site", access: "Access all calculators, scales, forms and practice exams on the site", subscribe: "Click to subscribe", price: "Only {price} per month. Credit cards accepted.", close: "Close", alt: "Illustration of a nurse", aria: "Premium subscription" },
         es: { team: "Únete al equipo PREMIUM", title: "Forma parte del Plan PREMIUM", ads: "Elimina todos los anuncios del sitio", access: "Accede a todas las calculadoras, escalas, formularios y simulacros del sitio", subscribe: "Haz clic para suscribirte", price: "Por solo {price} al mes. Aceptamos tarjetas de crédito.", close: "Cerrar", alt: "Ilustración de una profesional de enfermería", aria: "Suscripción Premium" },
         de: { team: "Werde Teil des PREMIUM-Teams", title: "Entscheide dich für den PREMIUM-Tarif", ads: "Entferne alle Anzeigen von der Website", access: "Erhalte Zugang zu allen Rechnern, Skalen, Formularen und Übungstests der Website", subscribe: "Jetzt abonnieren", price: "Nur {price} pro Monat. Zahlung per Kreditkarte.", close: "Schließen", alt: "Illustration einer Pflegefachperson", aria: "Premium-Abonnement" },
@@ -184,7 +184,7 @@
         if (window.__premiumPromoController) return;
 
         var STORAGE_KEY = lang === "pt" ? "premiumPromoLastShownAt" : "premiumPromoLastShownAt:" + lang;
-        var DISPLAY_MS = 10000;
+        var DISPLAY_MS = 20000;
         var INTERVAL_MS = 2 * 60 * 1000;
         var INITIAL_DELAY_MS = 1500;
         var lastShownInMemory = 0;
@@ -213,7 +213,7 @@
         root.setAttribute("aria-label", copy.aria);
         root.setAttribute("lang", lang === "pt" ? "pt-BR" : lang);
         if (lang === "ar") root.setAttribute("dir", "rtl");
-        root.style.cssText = "position:fixed;top:140px;right:12px;width:min(390px,calc(100vw - 24px));max-height:calc(100vh - 20px);overflow:auto;z-index:2147483000;display:none;opacity:0;transition:opacity .18s ease;";
+        root.style.cssText = "position:fixed;top:140px;right:12px;width:min(500px,calc(100vw - 24px));max-height:calc(100vh - 20px);overflow:auto;z-index:2147483000;display:none;opacity:0;transition:opacity .18s ease;";
 
         function positionPromo() {
             var bottoms = [0];
@@ -235,15 +235,15 @@
         var checkIcon = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false" style="flex:none;color:#15803d;margin-top:2px"><path d="m4 12 5 5L20 6" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
         root.innerHTML =
             '<section style="display:flex;flex-direction:column;gap:12px;padding:16px;border-radius:16px;box-sizing:border-box;background:#fff;border:1px solid rgba(26,62,116,.16);box-shadow:0 18px 45px rgba(0,0,0,.19);font-family:Inter,Arial,sans-serif;text-align:left;color:#1f2937;">' +
-            '<div style="display:grid;grid-template-columns:minmax(0,1fr) 86px;align-items:center;gap:10px;direction:ltr;">' +
-            '<div' + (lang === "ar" ? ' dir="rtl"' : '') + '><p style="margin:0 0 5px;font-size:10px;line-height:1.25;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#2563eb;">' + escapeHtml(copy.team) + '</p>' +
-            '<h2 style="margin:0;font-size:19px;line-height:1.2;font-weight:900;color:#1A3E74;">' + escapeHtml(copy.title) + '</h2></div>' +
-            '<img src="/img/ilustracao_enfermeira.webp" alt="' + escapeHtml(copy.alt) + '" width="86" height="100" decoding="async" style="display:block;width:86px;height:100px;object-fit:contain;">' +
-            '</div><ul style="display:grid;gap:9px;margin:0;padding:0;list-style:none;font-size:13px;line-height:1.35;font-weight:650;">' +
-            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>' + escapeHtml(copy.ads) + '</span></li>' +
-            '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>' + escapeHtml(copy.access) + '</span></li>' +
-            '</ul><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">' +
-            '<div style="min-width:0;"><a href="' + subscribeUrl + '" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:8px 13px;border-radius:10px;background:#facc15;color:#163269;text-decoration:none;font-size:13px;font-weight:900;box-shadow:0 5px 12px rgba(15,23,42,.12);">' + escapeHtml(copy.subscribe) + '</a>' +
+            '<div style="display:grid;grid-template-columns:minmax(0,1fr) 96px;align-items:center;gap:12px;direction:ltr;">' +
+            '<div' + (lang === "ar" ? ' dir="rtl"' : '') + '><h2 style="margin:0;font-size:19px;line-height:1.2;font-weight:900;color:#1A3E74;">' + escapeHtml(copy.title) + '</h2></div>' +
+            '<img src="/img/ilustracao_enfermeira.webp" alt="' + escapeHtml(copy.alt) + '" width="96" height="112" decoding="async" style="display:block;width:96px;height:112px;object-fit:contain;">' +
+            '</div><ul style="display:grid;gap:8px;margin:0;padding:0;list-style:none;font-size:13px;line-height:1.4;font-weight:650;">' +
+            (copy.benefits || [copy.ads, copy.access]).map(function (benefit) {
+                return '<li style="display:flex;align-items:flex-start;gap:8px;">' + checkIcon + '<span>' + escapeHtml(benefit) + '</span></li>';
+            }).join("") +
+            '</ul><div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">' +
+            '<div style="min-width:0;"><a href="' + subscribeUrl + '" data-premium-promo-subscribe style="display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:9px 15px;border-radius:10px;background:#facc15;color:#163269;text-decoration:none;font-size:13px;line-height:1.25;font-weight:900;box-shadow:0 5px 12px rgba(15,23,42,.12);text-align:center;">' + escapeHtml(copy.subscribe) + '</a>' +
             '<p style="margin:5px 0 0;font-size:10px;line-height:1.35;color:#475569;">' + escapeHtml(priceLine) + '</p></div>' +
             '<button type="button" aria-label="' + escapeHtml(copy.close) + '" data-premium-promo-close style="border:1px solid #cbd5e1;border-radius:8px;background:#f8fafc;color:#334155;font-size:12px;font-weight:700;cursor:pointer;padding:9px 10px;">' + escapeHtml(copy.close) + '</button>' +
             '</div></section>';
