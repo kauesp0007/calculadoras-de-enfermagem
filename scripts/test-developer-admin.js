@@ -26,7 +26,7 @@ assert.match(developerAdmin, /set_route/);
 assert.match(developerAdmin, /grant_email/);
 assert.match(developerAdmin, /revoke_email/);
 assert.doesNotMatch(developerAdmin, /SUPABASE_ANON_KEY/);
-assert.doesNotMatch(developerAdmin, /"client_guard"/);
+assert.match(developerAdmin, /hasPrivateContent \? "client_guard"/);
 assert.match(developerAdmin, /publishedShell\(path\)/);
 assert.match(developerAdmin, /developer_premium_activation_requests/);
 
