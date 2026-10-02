@@ -24,7 +24,7 @@ function catalogDownload(content:string,id:string){
   const entry=entries.find((item:any)=>item.id===id);
   if(!entry || typeof entry.pdf!=="string" || typeof entry.filename!=="string") return null;
   // O cliente só envia um ID. Nunca aceitar URL arbitrária nem traversal.
-  if(!/^\/FORMULARIOS_DE_ESCALAS\/(?:EN\/)?[^/\\?#]+\.pdf$/i.test(entry.pdf) || entry.pdf.includes("..")) return null;
+  if(!/^\/FORMULARIOS_DE_ESCALAS\/(?:(?:EN|ES)\/)?[^/\\?#]+\.pdf$/i.test(entry.pdf) || entry.pdf.includes("..")) return null;
   return {pdf:entry.pdf,filename:entry.filename.replace(/[\r\n"\\/]/g,"_")};
 }
 
@@ -71,9 +71,11 @@ async function manualPremiumGrant(email:string|null){
 async function premiumForUser(user:{uid:string,email:string|null}){
   if(await manualPremiumGrant(user.email)) return true;
   const sb=db();
-  const {data:identity,error:ierr}=await sb.from("billing_identities").select("id").eq("provider","firebase").eq("external_subject",user.uid).maybeSingle();
+  const {data:identity,error:ierr}=await sb.from("billing_identities").select("id,email").eq("provider","firebase").eq("external_subject",user.uid).maybeSingle();
   if(ierr) throw ierr;
   if(!identity) return false;
+  const identityEmail=identity.email?String(identity.email).trim().toLowerCase():null;
+  if(identityEmail && identityEmail!==user.email && await manualPremiumGrant(identityEmail)) return true;
   const {data:ent,error:eerr}=await sb.from("user_entitlements").select("plan,premium_expires_at").eq("user_id",identity.id).maybeSingle();
   if(eerr) throw eerr;
   return !!ent && ent.plan==="premium" && (!ent.premium_expires_at || new Date(ent.premium_expires_at)>new Date());
