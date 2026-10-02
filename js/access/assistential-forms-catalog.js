@@ -3,8 +3,9 @@
   var SUPABASE_HOST = "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/premium-content";
   function catalogPathKey() {
     var p = String(window.location.pathname || "").replace(/^\/+/, "");
-    if (/^en\/formularios_de_escalas_assistenciais\.html$/i.test(p)) return p;
-    return "formularios_de_escalas_assistenciais.html";
+    var langs = "en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar";
+    var pattern = new RegExp("^(?:(" + langs + ")/)?formularios_de_escalas_assistenciais\\.html$", "i");
+    return pattern.test(p) ? p : "formularios_de_escalas_assistenciais.html";
   }
   var ENDPOINT = SUPABASE_HOST + "?path=" + encodeURIComponent(catalogPathKey());
   var dialog = document.getElementById("forms-plan-dialog");
@@ -32,6 +33,11 @@
     var auth = window.Auth;
     if (!auth) throw new Error("auth_unavailable");
     if (typeof auth.whenReady === "function") await timed(auth.whenReady(), 15000);
+    var user = auth.currentUser ? auth.currentUser() : null;
+    var billing = auth.billingStatus ? auth.billingStatus() : null;
+    if (user && auth.refreshProfile && (!billing || !billing.resolved || billing.unavailable)) {
+      try { await timed(auth.refreshProfile(), 15000); } catch (_) { }
+    }
     return auth;
   }
   function confirmedPremium() {
@@ -81,6 +87,9 @@
       if (!user) { if (popup) popup.close(); offer(button); message("Download e impressão disponíveis no Premium."); return; }
       var response = await pdfRequest(user, id, false);
       if (response.status === 401) response = await pdfRequest(user, id, true);
+      if (response.status === 403 && confirmedPremium()) {
+        response = await pdfRequest(user, id, true);
+      }
       if (response.status === 401 || response.status === 403) { if (popup) popup.close(); offer(button); message("Download e impressão disponíveis no Premium."); return; }
       if (!response.ok || !/^application\/pdf\b/i.test(response.headers.get("Content-Type") || "")) throw new Error("pdf_unavailable");
       var blob = await response.blob();
