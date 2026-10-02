@@ -1,6 +1,6 @@
 alter table public.developer_premium_route_rules
   add constraint developer_premium_requires_private_enforcement
-  check (not premium_required or enforcement = 'protected_content');
+  check (not premium_required or enforcement = 'client_guard');
 
 create table public.developer_premium_activation_requests (
   path text primary key,
@@ -44,11 +44,11 @@ begin
   insert into public.developer_premium_route_rules
     (path,title,category,premium_required,enforcement,source,notes,updated_by,updated_at)
   values
-    (p_path,pending.title,pending.category,true,'protected_content','premium_content_pages',
-     'Conteúdo privado e shell público publicados.',pending.requested_by,now())
+    (p_path,pending.title,pending.category,true,'client_guard','premium_content_pages',
+     'Conteúdo público publicado com ações Premium protegidas.',pending.requested_by,now())
   on conflict (path) do update set
     title = excluded.title, category = excluded.category, premium_required = true,
-    enforcement = 'protected_content', source = 'premium_content_pages',
+    enforcement = 'client_guard', source = 'premium_content_pages',
     notes = excluded.notes, updated_by = excluded.updated_by, updated_at = excluded.updated_at
   returning * into activated;
 
@@ -67,6 +67,6 @@ revoke all on function public.activate_developer_premium_route(text,uuid) from p
 grant execute on function public.activate_developer_premium_route(text,uuid) to service_role;
 
 comment on table public.developer_premium_activation_requests is
-  'Admin-only queue for pages that must enter the private catalog and be published as shells before Premium activation.';
+  'Admin-only queue for pages that must enter the canonical catalog before action-gated Premium activation.';
 comment on table public.developer_premium_route_rules is
-  'Admin-only Premium route rules. A Premium rule is permitted only with private content enforcement.';
+  'Admin-only Premium route rules. A Premium rule is permitted only with entitlement-backed client action enforcement.';
