@@ -18,6 +18,7 @@ const checks=[
   [loader.includes('document.open();') && loader.includes('document.write(html);') && loader.includes('document.close();'),"loader deve entregar o HTML protegido."],
   [loader.includes("function ensurePremiumEnglishFormLayoutAfterWrite()"),"loader deve aplicar o reparo responsivo aos formulários em inglês."],
   [loader.includes("main.main-content>header.hero h1{white-space:normal!important"),"loader deve permitir quebra segura do H1 dos formulários em inglês."],
+  [loader.includes("top:auto!important;left:auto!important;height:auto!important;min-height:0!important"),"loader deve neutralizar a altura fixa do header global no hero."],
   [loader.includes("ensurePremiumEnglishFormLayoutAfterWrite();"),"loader deve ativar o reparo após escrever o documento premium."],
   [loader.includes('await ensurePremiumFooterAfterWrite();'),"loader deve reidratar o rodapé após a entrega protegida."],
 ];
