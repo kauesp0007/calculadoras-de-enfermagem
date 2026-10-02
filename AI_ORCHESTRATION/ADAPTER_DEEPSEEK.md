@@ -14,6 +14,16 @@ inexistente:
 - `.github/instructions/*.instructions.md` (regras por extensão via `applyTo`);
 - `.github/prompts/*.prompt.md` (comandos de barra).
 
+## Sistema de contas/Premium — contexto persistente do projeto
+
+Para tarefas de login, assinatura, pagamentos, conteúdo Premium, botões protegidos, download, impressão/Salvar como PDF, anúncios por plano ou páginas novas, o DeepSeek DEVE carregar:
+
+- `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md` — única fonte documental do método;
+- `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md` — snapshot dinâmico;
+- `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md` — precedência das decisões administrativas.
+
+Não memorizar uma lista estática de páginas Free/Premium, não copiar o método para este adapter e não criar gate/Auth paralelo. A “memória” persistente disponível ao DeepSeek neste projeto é o próprio conjunto de arquivos versionados; em cada sessão relevante, ele deve reler essas fontes.
+
 ## Como o DeepSeek aplica o Core
 1. O Core é um documento Markdown em `AI_ORCHESTRATION/PROMPT_CORE.md`.
 2. Ao orquestrar uma tarefa, o DeepSeek lê o Core (sob demanda) e aplica as regras
