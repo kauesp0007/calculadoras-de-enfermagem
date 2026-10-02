@@ -63,6 +63,14 @@ for (const file of PAGES) {
       fail(`${file}: JavaScript inline inválido no bloco ${item.index}: ${error.message}`);
     }
   }
+  if (LOCALIZED_ACCOUNT_PAGES.includes(file)) {
+    if (!html.includes("__ENSURE_AUTH") && /window\.Auth\.init\(/.test(html)) {
+      fail(`conta/${file}: ainda depende de Auth.init sem bootstrap canônico`);
+    }
+    if (/window\.Auth\.init\(\),\s*10000/.test(html)) {
+      fail(`conta/${file}: timeout antigo de Auth ainda presente`);
+    }
+  }
 }
 
 
@@ -92,6 +100,15 @@ for (const lang of LANGS) {
     }
     if (/<link\b[^>]*\brel=["']prefetch["'][^>]*href=["']\/footer\.html["']/i.test(html)) {
       fail(`${lang}/conta/${file}: prefetch aponta para footer PT em vez do idioma`);
+    }
+    if (!html.includes("__ENSURE_AUTH") && /window\.Auth\.init\(/.test(html)) {
+      fail(`${lang}/conta/${file}: ainda depende de Auth.init sem bootstrap canônico`);
+    }
+    if (/window\.Auth\.init\(\),\s*10000/.test(html)) {
+      fail(`${lang}/conta/${file}: timeout antigo de Auth ainda presente`);
+    }
+    if (/location\.replace\(["']\/conta\/login\.html\?returnUrl=/.test(html)) {
+      fail(`${lang}/conta/${file}: redirect de login perde helper canônico/idioma`);
     }
 
     const shadows = html.indexOf('<style id="conta-card-shadows">');
@@ -137,6 +154,27 @@ if (!accountLangSelector.includes("const pathMatch = (window.location.pathname |
 const routeLocalizer = fs.readFileSync(path.join(ROOT, "js", "access", "route-localizer.js"), "utf8");
 if (routeLocalizer.includes("max-width:86px!important")) {
   fail("route-localizer.js: hotfix antigo ainda comprime o menu global da conta.");
+}
+for (const required of [
+  "#global-header-container .header-content{max-width:none!important",
+  "#global-header-container .desktop-nav>ul",
+  "@media(max-width:1180px)"
+]) {
+  if (!routeLocalizer.includes(required)) fail(`route-localizer.js: correção responsiva do menu de conta ausente: ${required}`);
+}
+
+const globalScripts = fs.readFileSync(path.join(ROOT, "global-scripts.js"), "utf8");
+if (!globalScripts.includes("__ACCOUNT_AUTH_BOOTSTRAP_PROMISE")) {
+  fail("global-scripts.js: bootstrap antecipado da sessão na área de conta ausente.");
+}
+
+const notFound = fs.readFileSync(path.join(ROOT, "404.html"), "utf8");
+for (const required of [
+  "(perfil|configuracoes|favoritos|historico)",
+  '"/conta/"+match[2].toLowerCase()+".html"',
+  "window.location.replace(target)"
+]) {
+  if (!notFound.includes(required)) fail(`404.html: fallback de rota antiga de conta ausente: ${required}`);
 }
 
 const authCore = fs.readFileSync(path.join(ROOT, "js", "auth", "auth-core.js"), "utf8");
