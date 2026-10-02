@@ -1,4 +1,4 @@
-# Inventário de rotas do sistema de contas — fotografia de 01/10/2026
+# Inventário de rotas do sistema de contas — fotografia de 02/10/2026
 
 Fonte: SELECT read-only de public.developer_premium_route_rules e premium_content_pages no projeto asjkftjfbkuuhilnqonx, após liberação de consulta do catálogo no PR #123. O painel altera estas regras em tempo real. premium-content usa regra exata e fallback da raiz por idioma; conteúdo privado sem regra exige Premium por padrão.
 
@@ -420,3 +420,7 @@ Na ausência de regra própria, premium-content exige Premium. Um prefixo de idi
 ## Atualização
 
 Após switches/migration/publicação, repetir SELECT das regras e diferença contra premium_content_pages. Atualizar totais, caminhos, data e conferir shell/fila. O inventário registra estado observado, não substitui a política dinâmica.
+
+### Revalidação de política dinâmica — 02/10/2026
+
+SELECT atual confirmou 347 regras (308 Premium, 39 Free), sem alteração final de classificação nesta sessão. Fugulin e Dimensionamento da raiz permanecem Premium/protected_content conforme ativações do painel em 30/09; Braden permanece Free. A política pública foi conferida para as três rotas. A auditoria de CI passa a consultar essa política em vez de impor Free às antigas exceções do manifesto. HTMLs originais e dados clínicos preservados. Registro: `auditorias/20261002-premium-audit-pr-cleanup.md`.

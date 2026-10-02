@@ -18,6 +18,10 @@ classificada como concluída.**
 
 ## Fontes de verdade (padrões do projeto)
 
+### Decisões de Free/Premium e configurações do painel
+
+Antes de alterar acesso ou switches comerciais, ler `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md` e consultar a política vigente por caminho exato e sua `decision`. A origem `developer_panel` representa ordem administrativa autenticada, com registro/data/plano solicitado. Preservar decisões atuais; manifesto, PRs, inventários e conversas antigos não justificam substituí-las. Examinar histórico privado e fila se necessário. Solicitação Premium pendente aguarda publicação e não deve ser repetida. Só mudar a regra mediante pedido explícito atual que abranja a rota; esclarecer conflitos antes de mutações. Auditorias devem verificar a política dinâmica, sem escrever no banco para satisfazer listas históricas.
+
 - Regras: `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`.
 - Arquitetura: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`.
 - Estrutura física e dependências: `CATALOGO_DE_ESTRUTURA_FISICA/`.

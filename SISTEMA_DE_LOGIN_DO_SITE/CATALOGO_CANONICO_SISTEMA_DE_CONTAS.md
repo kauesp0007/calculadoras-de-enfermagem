@@ -1,6 +1,6 @@
 # Sistema de login, contas, assinaturas e acesso Premium — catálogo canônico
 
-**Corte de auditoria:** 01/10/2026 (America/Sao_Paulo). **Repositório:** kauesp0007/calculadoras-de-enfermagem. **Projeto Supabase:** asjkftjfbkuuhilnqonx. **Site:** https://www.calculadorasdeenfermagem.com.br.
+**Corte de auditoria:** 02/10/2026 (America/Sao_Paulo). **Repositório:** kauesp0007/calculadoras-de-enfermagem. **Projeto Supabase:** asjkftjfbkuuhilnqonx. **Site:** https://www.calculadorasdeenfermagem.com.br.
 
 ## Uso obrigatório e hierarquia de evidências
 
@@ -86,7 +86,7 @@ O painel só oferece paths do JSON público; POST set_route confirma admin por e
 
 developer-admin GET ?public=policy oferece política de leitura ao global-scripts.js, com cache de sessão de 30 s. Esse guard dá redirecionamento de UX para rota em HTML público, mas a segurança do conteúdo depende do shell e de premium-content. O campo enforcement client_guard representa HTML público e não proteção privada; o CHECK do banco impede uma regra premium_required=true com enforcement client_guard. Rotas por idioma procuram primeiro regra exata e, na falta dela, regra da raiz com o mesmo filename; isto explica aparências de Premium herdado de PT. No conteúdo privado, se falta regra para um path, premium-content presume Premium; caminho private órfão deve ser cadastrado explicitamente. Para regras Free, a função permite conteúdo privado sem autenticação.
 
-**Snapshot do banco:** 347 regras explícitas, sendo 309 Premium e 38 Free; 373 documentos em premium_content_pages, todos não vazios; 26 privados sem regra exata, 38 regras Free com conteúdo privado, zero regras Premium sem conteúdo privado. As 26 sem regra podem herdar regra de raiz se chamadas em idioma; as 26 listadas no inventário são formulários da raiz, para os quais a função assume Premium por padrão. Nove solicitações de ativação concluídas, nenhuma pending observada. Rota raiz ballard.html não tinha regra nem conteúdo privado; não foi convertida. fugulin.html e dimensionamento.html estão Premium no banco após ativação concluída; braden.html permanece Free. medicamentos.html aparece Free apesar de constar no manifest exato. A lista por caminho, com tipo e escopo de cada idioma, está em INVENTARIO_ROTAS_VIGENTES.md. Esse inventário é fotografia e muda ao usar o painel.
+**Snapshot do banco:** 347 regras explícitas, sendo 308 Premium e 39 Free; 373 documentos em premium_content_pages, todos não vazios; 26 privados sem regra exata, 39 regras Free com conteúdo privado, zero regras Premium sem conteúdo privado. As 26 sem regra podem herdar regra de raiz se chamadas em idioma; as 26 listadas no inventário são formulários da raiz, para os quais a função assume Premium por padrão. Nove solicitações de ativação concluídas, nenhuma pending observada. Rota raiz ballard.html não tinha regra nem conteúdo privado; não foi convertida. fugulin.html e dimensionamento.html estão Premium no banco após ativação concluída; braden.html permanece Free. medicamentos.html aparece Free apesar de constar no manifest exato. A lista por caminho, com tipo e escopo de cada idioma, está em INVENTARIO_ROTAS_VIGENTES.md. Esse inventário é fotografia e muda ao usar o painel.
 
 ## Benefícios, anúncios e promoção
 
@@ -141,3 +141,13 @@ A extensão de gasometria tem side panel e impede cálculo sem premiumAccess. O 
 ## Documentação substituída
 
 Este arquivo substitui o dossiê de contra-auditoria na raiz, o plano de anúncios em conta, a política js/access/ACCESS_POLICY.md, a instrução antiga de ecossistema e os relatórios históricos de contas/Stripe em auditorias removidos nesta consolidação. As instruções de IA remanescentes apontam para este documento. Código, scripts de teste, manifest, migrations e histórico Git continuam como evidência técnica. Não ressuscitar regras antigas de Junior, R$ 10, anúncios para Premium ou lista fixa Free por referência a uma revisão anterior.
+
+### Auditoria alinhada ao painel dinâmico — 02/10/2026
+
+O histórico administrativo confirmou as ativações de Fugulin e Dimensionamento como Premium pelo responsável em 30/09/2026. Braden continua Free. A tentativa de reconciliar as duas rotas como Free nesta sessão foi desfeita antes de publicar qualquer HTML e registrada por ação compensatória; decisões do painel preservadas. Nenhum HTML público ou conteúdo privado foi alterado.
+
+`Premium Access Audit` consulta a política pública vigente com `--live-policy`. As três antigas exceções do manifesto podem agora ser shells íntegros, inclusive Free servido pelo backend sem autenticação. Rotas Premium dinâmicas exigem shell e enforcement privado; conteúdo público para uma rota Premium ou shell parcial falha. Política indisponível falha a auditoria online, sem assumir Free. Execução offline valida somente estrutura, não confirma o plano vigente. Detalhes e revisão de PRs: `auditorias/20261002-premium-audit-pr-cleanup.md`.
+
+### Origem das decisões administrativas — 02/10/2026
+
+O histórico `developer_admin_audit_log` é reutilizado, sem novo sistema de plano. Novas mutações do painel incluem `_decision` gerada pelo servidor: origem developer_panel, ator developer, ação, alvo, data e motivo descritivo. A política pública retorna `route.decision` e `settings_decisions` com whitelist de campos, sem e-mails ou dados privados. Decisões anteriores são resolvidas pelas ações administrativas autenticadas existentes, incluindo solicitações em fila; execução do deploy não substitui a ordem original. O GET administrativo inclui últimas 50 entradas do histórico e o painel as exibe. Protocolo obrigatório para manutenção: `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`, referenciado em AGENTS e instruções do Copilot. IAs devem reconsultar decisão vigente antes de mutações e não reclassificar páginas para satisfazer listas antigas. Testes de proveniência fazem parte de Premium Access Audit.
