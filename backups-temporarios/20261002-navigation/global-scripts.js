@@ -247,7 +247,7 @@ window.__FIX_RELATIVE_LINKS = function (container) {
   window.__PREMIUM_PRINT_GUARD_LOADER = true;
   if (/\/conta\//i.test(window.location.pathname || "")) return;
 
-  var src = "/js/access/premium-print-guard.js?v=0772184768dc";
+  var src = "/js/access/premium-print-guard.js";
   if (document.querySelector('script[src="' + src + '"]')) return;
 
   var script = document.createElement("script");

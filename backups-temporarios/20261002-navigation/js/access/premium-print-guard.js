@@ -78,17 +78,6 @@
       return control;
     }
 
-    // Texto descritivo de um card pode mencionar imprimir. Abrir outra página
-    // HTML do site é navegação; a impressão real continua em window.print()
-    // e nos controles explicitamente identificados acima.
-    var href = (control.getAttribute("href") || "").trim();
-    if (control.tagName === "A" && href && href.charAt(0) !== "#" && !control.hasAttribute("download")) {
-      try {
-        var destination = new URL(href, window.location.href);
-        if (destination.origin === window.location.origin && /\.html$/i.test(destination.pathname)) return null;
-      } catch (_) { }
-    }
-
     return PRINT_PATTERN.test(descriptor(control)) ? control : null;
   }
 
