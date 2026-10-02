@@ -224,6 +224,16 @@ window.__FIX_RELATIVE_LINKS = function (container) {
 
     return sharedPromise;
   };
+
+  // A área de conta precisa restaurar a sessão antes que os painéis executem.
+  // Iniciar aqui elimina a corrida em que o HTML chamava Auth cedo demais e
+  // parecia deslogado mesmo com a sessão Firebase persistida.
+  if (/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(window.location.pathname || "")) {
+    window.__ACCOUNT_AUTH_BOOTSTRAP_PROMISE = window.__ENSURE_AUTH().catch(function (error) {
+      console.error("[Auth] Falha no bootstrap antecipado da área de conta:", error);
+      return null;
+    });
+  }
 })(window, document);
 
 // -----------------------------------------------------------------------------
