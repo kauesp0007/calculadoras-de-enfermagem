@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20261001-235302";
+const CACHE_VERSION = "20261002-031659";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -10,6 +10,7 @@ const urlsToCache = [
   '/offline.html',
   'CATALOGO_DOS_AGENTES_E_HOOKS/INVENTARIO_CANONICO_DA_ARQUITETURA.json',
   'CATALOGO_DOS_AGENTES_E_HOOKS/registro-conformidade.json',
+  'CATALOGO_INTRUCOES_CRIACAO_DE_FORMULARIOS/ESTILO_BASE_IMPRESSAO_A4.css',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Arquivos-para-Melhoria-Consolidado-v2.json',
   'CKO-COREN-Projeto-Completo-v2/AUDITORIA-E-MELHORIAS-V2/CKO-COREN-Auditoria-360-Status-v2.json',
   'CKO-COREN-Projeto-Completo-v2/CKO-COREN-Legislacao-Nacional-v2/.venv/Lib/site-packages/pillow-12.3.0.dist-info/sboms/pillow-12.3.0.cdx.json',
@@ -1048,6 +1049,9 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-10-01T05-34-02.json',
   'relatorios/cwv-gate/2026-10-01T11-31-31.json',
   'relatorios/cwv-gate/2026-10-01T11-34-41.json',
+  'relatorios/cwv-gate/2026-10-02T04-22-54.json',
+  'relatorios/cwv-gate/2026-10-02T05-55-57.json',
+  'relatorios/cwv-gate/2026-10-02T05-59-15.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1467,6 +1471,9 @@ const urlsToCache = [
   'relatorios/impacto/2026-10-01T05-34-03.json',
   'relatorios/impacto/2026-10-01T11-31-33.json',
   'relatorios/impacto/2026-10-01T11-34-42.json',
+  'relatorios/impacto/2026-10-02T04-22-55.json',
+  'relatorios/impacto/2026-10-02T05-55-58.json',
+  'relatorios/impacto/2026-10-02T05-59-16.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
@@ -1508,6 +1515,7 @@ const urlsToCache = [
   'scripts/parse-dictionary.js',
   'scripts/parse-glossario.js',
   'scripts/pdf_builder/base_style.css',
+  'scripts/pdf_builder_en/css_en.css',
   'scripts/relatorio-icones-fa.json',
   'scripts/relatorio-substituicao-fa.json',
   'scripts/remove-static-glossary.js',

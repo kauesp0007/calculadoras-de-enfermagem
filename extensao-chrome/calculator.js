@@ -128,12 +128,6 @@
         }
     }
 
-    function revalidateOnReturn() {
-        if (disposed || document.visibilityState === "hidden") return;
-        if (Date.now() - lastAccessCheckAt < 1000) return;
-        refreshPremiumState(false);
-    }
-
     function resetFeedback() {
         resultSection.hidden = true;
         resultSection.removeAttribute("data-tone");
@@ -373,20 +367,10 @@
     [body, header, footer].forEach(el => observer.observe(el));
     function onWindowFocus() {
         updateNativeContext();
-        revalidateOnReturn();
-    }
-
-    function onVisibilityChange() {
-        if (document.visibilityState === "hidden") {
-            invalidatePremiumAccess();
-            return;
-        }
-        revalidateOnReturn();
     }
 
     window.addEventListener("resize", requestFit);
     window.addEventListener("focus", onWindowFocus);
-    document.addEventListener("visibilitychange", onVisibilityChange);
     if (typeof chrome !== "undefined" && chrome.runtime?.id) {
         chrome.runtime.onMessage.addListener(onNativeMessage);
     }
@@ -396,7 +380,6 @@
         cancelAnimationFrame(pendingFrame);
         window.removeEventListener("resize", requestFit);
         window.removeEventListener("focus", onWindowFocus);
-        document.removeEventListener("visibilitychange", onVisibilityChange);
         if (typeof chrome !== "undefined" && chrome.runtime?.id) {
             chrome.runtime.onMessage.removeListener(onNativeMessage);
         }
