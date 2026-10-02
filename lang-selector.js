@@ -187,9 +187,12 @@ function langSelectorInit() {
   if (!button || !menu) return;
 
   const pathName = window.location.pathname;
-  const fileNameMatch = pathName.match(/[^/]*.html$/i);
+  const fileNameMatch = pathName.match(/[^/]*\.html$/i);
   const currentFileName = fileNameMatch ? fileNameMatch[0] : "";
-  const isAccountPage = pathName.indexOf("/conta/") === 0;
+  const accountMatch = pathName.match(/^\/(?:(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\/)?conta\/([^/?#]+\.html)$/i);
+  const isAccountPage = !!accountMatch;
+  const accountFileName = accountMatch ? accountMatch[2] : "";
+  const localizedAccountFiles = ["perfil.html","configuracoes.html","favoritos.html","historico.html"];
 
   button.addEventListener("click", () => {
     menu.classList.toggle("hidden");
@@ -215,11 +218,22 @@ function langSelectorInit() {
 
       if (isAccountPage) {
         const url = new URL(window.location.href);
-        url.searchParams.set("lang", value || "pt");
+        const targetLang = value || "pt";
+        url.searchParams.set("lang", targetLang === "pt" ? "pt-BR" : targetLang);
         url.searchParams.delete("stripe");
         url.searchParams.delete("asaas");
-        try { localStorage.setItem("conta.language", value === "pt" ? "pt-BR" : value); } catch (e) {}
-        window.location.href = url.pathname + "?" + url.searchParams.toString() + url.hash;
+        try { localStorage.setItem("conta.language", targetLang === "pt" ? "pt-BR" : targetLang); } catch (e) {}
+
+        var accountPath;
+        if (localizedAccountFiles.indexOf(accountFileName) !== -1) {
+          accountPath = targetLang === "pt"
+            ? "/conta/" + accountFileName
+            : "/" + targetLang + "/conta/" + accountFileName;
+        } else {
+          // login/assinatura/admin continuam centralizados na raiz e usam ?lang=
+          accountPath = "/conta/" + accountFileName;
+        }
+        window.location.href = accountPath + "?" + url.searchParams.toString() + url.hash;
         return;
       }
 
@@ -349,7 +363,7 @@ function loadAccountExtraLocalizer() {
 }
 
 function accountLanguageSync() {
-  const isAccountPage = (window.location.pathname || "").indexOf("/conta/") === 0;
+  const isAccountPage = /^\/(?:(?:en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\/)?conta\//i.test(window.location.pathname || "");
   if (!isAccountPage) {
     loadAccountMenuLocalizer();
     loadForumModerationBridge();
