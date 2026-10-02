@@ -5,37 +5,58 @@
  * complementares de localização após componentes dinâmicos.
  */
 
-document.addEventListener("DOMContentLoaded", () => {
+let languageSelectorMarkupPromise = null;
+let languageSelectorState = null;
+
+// document.write substitui o DOM, mas conserva a instância do script no window.
+function initializeLanguageSelector() {
+  const root = document.documentElement;
+  if (languageSelectorState && languageSelectorState.root === root) {
+    return languageSelectorState.promise;
+  }
+  const state = { root: root, promise: null };
+  languageSelectorState = state;
   const container = document.getElementById("language-selector-placeholder");
   collapseLegacyLanguagePlaceholder(container);
-
-  fetch("/_language_selector.html")
-    .then(response => {
-      if (!response.ok) throw new Error("Ficheiro _language_selector.html não encontrado");
-      return response.text();
-    })
-    .then(data => {
-      return resolveLanguageSelectorTarget(container).then(target => {
-        if (!target) return;
-        target.innerHTML = data;
-        const wrapper = target.querySelector("#language-dropdown-wrapper");
-        if (wrapper) wrapper.classList.add("language-selector-compact");
+  if (!languageSelectorMarkupPromise) {
+    languageSelectorMarkupPromise = fetch("/_language_selector.html")
+      .then(response => {
+        if (!response.ok) throw new Error("Ficheiro _language_selector.html não encontrado");
+        return response.text();
+      })
+      .catch(error => {
+        languageSelectorMarkupPromise = null;
+        throw error;
       });
-    })
-    .then(() => {
+  }
+  state.promise = languageSelectorMarkupPromise
+    .then(data => resolveLanguageSelectorTarget(container).then(target => {
+      // Uma solicitação do shell antigo nunca deve escrever no novo documento.
+      if (root !== document.documentElement || !target || !target.isConnected) return false;
+      if (!target.querySelector("#langButton")) target.innerHTML = data;
+      const wrapper = target.querySelector("#language-dropdown-wrapper");
+      if (wrapper) wrapper.classList.add("language-selector-compact");
       langSelectorInit();
       accountLanguageSync();
-      loadAccountMenuLocalizer();
-      loadForumModerationBridge();
-      loadAccountExtraLocalizer();
-    })
+      return true;
+    }))
     .catch(err => {
+      if (languageSelectorState === state) languageSelectorState = null;
       console.error("Erro ao carregar seletor de idiomas:", err);
       loadAccountMenuLocalizer();
       loadForumModerationBridge();
       loadAccountExtraLocalizer();
+      return false;
     });
-});
+  return state.promise;
+}
+
+window.__INIT_LANGUAGE_SELECTOR = initializeLanguageSelector;
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeLanguageSelector);
+} else {
+  initializeLanguageSelector();
+}
 
 function collapseLegacyLanguagePlaceholder(container) {
   if (!container) return;
@@ -164,7 +185,7 @@ function resolveLanguageSelectorTarget(legacyContainer) {
         const slot = getAccessibilityLanguageSlot();
         if (slot) finish(slot);
       });
-      observer.observe(document.documentElement, { childList: true, subtree: true });
+      observer.observe(document, { childList: true, subtree: true });
     }
 
     timeout = setTimeout(() => {
@@ -173,8 +194,9 @@ function resolveLanguageSelectorTarget(legacyContainer) {
         finish(slot);
         return;
       }
-      restoreLegacyLanguagePlaceholder(legacyContainer);
-      finish(legacyContainer || null);
+      const currentContainer = document.getElementById("language-selector-placeholder");
+      restoreLegacyLanguagePlaceholder(currentContainer);
+      finish(currentContainer || null);
     }, 12000);
   });
 }
@@ -184,7 +206,8 @@ function langSelectorInit() {
   const menu = document.getElementById("langMenu");
   const langFlag = document.getElementById("langFlag");
   const langText = document.getElementById("langText");
-  if (!button || !menu) return;
+  if (!button || !menu || button.dataset.languageSelectorReady === "1") return;
+  button.dataset.languageSelectorReady = "1";
 
   const pathName = window.location.pathname;
   const fileNameMatch = pathName.match(/[^/]*\.html$/i);

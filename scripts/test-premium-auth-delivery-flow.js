@@ -31,3 +31,6 @@ if(failed.length){
   process.exit(1);
 }
 console.log("Premium auth/delivery regression OK");
+
+// Contra regressão de chrome após document.write, nos 18 idiomas e raiz.
+require("./test-premium-chrome-rehydration.js");

@@ -113,15 +113,15 @@
   }
   // O CSS global estiliza <header>; o hero dos formulários precisa neutralizar altura e deslocamento.
   function ensurePremiumLocalizedFormLayoutAfterWrite(){
-    if(!/^\/en\/formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
+    if(!/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
     if(!document.querySelector("main.main-content > header.hero")) return false;
-    var style=document.getElementById("premium-english-form-layout-fix");
+    var style=document.getElementById("premium-localized-form-layout-fix");
     if(!style){
       style=document.createElement("style");
       style.id="premium-localized-form-layout-fix";
       style.textContent=
         "#global-header-container{position:relative!important;z-index:2000!important;isolation:isolate;overflow:visible!important}"+
-        "main.main-content>header.hero{position:relative!important;top:auto!important;left:auto!important;height:auto!important;min-height:0!important;z-index:0}"+
+        "main.main-content>header.hero{position:relative!important;top:auto!important;left:auto!important;height:auto!important;min-height:0!important;z-index:0!important}"+
         "main.main-content>header.hero h1{white-space:normal!important;overflow-wrap:anywhere;word-break:normal;max-width:100%}"+
         "@media(max-width:640px){main.main-content>header.hero{padding:24px 18px!important}}";
       document.head.appendChild(style);
@@ -188,6 +188,7 @@
       if(document.body&&typeof window.__ENSURE_GLOBAL_CHROME==="function"){
         try{
           await window.__ENSURE_GLOBAL_CHROME();
+          if(typeof window.__INIT_LANGUAGE_SELECTOR==="function") await window.__INIT_LANGUAGE_SELECTOR();
           ensurePremiumPromoAfterWrite();
           return;
         }catch(error){

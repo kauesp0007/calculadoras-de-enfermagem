@@ -113,6 +113,12 @@ Controles do menu global, seletor de idioma, footer, barra de acessibilidade, co
 
 Quando o servidor confirma Premium, o clique/submissão original é reproduzido. Se a rota exige Premium e o usuário não tem acesso, ele é encaminhado para a assinatura preservando `returnUrl` e idioma. Não criar handlers paralelos que decidam plano pelo frontend.
 
+### Reidratação dos componentes globais após entrega do documento
+
+O loader conserva as instâncias globais do shell e reidrata menu, rodapé e barra de acessibilidade após `document.write()`. Em seguida chama `window.__INIT_LANGUAGE_SELECTOR()` para montar o seletor de idiomas e o botão do fórum no DOM atual, sem esperar o fallback defensivo de 12 segundos. O seletor reutiliza o markup, distingue a raiz atual do documento, ignora respostas obsoletas e evita registrar eventos duplicados. O observer acompanha `document`, que permanece durante a substituição da raiz.
+
+Formulários da raiz e dos 18 idiomas com `main.main-content > header.hero` recebem o reparo localizado de layout: posição relativa, altura automática e `z-index:0!important`, mantendo o menu global acima do hero. O ajuste não altera regras de plano, conteúdo clínico, catálogo de PDFs nem autorização das ações.
+
 ### Permissões canônicas
 
 `permission-service.js` e `plan-service.js` reconhecem, entre outras, as permissões Premium `viewPremium`, `downloadPremium` e `printPremium`. A presença de uma permissão no cliente não substitui a autorização do servidor; serve para coerência de interface. Ações com efeito protegido devem continuar passando pelo gate/Edge Function correspondente.
