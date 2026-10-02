@@ -1,10 +1,10 @@
 # Sistema de login, contas, assinaturas e acesso Premium — catálogo canônico
 
-**Corte de auditoria:** 02/10/2026 (America/Sao_Paulo). **Repositório:** kauesp0007/calculadoras-de-enfermagem. **Projeto Supabase:** asjkftjfbkuuhilnqonx. **Site:** https://www.calculadorasdeenfermagem.com.br.
+**Corte de auditoria:** 02/10/2026 (America/Sao_Paulo). **Atualização estrutural do método de acesso:** após deploy 37039229385. **Repositório:** kauesp0007/calculadoras-de-enfermagem. **Projeto Supabase:** asjkftjfbkuuhilnqonx. **Site:** https://www.calculadorasdeenfermagem.com.br.
 
 ## Uso obrigatório e hierarquia de evidências
 
-Qualquer IA ou pessoa que altere autenticação, conta, perfil, planos, anúncios por plano, pagamentos, webhooks, conteúdo protegido, painel do desenvolvedor, extensões Chrome ou deploy deve ler este arquivo e o inventário de rotas antes da alteração e atualizar ambos após mudar o comportamento. A referência operativa é o código implantado, as configurações vigentes e o banco; este documento registra o estado observado nesta data e não substitui uma nova leitura do estado dinâmico. Em conflito, revalidar antes de editar. Não registrar dados pessoais, tokens, chaves ou conteúdo privado neste catálogo.
+Qualquer IA ou pessoa que altere autenticação, conta, perfil, planos, anúncios por plano, pagamentos, webhooks, conteúdo Premium, botões protegidos, impressão/PDF, painel do desenvolvedor, extensões Chrome ou deploy DEVE ler este arquivo, `INVENTARIO_ROTAS_VIGENTES.md` e `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md` antes da alteração. **Este arquivo é a única fonte documental do método de autorização e bloqueio.** Os demais arquivos de IA devem apenas apontar para ele, sem copiar regras completas. A referência operativa continua sendo o código implantado + banco + configuração vigente; em conflito, revalidar o estado dinâmico antes de editar. Não registrar dados pessoais, tokens, chaves ou conteúdo privado neste catálogo.
 
 **Contrato:** só há planos comerciais Free e Premium. Firebase Authentication autentica; Supabase PostgreSQL decide entitlement e guarda conteúdo; Asaas atende o checkout em português e Stripe os 18 idiomas internacionais. O navegador não concede Premium por retorno de checkout, URL, cookie ou localStorage.
 
@@ -15,7 +15,7 @@ Qualquer IA ou pessoa que altere autenticação, conta, perfil, planos, anúncio
 3. account-data lê/grava account_profiles, account_favorites e account_history pelo UID Firebase; o cliente não usa essas tabelas como autoridade de plano.
 4. Checkout autenticado cria/resolve billing_identities (provider=firebase, external_subject=UID), grava billing_subscriptions em checkout_pending e chama Asaas ou Stripe. Callback visual só navega; não autoriza acesso.
 5. O provedor envia webhook autenticado. Webhook reivindica event_id por RPC, reconcilia assinatura e escreve user_entitlements. billing-access consulta o entitlement por identity; uma exceção manual ativa por e-mail em developer_premium_email_grants concede Premium sem assinatura.
-6. A página Premium pública contém shell/placeholder e premium-content-loader.js. O loader usa o token; premium-content consulta premium_content_pages e developer_premium_route_rules; retorna HTML privado apenas quando a rota exige Premium e o entitlement é válido. Respostas privadas usam Cache-Control private/no-store e Vary Authorization.
+6. A página classificada pelo sistema pode publicar um shell com `premium-content-loader.js`. O loader solicita o documento em `premium-content`, que consulta `premium_content_pages` e `developer_premium_route_rules`. **No método vigente, o HTML pode ser entregue como demonstração pública; a autorização Premium é aplicada às ações protegidas** (cálculo, resultado, interpretação, download, impressão, geração de PDF, simulados/quiz e submissões) por `?access=check`. Downloads de arquivos sensíveis, como os PDFs do catálogo assistencial, têm uma validação server-side adicional independente da consulta da página. Respostas usam `private/no-store` e `Vary: Authorization` quando aplicável.
 7. global-scripts.js consulta o estado comercial para a experiência sem Google AdSense; o card de promoção só aparece para visitante ou Free confirmado. O menu de conta e a área do desenvolvedor usam o mesmo login.
 8. A extensão de gasometria inicia Chrome identity WebAuthFlow, passa por conta/extensao-login.html, extension-auth emite código curto com PKCE S256 e extension-access consome o código e consulta o mesmo entitlement. As outras extensões inventariadas não participam desse fluxo.
 
@@ -28,7 +28,7 @@ Fluxo resumido: navegador → Firebase → Edge Function de checkout → provedo
 | Login, recuperação e perfil | conta/login.html, conta/perfil.html, conta/configuracoes.html; js/firebase/firebase-init.js; js/auth/auth-core.js, auth-email.js, auth-google.js, auth-providers.js, auth-session.js, auth-user-profile.js | Identidade Firebase e hidratação do perfil; auth-core chama billing-access e expõe Auth.billingStatus(), Auth.hasPlan(), refreshProfile(). |
 | Dados de conta | supabase/functions/account-data/index.ts; js/auth/firestore-user.js | Fachada legada firestore-user delega para account-data; perfil, avatar no bucket avatars-assinantes, favoritos e histórico ficam no Supabase. |
 | Assinatura | conta/assinatura.html; js/billing/payment-router.js | Área central /conta/assinatura.html?lang=xx; pt → Asaas, 18 idiomas → Stripe; links e rodapé localizados. |
-| Acesso | js/access/premium-content-loader.js; supabase/functions/premium-content/index.ts; premium-content-manifest.json | Shell público, catálogo privado, política dinâmica e entrega do documento. js/access/content-policy.js e access-router.js são camadas genéricas, não a autoridade final do HTML Premium. |
+| Acesso | `js/access/premium-content-loader.js`; `js/access/premium-print-guard.js`; `js/access/assistential-forms-catalog.js`; `js/auth/permission-service.js`; `js/auth/plan-service.js`; `supabase/functions/premium-content/index.ts`; `premium-content-manifest.json` | Shell/documento, gate de ações, bloqueio de impressão/PDF, downloads assistenciais, política dinâmica e permissões. `content-policy.js` e `access-router.js` são auxiliares; a autorização efetiva depende de Firebase + Supabase + Edge Functions. |
 | Desenvolvedor | conta/desenvolvedor.html; supabase/functions/developer-admin/index.ts; conta/developer-route-catalog.json; scripts/developer-premium-requests.mjs | Painel administrativo, catálogo de caminhos válidos, switches, fila, publicação, ajustes de checkout, concessões manuais, auditoria. |
 | Gestão | conta/admin-pagamentos.html; supabase/functions/billing-admin/index.ts | Leitura de assinaturas para administradores autorizados. |
 | Publicidade | global-scripts.js; js/access/premium-banner-manager.js | AdSense centralizado e card de assinatura; premium-ads-guard.js retorna imediatamente e não governa a publicidade. |
@@ -78,31 +78,107 @@ stripe-webhook verifica HMAC da stripe-signature com tolerância temporal, reivi
 
 **Conta Stripe acessível nesta auditoria: somente modo de teste, acct_1UEdBrAE0EBt2lxC.** Há dois Prices recorrentes ativos de 200 centavos mensais: EUR price_1UI2ozAE0EBt2lxCDLlUrzdd (produto Premium) e USD price_1UFT82AE0EBt2lxCD2BUcx9E (produto chamado junior). O único endpoint de webhook de teste listado para stripe-webhook está **disabled**. Os IDs fallback no código (USD price_1UEeJeAE0EBt2lxCFI56AWCx, EUR price_1UEf7uAE0EBt2lxCmfLGGmNH) não aparecem entre esses preços de teste. Os segredos STRIPE_PRICE_* podem sobrescrever fallback; sem vê-los e sem conta live, não é possível concluir se a cobrança real coincide com o card de 5 unidades monetárias nem se o webhook de produção está ativo. Três assinaturas de teste listadas estavam canceled. O registro local Supabase contém um caso Stripe active USD e um checkout_failed; a natureza live/test do registro local não foi provada.
 
-## Regras de acesso e publicação de páginas
+## Método canônico de verificação, validação e proteção vigente
 
-O catálogo inicial premium-content-manifest.json contém 13 nomes exatos e padrões para simulados, flashcards e formulários, no escopo da raiz e dos 18 idiomas. O painel acrescenta páginas pelo caminho exato. Banco, catálogo privado e shell público devem concordar; a mera exibição de HTML público ou um client_guard redirecionando não protege conteúdo já publicado.
+### Autoridade de identidade e plano
 
-O painel só oferece paths do JSON público; POST set_route confirma admin por e-mail permitido (ADMIN_EMAIL/ADMIN_EMAIL_2) e token Firebase. Se página solicitada já tem conteúdo privado completo e shell publicado, grava premium_required=true, enforcement=protected_content. Se não, cria activation_request pending, mantém premium_required=false/enforcement=catalog_only e informa Aguardando publicação. O switch Pendente representa solicitação, não acesso Premium ativo. O workflow deploy.yml agendado a cada 5 minutos detecta a fila, migra HTML completo para premium_content_pages, gera shell, faz testes, publica GitHub Pages e só então a RPC activate_developer_premium_route finaliza se request_id continuar igual e o shell responder no domínio. Desativar a rota cancela pendência e grava false. Cada alteração de switch/setting é enviada imediatamente; não há botão geral Salvar alterações necessário.
+A autenticação é Firebase; o plano é decidido no servidor. O caminho canônico é: **Firebase UID → `billing_identities` → `user_entitlements`**. Um entitlement Premium é válido quando `plan='premium'` e `premium_expires_at` é nulo ou futuro. `developer_premium_email_grants` é a única exceção administrativa vigente; `billing-access` e `premium-content` verificam tanto o e-mail do token quanto, quando necessário, o e-mail normalizado da identidade Firebase no banco. URL de retorno de checkout, localStorage, cookie, perfil editável, texto do botão ou metadata do navegador nunca concedem Premium.
 
-developer-admin GET ?public=policy oferece política de leitura ao global-scripts.js, com cache de sessão de 30 s. Esse guard dá redirecionamento de UX para rota em HTML público, mas a segurança do conteúdo depende do shell e de premium-content. O campo enforcement client_guard representa HTML público e não proteção privada; o CHECK do banco impede uma regra premium_required=true com enforcement client_guard. Rotas por idioma procuram primeiro regra exata e, na falta dela, regra da raiz com o mesmo filename; isto explica aparências de Premium herdado de PT. No conteúdo privado, se falta regra para um path, premium-content presume Premium; caminho private órfão deve ser cadastrado explicitamente. Para regras Free, a função permite conteúdo privado sem autenticação.
+No frontend, `Auth.billingStatus()`, `Auth.hasPlan("premium")` e `Auth.refreshProfile()` refletem o resultado de `billing-access`. Quando uma ação exige Premium, o backend é novamente consultado por `premium-content?path=...&access=check`; uma decisão Free não fica cacheada indefinidamente, porque pagamento, reconciliação ou concessão administrativa podem mudar durante a sessão. Token 401 força renovação antes de nova tentativa; falha de infraestrutura não deve ser tratada como pagamento aprovado.
 
-**Snapshot do banco:** 347 regras explícitas, sendo 308 Premium e 39 Free; 373 documentos em premium_content_pages, todos não vazios; 26 privados sem regra exata, 39 regras Free com conteúdo privado, zero regras Premium sem conteúdo privado. As 26 sem regra podem herdar regra de raiz se chamadas em idioma; as 26 listadas no inventário são formulários da raiz, para os quais a função assume Premium por padrão. Nove solicitações de ativação concluídas, nenhuma pending observada. Rota raiz ballard.html não tinha regra nem conteúdo privado; não foi convertida. fugulin.html e dimensionamento.html estão Premium no banco após ativação concluída; braden.html permanece Free. medicamentos.html aparece Free apesar de constar no manifest exato. A lista por caminho, com tipo e escopo de cada idioma, está em INVENTARIO_ROTAS_VIGENTES.md. Esse inventário é fotografia e muda ao usar o painel.
+Versões implantadas neste corte: `premium-content` v146, `billing-access` v146, `developer-admin` v5, `asaas-checkout` v257, `asaas-webhook` v252, `stripe-checkout` v187 e `stripe-webhook` v261.
 
-## Benefícios, anúncios e promoção
+### Política de rotas e significado de Free/Premium
 
-### Catálogo assistencial: consulta Free e PDFs Premium (01/10/2026)
+`developer_premium_route_rules` é a política dinâmica. A IA NÃO deve decidir o plano pela presença no manifest, pelo nome do arquivo, por um PR antigo ou por uma lista histórica. Deve consultar a rota exata e sua decisão administrativa conforme `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`.
 
-`formularios_de_escalas_assistenciais.html` tem 66 formulários: os 40 anteriores e os 26 novos já existentes. Foi removido o card “Usuário Premium, fique à vontade”; a grade mantém 1/2/3 colunas, com menor espaço acima. A página continua no fluxo shell → premium-content, e sua regra exata vigente é `premium_required=false`, `enforcement=catalog_only`, permitindo consulta sem redirecionamento. A liberação foi aplicada depois do deploy dos assets, em transação com a atualização da fonte privada e registro de auditoria. `free_global_lockdown=false` permanece.
+- `premium_required=true`: a rota é Premium para as ações protegidas. No estado atual, essas regras usam `enforcement=client_guard`; o HTML pode ser carregado como demonstração, mas o gate impede as ações Premium até o servidor confirmar o entitlement.
+- `premium_required=false` + `enforcement=catalog_only`: a consulta da página é Free. Ações especiais podem continuar Premium quando possuem gate dedicado, como os PDFs do catálogo assistencial.
+- Rotas de idioma procuram primeiro a regra exata; quando a implementação permitir fallback, a raiz pode servir como referência. Nunca criar um segundo catálogo de plano no JavaScript.
+- `premium_content_pages` guarda a fonte usada pela Edge Function. No snapshot atual existem 473 regras e 473 conteúdos não vazios: 432 rotas Premium e 41 Free. `free_global_lockdown=false`.
 
-As prévias são WebP da primeira página dos PDFs originais, com lazy/async e dimensões reservadas. O visitante/Free vê a página e os menus; ao clicar para baixar ou imprimir, recebe uma oferta do Premium no diálogo local. A página Free não recebe iframes, links diretos dos PDFs nem o registro de download. `premium-content` remove o JSON `assistential-form-downloads` do HTML de consulta, inclusive em fallback de idioma.
+**Importante:** o método vigente protege **funcionalidades e entregas server-side**, não promete sigilo absoluto do HTML demonstrativo. Se uma futura regra exigir que o texto/conteúdo completo não seja entregue a Free, isso é uma mudança arquitetural: `premium-content` deverá exigir entitlement também no GET do documento, com teste e migração próprios. Não assumir que `client_guard` sozinho torna bytes já enviados secretos.
 
-`GET premium-content?path=formularios_de_escalas_assistenciais.html&download=form-NNN` exige Firebase JWT válido e `premiumForUser()` independentemente do switch Free. Usa os mesmos `billing_identities`, `user_entitlements`, expiração e concessões administrativas. O ID precisa existir no registro privado; só URLs da pasta original `FORMULARIOS_DE_ESCALAS` são aceitas, sem traversal nem redirects. O backend entrega os bytes do PDF após validar assinatura `%PDF-` e limite de tamanho, com `private,no-store`, `Vary: Authorization` e `nosniff`. O cliente não possui fallback para arquivo público quando autorização/fetch falha. Token inválido/expirado retorna 401 para permitir renovação; indisponibilidade JWKS continua 500.
+### Gate de botões, links e formulários
 
-**Limite da mudança:** PDFs estáticos previamente publicados continuam acessíveis por URL conhecida. Este controle protege download e impressão iniciados pelo catálogo; proteção absoluta desses arquivos requer migração específica e atualização de todas as páginas que os utilizam. Prévias raster também podem ser capturadas. Não apresentar bloqueio de interface como proteção de arquivos estáticos já públicos.
+`premium-content-loader.js` instala um gate em captura antes dos handlers da página. Ele protege controles dentro do conteúdo principal e reexecuta a ação apenas depois de acesso confirmado. A identificação é feita por:
 
-Código: `js/access/assistential-forms-catalog.js`, `supabase/functions/premium-content/index.ts` (implantada versão 143). Teste reproduzível: `node scripts/test-assistential-forms-catalog.mjs`; após shellificação exige `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` disponíveis no ambiente para ler a fonte privada, sem imprimir/gravar chaves. Testes de catálogo/entitlement/PDF, regressão de entrega Premium, invariantes de billing, Tailwind/SW e revisões independentes passaram. Testes de navegador são simulações de Auth/endpoint; não equivalem a cobrança ou sessão real. PR #123 integrado no commit 4a4002bf65313c132f4140aba9a7b318fad1554a; deploy 36856574642 concluído success. Resposta pública confirmada HTTP200 com 66 cards, sem registro PDF/iframes/card removido. Downloads anônimos e HTMLs individuais continuam HTTP401. Inventário regenerado do banco: 347 regras, 308 Premium e 39 Free; 373 documentos, zero vazios e zero regras Premium sem conteúdo. O navegador real deste ambiente encontrou bloqueio anti-bot e timeout no proxy; clique/oferta/componentes integrados reais continuam NOT_MEASURED. Ver relatório desta alteração.
+- `data-premium-action="block"`: marca explícita e preferida para nova ação Premium;
+- links com atributo `download`;
+- links cujo `href` termina em `.pdf`;
+- botões/links/inputs cujo id, classe, nome, `aria-label`, `title`, `value`, `href`, `onclick` ou texto contenha vocabulário de **calcular/compute, resultado, interpretar, baixar/download, imprimir/print, simulado/quiz/iniciar e gerar PDF**, com variantes dos 18 idiomas;
+- qualquer `submit` dentro de `main`, `.main-content` ou `#main-content`.
 
-global-scripts.js é o carregador do AdSense. Ele espera Auth.billingStatus() resolvido; se Premium confirmado, não carrega adsbygoogle.js, remove artefatos de anúncios e observa mutações; em indisponibilidade, bloqueia publicidade até resolver. Free e visitantes podem ver anúncios conforme consentimento. O módulo premium-ads-guard.js está desativado por return inicial; comentários legados que afirmam anúncios no Premium não representam o fluxo vigente. premium-banner-manager.js usa ilustração da enfermeira, traduções PT + 18 idiomas, links /conta/assinatura.html?lang=xx, espera 3 minutos, exibe por 10 segundos e repete para visitantes e Free confirmado; não exibe para Premium confirmado. No cartão, preços internacionais são textos fixos de 5, sujeitos à divergência com Stripe verificada acima.
+Controles do menu global, seletor de idioma, footer, barra de acessibilidade, cookies e overlays estruturais são excluídos para não bloquear navegação. `data-premium-action="allow"` é exceção explícita e só deve ser usada quando o desenvolvedor autorizar aquela ação como Free; não usar para “fazer funcionar” um botão que falhou no gate.
+
+Quando o servidor confirma Premium, o clique/submissão original é reproduzido. Se a rota exige Premium e o usuário não tem acesso, ele é encaminhado para a assinatura preservando `returnUrl` e idioma. Não criar handlers paralelos que decidam plano pelo frontend.
+
+### Permissões canônicas
+
+`permission-service.js` e `plan-service.js` reconhecem, entre outras, as permissões Premium `viewPremium`, `downloadPremium` e `printPremium`. A presença de uma permissão no cliente não substitui a autorização do servidor; serve para coerência de interface. Ações com efeito protegido devem continuar passando pelo gate/Edge Function correspondente.
+
+### Bloqueio de Imprimir, Ctrl+P e Salvar como PDF
+
+A impressão tem duas implementações coordenadas, sem sistema paralelo:
+
+1. **Páginas públicas comuns:** `global-scripts.js` carrega `js/access/premium-print-guard.js`.
+2. **Páginas que usam `premium-content-loader.js`:** o próprio loader aplica a mesma decisão de acesso, para evitar dois gates concorrentes.
+
+O estado de impressão é **fail-closed**. Até existir confirmação Premium, o `<html>` recebe `data-premium-print-access="free"`. A auditoria `scripts/ensure-premium-print-guard.mjs` injeta nas páginas imprimíveis uma regra `@media print` que oculta o conteúdo quando esse atributo não é `premium` e mostra somente uma mensagem localizada. Quando o entitlement é confirmado, o atributo passa para `premium` e a folha normal é liberada.
+
+O sistema cobre:
+
+- botão de imprimir detectado por `data-action="print"`, `data-form-action="print"`, `data-premium-print="block"`, `onclick`, nome/label/texto ou função de impressão;
+- chamadas `window.print()`, que são interceptadas nas páginas públicas protegidas;
+- `Ctrl+P` no Windows/Linux e `Cmd+P` no macOS;
+- evento `beforeprint`/ `afterprint`, usado quando a pessoa abre **Imprimir** pelo menu nativo do navegador;
+- **Salvar como PDF**, porque o navegador usa a mesma renderização `@media print`.
+
+O menu nativo do navegador não pode ser cancelado de forma universal pelo site; por isso a proteção real é a folha fail-closed. Um usuário Free pode abrir o diálogo, mas o conteúdo protegido não deve compor a folha/PDF. Depois da tentativa, o fluxo pode direcionar para a assinatura. `data-premium-print="allow"` é uma exceção técnica e não deve ser usada sem decisão explícita.
+
+**Limite de segurança:** nenhum site pode impedir de forma absoluta screenshot, câmera, inspeção/modificação via DevTools, navegador alterado ou captura de bytes já entregues ao cliente. A documentação deve distinguir “bloqueio do fluxo normal de impressão/PDF” de “DRM absoluto”, que não existe no navegador.
+
+### Catálogo de formulários assistenciais: consulta Free, PDF Premium
+
+`formularios_de_escalas_assistenciais.html`, `en/formularios_de_escalas_assistenciais.html` e `es/formularios_de_escalas_assistenciais.html` estão explicitamente `premium_required=false`, `enforcement=catalog_only`. A grade pode ser consultada por Free/visitante; **baixar ou imprimir o PDF original exige Premium** independentemente da regra Free da página.
+
+`js/access/assistential-forms-catalog.js` preserva o caminho localizado da página. O registro privado no Supabase contém 66 formulários na raiz, 63 em EN e 63 em ES. O backend v146 aceita apenas caminhos controlados em `/FORMULARIOS_DE_ESCALAS/`, `/FORMULARIOS_DE_ESCALAS/EN/` e `/FORMULARIOS_DE_ESCALAS/ES/`, recusa traversal/URL arbitrária, valida `%PDF-`, tamanho e `Content-Type`, e entrega com `private, no-store`, `Vary: Authorization` e `nosniff`. O cliente envia apenas `form-NNN`, nunca uma URL de PDF.
+
+A correção de 02/10/2026 eliminou o erro em que ES consultava a raiz/EN: há 63 PDFs físicos em ES, 63 em EN, os pares têm nomes de arquivo correspondentes e nenhum PDF ES é byte a byte idêntico ao EN. `scripts/test-localized-assistential-catalog.mjs` impede regressão. Os demais idiomas atualmente não possuem catálogo privado próprio de PDFs; quando a página existe, não inventar tradução de arquivo nem redirecionar para EN sem requisito explícito.
+
+### Como criar ou atualizar uma página a partir de agora
+
+Para **qualquer HTML novo ou modernizado**, uma IA deve seguir esta sequência:
+
+1. Perguntar/consultar a decisão Free ou Premium; se houver regra existente, preservar a decisão mais recente do painel.
+2. Garantir o bootstrap padrão do projeto, incluindo `/global-scripts.js`. Não criar um segundo bootstrap Firebase/Auth.
+3. Se a rota for Premium, registrar/ativar pelo sistema vigente (`developer-admin` + regra + `premium_content_pages` + shell/loader quando aplicável). Não hardcodar listas locais de Premium.
+4. Para botão que deve exigir Premium, preferir `data-premium-action="block"`. Para download, usar o endpoint server-side apropriado; não expor segredo ou URL protegida no HTML público.
+5. Para botão de impressão, usar `data-action="print"` ou `data-premium-print="block"` e o mecanismo normal de impressão da página. **Não implementar uma checagem de plano própria** e não liberar `window.print()` fora do guard.
+6. Para “Gerar PDF”/“Baixar PDF” Premium, marcar a ação explicitamente e, quando houver arquivo original, entregar por endpoint autorizado. Um `a href="arquivo.pdf"` público não é proteção.
+7. Nunca usar `data-premium-action="allow"` ou `data-premium-print="allow"` como correção de bug sem decisão explícita de produto.
+8. Rodar auditorias de impressão e Premium; só depois atualizar inventário/documentação e declarar concluído.
+
+### Verificação e testes obrigatórios
+
+O método de validação é em camadas:
+
+- **Código:** `node --check` dos arquivos alterados e testes unitários relacionados.
+- **Rotas:** `scripts/auditar-premium-triplo.mjs` e política dinâmica do Supabase.
+- **Conta/entitlement:** `scripts/test-account-pages.js`, `scripts/test-billing-final.js`, `scripts/test-premium-auth-delivery-flow.js`, `scripts/test-premium-content-access.js`, `scripts/test-developer-admin.js` e `scripts/test-developer-premium-activation.mjs`, conforme impacto.
+- **Impressão:** `node scripts/ensure-premium-print-guard.mjs --apply` seguido de `--audit`. Toda página imprimível da raiz/18 idiomas deve carregar o mecanismo global e o bloqueio fail-closed.
+- **Catálogo assistencial:** `scripts/test-assistential-forms-catalog.mjs` e `scripts/test-localized-assistential-catalog.mjs`.
+- **Anúncios/plano:** `scripts/test-premium-ads-real-state.mjs` quando a mudança tocar publicidade/card.
+- **Banco:** conferir regra exata, conteúdo privado correspondente, entitlements órfãos, expiração, grants administrativos e, em incidente de acesso, correlacionar 401/403 de `premium-content` com UIDs que realmente possuam entitlement ativo.
+- **Deploy:** Premium Access Audit e deploy do GitHub Pages precisam concluir sem falha antes de marcar a alteração como publicada.
+
+No corte atual: 17 identidades Firebase, 9 entitlements Premium ativos, 4 concessões administrativas ativas, 0 entitlement órfão observado na auditoria de 02/10/2026. O último cruzamento de logs das últimas 24h não encontrou 401/403 de `premium-content` associados aos 9 UIDs com entitlement Premium ativo. Esses números são fotografia e não substituem consulta futura.
+
+## Benefícios, publicidade e promoção Premium
+
+`global-scripts.js` aguarda o estado comercial antes de decidir AdSense. Premium confirmado não deve carregar anúncios e os artefatos existentes são removidos; em estado de billing indisponível, a publicidade não deve ser liberada por suposição. Free/visitante segue consentimento e política de anúncios.
+
+`js/access/premium-banner-manager.js` é o card promocional único. Ele possui PT-BR + 18 idiomas, usa a arte da enfermeira azul aprovada, aparece apenas para visitante/Free, não para Premium, fica no quadrante superior direito, permanece **20 segundos** e repete a cada **2 minutos**. Ao entrar em uma rota Premium, o agendamento usa a condição de rota para reapresentar a oferta conforme a regra vigente. Não criar cards paralelos por idioma; a localização é centralizada no manager.
 
 ## Extensões Chrome
 
@@ -110,33 +186,37 @@ A extensão de gasometria tem side panel e impede cálculo sem premiumAccess. O 
 
 ## Segurança, controles e limites conhecidos
 
-- Funções Edge relevantes têm verify_jwt=false na configuração porque verificam Firebase JWT ou segredo de webhook dentro do handler; não significa acesso livre. Conferir Origin, método, token/segredo e autorização de cada função ao alterar.
-- developer-admin e billing-admin usam whitelist de e-mails via segredos, não role de frontend. O menu mostra Desenvolvedor para e-mail fixo ciadeenfermagem@gmail.com; a autorização efetiva é no servidor.
-- Mudança de role/profile/localStorage não substitui entitlement; tempo de expiração é comparado no servidor. Falha billing-access preserva estado verifying/unavailable no frontend; premium-content volta a validar diretamente.
-- billing-access e premium-content incluem concessões por e-mail, que devem ser auditadas e revogadas explicitamente; estavam 2 ativas e 1 inativa na fotografia.
-- RLS não dispensa validação dentro de Edge Functions service role. extension_auth_codes ainda possuía GRANTs para anon/authenticated sem política RLS; reforçar privilégios em uma mudança futura.
-- O webhook Stripe de teste disabled impede usar a conta de teste como evidência de fluxo completo de ativação. A conta live não foi disponibilizada.
-- Divergência documentada do workflow Premium Access Audit mais recente: execução 36842195258 falhou por placeholder Premium em fugulin.html e dimensionamento.html enquanto auditar-premium-triplo.mjs ainda os exige Free. O banco indica ambos Premium e o deploy 36842195329 concluiu success. O teste/contrato de exceção Free está desatualizado frente ao switch do desenvolvedor; não alterar os switches para satisfazer um teste antigo. Há risco adicional de drift entre deploy, shell publicado, regra e conteúdo que exige verificação específica por rota.
-- A chamada pública ao site confirmou a página de assinatura e o catálogo de caminhos. Não houve sessão Firebase da pessoa proprietária, cobrança real, alteração de plano, criação de sessão de checkout, acesso ao painel Asaas nem teste com extensão Chrome instalada. Isso delimita o que foi provado.
+- Edge Functions com `verify_jwt=false` podem continuar seguras quando verificam Firebase JWT/segredo dentro do handler; não interpretar esse flag isoladamente como “função pública”.
+- `developer-admin` e `billing-admin` autorizam no servidor. Mostrar um botão de desenvolvedor no frontend não concede privilégio.
+- `billing-access` e `premium-content` usam a mesma identidade Firebase, entitlement e grants administrativos. Alterações nessa lógica devem manter paridade entre as duas funções.
+- `premium_content_pages` contém HTML de aplicação; no método atual o GET pode servir demonstração pública. Segredo real deve ficar fora do HTML entregue e ações sensíveis devem depender do servidor.
+- Arquivos PDF estáticos publicados continuam potencialmente acessíveis por URL direta. Se o requisito for proteção absoluta do arquivo, ele precisa sair da publicação estática e ser entregue apenas por endpoint autenticado.
+- O guard de impressão protege o fluxo normal de impressão/PDF; não impede captura de tela, câmera, DevTools ou cliente modificado.
+- RLS não substitui autorização dentro de Edge Functions que usam service role.
+- Exceções administrativas devem ser registradas, revisadas e revogadas; nunca transformar grant manual em pagamento fictício.
+- Uma rota Free/Premium pode mudar pelo painel sem commit. Toda IA deve consultar o estado vigente antes de “corrigir” uma divergência.
 
-## Evidências e testes executados nesta auditoria
+## Evidências do corte atual — 02/10/2026
 
-1. Inspeção do commit main b4aefd883e13b0a46c24b768a25dcce5a239393d e comparação integral de billing-access, premium-content, developer-admin, stripe/asaas checkout/webhooks e extension-auth/access com suas versões implantadas: idênticas.
-2. SQL read-only em information_schema, pg_constraint, pg_policies e agregações em tabelas públicas com RLS: 14 billing_identities; 15 billing_subscriptions (13 Asaas, 2 Stripe); 8 entitlements Premium com expiração ainda válida; 6 identities sem entitlement; 105 reivindicações de webhook (Asaas 77 processed, 22 error, 3 processing; Stripe 2 processed, 1 error); 1 checkout claim; 4 subscription guards; 202 perfis; 1695 itens de histórico; extension_auth_codes vazia no momento. Números variam em tempo real.
-3. Consulta Stripe test read-only: Prices, produtos, subscriptions e endpoints; resultado e discrepâncias na seção Stripe. Nenhuma mutação financeira.
-4. GitHub Actions: deploy mais recente success; Premium Access Audit failure com 40 checks, 327 HTMLs Premium auditados e duas falhas explicitadas. O sucesso do deploy não equivale à aprovação de todas as auditorias.
-5. Leitura do HTML/JSON público da assinatura e do catálogo via TinyFish, mais verificação estática de shells de fugulin, dimensionamento, braden e ballard no repositório. A extração de HTML renderizado não substitui inspeção de resposta crua por rota.
-6. Testes de comportamento pagos, login de usuário real, revogação em provedor e autorização de extensão dependem de contas/sessões apropriadas e ambiente de teste isolado. Não marcá-los como aprovados sem evidência.
-7. Atualização operacional de 01/10/2026: as funções implantadas foram confirmadas como `asaas-webhook` v252 e `asaas-checkout` v257. O código ativo não contém o deslocamento `+24h` nem concatenação insegura de `T23:59:59-03:00`; a liberação administrativa excepcional foi mantida separada do ledger financeiro.
+- Banco: 473 regras explícitas; 432 Premium; 41 Free; 473 documentos em `premium_content_pages`, nenhum vazio; 9 activation requests concluídos e nenhum pending observado.
+- Enforcement vigente: 432 `client_guard` e 41 `catalog_only`.
+- Billing: 17 identidades Firebase; 9 entitlements Premium ativos; 4 grants administrativos ativos; 0 entitlement órfão no cruzamento executado.
+- Settings: `free_global_lockdown=false`, portal Asaas ativo e portal Stripe ativo.
+- Catálogo assistencial: raiz 66; EN 63; ES 63; raiz/EN/ES em `catalog_only`; PDFs ES e EN distintos.
+- Edge Functions: `premium-content` v146 e `billing-access` v146 implantadas com suporte a catálogo ES e validação de grant pela identidade.
+- CI: Premium Access Audit da correção localizada concluiu success; deploy GitHub Pages 37039229385 concluiu success.
+- Não usar estes totais como constante. Eles existem para auditoria do corte e devem ser reconsultados numa alteração futura.
 
 ## Verificação operacional antes de uma alteração futura
 
-1. Ler AI_RULES.md, AGENTS.md, este catálogo, INVENTARIO_ROTAS_VIGENTES.md e arquivos da área alterada.
-2. Identificar caminho específico, fallback para raiz, regra no banco, presença do HTML completo privado e shell do mesmo path publicado. Antes de converter para Premium, preservar fonte completa e provar que shell + backend protegem a entrega.
-3. Se mexer em cobrança, verificar moeda/preço efetivo no provedor e segredo configurado sem copiar valor para logs; fazer testes de webhook duplicado, atraso, falha, cancelamento, reembolso e expiração com contas de teste autorizadas. Nunca usar retorno visual como pagamento aprovado.
-4. Se mexer em extensão, testar PKCE, expiração, consumo único, origem e estados Free/Premium/unavailable; se mexer em anúncios, validar consentimento e entitlement resolvido.
-5. Executar scripts/test-account-pages.js, scripts/test-billing-final.js, scripts/test-premium-auth-delivery-flow.js, scripts/test-premium-content-access.js, scripts/test-developer-admin.js, scripts/test-developer-premium-activation.mjs, scripts/test-premium-ads-real-state.mjs e scripts/auditar-premium-triplo.mjs conforme impacto; conferir workflow e deploy. Registrar falha antes de declarar concluído.
-6. Atualizar este documento com data, commit, versões das funções, configuração observada, resultados e limitações; regenerar o inventário de caminhos por SELECT no banco e registrar alterações do painel, migrations, fornecedores e extensão. Não tratar números deste snapshot como constantes.
+1. Ler este catálogo, `INVENTARIO_ROTAS_VIGENTES.md` e `PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`.
+2. Consultar política exata da rota, conteúdo em `premium_content_pages`, decisão administrativa e, se houver incidente de assinante, entitlement/expiração/grant e logs da Edge Function.
+3. Identificar se o requisito é: consulta Free, ação Premium, download Premium, impressão Premium ou conteúdo integral não entregável a Free. Não misturar esses modelos.
+4. Reutilizar `premium-content-loader.js`, `premium-print-guard.js` e endpoints existentes. Não criar autenticação paralela.
+5. Rodar apenas os testes relevantes mais os bloqueadores obrigatórios do deploy. Em mudança de impressão, executar `ensure-premium-print-guard.mjs --apply --audit`; em formulários localizados, executar os dois testes de catálogo.
+6. Reconsultar banco depois do deploy, porque o workflow pode migrar/shellificar conteúdo e o painel pode alterar regras.
+7. Atualizar este documento somente quando o **método** mudar. Atualizar o inventário quando o **estado dinâmico** mudar. Não copiar o mesmo procedimento para AGENTS/Copilot/DeepSeek; esses arquivos devem apontar para esta fonte.
+8. Não declarar “assinante corrigido” apenas porque uma página abriu: provar entitlement, resposta do `access=check`/download e ausência de 401/403 indevido para usuários Premium ativos.
 
 ## Documentação substituída
 
