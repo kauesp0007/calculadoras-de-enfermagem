@@ -111,6 +111,22 @@
     var match=window.location.pathname.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
     return match?"/"+match[1]+"/":"/";
   }
+  function ensurePremiumEnglishFormLayoutAfterWrite(){
+    if(!/^\/en\/formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
+    if(!document.querySelector("main.main-content > header.hero")) return false;
+    var style=document.getElementById("premium-english-form-layout-fix");
+    if(!style){
+      style=document.createElement("style");
+      style.id="premium-english-form-layout-fix";
+      style.textContent=
+        "#global-header-container{position:relative!important;z-index:2000!important;isolation:isolate;overflow:visible!important}"+
+        "main.main-content>header.hero{position:relative;z-index:0}"+
+        "main.main-content>header.hero h1{white-space:normal!important;overflow-wrap:anywhere;word-break:normal;max-width:100%}"+
+        "@media(max-width:640px){main.main-content>header.hero{padding:24px 18px!important}}";
+      document.head.appendChild(style);
+    }
+    return true;
+  }
   async function ensurePremiumFooterAfterWrite(){
     var container=document.getElementById("footer-placeholder");
     if(!container) return false;
@@ -132,6 +148,7 @@
     }
   }
   async function ensureGlobalChromeAfterWrite(){
+    ensurePremiumEnglishFormLayoutAfterWrite();
     await ensurePremiumFooterAfterWrite();
     // global-scripts.js é carregado pelo shell e também existe no documento
     // privado. Após document.write(), o novo DOM precisa ser reidratado sem
