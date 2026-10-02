@@ -154,7 +154,7 @@ async function request(method, query = "", body, token) {
   res = await request("POST", "", { action: "set_route", path: "fugulin.html", premium_required: true }, "admin");
   assert.equal(res.status, 200);
   assert.equal(res.body.route.premium_required, true);
-  assert.equal(res.body.route.enforcement, "protected_content");
+  assert.equal(res.body.route.enforcement, "client_guard");
 
   const entitlementsBeforeGrant = plain(tables.user_entitlements);
   res = await request("POST", "", { action: "grant_email", email: "granted@example.com", reason: "private grant reason" }, "admin");
