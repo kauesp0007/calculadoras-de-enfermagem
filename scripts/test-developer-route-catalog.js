@@ -17,8 +17,8 @@ const routes = [
   { path: "braden.html", premium_required: false, enforcement: "protected_content" },
   { path: "en/braden.html", premium_required: false, enforcement: "protected_content" },
   { path: "missao.html", premium_required: false, enforcement: "client_guard" },
-  { path: "perroca.html", premium_required: true, enforcement: "protected_content" },
-  { path: "en/perroca.html", premium_required: true, enforcement: "protected_content" }
+  { path: "perroca.html", premium_required: true, enforcement: "client_guard" },
+  { path: "en/perroca.html", premium_required: true, enforcement: "client_guard" }
 ];
 window.Auth = {
   init: async () => {},
