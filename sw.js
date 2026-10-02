@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20261002-122407";
+const CACHE_VERSION = "20261002-152533";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -229,6 +229,8 @@ const urlsToCache = [
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/auth-user-profile.js',
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/global-scripts.js',
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/lang-selector.js',
+  'backups-temporarios/_check_single_quote.js',
+  'backups-temporarios/_fix_links.js',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.codex-plugin/plugin.json',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.mcp.json',
   'backups-temporarios/en_content_register.json',
@@ -482,6 +484,7 @@ const urlsToCache = [
   'js/access/premium-ads-guard.js',
   'js/access/premium-banner-manager.js',
   'js/access/premium-content-loader.js',
+  'js/access/premium-print-guard.js',
   'js/access/premium-welcome-banner.js',
   'js/access/premium-widgets.js',
   'js/access/route-localizer.js',
@@ -1062,6 +1065,8 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-10-02T14-41-59.json',
   'relatorios/cwv-gate/2026-10-02T14-44-17.json',
   'relatorios/cwv-gate/2026-10-02T14-46-32.json',
+  'relatorios/cwv-gate/2026-10-02T16-43-26.json',
+  'relatorios/cwv-gate/2026-10-02T16-47-36.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1493,6 +1498,8 @@ const urlsToCache = [
   'relatorios/impacto/2026-10-02T14-41-59.json',
   'relatorios/impacto/2026-10-02T14-44-18.json',
   'relatorios/impacto/2026-10-02T14-46-33.json',
+  'relatorios/impacto/2026-10-02T16-43-27.json',
+  'relatorios/impacto/2026-10-02T16-47-38.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
