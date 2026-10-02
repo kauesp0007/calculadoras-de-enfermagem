@@ -164,7 +164,24 @@ jobs:
           fi
           git add -- '*.html'
           git commit -m "chore(access): proteger páginas Premium públicas"
-          git push origin HEAD:main
+
+          # A main pode avançar enquanto o deploy executa. Rebaseia o commit gerado
+          # antes do push para nunca sobrescrever commits concorrentes.
+          pushed=false
+          for attempt in 1 2 3; do
+            git fetch origin main
+            if ! git rebase origin/main; then
+              git rebase --abort || true
+              echo "::error::Conflito real ao reaplicar os shells Premium sobre a main atual."
+              exit 1
+            fi
+            if git push origin HEAD:main; then
+              pushed=true
+              break
+            fi
+            echo "::warning::A main avançou durante o push; nova tentativa segura ($attempt/3)."
+          done
+          test "$pushed" = "true" || { echo "::error::Não foi possível persistir os shells Premium após 3 tentativas."; exit 1; }
 
       - name: 📄 Atualizar catálogo de páginas do desenvolvedor
         run: node scripts/generate-developer-route-catalog.mjs
