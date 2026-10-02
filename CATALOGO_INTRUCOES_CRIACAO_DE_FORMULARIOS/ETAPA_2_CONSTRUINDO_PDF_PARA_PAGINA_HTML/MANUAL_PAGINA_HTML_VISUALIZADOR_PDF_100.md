@@ -247,6 +247,52 @@ No portal, algumas páginas de formulários funcionam em regime de **Conteúdo P
    <script src="/js/access/premium-content-loader.js" defer></script>
    </head>
    <body>
+
+
+---
+
+## 8. Protocolo de Tradução e Internacionalização de Formulários Web (Etapa 2 em Idiomas Específicos)
+
+Quando a Etapa 2 for executada para um idioma internacional do repositório (ex.: Inglês em `en/`, Espanhol em `es/`, etc.), as seguintes regras devem ser rigorosamente seguidas por desenvolvedores e Inteligências Artificiais:
+
+### 8.1. Regra de Manutenção do Nome do Arquivo (Nomenclatura Idêntica)
+* 🛑 **NÃO TRADUZA O NOME DO ARQUIVO HTML!**
+* Se o formulário em português é `formulario_escala_de_aldrete.html`, a versão em inglês na pasta `en/` **DEVE** chamar-se rigorosamente `en/formulario_escala_de_aldrete.html`.
+* **Justificativa Arquitetural:** Isso garante o funcionamento transparente do seletor dinâmico de 18 idiomas (`lang-selector.js`) e o mapeamento biunívoco de tags `hreflang`.
+
+### 8.2. Mapeamento do PDF Vinculado
+* O arquivo PDF exibido no `<iframe>` e baixado pelos botões deve apontar para o PDF traduzido dentro da pasta do idioma:
+  - Exemplo para Inglês: `/FORMULARIOS_DE_ESCALAS/EN/formulario_escala_de_aldrete.pdf`
+
+### 8.3. Terminologia Clínica Nativa (Sem Tradução Literal)
+* É **terminantemente proibido** utilizar traduções literais mecânicas.
+* Consulte a literatura médica internacional e terminologias padrão (NANDA, NIC/NOC, MeSH, PubMed, ASA, AHA, NIH) para utilizar os nomes oficiais consagrados em inglês americano:
+  - *Escala de Aldrete* ➔ **Aldrete and Kroulik Score (PACU)**
+  - *Escala de Braden* ➔ **Braden Scale for Pressure Injury Risk**
+  - *Atividades de Vida Diária* ➔ **Activities of Daily Living (ADLs)**
+  - *Risco de Queda* ➔ **Fall Risk Assessment**
+
+### 8.4. Tradução Completa da Interface do Usuário (UI) e Metatags SEO
+* **Atributos de Idioma e SEO:**
+  - `lang="en-US"`
+  - `<meta property="og:locale" content="en_US" />`
+  - `<link rel="alternate" hreflang="en" href="https://www.calculadorasdeenfermagem.com.br/en/[slug].html"/>`
+  - `<link rel="canonical" href="https://www.calculadorasdeenfermagem.com.br/en/[slug].html"/>`
+* **Botões e Componentes Interativos:**
+  - `Imprimir Ficha` ➔ **Print Form**
+  - `Baixar PDF` ➔ **Download PDF**
+  - `Instruções de Uso Clínico` ➔ **Clinical Use Instructions**
+  - `Visualização do Formulário em Branco` ➔ **Blank Form Preview**
+  - `Arquivo PDF Original • 1 Página A4 • Gratuito` ➔ **Original PDF File • 1 A4 Page • Free Download**
+  - `Referência Científica:` ➔ **Scientific Reference:**
+
+### 8.5. Passo a Passo Completo de Registro no Ecossistema
+1. **Gerar a página HTML traduzida:** Salve o arquivo em `[idioma]/formulario_escala_de_[nome].html`.
+2. **Atualizar o Menu do Idioma:** Adicione o link no menu global do idioma (ex.: `en/menu-global.html`) sob o submenu *Calculators > Blank Scale Forms for Printing*.
+3. **Registrar em relatorio_paginas.txt:** Adicione o caminho do arquivo (ex.: `en/formulario_escala_de_aldrete.html`) na lista oficial de páginas do repositório.
+4. **Build e Service Worker:** Invoque a compilação do Tailwind CSS e a atualização do Service Worker (`node gerar-sw.js`).
+5. **Validação Determinística:** Execute os validadores do ecossistema para confirmar zero links quebrados e total conformidade.
+
    <div id="premium-content-placeholder" aria-live="polite">Carregando conteúdo protegido…</div>
    </body>
    </html>

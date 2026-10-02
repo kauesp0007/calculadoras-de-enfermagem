@@ -11,6 +11,10 @@ const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com
 const FORM_CATALOG_KEY="formularios_de_escalas_assistenciais.html";
 const DOWNLOAD_REGISTRY=/<script\b[^>]*id=["']assistential-form-downloads["'][^>]*>([\s\S]*?)<\/script>/i;
 
+function isFormCatalogKey(key:string){
+  return key===FORM_CATALOG_KEY || key.endsWith("/"+FORM_CATALOG_KEY);
+}
+
 function catalogDownload(content:string,id:string){
   if(!/^form-\d{3}$/.test(id)) return null;
   const match=content.match(DOWNLOAD_REGISTRY);
@@ -20,7 +24,7 @@ function catalogDownload(content:string,id:string){
   const entry=entries.find((item:any)=>item.id===id);
   if(!entry || typeof entry.pdf!=="string" || typeof entry.filename!=="string") return null;
   // O cliente só envia um ID. Nunca aceitar URL arbitrária nem traversal.
-  if(!/^\/FORMULARIOS_DE_ESCALAS\/[^/\\?#]+\.pdf$/i.test(entry.pdf) || entry.pdf.includes("..")) return null;
+  if(!/^\/FORMULARIOS_DE_ESCALAS\/(?:EN\/)?[^/\\?#]+\.pdf$/i.test(entry.pdf) || entry.pdf.includes("..")) return null;
   return {pdf:entry.pdf,filename:entry.filename.replace(/[\r\n"\\/]/g,"_")};
 }
 
@@ -103,7 +107,7 @@ serve(async req=>{
     const data=await privateContentForKey(key);
     if(!data) return new Response("Premium content unavailable",{status:404,headers:H});
     if(url.searchParams.has("download")){
-      if(key!==FORM_CATALOG_KEY) return new Response("Not Found",{status:404,headers:H});
+      if(!isFormCatalogKey(key)) return new Response("Not Found",{status:404,headers:H});
       // A página é Free para consulta. O PDF exige Premium independentemente
       // do switch da página, usando a mesma identidade/entitlement canônicos.
       const user=await firebaseUser(req);

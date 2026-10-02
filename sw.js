@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20261002-031659";
+const CACHE_VERSION = "20261002-050903";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -231,6 +231,7 @@ const urlsToCache = [
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/lang-selector.js',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.codex-plugin/plugin.json',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.mcp.json',
+  'backups-temporarios/en_content_register.json',
   'backups-temporarios/extensao-chrome-20260930-180927/calculator.css',
   'backups-temporarios/extensao-chrome-20260930-180927/calculator.js',
   'backups-temporarios/extensao-chrome-20260930-180927/content-script.js',
@@ -1052,6 +1053,9 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-10-02T04-22-54.json',
   'relatorios/cwv-gate/2026-10-02T05-55-57.json',
   'relatorios/cwv-gate/2026-10-02T05-59-15.json',
+  'relatorios/cwv-gate/2026-10-02T06-39-19.json',
+  'relatorios/cwv-gate/2026-10-02T06-41-04.json',
+  'relatorios/cwv-gate/2026-10-02T08-07-03.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1474,6 +1478,9 @@ const urlsToCache = [
   'relatorios/impacto/2026-10-02T04-22-55.json',
   'relatorios/impacto/2026-10-02T05-55-58.json',
   'relatorios/impacto/2026-10-02T05-59-16.json',
+  'relatorios/impacto/2026-10-02T06-39-20.json',
+  'relatorios/impacto/2026-10-02T06-41-05.json',
+  'relatorios/impacto/2026-10-02T08-07-04.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
@@ -1534,6 +1541,7 @@ const urlsToCache = [
   'scripts/test-checagem-reformulacao.js',
   'scripts/test-cwv-gate.js',
   'scripts/test-developer-admin.js',
+  'scripts/test-developer-decision-provenance.js',
   'scripts/test-developer-route-catalog.js',
   'scripts/test-knowledge-index.js',
   'scripts/test-orquestracao.js',
