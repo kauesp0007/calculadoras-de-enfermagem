@@ -148,16 +148,47 @@
       return false;
     }
   }
+  function ensurePremiumPromoAfterWrite(){
+    window.__IS_PREMIUM_ROUTE=true;
+    if(document.documentElement) document.documentElement.setAttribute("data-premium-route","true");
+
+    var controller=window.__premiumPromoController;
+    if(controller&&(!controller.root||!document.documentElement.contains(controller.root))){
+      if(typeof controller.dispose==="function") controller.dispose();
+      else window.__premiumPromoController=null;
+    }
+
+    function mountPromo(){
+      var manager=window.AccessModules&&window.AccessModules.bannerManager;
+      if(!manager||typeof manager.mount!=="function") return false;
+      manager.mount({
+        plan:window.Auth&&window.Auth.hasPlan&&window.Auth.hasPlan("premium")?"premium":"free"
+      });
+      return true;
+    }
+
+    if(mountPromo()) return;
+    var existing=document.querySelector('script[src="/js/access/premium-banner-manager.js"]');
+    if(existing){
+      existing.addEventListener("load",mountPromo,{once:true});
+      return;
+    }
+    var script=document.createElement("script");
+    script.src="/js/access/premium-banner-manager.js";
+    script.async=false;
+    script.addEventListener("load",mountPromo,{once:true});
+    document.head.appendChild(script);
+  }
   async function ensureGlobalChromeAfterWrite(){
     ensurePremiumLocalizedFormLayoutAfterWrite();
     await ensurePremiumFooterAfterWrite();
-    // global-scripts.js é carregado pelo shell e também existe no documento
-    // privado. Após document.write(), o novo DOM precisa ser reidratado sem
-    // depender de um evento load que pode já ter pertencido ao shell anterior.
+    // O shell público já carregou os scripts globais. Após document.write(), o
+    // novo DOM é reidratado pela instância existente, sem executar tudo duas vezes.
     for(var attempt=0;attempt<20;attempt++){
       if(document.body&&typeof window.__ENSURE_GLOBAL_CHROME==="function"){
         try{
           await window.__ENSURE_GLOBAL_CHROME();
+          ensurePremiumPromoAfterWrite();
           return;
         }catch(error){
           console.warn("[PremiumContent] falha ao reidratar componentes globais",error);
@@ -165,6 +196,7 @@
       }
       await new Promise(function(resolve){setTimeout(resolve,25);});
     }
+    ensurePremiumPromoAfterWrite();
     console.warn("[PremiumContent] componentes globais não ficaram disponíveis após a entrega protegida");
   }
 
@@ -176,7 +208,12 @@
     // document.write e garante que o documento final seja o conteúdo real.
     html=html
       .replace(/<script[^>]+src=["'][^"']*premium-content-loader\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
+      .replace(/<script[^>]+src=["'][^"']*(?:global-scripts|lang-selector)\.js(?:\?[^"']*)?["'][^>]*><\/script>/gi,"")
       .replace(/<div[^>]+id=["']premium-content-placeholder["'][^>]*>[\s\S]*?<\/div>/gi,"");
+    html=html.replace(/<html(\s[^>]*)?>/i,function(tag){
+      if(/\bdata-premium-route\s*=/.test(tag)) return tag;
+      return tag.replace(/>$/,' data-premium-route="true">');
+    });
     html=stripPremiumAds(html);
     html=injectMedicamentosGovernanceSeal(html,key);
     document.open();
