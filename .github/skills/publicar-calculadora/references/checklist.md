@@ -26,9 +26,10 @@
 - [ ] Botões Calcular e Limpar.
 - [ ] Hero de resultado + grid de memória + avaliação clínica + diagnósticos NANDA sugeridos.
 
-## Impressão e PDF
-- [ ] Modelo `meem.html`: `btnGerarPDF` (jsPDF) + `btnImprimir` (`imprimirLaudo()`).
-      (Páginas de texto/artigo: modelo `integracoes_classificacao_wifi.html` — só `btnImprimir`.)
+## Acesso, impressão e PDF
+- [ ] Ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md` antes de implementar ações protegidas.
+- [ ] Reutilizar `/global-scripts.js`, gate Premium e print guard vigentes; não criar checagem de plano paralela.
+- [ ] Marcar ações Premium e executar as auditorias de impressão/acesso definidas no catálogo canônico.
 
 ## Final
 - [ ] Seção de Referências Bibliográficas ao final, com `data-references-section="v1"`.
