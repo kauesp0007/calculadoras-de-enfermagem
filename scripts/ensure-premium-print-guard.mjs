@@ -67,7 +67,8 @@ function hasGlobalScripts(html) {
 }
 
 function hasPrintLock(html) {
-  return new RegExp('<style\\b[^>]*\\bid=["\\\\\']' + PRINT_LOCK_ID + '["\\\\\'][^>]*>', 'i').test(html);
+  return html.includes('id="' + PRINT_LOCK_ID + '"') ||
+    html.includes("id='" + PRINT_LOCK_ID + "'");
 }
 
 function injectPrintLock(html) {
