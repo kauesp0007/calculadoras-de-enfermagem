@@ -183,7 +183,7 @@ async function audit(sb: ReturnType<typeof db>, actor: string, action: string, t
   const reasons: Record<string, string> = {
     set_setting: `Configuração ${targetKey} ${state?.value?.enabled ? "ativada" : "desativada"} pelo painel Desenvolvedor.`,
     set_route: `Rota definida como ${state?.premium_required ? "Premium" : "Free"} pelo painel Desenvolvedor.`,
-    queue_route_activation: "Premium solicitado pelo painel Desenvolvedor; aguardando conteúdo privado e publicação do shell protegido.",
+    queue_route_activation: "Premium solicitado pelo painel Desenvolvedor; aguardando conteúdo canônico e publicação do bloqueio de ações.",
     grant_email: "Exceção Premium concedida pelo painel Desenvolvedor.",
     revoke_email: "Exceção Premium revogada pelo painel Desenvolvedor."
   };
@@ -341,9 +341,9 @@ async function mutate(req: Request) {
       title: String(body.title || path).slice(0, 180),
       category: String(body.category || "Catálogo administrativo").slice(0, 120),
       premium_required: requestedPremium,
-      enforcement: hasPrivateContent ? "protected_content" : "catalog_only",
+      enforcement: hasPrivateContent ? "client_guard" : "catalog_only",
       source: hasPrivateContent ? "premium_content_pages" : "developer_panel",
-      notes: hasPrivateContent ? "Rota controlada pelo catálogo privado." : "Rota pública Free.",
+      notes: hasPrivateContent ? "Página pública com ações Premium protegidas pelo entitlement canônico." : "Rota pública Free.",
       updated_by: actor.email,
       updated_at: new Date().toISOString()
     };
