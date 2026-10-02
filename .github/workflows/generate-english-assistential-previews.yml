@@ -1,0 +1,58 @@
+name: Generate English assistential form previews
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - FORMULARIOS_DE_ESCALAS/EN/**
+      - scripts/english-assistential-preview-map.json
+      - scripts/generate-english-assistential-previews.py
+      - .github/workflows/generate-english-assistential-previews.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: english-assistential-previews
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PDF and WebP tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes poppler-utils webp
+
+      - name: Generate and validate English previews
+        run: python3 scripts/generate-english-assistential-previews.py
+
+      - name: Verify mapped preview count
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(python3 -c 'import json; print(len(json.load(open("scripts/english-assistential-preview-map.json", encoding="utf-8"))))')"
+          actual="$(find img/formularios-previas/en -maxdepth 1 -type f -name 'form-*.webp' | wc -l)"
+          test "$expected" -eq 63
+          test "$actual" -eq "$expected"
+          echo "Validated $actual English WebP previews."
+
+      - name: Commit generated previews
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add img/formularios-previas/en
+          if git diff --cached --quiet; then
+            echo "English previews are already current."
+            exit 0
+          fi
+          git commit -m "fix(i18n): publicar prévias inglesas dos formulários"
+          git push origin HEAD:main
