@@ -51,8 +51,7 @@ VS Code (Copilot) e ferramentas compatíveis.
   Eyebrow → H1 → H2 (nunca inverter).
 - Footer: raiz (pt) usa `fetch("/footer.html")` + `carregarTraducoes`; pastas de idioma
   usam `fetch("footer.html")` (relativo).
-- Impressão/PDF: escalas/calculadoras → modelo `meem.html` (jsPDF + imprimir);
-  textos/artigos → modelo `integracoes_classificacao_wifi.html` (só `btnImprimir`).
+- Acesso/Impressão/PDF: seguir `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`; não criar Auth, gate, lista Premium ou bloqueio de impressão paralelo.
 
 ## Build obrigatório (ao alterar HTML/CSS/JS)
 
