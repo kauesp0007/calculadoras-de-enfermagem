@@ -127,11 +127,15 @@ serve(async req=>{
         "Access-Control-Expose-Headers":"Content-Disposition","Vary":"Authorization","X-Content-Type-Options":"nosniff"
       }});
     }
-    if(await premiumRequiredForKey(key)){
+    if(url.searchParams.get("access")==="check"){
+      if(!(await premiumRequiredForKey(key))) return new Response(null,{status:204,headers:H});
       const user=await firebaseUser(req);
       if(!(await premiumForUser(user))) return new Response("Premium required",{status:403,headers:H});
+      return new Response(null,{status:204,headers:H});
     }
 
+    // A página completa é uma demonstração pública. O entitlement continua
+    // obrigatório nas ações protegidas (cálculo, interpretação, simulado e download).
     const content=keyCandidates(key).includes(FORM_CATALOG_KEY)?data.content.replace(DOWNLOAD_REGISTRY,""):data.content;
     return new Response(content,{status:200,headers:{
       ...H,
