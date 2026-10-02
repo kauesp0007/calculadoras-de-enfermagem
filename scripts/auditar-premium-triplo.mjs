@@ -142,11 +142,36 @@ if(!shellFailures){
 }
 
 console.log("\n=== AUDITORIA DE ROTAS FREE EXCEPCIONADAS ===");
+// O painel pode reclassificar as antigas exceções Free. O manifesto é a
+// configuração inicial; nunca sobrescrever escolhas vigentes do desenvolvedor.
+const livePolicy=process.argv.includes("--live-policy");
+const policyFile=process.argv.find(a=>a.startsWith("--policy-file="))?.slice("--policy-file=".length);
+const policyRows=policyFile ? JSON.parse(read(policyFile)) : null;
 for(const rel of ["braden.html","fugulin.html","dimensionamento.html"]){
   const html=read(rel);
-  if(/premium-content-loader\\.js/i.test(html)) fail(rel+" ainda carrega premium-content-loader"); else ok(rel+" sem premium loader");
-  if(/premium-content-placeholder/i.test(html)) fail(rel+" ainda possui placeholder Premium"); else ok(rel+" sem placeholder Premium");
-  if(/__IS_PREMIUM_ROUTE|required-plan|content-access/i.test(html)) fail(rel+" ainda possui marcador explícito de acesso Premium"); else ok(rel+" sem marcador Premium local");
+  let route=null;
+  try{
+    if(policyRows) route=policyRows.find(row=>row.path===rel);
+    else if(livePolicy){
+      const url="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin?public=policy&path="+encodeURIComponent(rel);
+      const res=await fetch(url,{signal:AbortSignal.timeout(15000),cache:"no-store"});
+      if(!res.ok) throw new Error("HTTP "+res.status);
+      route=(await res.json()).route;
+    }
+    if((livePolicy||policyRows)&&(!route||typeof route.premium_required!=="boolean")) throw new Error("política de rota inválida");
+  }catch(error){fail(rel+" política dinâmica indisponível: "+error.message);continue;}
+  const hasLoader=/premium-content-loader\.js/i.test(html);
+  const hasPlaceholder=/premium-content-placeholder/i.test(html);
+  if(hasLoader!==hasPlaceholder){fail(rel+" possui shell incompleto");continue;}
+  if(route?.premium_required===true){
+    if(route.enforcement!=="protected_content") fail(rel+" Premium sem enforcement privado");
+    else if(!isPremiumShell(html)) fail(rel+" Premium expõe conteúdo público");
+    else ok(rel+" Premium dinâmico possui shell protegido");
+  }else if(isPremiumShell(html)){
+    ok(rel+(route ? " Free servido pelo loader e política do backend" : " shell válido; plano verificado pelo backend"));
+  }else if(isCompletePremiumSource(html)&&!/__IS_PREMIUM_ROUTE|required-plan|content-access/i.test(html)){
+    ok(rel+" possui conteúdo público completo sem marcador Premium");
+  }else fail(rel+" não possui conteúdo público completo nem shell válido");
 }
 
 console.log("\n=== CAMADA 3 — BACKEND ===");

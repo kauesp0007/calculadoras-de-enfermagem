@@ -19,6 +19,10 @@ CONCLUSÃO. **Uma alteração sem validação/registro NÃO PODE ser classificad
 
 Antes de alterar login, perfil, assinatura, pagamentos, anúncios por plano, rotas Premium, painel do desenvolvedor, extensões de assinatura ou deploy de conteúdo protegido, ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md` e `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md`. Depois da mudança, atualizar o catálogo e regenerar o inventário com o estado real do banco; registrar testes, limitações, commit e deploy. Configurações do painel são dinâmicas e prevalecem sobre listas históricas.
 
+### Decisões do desenvolvedor — consulta obrigatória
+
+Antes de mudar Free/Premium ou switches comerciais, ler `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md` e consultar a política vigente e sua `decision` para a rota exata. `decision.origin=developer_panel` identifica ordem administrativa autenticada. Consultar o histórico privado se a origem não estiver disponível; nunca inferir erro a partir de manifesto, snapshot, PR ou conversa antigos. A solicitação pendente de Premium é uma intenção ainda em publicação, não uma nova ordem para repetir o switch. Preservar decisões posteriores do painel; só substituí-las por pedido explícito atual que abranja a rota e a mudança. Se houver conflito concreto, terminar análises independentes e esclarecer antes de alterar a regra. Auditorias observam a política e o histórico; não corrigem o banco para satisfazer listas estáticas.
+
 ## Fontes de verdade
 
 - Regras: `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`.

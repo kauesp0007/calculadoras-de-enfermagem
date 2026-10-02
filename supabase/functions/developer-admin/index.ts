@@ -112,6 +112,44 @@ function enabled(settings: Record<string, unknown>, key: string, fallback: boole
   return typeof item?.enabled === "boolean" ? item.enabled : fallback;
 }
 
+// Read only decisions made by an authenticated administrator, not deploy jobs,
+// migrations or grant events. Legacy records (including 30/09) need no backfill.
+async function latestPanelDecision(sb: ReturnType<typeof db>, targetType: string, targetKey: string, actions: string[]) {
+  const { data, error } = await sb.from("developer_admin_audit_log")
+    .select("id,action,target_key,after_state,created_at")
+    .eq("target_type", targetType).eq("target_key", targetKey)
+    .in("action", actions).in("actor_email", ADMIN_EMAILS)
+    .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(1);
+  if (error) throw error;
+  return data?.[0] || null;
+}
+
+function publicDecision(row: any) {
+  if (!row) return null;
+  // Deliberately reconstruct a whitelist. Never expose actor_email, notes,
+  // grants, request details or arbitrary JSON stored in before/after_state.
+  return {
+    id: row.id,
+    origin: "developer_panel",
+    actor_kind: "developer",
+    action: row.action,
+    target: row.target_key,
+    decided_at: row.created_at
+  };
+}
+
+async function settingsDecisions(sb: ReturnType<typeof db>, settings: Record<string, unknown>) {
+  const entries = await Promise.all([...SETTINGS].map(async (key) => {
+    const row = await latestPanelDecision(sb, "setting", key, ["set_setting"]);
+    return [key, row ? {
+      ...publicDecision(row),
+      requested_enabled: Boolean(row.after_state?.value?.enabled),
+      applied: { enabled: enabled(settings, key, key !== "free_global_lockdown") }
+    } : null];
+  }));
+  return Object.fromEntries(entries);
+}
+
 async function routePolicy(sb: ReturnType<typeof db>, path: string) {
   const candidates = pathCandidates(path);
   const { data, error } = await sb
@@ -122,23 +160,47 @@ async function routePolicy(sb: ReturnType<typeof db>, path: string) {
   const rows = data || [];
   const byPath = new Map(rows.map((row) => [String(row.path), row]));
   const selected = candidates.map((candidate) => byPath.get(candidate)).find(Boolean);
-  return {
-    path: candidates[0],
-    canonical_path: candidates[candidates.length - 1],
+  const row = await latestPanelDecision(sb, "route", String(selected?.path || candidates[0]), ["set_route", "queue_route_activation"]);
+  const applied = {
     premium_required: Boolean(selected?.premium_required),
     enforcement: selected?.enforcement || "none",
     source: selected?.source || "none"
   };
+  return {
+    path: candidates[0],
+    canonical_path: candidates[candidates.length - 1],
+    ...applied,
+    decision: row ? {
+      ...publicDecision(row),
+      requested_premium: row.action === "queue_route_activation" || row.after_state?.premium_required === true,
+      applied
+    } : null
+  };
 }
 
 async function audit(sb: ReturnType<typeof db>, actor: string, action: string, targetType: string, targetKey: string, beforeState: unknown, afterState: unknown) {
+  const state = afterState as Record<string, any> | null;
+  const reasons: Record<string, string> = {
+    set_setting: `Configuração ${targetKey} ${state?.value?.enabled ? "ativada" : "desativada"} pelo painel Desenvolvedor.`,
+    set_route: `Rota definida como ${state?.premium_required ? "Premium" : "Free"} pelo painel Desenvolvedor.`,
+    queue_route_activation: "Premium solicitado pelo painel Desenvolvedor; aguardando conteúdo privado e publicação do shell protegido.",
+    grant_email: "Exceção Premium concedida pelo painel Desenvolvedor.",
+    revoke_email: "Exceção Premium revogada pelo painel Desenvolvedor."
+  };
+  const decision = {
+    origin: "developer_panel", actor_kind: "developer", action,
+    target: targetKey, decided_at: new Date().toISOString(),
+    reason: reasons[action] || "Alteração administrativa pelo painel Desenvolvedor.",
+    ...(action === "queue_route_activation" && state?.request?.request_id
+      ? { request_id: state.request.request_id } : {})
+  };
   const { error } = await sb.from("developer_admin_audit_log").insert({
     actor_email: actor,
     action,
     target_type: targetType,
     target_key: targetKey,
     before_state: beforeState ?? null,
-    after_state: afterState ?? null
+    after_state: { ...(state || {}), _decision: decision }
   });
   if (error) throw error;
 }
@@ -146,13 +208,14 @@ async function audit(sb: ReturnType<typeof db>, actor: string, action: string, t
 async function publicPolicy(url: URL) {
   const sb = db();
   const settings = await readSettings(sb);
-  let route = { path: "", canonical_path: "", premium_required: false, enforcement: "none", source: "none" };
+  let route: Awaited<ReturnType<typeof routePolicy>> = { path: "", canonical_path: "", premium_required: false, enforcement: "none", source: "none", decision: null };
   const rawPath = url.searchParams.get("path") || "";
   if (rawPath) route = await routePolicy(sb, rawPath);
   return response({
     free_global_lockdown: enabled(settings, "free_global_lockdown", false),
     asaas_portal_enabled: enabled(settings, "asaas_portal_enabled", true),
     stripe_portal_enabled: enabled(settings, "stripe_portal_enabled", true),
+    settings_decisions: await settingsDecisions(sb, settings),
     route
   });
 }
@@ -191,17 +254,20 @@ async function billingSummary(sb: ReturnType<typeof db>) {
 async function adminSnapshot(req: Request) {
   await requireAdmin(req);
   const sb = db();
-  const [settings, routes, requests, grants, billing] = await Promise.all([
+  const [settings, routes, requests, grants, billing, auditLog] = await Promise.all([
     readSettings(sb),
     sb.from("developer_premium_route_rules").select("path,title,category,premium_required,enforcement,source,updated_at").order("category", { ascending: true }).order("path", { ascending: true }).limit(3000),
     sb.from("developer_premium_activation_requests").select("path,request_id,status,requested_at").eq("status", "pending").limit(3000),
     sb.from("developer_premium_email_grants").select("email,active,reason,created_by,revoked_by,created_at,updated_at,revoked_at").order("created_at", { ascending: false }).limit(1000),
-    billingSummary(sb)
+    billingSummary(sb),
+    sb.from("developer_admin_audit_log").select("id,actor_email,action,target_type,target_key,before_state,after_state,created_at")
+      .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50)
   ]);
   if (routes.error) throw routes.error;
   if (requests.error) throw requests.error;
   if (grants.error) throw grants.error;
-  return response({ settings, routes: routes.data || [], activation_requests: requests.data || [], grants: grants.data || [], billing });
+  if (auditLog.error) throw auditLog.error;
+  return response({ settings, routes: routes.data || [], activation_requests: requests.data || [], grants: grants.data || [], billing, audit_log: auditLog.data || [] });
 }
 
 async function routeHasPrivateContent(sb: ReturnType<typeof db>, path: string) {
