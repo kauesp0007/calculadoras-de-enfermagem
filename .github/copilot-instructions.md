@@ -18,9 +18,9 @@ classificada como concluída.**
 
 ## Fontes de verdade (padrões do projeto)
 
-### Decisões de Free/Premium e configurações do painel
+### Sistema de contas, Premium, botões e impressão
 
-Antes de alterar acesso ou switches comerciais, ler `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md` e consultar a política vigente por caminho exato e sua `decision`. A origem `developer_panel` representa ordem administrativa autenticada, com registro/data/plano solicitado. Preservar decisões atuais; manifesto, PRs, inventários e conversas antigos não justificam substituí-las. Examinar histórico privado e fila se necessário. Solicitação Premium pendente aguarda publicação e não deve ser repetida. Só mudar a regra mediante pedido explícito atual que abranja a rota; esclarecer conflitos antes de mutações. Auditorias devem verificar a política dinâmica, sem escrever no banco para satisfazer listas históricas.
+Antes de qualquer alteração de login, assinatura, acesso, download, impressão/PDF, anúncios por plano ou switches, ler `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`, `SISTEMA_DE_LOGIN_DO_SITE/INVENTARIO_ROTAS_VIGENTES.md` e `SISTEMA_DE_LOGIN_DO_SITE/PROTOCOLO_DECISOES_DO_DESENVOLVEDOR.md`. O catálogo canônico é a **única fonte documental do método vigente**; este arquivo não deve copiar a implementação. A política por rota e a decisão administrativa devem ser consultadas no estado atual antes de editar.
 
 - Regras: `AI_RULES.md`, `HTML_RULES.md`, `HTML_PAGE_TEMPLATE_RULES.md`.
 - Arquitetura: `CATALOGO_DA_ARQUITETURA_ESTRUTURAL/`.
@@ -121,18 +121,9 @@ conformidade é o registro em `CATALOGO_DOS_AGENTES_E_HOOKS/registro-conformidad
 - DEVE preservar SEO, acessibilidade, responsividade, modularização e desempenho.
 - DEVE reutilizar código existente; evitar duplicação; manter o padrão do projeto.
 
-## Impressão e PDF (regra absoluta — seguir sempre, sem precisar de aviso)
+## Assinatura, botões, impressão e PDF
 
-- **Escalas e calculadoras**: usar o modelo de `fugulin.html` — botão `btnGerarPDF`
-  (jsPDF via `jspdf.umd.min.js` + `jspdf-autotable`, usando `window.jspdf.jsPDF`) e
-  botão `btnImprimir` (`imprimirLaudo()` com HTML standalone em nova janela + `window.print()`).
-- **Páginas educativas de textos e artigos**: usar o modelo de
-  `integracoes_classificacao_wifi.html` — somente `btnImprimir` com `imprimirLaudo()`
-  que captura `.article-content` (ou container equivalente, ex.: `.guide`) e gera HTML
-  standalone + `window.print()`. NÃO usar jsPDF/`btnGerarPDF` nesse tipo de página.
-- **Ao modernizar uma página**: apagar as configurações antigas de impressão/PDF
-  (funções, botões e styles) e reescrever do zero seguindo o modelo correto.
-- **Ao criar página nova**: escrever o código de impressão/PDF já seguindo o modelo referenciado.
+Seguir somente `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`. É proibido criar uma checagem de plano, bloqueio de impressão, fluxo de download ou lista Premium paralelos. Reutilizar os guards e endpoints vigentes e executar as auditorias determinadas no catálogo. Exceções de `allow` exigem decisão explícita do desenvolvedor.
 
 ## Atualização e criação de páginas HTML (seguir sempre)
 
