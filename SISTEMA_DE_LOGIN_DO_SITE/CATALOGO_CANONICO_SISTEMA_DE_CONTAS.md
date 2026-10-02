@@ -46,9 +46,9 @@ Microsoft e Apple no projeto são opções não operacionais; a auditoria do có
 | user_entitlements | PK user_id → billing_identities.id ON DELETE CASCADE; plan free/premium; premium_expires_at; provider, customer/subscription IDs. Autoridade comercial para billing-access. |
 | billing_webhook_claims | (provider,event_id), status, lease, processed_at, last_error; RPCs claim/complete/fail tornam webhook idempotente. |
 | billing_checkout_claims | (provider,user_id), status, expiração e erro; lock de checkout via RPC; billing_subscription_guards registra bloqueios por provedor. |
-| developer_premium_route_rules | PK path; premium_required, enforcement, source; CHECK exige protected_content quando premium_required=true. |
+| developer_premium_route_rules | PK path; `premium_required`, `enforcement`, `source` e metadados de decisão. No corte atual, Premium usa `client_guard` e Free usa `catalog_only`; consultar o banco porque o painel pode alterar o estado. |
 | developer_premium_activation_requests | PK path, request_id, status, requested_at/completed_at; fila de migração e publicação do shell. |
-| premium_content_pages | PK path, content HTML privado, source_sha. Função usa caminho específico e, se ausente, candidato de raiz para idioma conhecido. |
+| premium_content_pages | PK path, fonte HTML usada por `premium-content`, com `source_sha`. No método atual esse HTML pode servir demonstração pública; ações sensíveis continuam condicionadas à autorização server-side. |
 | developer_settings | PK key, JSON enabled para free_global_lockdown, asaas_portal_enabled e stripe_portal_enabled. |
 | developer_premium_email_grants | PK e-mail normalizado; active=false revoga; exceção administrativa de acesso. |
 | developer_admin_audit_log | Histórico de mudança de configuração, rota e concessão, com antes/depois. |
