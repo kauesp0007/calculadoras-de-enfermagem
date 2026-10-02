@@ -51,6 +51,12 @@
     style.textContent = [
       "body{overflow-x:hidden}",
       "#global-header-container{min-height:100px!important;background:#fff!important;position:relative;z-index:50}",
+      "#global-header-container .header-content{max-width:none!important;width:100%!important;padding-left:14px!important;padding-right:14px!important}",
+      "#global-header-container .desktop-nav>ul{display:flex!important;align-items:center!important;gap:.55rem!important;column-gap:.55rem!important;flex-wrap:nowrap!important}",
+      "#global-header-container .desktop-nav>ul>li{flex:0 0 auto!important}",
+      "#global-header-container .desktop-nav>ul>li>a,#global-header-container .desktop-nav>ul>li>button{font-size:12px!important;line-height:1.15!important;white-space:nowrap!important}",
+      "#global-header-container #menu-auth-desktop{margin-left:.15rem!important}",
+      "@media(max-width:1180px){#global-header-container .desktop-nav{display:none!important}#global-header-container .pwa-only{display:flex!important}}",
       "#language-selector-placeholder{min-height:44px!important;position:relative;z-index:40}",
       ".dashboard-main{max-width:1600px!important;margin-left:auto!important;margin-right:auto!important;padding-top:.65rem!important}",
       ".dashboard-main .grid{gap:.7rem!important}",
