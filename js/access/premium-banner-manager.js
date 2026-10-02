@@ -44,6 +44,10 @@
         return (window.location.pathname || "").indexOf("/conta/") === 0;
     }
 
+    function isPremiumRoute() {
+        return window.__IS_PREMIUM_ROUTE === true;
+    }
+
     function promoLanguage() {
         var pathname = (window.location.pathname || "/").toLowerCase();
         if (pathname === "/" || /^\/[^/]+\.html$/.test(pathname)) return "pt";
@@ -272,9 +276,11 @@
             if (_promoRoot === root) _promoRoot = null;
         }
 
-        function scheduleNext() {
+        function scheduleNext(forceImmediate) {
             if (!isCurrent()) return;
-            var remaining = INTERVAL_MS - (Date.now() - readLastShown());
+            var remaining = forceImmediate
+                ? INITIAL_DELAY_MS
+                : INTERVAL_MS - (Date.now() - readLastShown());
             controller.timerShow = setTimeout(showPromo, Math.max(INITIAL_DELAY_MS, remaining));
         }
 
@@ -286,7 +292,7 @@
             controller.timerFade = setTimeout(function () {
                 if (!isCurrent()) return;
                 root.style.display = "none";
-                scheduleNext();
+                scheduleNext(false);
             }, 180);
         }
 
@@ -307,7 +313,9 @@
         }
 
         window.addEventListener("resize", positionPromo);
-        scheduleNext();
+        // Cada nova navegação para uma rota Premium exibe novamente o card,
+        // mesmo que o usuário tenha acabado de vê-lo em outra página Premium.
+        scheduleNext(isPremiumRoute());
 
         root.querySelector("[data-premium-promo-close]").addEventListener("click", function () {
             hidePromo();

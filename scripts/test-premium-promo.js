@@ -8,7 +8,7 @@ const { JSDOM, VirtualConsole } = require("jsdom");
 
 const source = fs.readFileSync(path.join(__dirname, "../js/access/premium-banner-manager.js"), "utf8");
 
-function scenario(pathname, initialPlan = "guest") {
+function scenario(pathname, initialPlan = "guest", premiumRoute = false, lastShownAt = null) {
   const dom = new JSDOM('<!doctype html><html><body><div id="global-header-container"></div></body></html>', {
     url: "https://www.calculadorasdeenfermagem.com.br" + pathname,
     runScripts: "outside-only"
@@ -22,6 +22,10 @@ function scenario(pathname, initialPlan = "guest") {
   let plan = initialPlan;
 
   window.Date.now = () => now;
+  window.__IS_PREMIUM_ROUTE = premiumRoute;
+  if (lastShownAt !== null) {
+    window.localStorage.setItem("premiumPromoLastShownAt", String(lastShownAt));
+  }
   window.setTimeout = (callback, delay) => {
     const id = ++nextId;
     timers.set(id, { callback, at: now + Number(delay) });
@@ -223,6 +227,28 @@ for (const file of recoveredPages) {
   assert.equal(premium.window.document.getElementById("premium-promo-banner"), null);
   premium.close();
 }
+
+const globalScripts = fs.readFileSync(path.join(__dirname, "../global-scripts.js"), "utf8");
+assert.match(globalScripts, /function loadPremiumPromoOnly\(\)/);
+assert.match(globalScripts, /loadPremiumPromoOnly\(\);/);
+
+// Uma página comum respeita o intervalo global já registrado.
+const regularCooldown = scenario("/missao.html", "guest", false, 999_900);
+regularCooldown.advance(1500);
+assert.equal(regularCooldown.window.document.getElementById("premium-promo-banner").style.display, "none");
+regularCooldown.close();
+
+// Cada nova página Premium ignora o cooldown anterior apenas na primeira exibição.
+const premiumEntry = scenario("/perroca.html", "guest", true, 999_900);
+premiumEntry.advance(1499);
+assert.equal(premiumEntry.window.document.getElementById("premium-promo-banner").style.display, "none");
+premiumEntry.advance(1);
+assert.equal(premiumEntry.window.document.getElementById("premium-promo-banner").style.display, "block");
+premiumEntry.close();
+
+const premiumSubscriberEntry = scenario("/perroca.html", "premium", true, 999_900);
+assert.equal(premiumSubscriberEntry.window.document.getElementById("premium-promo-banner"), null);
+premiumSubscriberEntry.close();
 
 const subscribed = scenario("/missao.html", "premium");
 assert.equal(subscribed.window.document.getElementById("premium-promo-banner"), null);

@@ -792,6 +792,48 @@ function initializeAuthMenu() {
     loadNext();
   }
 
+  var _premiumPromoOnlyLoading = false;
+
+  function loadPremiumPromoOnly() {
+    if (/^\/conta\//.test(window.location.pathname || "")) return;
+
+    function mountPromo() {
+      if (window.AccessModules && window.AccessModules.bannerManager) {
+        window.AccessModules.bannerManager.mount({
+          plan: window.Auth && window.Auth.hasPlan && window.Auth.hasPlan("premium") ? "premium" : "free"
+        });
+      }
+    }
+
+    if (window.AccessModules && window.AccessModules.bannerManager) {
+      mountPromo();
+      return;
+    }
+    if (_premiumPromoOnlyLoading) return;
+
+    var src = "/js/access/premium-banner-manager.js";
+    var existing = document.querySelector('script[src="' + src + '"]');
+    _premiumPromoOnlyLoading = true;
+
+    function finished() {
+      _premiumPromoOnlyLoading = false;
+      mountPromo();
+    }
+
+    if (existing) {
+      existing.addEventListener("load", finished, { once: true });
+      existing.addEventListener("error", function () { _premiumPromoOnlyLoading = false; }, { once: true });
+      return;
+    }
+
+    var script = document.createElement("script");
+    script.src = src;
+    script.async = false;
+    script.onload = finished;
+    script.onerror = function () { _premiumPromoOnlyLoading = false; };
+    document.head.appendChild(script);
+  }
+
   /**
    * Inicializa a camada de autorização e aplica a proteção de rota.
    */
@@ -814,8 +856,9 @@ function initializeAuthMenu() {
         safeUpdateUI(window.Auth.currentUser());
       }
       hideAdsForPremium();
-      // Não carregue o access-router/premium-banner-manager em uma rota Premium.
-      // O premium-content-loader é o único gate de entrega dessas páginas.
+      // A rota continua usando somente o premium-content-loader como gate.
+      // Carregamos isoladamente o card promocional para visitantes e usuários Free.
+      loadPremiumPromoOnly();
       return;
     }
 
