@@ -111,6 +111,7 @@
     var match=window.location.pathname.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
     return match?"/"+match[1]+"/":"/";
   }
+  // O CSS global estiliza <header>; o hero dos formulários precisa neutralizar altura e deslocamento.
   function ensurePremiumEnglishFormLayoutAfterWrite(){
     if(!/^\/en\/formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
     if(!document.querySelector("main.main-content > header.hero")) return false;
