@@ -23,6 +23,17 @@
   var accessPromise = null;
   var replayingControl = null;
   var authListenersBound = false;
+  var browserPrintAttempt = false;
+
+  function setPrintAccess(state) {
+    var root = document.documentElement;
+    if (!root) return;
+    root.setAttribute("data-premium-print-access", state === "premium" ? "premium" : "free");
+  }
+
+  // Fail closed: até o entitlement ser confirmado, a folha de impressão
+  // permanece bloqueada pela regra @media print injetada no HTML.
+  setPrintAccess("free");
 
   var PRINT_PATTERN = /(?:\bprint\b|\bimprimir\b|\bimprime\b|\bimprima\b|\bimpression\b|\bimprimer\b|\bstampa\b|\bstampare\b|\bdrucken\b|\bdruck\b|\bafdrukken\b|\bafdruk\b|\bdrukuj\b|\bwydrukuj\b|\byazd[ıi]r\b|\bcetak\b|\bin\s+(?:trang|tài\s*liệu|nội\s*dung)\b|печать|распечат|друк|надрук|印刷|打印|인쇄|प्रिंट|طباعة|اطبع)/i;
 
@@ -100,6 +111,7 @@
     function reset() {
       accessState = "unknown";
       accessPromise = null;
+      setPrintAccess("free");
     }
 
     if (typeof auth.onAuthChange === "function") auth.onAuthChange(reset);
@@ -107,14 +119,21 @@
   }
 
   async function resolvePrintAccess(force) {
-    if (accessState === "premium" && !force) return true;
-    if (accessState === "free" && !force) return false;
+    if (accessState === "premium" && !force) {
+      setPrintAccess("premium");
+      return true;
+    }
+    if (accessState === "free" && !force) {
+      setPrintAccess("free");
+      return false;
+    }
     if (accessPromise && !force) return accessPromise;
 
     accessPromise = (async function () {
       try {
         if (typeof window.__ENSURE_AUTH !== "function") {
           accessState = "free";
+          setPrintAccess("free");
           return false;
         }
 
@@ -124,11 +143,13 @@
         var user = auth && auth.currentUser ? auth.currentUser() : null;
         if (!user) {
           accessState = "free";
+          setPrintAccess("free");
           return false;
         }
 
         if (auth && auth.hasPlan && auth.hasPlan("premium")) {
           accessState = "premium";
+          setPrintAccess("premium");
           return true;
         }
 
@@ -144,14 +165,17 @@
 
         if (auth && auth.hasPlan && auth.hasPlan("premium")) {
           accessState = "premium";
+          setPrintAccess("premium");
           return true;
         }
 
         accessState = "free";
+        setPrintAccess("free");
         return false;
       } catch (error) {
         console.warn("[PremiumPrintGuard] não foi possível confirmar o plano:", error);
         accessState = "free";
+        setPrintAccess("free");
         return false;
       } finally {
         accessPromise = null;
@@ -202,6 +226,28 @@
     event.stopImmediatePropagation();
     runGuardedPrint();
   }, true);
+
+  // O comando "Imprimir" do menu do navegador não é cancelável de forma
+  // confiável. A folha já está fail-closed via CSS; estes eventos mantêm o
+  // estado coerente e encaminham Free para a assinatura ao fechar o diálogo.
+  window.addEventListener("beforeprint", function () {
+    if (document.documentElement.getAttribute("data-premium-print-access") === "premium") return;
+    browserPrintAttempt = true;
+    setPrintAccess("free");
+    resolvePrintAccess(true);
+  });
+
+  window.addEventListener("afterprint", function () {
+    if (!browserPrintAttempt) return;
+    browserPrintAttempt = false;
+    if (document.documentElement.getAttribute("data-premium-print-access") !== "premium") {
+      redirectToSubscriberArea(window.Auth || null);
+    }
+  });
+
+  // Antecipamos a resolução para que assinantes Premium possam usar também
+  // o menu nativo do navegador sem receber a folha bloqueada.
+  resolvePrintAccess(false);
 
   window.__PREMIUM_PRINT_GUARD = {
     resolve: resolvePrintAccess,
