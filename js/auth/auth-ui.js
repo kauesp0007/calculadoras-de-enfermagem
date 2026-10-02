@@ -540,7 +540,7 @@
     ) {
       var normalizedReturn = returnUrl.split("?")[0].split("#")[0];
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
-      var isAccountRoute = /^\\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\\/)?conta\\//i.test(normalizedReturn);
+var isAccountRoute = /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(normalizedReturn);
       var isExtensionBridge = normalizedReturn === "/conta/extensao-login.html";
       var premiumPath = normalizedReturn;
       var parts = premiumPath.split("/").filter(Boolean);
