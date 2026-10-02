@@ -68,13 +68,17 @@ function scenario(pathname, initialPlan = "guest", premiumRoute = false, lastSho
   };
 }
 
-for (const pathname of ["/conta/perfil.html", "/blog/index.html", "/en/conta/perfil.html", "/xx/index.html"]) {
+for (const pathname of ["/blog/index.html", "/conta/perfil.html", "/en/conta/perfil.html"]) {
   const test = scenario(pathname);
   try {
-    test.advance(200_000);
-    assert.equal(test.window.document.getElementById("premium-promo-banner"), null, pathname + " must not display the promo");
+    const root = test.window.document.getElementById("premium-promo-banner");
+    assert.ok(root, pathname + " promo missing");
+    assert.equal(root.getAttribute("lang"), pathname.startsWith("/en/") ? "en" : "pt-BR");
   } finally { test.close(); }
 }
+const unsupported = scenario("/xx/index.html");
+assert.equal(unsupported.window.document.getElementById("premium-promo-banner").getAttribute("lang"), "pt-BR");
+unsupported.close();
 
 const euroLanguages = new Set(["es", "de", "it", "fr", "ru", "tr", "nl", "pl", "sv", "uk"]);
 const internationalLanguages = ["en", "es", "de", "it", "fr", "hi", "zh", "ar", "ja", "ru", "ko", "tr", "nl", "pl", "sv", "id", "vi", "uk"];
@@ -98,10 +102,10 @@ for (const lang of internationalLanguages) {
     assert.ok(root, lang + " promo missing");
     assert.equal(root.getAttribute("lang"), lang);
     assert.equal(root.getAttribute("dir"), lang === "ar" ? "rtl" : null);
-    assert.equal(root.querySelector("img").getAttribute("src"), "/img/ilustracao_enfermeira.webp");
-    assert.equal(root.querySelectorAll("li svg").length, 2);
+    assert.equal(root.querySelector("img").getAttribute("src"), "/Imagens_autorais/enfermeira-de-mascara-azul.svg");
+    assert.equal(root.querySelectorAll("li svg").length, 9);
     assert.equal(root.querySelector("[data-premium-promo-subscribe]").getAttribute("href"), "/conta/assinatura.html?lang=" + lang);
-    assert.equal(root.querySelector("[data-premium-promo-subscribe]").style.backgroundColor, "rgb(250, 204, 21)");
+    assert.match(root.querySelector("[data-premium-promo-subscribe]").className, /premium-promo-subscribe/);
     assert.ok(root.querySelector("[data-premium-promo-close]").textContent.trim());
     assert.ok(root.querySelector("img").getAttribute("alt"));
     assert.ok(root.textContent.trim().length > 45, lang + " translation missing");
@@ -110,9 +114,9 @@ for (const lang of internationalLanguages) {
     assert.match(root.textContent, euroLanguages.has(lang) ? /€ 5,00/ : /US\$ 5,00/);
     test.advance(1500);
     assert.equal(root.style.display, "block");
-    test.advance(10000 + 180);
+    test.advance(20000 + 180);
     assert.equal(root.style.display, "none");
-    test.advance(120000 - 10000 - 180);
+    test.advance(120000 - 20000 - 180);
     assert.equal(root.style.display, "block", lang + " must repeat after two minutes");
     root.querySelector("[data-premium-promo-close]").click();
     test.advance(180);
@@ -228,6 +232,11 @@ for (const file of recoveredPages) {
   premium.close();
 }
 
+
+const deepLocalized = scenario("/es/conteudos/guias/index.html");
+assert.equal(deepLocalized.window.document.getElementById("premium-promo-banner").getAttribute("lang"), "es");
+deepLocalized.close();
+
 const globalScripts = fs.readFileSync(path.join(__dirname, "../global-scripts.js"), "utf8");
 assert.match(globalScripts, /function loadPremiumPromoOnly\(\)/);
 assert.match(globalScripts, /loadPremiumPromoOnly\(\);/);
@@ -299,30 +308,30 @@ upgraded.advance(200_000);
 assert.equal(upgraded.window.document.getElementById("premium-promo-banner"), null);
 upgraded.close();
 
-// Cenário PT-BR: mantém o mesmo ciclo de 10s visível e 2min entre exibições.
+// Cenário PT-BR: mantém o ciclo de 20s visível e 2min entre exibições.
 const test = scenario("/missao.html");
 try {
   const root = test.window.document.getElementById("premium-promo-banner");
   assert.ok(root);
   assert.equal(root.style.display, "none");
-  assert.match(root.textContent, /Faça parte da Equipe PREMIUM/);
-  assert.match(root.textContent, /Faça parte do Plano PREMIUM/);
-  assert.match(root.textContent, /Elimine todos os anúncios do site/);
-  assert.match(root.textContent, /calculadoras, escalas, formulários e simulados/);
+  assert.match(root.textContent, /EQUIPE PREMIUM/);
+  assert.match(root.textContent, /Faça parte da Equipe Premium/);
+  assert.match(root.textContent, /Elimine 100% dos anúncios indesejados/);
+  assert.match(root.textContent, /mais de 65 escalas assistenciais interativas/);
   assert.match(root.textContent, /R\$ 5,00 mensais.*Pix e cartões/);
-  assert.equal(root.querySelectorAll("li svg").length, 2);
-  assert.equal(root.querySelector("img").getAttribute("src"), "/img/ilustracao_enfermeira.webp");
+  assert.equal(root.querySelectorAll("li svg").length, 9);
+  assert.equal(root.querySelector("img").getAttribute("src"), "/Imagens_autorais/enfermeira-de-mascara-azul.svg");
   assert.equal(root.querySelector("[data-premium-promo-subscribe]").getAttribute("href"), "/conta/assinatura.html");
 
   test.advance(1499);
   assert.equal(root.style.display, "none");
   test.advance(1);
   assert.equal(root.style.display, "block");
-  test.advance(9999);
+  test.advance(19999);
   assert.equal(root.style.display, "block");
   test.advance(1 + 180);
-  assert.equal(root.style.display, "none", "promo must disappear after ten seconds");
-  test.advance(109_819);
+  assert.equal(root.style.display, "none", "promo must disappear after twenty seconds");
+  test.advance(99_819);
   assert.equal(root.style.display, "none");
   test.advance(1);
   assert.equal(root.style.display, "block", "promo must repeat two minutes after its last display");
