@@ -26,7 +26,7 @@ export function protectFormPdfPreview(html, catalogEntries) {
     return tag.replace(/href=["'][^"']*["']/i,'href="#protected-form-pdf" '+metadata(e)+' data-protected-pdf-action="download"').replace(/\sdownload(?:=["'][^"']*["'])?/i,'');
   });
   if(!protectedCount) return html;
-  if(primary) out = out.replace(/<(?:button|a)\b[^>]*data-action=["']print["'][^>]*>/gi,tag=>tag.slice(0,-1)+' '+metadata(primary)+' data-protected-pdf-action="print">');
+  if(primary) out = out.replace(/<(?:button|a)\b[^>]*data-action=["']print["'][^>]*>/gi,tag=>tag.replace(/\sdata-protected-pdf-(?:action|id|catalog)="[^"]*"/gi,'').slice(0,-1)+' '+metadata(primary)+' data-protected-pdf-action="print">');
   // Remove legacy inline window.open and source URLs from the public document.
   out = out.replace(PDF_URL,'"#protected-form-pdf"');
   return out.replace(/<\/body>/i,'<script src="/js/access/protected-form-pdf.js?v=1" defer></script></body>');

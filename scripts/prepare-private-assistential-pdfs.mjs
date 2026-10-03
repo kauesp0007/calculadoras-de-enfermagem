@@ -18,6 +18,17 @@ async function upload(dir){for(const e of await fs.readdir(dir,{withFileTypes:tr
 await upload(root);
 for(const object of expected){const file=path.join(root,object);if(!file.startsWith(root+path.sep)||object.includes('..'))throw new Error('Invalid registry path');await fs.access(file);}
 if(count<expected.size)throw new Error('Incomplete private PDF collection');
+// This is the project's public anon key, never a service credential.
+const publicKey=process.env.SUPABASE_ANON_KEY||'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFzamtmdGpmYmt1dWhpbG5xb254Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjcwODMxNjQsImV4cCI6MjA4MjY1OTE2NH0.mly76L5r2zoasonwta8aNND2mWWrkAoXirAAs99mDYo';
+const sample=[...expected][0].split('/').map(encodeURIComponent).join('/');
+for(const route of ['authenticated','public']){
+  const denied=await fetch(base+'/storage/v1/object/'+route+'/'+bucket+'/'+sample,{headers:{apikey:publicKey,Authorization:'Bearer '+publicKey},signal:AbortSignal.timeout(30000)});
+  if(denied.ok)throw new Error('Original PDF unexpectedly readable without Premium backend');
+  if(![400,401,403,404].includes(denied.status))throw new Error('Anonymous storage isolation could not be verified');
+}
 // Keep sources intact outside the Pages artifact after verified private upload.
 await fs.rename(root,path.join(process.env.RUNNER_TEMP,'assistential-pdf-sources-'+process.env.GITHUB_RUN_ID));
+// Exact duplicate of Perroca also exists in docs; exclude that copy from Pages.
+const duplicate='docs/XXXX_COFEN_Ficha_Clinica_Escala_de_Perroca.pdf';
+try{await fs.rename(duplicate,path.join(process.env.RUNNER_TEMP,'assistential-perroca-doc-copy-'+process.env.GITHUB_RUN_ID+'.pdf'));}catch(error){if(error.code!=='ENOENT')throw error;}
 console.log('PASS: '+count+' PDFs verified in private storage; originals excluded from public Pages artifact.');

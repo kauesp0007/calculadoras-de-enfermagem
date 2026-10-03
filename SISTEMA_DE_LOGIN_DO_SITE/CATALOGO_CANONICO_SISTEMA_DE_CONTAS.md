@@ -245,3 +245,5 @@ O HTML demonstrativo não entrega PDF original por iframe, object, embed, link o
 
 O deploy copia e verifica byte a byte os originais no bucket privado e só então move `FORMULARIOS_DE_ESCALAS/` para fora do artifact público, antes da geração do SW. A etapa falha se faltar algum dos 192 arquivos registrados. As fontes permanecem no repositório e no histórico público GitHub: esta correção protege a entrega no site, mas não torna secretas cópias já publicadas no GitHub ou já baixadas. Não descrever isso como revogação de arquivos previamente obtidos.
 
+
+O bucket privado tem isolamento RLS restritivo para anon/authenticated, registrado em `supabase/security/assistential-pdf-storage.sql`; políticas permissivas antigas não podem liberar seus objetos. O deploy prova recusa anônima nas rotas públicas/autenticadas e exclui também a cópia duplicada Perroca em docs. A service role permanece restrita ao pipeline e à Edge.

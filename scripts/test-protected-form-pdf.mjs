@@ -15,6 +15,7 @@ for(const type of ['iframe','object','embed']){const attribute=type==='object'?'
 const unknown=protectFormPdfPreview('<body><iframe src="/FORMULARIOS_DE_ESCALAS/unknown.pdf"></iframe></body>',entries);
 assert(!unknown.includes('unknown.pdf'));assert(!unknown.includes('<iframe'));
 const linkOnly=protectFormPdfPreview('<body><a href="'+entries[0].pdf+'">Download</a></body>',entries);assert(linkOnly.includes('data-protected-pdf-action="download"'));
+const printAnchor=protectFormPdfPreview('<body><a data-action="print" href="'+entries[0].pdf+'">Print</a></body>',entries);assert.equal((printAnchor.match(/data-protected-pdf-action=/g)||[]).length,1);assert(printAnchor.includes('data-protected-pdf-action="print"'));
 assert.equal(protectFormPdfPreview('<body><h1>HTML form</h1></body>',entries),'<body><h1>HTML form</h1></body>');
 const edge=fs.readFileSync('supabase/functions/premium-content/index.ts','utf8');
 assert(edge.includes('storage.from("assistential-pdfs-private").download(object)'));
