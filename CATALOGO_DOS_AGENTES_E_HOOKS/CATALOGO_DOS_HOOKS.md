@@ -325,3 +325,32 @@ justificativa/catalogação = NÃO CONFORME" em evidência verificável por máq
 | Depois de criar HTML na raiz | `register-page` | Lembra de registrar em `relatorio_paginas.txt` |
 | Depois de editar HTML | `check-a11y` | Reporta lang/skip-link/h1/alt básicos |
 | Depois de criar componente | `check-conformidade` | Reporta componente sem registro de conformidade |
+
+---
+
+## 🔌 Hooks externos (terceiros, fora do projeto)
+
+Hooks instalados em `~/.copilot/hooks/` (escopo global do usuário). **Não** são
+gerenciados por este repositório, mas impactam a latência de **toda** ferramenta do chat.
+
+### googlecloudtools.datacloud_telemetry
+
+- **Local:** `~/.copilot/hooks/googlecloudtools.datacloud_telemetry.json` (aponta para
+  `googlecloudtools.datacloud_telemetry_bundle.js`)
+- **Evento:** `PreToolUse` (antes de **toda** ferramenta)
+- **Origem:** extensão Google Cloud / Data Cloud (telemetria Datacloud — terceiro)
+- **Impacto:** maior gargalo de latência já medido — **~17–38s por chamada**
+  (sobe `node` + spawn de processo em background a cada ferramenta).
+
+**Como desabilitar (aplicado em 2026-10-03):**
+1. Criar `~/.data_agent_kit/config.json` com `{"enableTelemetry": false}`.
+   O hook lê esse arquivo em `isTelemetryEnabled()` e sai cedo
+   ("Telemetry is disabled by user configuration. Exiting early.").
+2. Alternativa: variável de ambiente `DO_NOT_TRACK=1` (ou `true`) — é verificada
+   antes do `config.json`.
+
+**Se voltar a ficar lento no futuro:**
+- Conferir se `~/.data_agent_kit/config.json` ainda contém `enableTelemetry: false`
+  (a extensão pode recriar/atualizar o hook em upgrades).
+- Em último caso, renomear `~/.copilot/hooks/googlecloudtools.datacloud_telemetry.json`
+  para desativar o hook por completo.
