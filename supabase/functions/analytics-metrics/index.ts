@@ -5,6 +5,7 @@ const SERVICE_ACCOUNT_SECRET = "GOOGLE_ANALYTICS_SERVICE_ACCOUNT_JSON";
 const ALLOWED_ORIGIN = "https://www.calculadorasdeenfermagem.com.br";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${PROPERTY_ID}:runReport`;
+const REALTIME_API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${PROPERTY_ID}:runRealtimeReport`;
 
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
@@ -35,10 +36,10 @@ async function withGASlot<T>(fn: () => Promise<T>): Promise<T> {
   }
 }
 
-function json(data: unknown, status = 200) {
+function json(data: unknown, status = 200, maxAge = 300) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { ...cors, "Cache-Control": "public, max-age=300, s-maxage=300" },
+    headers: { ...cors, "Cache-Control": `public, max-age=${maxAge}, s-maxage=${maxAge}` },
   });
 }
 
@@ -113,6 +114,27 @@ async function runReport(body: Record<string, unknown>) {
       if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
     }
     throw new Error(`GA runReport failed: ${lastStatus} ${lastDetail}`);
+  });
+}
+
+async function runRealtimeReport(body: Record<string, unknown>) {
+  return await withGASlot(async () => {
+    let lastStatus = 0;
+    let lastDetail = "";
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const token = await accessToken();
+      const response = await fetch(REALTIME_API_URL, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (response.ok) return await response.json();
+      lastStatus = response.status;
+      lastDetail = (await response.text()).slice(0, 300);
+      if (response.status !== 429 && response.status !== 503) break;
+      if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+    throw new Error(`GA runRealtimeReport failed: ${lastStatus} ${lastDetail}`);
   });
 }
 
@@ -195,6 +217,83 @@ async function reportSet(rangeName: string) {
   };
 }
 
+const AUDIENCE_GROUPS = [
+  { key: "us", label: "Estados Unidos", countries: ["US"] },
+  { key: "latin", label: "América Latina e Caribe", countries: ["AR","BO","BR","BZ","CL","CO","CR","CU","DO","EC","GF","GT","GY","HN","HT","MX","NI","PA","PE","PR","PY","SR","SV","UY","VE"] },
+  { key: "de", label: "Alemanha", countries: ["DE"] },
+  { key: "fr", label: "França", countries: ["FR"] },
+  { key: "es", label: "Espanha", countries: ["ES"] },
+  { key: "pt", label: "Portugal", countries: ["PT"] },
+  { key: "cn", label: "China, Hong Kong e Macau", countries: ["CN","HK","MO"] },
+  { key: "jp", label: "Japão", countries: ["JP"] },
+  { key: "ru", label: "Rússia", countries: ["RU"] },
+  { key: "it", label: "Itália", countries: ["IT"] },
+];
+
+async function realtime() {
+  const [countriesReport, eventsReport] = await Promise.all([
+    runRealtimeReport({
+      dimensions: [{ name: "countryId" }, { name: "country" }],
+      metrics: [{ name: "activeUsers" }, { name: "eventCount" }, { name: "screenPageViews" }],
+      orderBys: [{ metric: { metricName: "activeUsers" }, desc: true }],
+      limit: "300",
+      minuteRanges: [{ name: "ultimos_30_minutos", startMinutesAgo: 29, endMinutesAgo: 0 }],
+    }),
+    runRealtimeReport({
+      dimensions: [{ name: "eventName" }],
+      metrics: [{ name: "activeUsers" }, { name: "eventCount" }],
+      orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+      limit: "25",
+      minuteRanges: [{ name: "ultimos_30_minutos", startMinutesAgo: 29, endMinutesAgo: 0 }],
+    }),
+  ]);
+
+  const countries = rows(countriesReport).map((r: any) => ({
+    code: String(r.dims[0] || "").toUpperCase(),
+    name: r.dims[1] || "(não definido)",
+    activeUsers: num(r.mets[0]),
+    eventCount: num(r.mets[1]),
+    views: num(r.mets[2]),
+  }));
+  const assigned = new Set<string>();
+  const audienceGroups = AUDIENCE_GROUPS.map((group) => {
+    const selected = countries.filter((country) => group.countries.includes(country.code));
+    selected.forEach((country) => assigned.add(country.code));
+    return {
+      key: group.key,
+      label: group.label,
+      activeUsers: selected.reduce((sum, country) => sum + country.activeUsers, 0),
+      eventCount: selected.reduce((sum, country) => sum + country.eventCount, 0),
+      views: selected.reduce((sum, country) => sum + country.views, 0),
+      countries: selected,
+    };
+  });
+  const otherCountries = countries.filter((country) => !assigned.has(country.code));
+  audienceGroups.push({
+    key: "other",
+    label: "Outros países",
+    activeUsers: otherCountries.reduce((sum, country) => sum + country.activeUsers, 0),
+    eventCount: otherCountries.reduce((sum, country) => sum + country.eventCount, 0),
+    views: otherCountries.reduce((sum, country) => sum + country.views, 0),
+    countries: otherCountries,
+  });
+
+  const events = rows(eventsReport).map((r: any) => ({
+    name: r.dims[0] || "(não definido)",
+    activeUsers: num(r.mets[0]),
+    eventCount: num(r.mets[1]),
+  }));
+  return {
+    windowMinutes: 30,
+    activeUsers: countries.reduce((sum, country) => sum + country.activeUsers, 0),
+    eventCount: countries.reduce((sum, country) => sum + country.eventCount, 0),
+    views: countries.reduce((sum, country) => sum + country.views, 0),
+    countries,
+    audienceGroups,
+    events,
+  };
+}
+
 async function historical() {
   const [monthly, total] = await Promise.all([
     runReport({
@@ -225,6 +324,23 @@ Deno.serve(async (req) => {
 
   try {
     const url = new URL(req.url);
+    const mode = url.searchParams.get("mode") || "standard";
+    if (mode === "realtime") {
+      const cacheKey = "realtime";
+      const cachedRealtime = responseCache.get(cacheKey);
+      if (cachedRealtime && cachedRealtime.expiresAt > Date.now()) return json(cachedRealtime.value, 200, 15);
+      const live = await realtime();
+      const realtimePayload = {
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        source: "Google Analytics 4 Realtime Data API",
+        property: PROPERTY_ID,
+        realtime: live,
+      };
+      responseCache.set(cacheKey, { value: realtimePayload, expiresAt: Date.now() + 30 * 1000 });
+      return json(realtimePayload, 200, 15);
+    }
+
     const requestedRange = url.searchParams.get("range") || "last_30_days";
     const allowed = new Set(["last_30_days", "last_7_days", "this_month_inc", "last_month"]);
     const range = allowed.has(requestedRange) ? requestedRange : "last_30_days";
