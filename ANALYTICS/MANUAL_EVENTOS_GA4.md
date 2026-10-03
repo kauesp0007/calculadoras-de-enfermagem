@@ -50,8 +50,8 @@ Os grupos são exclusivamente agregados para visualização. O dado canônico co
 ## 4. Como ler uma linha de evento
 
 - **Evento**: nome técnico da ação.
-- **Usuários**: pessoas/dispositivos distintos associados ao evento na janela.
-- **Ocorrências**: quantas vezes o evento foi registrado.
+- **Usuários ativos**: pessoas/dispositivos distintos na tabela geográfica da janela.
+- **Ocorrências**: quantas vezes cada evento foi registrado na tabela de eventos.
 - Uma pessoa pode gerar várias ocorrências do mesmo evento.
 - Eventos com zero usuários ou sem linha visível podem simplesmente não ter ocorrido nos últimos 30 minutos.
 - Consentimento de Analytics negado impede o envio dos eventos não essenciais.

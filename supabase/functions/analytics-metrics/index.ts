@@ -241,7 +241,7 @@ async function realtime() {
     }),
     runRealtimeReport({
       dimensions: [{ name: "eventName" }],
-      metrics: [{ name: "activeUsers" }, { name: "eventCount" }],
+      metrics: [{ name: "eventCount" }],
       orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
       limit: "25",
       minuteRanges: [{ name: "ultimos_30_minutos", startMinutesAgo: 29, endMinutesAgo: 0 }],
@@ -280,8 +280,7 @@ async function realtime() {
 
   const events = rows(eventsReport).map((r: any) => ({
     name: r.dims[0] || "(não definido)",
-    activeUsers: num(r.mets[0]),
-    eventCount: num(r.mets[1]),
+    eventCount: num(r.mets[0]),
   }));
   return {
     windowMinutes: 30,
