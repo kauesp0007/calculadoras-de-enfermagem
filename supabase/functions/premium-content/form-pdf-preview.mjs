@@ -1,5 +1,11 @@
 const PDF_URL = /["'](\/FORMULARIOS_DE_ESCALAS\/(?:(?:EN|ES)\/)?[^"'?#<>]+\.pdf)(?:[?#][^"']*)?["']/gi;
 const escape = value => String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+// The existing WebP previews are 439px wide. Never enlarge their raster pixels.
+const PREVIEW_STYLE = '<style id="protected-pdf-preview-size">'+
+  '.protected-pdf-viewer:has(>img:not([hidden])),:is(div,section,figure):has(>.protected-pdf-viewer>img:not([hidden])){width:100%!important;max-width:439px!important;height:auto!important;min-height:0!important;aspect-ratio:auto!important;margin-inline:auto!important}'+
+  '.protected-pdf-viewer>img{max-width:439px!important;width:100%!important;height:auto!important;object-fit:contain}'+
+  '.protected-pdf-viewer>img[hidden]{display:none!important}'+
+  '</style>';
 export function formPdfStorageObject(value) {
   return decodeURIComponent(value.replace(/^\/FORMULARIOS_DE_ESCALAS\//,'')).split('/').map(part => encodeURIComponent(part).replace(/%/g,'_')).join('/');
 }
@@ -32,5 +38,5 @@ export function protectFormPdfPreview(html, catalogEntries) {
   if(primary) out = out.replace(/<(?:button|a)\b[^>]*data-action=["']print["'][^>]*>/gi,tag=>tag.replace(/\sdata-protected-pdf-(?:action|id|catalog)="[^"]*"/gi,'').slice(0,-1)+' '+metadata(primary)+' data-protected-pdf-action="print">');
   // Remove legacy inline window.open and source URLs from the public document.
   out = out.replace(PDF_URL,'"#protected-form-pdf"');
-  return out.replace(/<\/body>/i,'<script src="/js/access/protected-form-pdf.js?v=1" defer></script></body>');
+  return out.replace(/<\/body>/i,PREVIEW_STYLE+'<script src="/js/access/protected-form-pdf.js?v=1" defer></script></body>');
 }

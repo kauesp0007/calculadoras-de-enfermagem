@@ -11,6 +11,10 @@ assert(safe.includes('data-protected-pdf-action="print"'));
 assert(safe.includes('data-protected-pdf-action="download"'));
 assert(!/\sdownload(?:\s|>)/i.test(safe));
 assert(safe.includes('/js/access/protected-form-pdf.js?v=1'));
+assert(safe.includes('max-width:439px!important'),'Preview must not enlarge its source raster');
+assert(safe.includes('height:auto!important'),'Preserve natural image ratio and remove oversized wrapper');
+assert(safe.includes(':has(>img:not([hidden]))'),'Size limit applies to image preview, not authorized PDF iframe');
+assert(safe.includes('img[hidden]{display:none!important}'),'Premium viewer must hide the image despite inline display');
 for(const type of ['iframe','object','embed']){const attribute=type==='object'?'data':'src';const html='<body><'+type+' '+attribute+' = "'+entries[0].pdf+'"></'+type+'></body>';assert(protectFormPdfPreview(html,entries).includes('protected-pdf-viewer'));}
 const unknown=protectFormPdfPreview('<body><iframe src="/FORMULARIOS_DE_ESCALAS/unknown.pdf"></iframe></body>',entries);
 assert(!unknown.includes('unknown.pdf'));assert(!unknown.includes('<iframe'));
