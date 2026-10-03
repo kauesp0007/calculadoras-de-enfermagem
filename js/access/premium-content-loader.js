@@ -190,6 +190,9 @@
           await window.__ENSURE_GLOBAL_CHROME();
           if(typeof window.__INIT_LANGUAGE_SELECTOR==="function") await window.__INIT_LANGUAGE_SELECTOR();
           ensurePremiumPromoAfterWrite();
+          if(typeof window.__INIT_FORM_PDF_SIDE_ADS==="function") {
+            Promise.resolve(window.__INIT_FORM_PDF_SIDE_ADS()).catch(function(error){console.warn("[PremiumContent] anúncios do formulário indisponíveis",error);});
+          }
           return;
         }catch(error){
           console.warn("[PremiumContent] falha ao reidratar componentes globais",error);
@@ -198,6 +201,9 @@
       await new Promise(function(resolve){setTimeout(resolve,25);});
     }
     ensurePremiumPromoAfterWrite();
+    if(typeof window.__INIT_FORM_PDF_SIDE_ADS==="function") {
+      Promise.resolve(window.__INIT_FORM_PDF_SIDE_ADS()).catch(function(error){console.warn("[PremiumContent] anúncios do formulário indisponíveis",error);});
+    }
     console.warn("[PremiumContent] componentes globais não ficaram disponíveis após a entrega protegida");
   }
 

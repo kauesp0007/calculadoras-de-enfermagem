@@ -2149,6 +2149,7 @@ async function resolvePremiumAdState(force) {
       }
 
       var auth = window.Auth;
+      bindPremiumAdWatch(auth);
       var user =
         auth && typeof auth.currentUser === "function"
           ? auth.currentUser()
@@ -2209,6 +2210,8 @@ function bindPremiumAdWatch(auth) {
 
   var onStateChange = function () {
     __premiumAdDecisionPromise = null;
+    __premiumAdState = {resolved:false,premium:false,allowAds:false,authenticated:true,unavailable:true};
+    hideFormPdfSideAds();
 
     resolvePremiumAdState(true).then(function (state) {
       if (state.premium) {
@@ -2245,7 +2248,7 @@ function isAdsExcludedPage() {
   const path = window.location.pathname.toLowerCase();
   const filename = path.split("/").pop() || "";
   return (
-    isPremiumContentShellPage() ||
+    (isPremiumContentShellPage() && !isFormPdfSideAdsPage()) ||
     filename === "diagnosticosnanda.html" ||
     filename === "classificacao_intervencoes-enfermagem.html" ||
     path.endsWith("/metricas.html") ||
@@ -2259,6 +2262,106 @@ function isAdsExcludedPage() {
     path.includes("/cadastro")
   );
 }
+
+// Somente documentos de formulários já entregues. O shell de carregamento,
+// catálogos, calculadoras e demais idiomas continuam fora desta exceção.
+function isFormPdfSideAdsPage() {
+  return /^\/(?:(?:en|es)\/)?formulario_[^/]+\.html$/i.test(window.location.pathname) &&
+    !!document.querySelector("main .protected-pdf-viewer");
+}
+
+var __formPdfAdMediaBound = false;
+function hideFormPdfSideAds() {
+  document.querySelectorAll(".form-pdf-side-ad").forEach(function (aside) {
+    aside.setAttribute("data-premium-ads-hidden", "true");
+    aside.style.display = "none";
+  });
+}
+function placeFormPdfSideAds() {
+  if (!isFormPdfSideAdsPage()) return;
+  if (!document.getElementById("form-pdf-side-ads-style")) {
+    const style = document.createElement("style");
+    style.id = "form-pdf-side-ads-style";
+    style.textContent =
+      ".form-pdf-ad-layout{display:grid;grid-template-columns:minmax(0,900px);justify-content:center;gap:24px;width:100%;min-width:0;margin:0 auto}" +
+      ".form-pdf-ad-layout>.form-pdf-ad-card{width:100%!important;max-width:900px!important;min-width:0;margin:0!important}" +
+      ".form-pdf-ad-layout .protected-pdf-viewer,.form-pdf-ad-layout .pdf-frame-wrap{width:100%!important;max-width:100%!important}" +
+      ".form-pdf-ad-layout>.form-pdf-side-ad{display:none;width:160px;min-height:626px;margin:0;padding:0;contain:none;align-self:start;text-align:center}" +
+      ".form-pdf-side-ad ins.adsbygoogle{display:block;width:160px;height:600px;min-height:600px;margin:0}" +
+      "main.pdf-main:has(>.form-pdf-ad-layout){width:100%;max-width:none;height:auto;min-height:0;padding:16px;box-sizing:border-box}" +
+      "@media(min-width:1200px){.form-pdf-ad-layout{grid-template-columns:160px minmax(0,780px) 160px;max-width:1148px}.form-pdf-ad-layout>.form-pdf-ad-card{max-width:780px!important}.form-pdf-ad-layout>.form-pdf-side-ad{display:block}}" +
+      ".form-pdf-ad-layout:has(>[data-premium-ads-hidden=true]){grid-template-columns:minmax(0,900px);max-width:900px}.form-pdf-ad-layout:has(>[data-premium-ads-hidden=true])>.form-pdf-ad-card{max-width:900px!important}" +
+      "@media print{.form-pdf-ad-layout>.form-pdf-side-ad{display:none!important}.form-pdf-ad-layout{display:block;max-width:none}.form-pdf-ad-layout>.form-pdf-ad-card{max-width:none!important}}";
+    document.head.appendChild(style);
+  }
+  const language = (document.documentElement.lang || "pt").toLowerCase();
+  const label = language.startsWith("en") ? "Advertisement" : language.startsWith("es") ? "Publicidad" : "Publicidade";
+  function newIns() {
+    const ad = document.createElement("ins");
+    ad.className = "adsbygoogle";
+    ad.style.cssText = "display:block;width:160px;height:600px";
+    ad.setAttribute("data-ad-client", CONTROLLED_AD_CLIENT);
+    ad.setAttribute("data-ad-slot", "1045005779");
+    ad.setAttribute("data-ad-format", "auto");
+    ad.setAttribute("data-full-width-responsive", "true");
+    return ad;
+  }
+  function rail(side) {
+    const aside = document.createElement("aside");
+    aside.className = "form-pdf-side-ad controlled-display-ad no-print";
+    aside.setAttribute("data-form-pdf-ad-side", side);
+    aside.setAttribute("aria-label", label);
+    const caption = document.createElement("span");
+    caption.className = "controlled-ad-label";
+    caption.textContent = label;
+    aside.append(caption, newIns());
+    return aside;
+  }
+  document.querySelectorAll("main .protected-pdf-viewer").forEach(function (viewer) {
+    if (viewer.closest(".form-pdf-ad-layout")) return;
+    let card = viewer.closest(".card") || viewer.closest(".pdf-frame-wrap");
+    if (!card) {
+      card = document.createElement("div");
+      viewer.parentNode.insertBefore(card, viewer);
+      card.appendChild(viewer);
+    }
+    const layout = document.createElement("div");
+    layout.className = "form-pdf-ad-layout";
+    card.parentNode.insertBefore(layout, card);
+    card.classList.add("form-pdf-ad-card");
+    layout.append(rail("left"), card, rail("right"));
+  });
+  // Login Premium/consentimento negado recolhe as laterais. Uma nova decisão
+  // Free elegível restaura as unidades. Após recusa de consentimento, cria
+  // unidades limpas porque o fluxo central apagou os iframes anteriores.
+  document.querySelectorAll(".form-pdf-side-ad[data-premium-ads-hidden]").forEach(function (aside) {
+    aside.removeAttribute("data-premium-ads-hidden");
+    aside.style.removeProperty("display");
+    const old = aside.querySelector("ins");
+    if (old && aside.hasAttribute("data-form-pdf-ad-reset")) {
+      old.replaceWith(newIns());
+      aside.removeAttribute("data-form-pdf-ad-reset");
+    } else if (old) {
+      old.style.display = "block";
+      old.removeAttribute("aria-hidden");
+    }
+  });
+  if (!__formPdfAdMediaBound) {
+    __formPdfAdMediaBound = true;
+    window.matchMedia("(min-width:1200px)").addEventListener("change", function () {
+      if (typeof window.__LOAD_ADS_IF_ELIGIBLE === "function") window.__LOAD_ADS_IF_ELIGIBLE();
+    });
+  }
+}
+
+window.__INIT_FORM_PDF_SIDE_ADS = function () {
+  if (!isFormPdfSideAdsPage() || typeof window.__LOAD_ADS_IF_ELIGIBLE !== "function") return;
+  // A decisão do shell pode preceder a hidratação do Auth/documento final.
+  __premiumAdDecisionPromise = null;
+  __premiumAdState = {resolved:false,premium:false,allowAds:false,authenticated:true,unavailable:true};
+  hideFormPdfSideAds();
+  return window.__LOAD_ADS_IF_ELIGIBLE();
+};
 
 function styleControlledAds() {
   if (document.getElementById("controlled-ads-style")) return;
@@ -2411,6 +2514,10 @@ function placeControlledAds() {
   if (isAdsExcludedPage()) return;
 
   styleControlledAds();
+  placeFormPdfSideAds();
+  // Os documentos do loader já removiam os outros anúncios. Esta solicitação
+  // acrescenta somente as duas unidades verticais ao formulário demonstrativo.
+  if (isPremiumContentShellPage()) return;
 
   const footer = document.getElementById("footer-placeholder") || document.querySelector("footer");
   const main = document.querySelector("main");
@@ -2459,6 +2566,7 @@ function placeControlledAds() {
 }
 
 function initializeManualAds() {
+  if (typeof window.__CAN_INITIALIZE_ADS !== "function" || !window.__CAN_INITIALIZE_ADS()) return;
   if (isAdsExcludedPage()) return;
   if (isPremiumSubscriber()) return;
 
@@ -2466,8 +2574,11 @@ function initializeManualAds() {
 
   document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
     if (ad.hasAttribute("data-adsbygoogle-status")) return;
+    const sideAd = ad.closest(".form-pdf-side-ad");
+    if (sideAd && (ad.getBoundingClientRect().width === 0 || ad.dataset.formPdfAdQueued === "true")) return;
     try {
       (window.adsbygoogle = window.adsbygoogle || []).push({});
+      if (sideAd) ad.dataset.formPdfAdQueued = "true";
     } catch (error) {
       console.warn("Falha ao inicializar anúncio manual:", error);
     }
@@ -2495,6 +2606,11 @@ function initLazyLoadServices() {
   let adsBlocked =
     isRefused ||
     (isManaged && localStorage.getItem("ad_storage") === "denied");
+
+  window.__CAN_INITIALIZE_ADS = function () {
+    return !adsBlocked && !isAdsExcludedPage() && __premiumAdState.resolved &&
+      __premiumAdState.allowAds && !__premiumAdState.premium;
+  };
 
   window.__metricsLoaded = false;
   window.__adsenseLoaded = false;
@@ -2546,14 +2662,21 @@ function initLazyLoadServices() {
     // Fail closed: enquanto a assinatura não puder ser verificada,
     // não carregamos publicidade. Quando resolvido como Free/visitante,
     // o fluxo normal de AdSense continua.
-    if (!adState.resolved) return;
+    if (adsBlocked || isAdsExcludedPage() || !adState.resolved) return;
 
     if (adState.premium) {
       hideAdsForPremium();
       return;
     }
 
-    if (window.__adsenseLoaded) return;
+    if (!adState.allowAds || !window.__CAN_INITIALIZE_ADS()) return;
+    if (window.__adsenseLoaded) {
+      initializeManualAds();
+      return;
+    }
+
+    styleControlledAds();
+    placeFormPdfSideAds();
 
     window.__adsenseLoaded = true;
 
@@ -2625,6 +2748,11 @@ function initLazyLoadServices() {
       onUserInteraction();
     } else {
       adsBlocked = true;
+      document.querySelectorAll(".form-pdf-side-ad").forEach(function (aside) {
+        aside.setAttribute("data-premium-ads-hidden", "true");
+        aside.setAttribute("data-form-pdf-ad-reset", "true");
+        aside.style.display = "none";
+      });
       document.querySelectorAll("ins.adsbygoogle").forEach(function (ad) {
         ad.style.display = "none";
         ad.innerHTML = "";

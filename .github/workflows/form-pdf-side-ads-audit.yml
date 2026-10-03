@@ -1,0 +1,41 @@
+name: Form PDF Side Ads Audit
+on:
+  pull_request:
+    paths:
+      - global-scripts.js
+      - js/access/premium-content-loader.js
+      - scripts/test-form-pdf-side-ads-browser.mjs
+      - .github/workflows/form-pdf-side-ads-audit.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  browser-audit:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: github-pages
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Preparar navegador de teste isolado
+        run: |
+          npm install --prefix /tmp/form-ad-audit --ignore-scripts --no-package-lock playwright@1.62.1
+          command -v google-chrome
+      - name: Layout real PT EN ES e transicoes de consentimento e plano
+        env:
+          NODE_PATH: /tmp/form-ad-audit/node_modules
+          CHROME_BIN: /usr/bin/google-chrome
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node scripts/test-form-pdf-side-ads-browser.mjs
+      - name: Guardar imagens da contra-prova
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: form-pdf-side-ads-qa
+          path: /tmp/form-pdf-side-ad-qa/*.png
+          if-no-files-found: ignore
+          retention-days: 3
