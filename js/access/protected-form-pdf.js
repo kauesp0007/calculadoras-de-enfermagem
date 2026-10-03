@@ -2,6 +2,11 @@
   'use strict';
   var viewers=Array.from(document.querySelectorAll('.protected-pdf-viewer'));
   if(!viewers.length&&!document.querySelector('[data-protected-pdf-action]')) return;
+  // Restrição da interface da prévia; os bytes exibidos não são DRM.
+  viewers.forEach(function(viewer){viewer.querySelectorAll('img').forEach(function(image){image.draggable=false;image.style.webkitTouchCallout='none';});});
+  function blockPreviewImage(event){if(event.target&&typeof event.target.closest==='function'&&event.target.closest('.protected-pdf-viewer img'))event.preventDefault();}
+  document.addEventListener('contextmenu',blockPreviewImage,true);
+  document.addEventListener('dragstart',blockPreviewImage,true);
   var lang=document.documentElement.lang||'pt',en=/^en/i.test(lang),es=/^es/i.test(lang);
   var messages={premium:en?'PDF download and printing require Premium.':es?'La descarga e impresión del PDF requieren Premium.':'Download e impressão do PDF disponíveis no Premium.',error:en?'Unable to open the PDF. Please try again.':es?'No se pudo abrir el PDF. Inténtalo de nuevo.':'Não foi possível abrir o PDF. Tente novamente.'};
   var urls=new Set(),generation=0;
