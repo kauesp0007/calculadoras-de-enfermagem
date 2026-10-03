@@ -27,7 +27,6 @@ jobs:
       should_deploy: ${{ steps.check.outputs.should_deploy }}
     steps:
       - uses: actions/checkout@v4
-        if: github.event_name == 'schedule'
       - uses: actions/setup-node@v4
         if: github.event_name == 'schedule'
         with:
@@ -36,8 +35,15 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
         run: |
-          if [ "${{ github.event_name }}" = "schedule" ]; then
+          if [ -f DEPLOY_LOCK ]; then
+            echo "🛑 Deploy pausado — arquivo DEPLOY_LOCK presente na raiz. Aguardando liberação."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "push" ] && printf '%s' "$COMMIT_MSG" | grep -Eiq '\[wip\]|\[skip[- ]?deploy\]|\[no[- ]?deploy\]'; then
+            echo "🛑 Deploy ignorado — commit marcado como WIP/skip-deploy."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
             node scripts/developer-premium-requests.mjs --check
           else
             echo "should_deploy=true" >> "$GITHUB_OUTPUT"
