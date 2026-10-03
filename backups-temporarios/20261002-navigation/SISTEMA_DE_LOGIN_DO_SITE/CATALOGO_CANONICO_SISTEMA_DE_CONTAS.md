@@ -135,7 +135,6 @@ O estado de impressão é **fail-closed**. Até existir confirmação Premium, o
 O sistema cobre:
 
 - botão de imprimir detectado por `data-action="print"`, `data-form-action="print"`, `data-premium-print="block"`, `onclick`, nome/label/texto ou função de impressão;
-- links internos para outra página `.html` são navegação, mesmo quando a descrição menciona “print”/“imprimir”; o guard não os intercepta somente pelo texto. Controles explicitamente marcados com ação de impressão ou `data-premium-print="block"` continuam protegidos, assim como a impressão executada por `window.print()`. Os índices EN/ES e o carregador do guard usam versões de cache para receber essa identificação atualizada;
 - chamadas `window.print()`, que são interceptadas nas páginas públicas protegidas;
 - `Ctrl+P` no Windows/Linux e `Cmd+P` no macOS;
 - evento `beforeprint`/ `afterprint`, usado quando a pessoa abre **Imprimir** pelo menu nativo do navegador;

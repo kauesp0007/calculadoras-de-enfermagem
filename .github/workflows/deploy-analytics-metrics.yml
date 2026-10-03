@@ -33,4 +33,10 @@ jobs:
             echo "$response"
             exit 1
           }
-          echo "analytics-metrics respondeu com sucesso."
+          realtime_response="$(curl -sS --fail-with-body "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics?mode=realtime")"
+          echo "$realtime_response" | grep -q '"realtime":' || {
+            echo "::error::A Edge Function não retornou o payload em tempo real esperado."
+            echo "$realtime_response"
+            exit 1
+          }
+          echo "analytics-metrics respondeu com sucesso nos modos padrão e tempo real."
