@@ -1,5 +1,8 @@
 const PDF_URL = /["'](\/FORMULARIOS_DE_ESCALAS\/(?:(?:EN|ES)\/)?[^"'?#<>]+\.pdf)(?:[?#][^"']*)?["']/gi;
 const escape = value => String(value).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+export function formPdfStorageObject(value) {
+  return decodeURIComponent(value.replace(/^\/FORMULARIOS_DE_ESCALAS\//,'')).split('/').map(part => encodeURIComponent(part).replace(/%/g,'_')).join('/');
+}
 export function protectFormPdfPreview(html, catalogEntries) {
   const normalize = value => {try{return decodeURIComponent(value);}catch(_){return value;}};
   const byPdf = new Map(catalogEntries.map(e => [normalize(e.pdf),e]));

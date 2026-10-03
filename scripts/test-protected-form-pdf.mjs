@@ -23,3 +23,7 @@ assert(!edge.includes('fetch(new URL(form.pdf'),'No public original fallback');
 const entitlement=edge.indexOf('if(!(await premiumForUser(user)))',edge.indexOf('url.searchParams.has("download")'));
 assert(entitlement>=0&&entitlement<edge.indexOf('.download(object)'),'Server entitlement precedes bytes');
 console.log('PASS: PDF preview fail-closed, protected print/download, private storage and unconditional server Premium check.');
+
+const {formPdfStorageObject}=await import('../supabase/functions/premium-content/form-pdf-preview.mjs');
+assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/formulário.pdf'),'formul_C3_A1rio.pdf');
+assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/EN/test.pdf'),'EN/test.pdf');
