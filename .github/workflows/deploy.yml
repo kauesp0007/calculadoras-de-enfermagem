@@ -146,6 +146,7 @@ jobs:
           node scripts/test-developer-route-catalog.js
           node scripts/test-english-assistential-previews.mjs
           node scripts/test-localized-assistential-catalog.mjs
+          node scripts/test-protected-form-pdf.mjs
           node --check scripts/test-account-pages.js
 
       - name: 🔬 Simular benefício com estado real do Supabase
@@ -214,7 +215,14 @@ jobs:
       - name: 📄 Atualizar catálogo de páginas do desenvolvedor
         run: node scripts/generate-developer-route-catalog.mjs
 
+      - name: 🔐 Guardar PDFs assistenciais fora da publicação pública
+        run: |
+          node --check scripts/prepare-private-assistential-pdfs.mjs
+          node scripts/prepare-private-assistential-pdfs.mjs
+
       - name: ⚙️ Gerar Service Worker
+        # Os originais não podem integrar o artifact público nem o cache do SW.
+        # A etapa anterior verifica a cópia privada antes de mover as fontes.
         run: node gerar-sw.js
 
       - name: 📤 Upload dos arquivos

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
+import { protectFormPdfPreview } from "./form-pdf-preview.mjs";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -116,11 +117,10 @@ serve(async req=>{
       if(!(await premiumForUser(user))) return new Response("Premium required",{status:403,headers:H});
       const form=catalogDownload(data.content,url.searchParams.get("download")||"");
       if(!form) return new Response("Not Found",{status:404,headers:H});
-      const original=await fetch(new URL(form.pdf,"https://www.calculadorasdeenfermagem.com.br"),{
-        redirect:"error",signal:AbortSignal.timeout(15000)
-      });
-      if(!original.ok) throw new Error("form_pdf_unavailable");
-      const bytes=await original.arrayBuffer();
+      const object=form.pdf.replace(/^\/FORMULARIOS_DE_ESCALAS\//,"");
+      const stored=await db().storage.from("assistential-pdfs-private").download(object);
+      if(stored.error||!stored.data) throw new Error("form_pdf_unavailable");
+      const bytes=await stored.data.arrayBuffer();
       if(bytes.byteLength<5 || bytes.byteLength>30*1024*1024 || new TextDecoder().decode(bytes.slice(0,5))!=="%PDF-")
         throw new Error("invalid_form_pdf");
       return new Response(bytes,{status:200,headers:{...H,
@@ -138,7 +138,17 @@ serve(async req=>{
 
     // A página completa é uma demonstração pública. O entitlement continua
     // obrigatório nas ações protegidas (cálculo, interpretação, simulado e download).
-    const content=keyCandidates(key).includes(FORM_CATALOG_KEY)?data.content.replace(DOWNLOAD_REGISTRY,""):data.content;
+    let content=keyCandidates(key).includes(FORM_CATALOG_KEY)?data.content.replace(DOWNLOAD_REGISTRY,""):data.content;
+    if(/["']\/FORMULARIOS_DE_ESCALAS\/[^"']+\.pdf/i.test(content)){
+      const entries=[];
+      for(const prefix of ["","en/","es/"]){
+        const catalog=prefix+FORM_CATALOG_KEY;
+        const row=await privateContentForKey(catalog);
+        const registry=row?.content.match(DOWNLOAD_REGISTRY);
+        if(registry) for(const entry of JSON.parse(registry[1])) entries.push({...entry,catalog});
+      }
+      content=protectFormPdfPreview(content,entries);
+    }
     return new Response(content,{status:200,headers:{
       ...H,
       "Cache-Control":"private, no-store, max-age=0",

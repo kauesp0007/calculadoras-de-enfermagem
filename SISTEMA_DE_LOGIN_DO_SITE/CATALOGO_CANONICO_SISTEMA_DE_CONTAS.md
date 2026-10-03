@@ -239,3 +239,9 @@ A origem e precedência das mudanças feitas em `conta/desenvolvedor.html` estã
 
 Quando uma nova página ou funcionalidade for criada, a IA deve primeiro classificar **o que está sendo protegido**: acesso à página, ação de cálculo/resultado, download, impressão/PDF ou entrega de arquivo. Em seguida deve reutilizar o sistema existente descrito neste catálogo. É proibido criar uma segunda fonte de verdade, um segundo Auth, uma lista Premium local ou um bypass de impressão para resolver um problema pontual.
 
+## Visualização de PDFs incorporados — correção de 03/10/2026
+
+O HTML demonstrativo não entrega PDF original por iframe, object, embed, link ou window.open. A Edge `premium-content` substitui as incorporações de `/FORMULARIOS_DE_ESCALAS/` por prévias WebP e metadados controlados do catálogo; correspondência ausente falha fechada. `protected-form-pdf.js` reutiliza Firebase/Auth e solicita `?path=<catálogo>&download=form-NNN`. O endpoint verifica o mesmo entitlement Premium antes de ler o bucket privado `assistential-pdfs-private`, inclusive quando a página de consulta é Free. O cliente não concede acesso com base em `hasPlan`; esse valor só antecipa a tentativa de abrir a prévia Premium. Após resposta autorizada, o visualizador usa um blob PDF local. Logout/troca de conta revoga os blobs e restaura a imagem.
+
+O deploy copia e verifica byte a byte os originais no bucket privado e só então move `FORMULARIOS_DE_ESCALAS/` para fora do artifact público, antes da geração do SW. A etapa falha se faltar algum dos 192 arquivos registrados. As fontes permanecem no repositório e no histórico público GitHub: esta correção protege a entrega no site, mas não torna secretas cópias já publicadas no GitHub ou já baixadas. Não descrever isso como revogação de arquivos previamente obtidos.
+
