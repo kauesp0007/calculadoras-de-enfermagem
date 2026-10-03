@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const script=fs.readFileSync('js/access/assistential-preview-quality.js','utf8');
+const manifest=JSON.parse(fs.readFileSync('scripts/assistential-preview-quality.json','utf8'));
+const samples=['pt','en','es'].map(lang=>manifest.find(r=>r.language===lang));
+const images=samples.map(r=>({src:'https://site.test/'+r.preview+'?v=old',width:439,height:620}));
+const unknown={src:'https://site.test/img/formularios-previas/form-999.webp',width:439,height:620};
+const document={querySelectorAll:()=>[...images,unknown]};
+vm.runInNewContext(script,{document,location:{origin:'https://site.test'},fetch:async()=>({ok:true,json:async()=>manifest}),URL,Date});
+await new Promise(r=>setImmediate(r));
+images.forEach((im,i)=>{assert.equal(im.width,samples[i].width);assert.equal(im.height,samples[i].height);assert(im.src.endsWith(samples[i].webp_sha256.slice(0,16)));});
+assert.equal(unknown.width,439);
+const previous=images.map(im=>im.src);
+vm.runInNewContext(script,{document,location:{origin:'https://site.test'},fetch:async()=>({ok:false}),URL,Date});
+await new Promise(r=>setImmediate(r));
+assert.deepEqual(images.map(im=>im.src),previous);
+console.log('PASS: PT/EN/ES actual dimensions and content hash URLs; unknown/error fallback remains visible.');

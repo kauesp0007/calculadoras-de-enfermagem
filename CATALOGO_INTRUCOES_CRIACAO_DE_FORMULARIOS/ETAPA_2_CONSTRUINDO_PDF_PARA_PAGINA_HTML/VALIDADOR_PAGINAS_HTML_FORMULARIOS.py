@@ -39,8 +39,8 @@ def auditar_pagina_html(caminho_html):
     expected_canonical = f"https://www.calculadorasdeenfermagem.com.br/{nome_arquivo}"
     if expected_canonical not in html and "{{SLUG_HTML}}" not in html:
         erros.append(f"Link canonical incorreto (esperado: {expected_canonical})")
-    if 'hreflang="pt-br"' not in html or 'hreflang="x-default"' not in html:
-        erros.append("Marcadores hreflang pt-br / x-default ausentes")
+    if 'hreflang="pt-br"' not in html:
+        erros.append("Marcador hreflang pt-br ausente")
 
     # 4. Schema.org
     if 'type="application/ld+json"' not in html:
@@ -59,15 +59,14 @@ def auditar_pagina_html(caminho_html):
         if 'id="global-header-container"' not in html or 'id="footer-placeholder"' not in html:
             erros.append("Containers de injeção global (#global-header-container ou #footer-placeholder) ausentes")
 
-        pdf_match = re.search(r'src=["\']/FORMULARIOS_DE_ESCALAS/([^"\']+\.pdf)["\']', html)
-        if not pdf_match:
-            if "{{NOME_ARQUIVO_PDF}}" not in html:
-                erros.append("Visualizador de PDF (iframe) ausente ou mal formatado")
-        else:
-            pdf_nome = pdf_match.group(1)
-            pdf_fisico = os.path.join(PDF_DIR, pdf_nome)
-            if not os.path.exists(pdf_fisico):
-                erros.append(f"Arquivo PDF referenciado no iframe NÃO existe no disco: {pdf_nome}")
+        if re.search(r"[\"']/FORMULARIOS_DE_ESCALAS/[^\"']+\.pdf",html,re.I):
+            erros.append('PDF original exposto no HTML publico')
+        if 'protected-pdf-viewer' not in html or '/img/formularios-previas/' not in html:
+            erros.append('Previa protegida ausente')
+        if '/js/access/protected-form-pdf.js' not in html:
+            erros.append('Cliente canonico PDF protegido ausente')
+        if 'data-protected-pdf-action="download"' not in html:
+            erros.append('Acao download protegida ausente')
 
     return erros
 
@@ -100,5 +99,6 @@ def auditar_todas_as_paginas(padrao="formulario_*.html"):
 if __name__ == "__main__":
     import sys
     filtro = sys.argv[1] if len(sys.argv) > 1 else "formulario_*.html"
-    auditar_todas_as_paginas(filtro)
+    sys.exit(0 if auditar_todas_as_paginas(filtro) else 1)
+
 

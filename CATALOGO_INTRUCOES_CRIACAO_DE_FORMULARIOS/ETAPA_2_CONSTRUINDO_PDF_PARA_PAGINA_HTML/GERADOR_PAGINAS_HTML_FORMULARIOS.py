@@ -7,6 +7,7 @@ Calculadoras de Enfermagem — www.calculadorasdeenfermagem.com.br
 
 import os
 import json
+import argparse
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_PATH = os.path.join(SCRIPT_DIR, "TEMPLATE_PAGINA_FORMULARIO_CANONICA.html")
@@ -51,7 +52,14 @@ FORMULARIOS_METADATA = [
 
 def gerar_pagina_formulario(metadata, template_str, destino_dir):
     """Compila o template HTML com os metadados da escala e grava no diretório de destino."""
+    registry = json.load(open(os.path.join(ROOT_DIR, 'scripts', 'assistential-preview-map.json'), encoding='utf-8'))
+    form = next((e for e in registry if e['pdf'] == '/FORMULARIOS_DE_ESCALAS/' + metadata['pdf']), None)
+    if form is None: raise ValueError('Registre o PDF no mapa antes de criar a pagina')
+    quality = json.load(open(os.path.join(ROOT_DIR, 'scripts', 'assistential-preview-quality.json'), encoding='utf-8'))
+    image = next(e for e in quality if e['id'] == form['id'] and e['language'] == form['language'])
     html = template_str
+    for name, value in {'FORM_ID':form['id'],'CATALOG_PATH':form['catalog'],'PREVIEW_PATH':'/'+image['preview'],'PREVIEW_WIDTH':image['width'],'PREVIEW_HEIGHT':image['height']}.items():
+        html = html.replace('{{'+name+'}}', str(value))
     html = html.replace("{{NOME_CANONICO}}", metadata["nome"])
     html = html.replace("{{SLUG_HTML}}", metadata["slug"])
     html = html.replace("{{NOME_ARQUIVO_PDF}}", metadata["pdf"])
@@ -63,6 +71,7 @@ def gerar_pagina_formulario(metadata, template_str, destino_dir):
     html = html.replace("{{ASPECTOS_JSON}}", json.dumps(metadata["aspects"], ensure_ascii=False))
 
     saida = os.path.join(destino_dir, metadata["slug"])
+    if os.path.exists(saida): raise FileExistsError("Nao sobrescrever pagina existente: " + saida)
     with open(saida, "w", encoding="utf-8") as f:
         f.write(html)
     print(f"✅ Página HTML gerada com sucesso: {saida}")
@@ -74,10 +83,13 @@ def main():
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         template_str = f.read()
 
+    parser=argparse.ArgumentParser();parser.add_argument("--output",required=True,help="Pasta de staging; nunca sobrescrever HTML publicado")
+    args=parser.parse_args();os.makedirs(args.output,exist_ok=True)
     print(f"Iniciando compilação de formulários HTML em: {ROOT_DIR}")
     for item in FORMULARIOS_METADATA:
-        gerar_pagina_formulario(item, template_str, ROOT_DIR)
+        gerar_pagina_formulario(item, template_str, args.output)
     print("Processo concluído com êxito!")
 
 if __name__ == "__main__":
     main()
+

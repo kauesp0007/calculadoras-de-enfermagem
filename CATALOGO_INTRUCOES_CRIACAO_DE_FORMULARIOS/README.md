@@ -2,7 +2,7 @@
 
 Este catálogo documenta de forma canônica, exaustiva e reprodutível o método completo em duas etapas para:
 1. **Etapa 1:** Transformação de calculadoras em **Formulários Hospitalares em Branco em PDF nativo de alta definição**, estritamente formatados para **uma única página A4**, sem quebras e com a identidade visual do portal **Calculadoras de Enfermagem**.
-2. **Etapa 2:** Criação das **Páginas HTML hospedeiras na raiz do portal**, exibindo o PDF aberto a 100% de largura útil com moldura proporcional A4, botão de download em vidro azul, SEO completo e conformidade Core Web Vitals.
+2. **Etapa 2:** Criação das **Páginas HTML hospedeiras na raiz do portal**, exibindo imagem WebP sem perda em 200 DPI para Free (até 900 px) e PDF original privado para Premium, com SEO, acessibilidade e Core Web Vitals.
 
 ---
 
@@ -12,7 +12,7 @@ Servir como memória operacional permanente para o desenvolvedor e como **especi
 1. Criar um novo formulário em PDF a partir de uma escala existente em HTML;
 2. Modernizar ou recalibrar formulários antigos para caber perfeitamente em 1 página A4;
 3. Incorporar testes neuropsicológicos ou avaliações clínicas com estímulos visuais (SVGs vetoriais);
-4. Criar a página HTML correspondente com visualizador embutido aberto em 100% (`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML`);
+4. Criar a página HTML correspondente com imagem estática protegida e visualizador Premium autorizado (`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML`);
 5. Executar a auditoria e contra-prova geométrica automatizada antes da aprovação final.
 
 ---
@@ -32,8 +32,8 @@ Servir como memória operacional permanente para o desenvolvedor e como **especi
 📁 **Subpasta:** [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/)
 | Arquivo | Descrição |
 |---|---|
-| [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/README.md`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/README.md) | Visão geral da Etapa 2 (Hospedagem, SEO, Visualizador 100% e Download). |
-| [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/MANUAL_PAGINA_HTML_VISUALIZADOR_PDF_100.md`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/MANUAL_PAGINA_HTML_VISUALIZADOR_PDF_100.md) | Manual técnico detalhado da página HTML (Head canônico em 12 blocos, Iframe A4, Botão Vidro Azul, Menus e Build). |
+| [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/README.md`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/README.md) | Método vigente: imagem Free e PDF privado Premium. |
+| [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/MANUAL_PAGINA_HTML_VISUALIZADOR_PDF_100.md`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/MANUAL_PAGINA_HTML_VISUALIZADOR_PDF_100.md) | Manual atualizado de imagem 200 DPI, programas, agentes, HTML protegido, cache e deploy. |
 | [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/TEMPLATE_PAGINA_FORMULARIO_CANONICA.html`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/TEMPLATE_PAGINA_FORMULARIO_CANONICA.html) | Arquivo modelo HTML completo e validado, pronto para parametrização. |
 | [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/GERADOR_PAGINAS_HTML_FORMULARIOS.py`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/GERADOR_PAGINAS_HTML_FORMULARIOS.py) | Script gerador autônomo em lote ou individual de páginas HTML. |
 | [`ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/VALIDADOR_PAGINAS_HTML_FORMULARIOS.py`](./ETAPA_2_CONSTRUINDO_PDF_PARA_PAGINA_HTML/VALIDADOR_PAGINAS_HTML_FORMULARIOS.py) | Script auditor determinístico de integridade de páginas HTML de formulários. |
@@ -61,4 +61,5 @@ Servir como memória operacional permanente para o desenvolvedor e como **especi
    - Alinhamento vertical e horizontal rigoroso dos títulos e caixas.
 5. **Vetorização Pura (SVGs):** Desenhos, gráficos e diagramas clínicos DEVEM ser embutidos em SVG vetorial nativo (nunca PNGs ou JPEGs borrados).
 6. **Auditoria Obrigatória:** Nenhuma tarefa de geração de PDF ou página HTML é considerada concluída sem passar pelos scripts auditores automatizados com 100% de aprovação.
+
 

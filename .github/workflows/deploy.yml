@@ -104,6 +104,15 @@ jobs:
           node --check _gerar_formularios_escalas.js
           node _gerar_formularios_escalas.js
 
+      - name: Renderizar previas assistenciais em 200 DPI sem perda
+        run: |
+          if ! command -v pdftoppm >/dev/null || ! /usr/bin/python3 -c "from PIL import Image, features; assert features.check('webp')"; then
+            sudo apt-get update
+            sudo apt-get install -y poppler-utils python3-pil
+          fi
+          /usr/bin/python3 scripts/render-assistential-previews.py --workers 4
+          /usr/bin/python3 scripts/render-assistential-previews.py --audit
+
       - name: 🧹 Centralizar carregamento do AdSense
         run: |
           node --check scripts/sanitize-direct-adsense-loaders.mjs
@@ -148,6 +157,7 @@ jobs:
           node scripts/test-english-assistential-previews.mjs
           node scripts/test-localized-assistential-catalog.mjs
           node scripts/test-protected-form-pdf.mjs
+          node scripts/test-assistential-preview-quality.mjs
           node --check scripts/test-account-pages.js
 
       - name: 🔬 Simular benefício com estado real do Supabase
@@ -188,12 +198,13 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- '*.html'; then
+          git add -- '*.html' img/formularios-previas scripts/assistential-preview-quality.json
+          if git diff --cached --quiet; then
             echo "Nenhuma página Premium precisou ser shellificada."
             exit 0
           fi
-          git add -- '*.html'
-          git commit -m "chore(site): persistir HTMLs normalizados e protegidos"
+          git add -- '*.html' img/formularios-previas scripts/assistential-preview-quality.json
+          git commit -m "chore(site): persistir HTMLs protegidos e previas assistenciais 200 DPI"
 
           # A main pode avançar enquanto o deploy executa. Rebaseia o commit gerado
           # antes do push para nunca sobrescrever commits concorrentes.
@@ -215,6 +226,9 @@ jobs:
 
       - name: 📄 Atualizar catálogo de páginas do desenvolvedor
         run: node scripts/generate-developer-route-catalog.mjs
+
+      - name: Auditar previas novamente apos fetch e rebase
+        run: /usr/bin/python3 scripts/render-assistential-previews.py --audit
 
       - name: 🔐 Guardar PDFs assistenciais fora da publicação pública
         run: |
@@ -241,3 +255,4 @@ jobs:
 
       - name: ✅ Ativar rotas com shell publicado
         run: node scripts/developer-premium-requests.mjs --finalize
+
