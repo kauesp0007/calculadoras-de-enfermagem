@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import assert from 'node:assert/strict';
+import {gunzipSync} from 'node:zlib';
 import {createRequire} from 'node:module';
 import {protectFormPdfPreview} from '../supabase/functions/premium-content/form-pdf-preview.mjs';
 const {chromium}=createRequire(import.meta.url)('playwright');
@@ -9,12 +10,8 @@ const fixturesRoot=process.env.FORM_AD_FIXTURES||'/tmp/form-pdf-side-ad-fixtures
 const qaRoot=process.env.FORM_AD_QA||'/tmp/form-pdf-side-ad-qa';
 fs.mkdirSync(fixturesRoot,{recursive:true});fs.mkdirSync(qaRoot,{recursive:true});
 if(!fs.readdirSync(fixturesRoot).length){
- const base=process.env.SUPABASE_URL,key=process.env.SUPABASE_SERVICE_ROLE_KEY;assert(base&&key,'CI credentials absent');
- const r=await fetch(base+'/rest/v1/premium_content_pages?select=path,content&limit=1000',{headers:{apikey:key,Authorization:'Bearer '+key}});assert(r.ok,'Private fixture HTTP '+r.status);
- for(const row of await r.json()){
-  if(!/^((en|es)\/)?formulario_[^/]+\.html$/i.test(row.path)||!/<(iframe|object|embed)[^>]*(src|data)=[\"'][^\"']*\/FORMULARIOS_DE_ESCALAS\//i.test(row.content))continue;
-  const file=path.join(fixturesRoot,row.path);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,row.content);
- }
+ const rows=JSON.parse(gunzipSync(fs.readFileSync(root+'/scripts/fixtures/form-pdf-side-ads.json.gz')));
+ for(const row of rows){assert(/^((en|es)\/)?formulario_[^/]+\.html$/i.test(row.path));assert(!row.html.includes('/FORMULARIOS_DE_ESCALAS/'));const file=path.join(fixturesRoot,row.path);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,row.html);}
 }
 const global=fs.readFileSync(root+'/global-scripts.js','utf8');
 const start=global.indexOf('const CONTROLLED_AD_CLIENT');
