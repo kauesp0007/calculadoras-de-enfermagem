@@ -11,7 +11,7 @@ assert(safe.includes('data-protected-pdf-action="print"'));
 assert(safe.includes('data-protected-pdf-action="download"'));
 assert(!/\sdownload(?:\s|>)/i.test(safe));
 assert(safe.includes('/js/access/protected-form-pdf.js?v=1'));
-assert(safe.includes('max-width:439px!important'),'Preview must not enlarge its source raster');
+assert(safe.includes('max-width:900px!important'),'Preview must not enlarge its source raster');
 assert(safe.includes('height:auto!important'),'Preserve natural image ratio and remove oversized wrapper');
 assert(safe.includes(':has(>img:not([hidden]))'),'Size limit applies to image preview, not authorized PDF iframe');
 assert(safe.includes('img[hidden]{display:none!important}'),'Premium viewer must hide the image despite inline display');
@@ -31,3 +31,4 @@ console.log('PASS: PDF preview fail-closed, protected print/download, private st
 const {formPdfStorageObject}=await import('../supabase/functions/premium-content/form-pdf-preview.mjs');
 assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/formulário.pdf'),'formul_C3_A1rio.pdf');
 assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/EN/test.pdf'),'EN/test.pdf');
+

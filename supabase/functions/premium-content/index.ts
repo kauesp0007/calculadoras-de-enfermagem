@@ -149,6 +149,8 @@ serve(async req=>{
       }
       content=protectFormPdfPreview(content,entries);
     }
+    content=content.replace(/(\/img\/formularios-previas\/(?:(?:en|es)\/)?form-\d{3}\.webp)(?:\?[^"'\s<>]*)?/gi,"$1?v=200dpi-v1");
+    if(content.includes('/img/formularios-previas/')) content=content.replace(/<\/body>/i,'<script src="/js/access/assistential-preview-quality.js?v=1" defer></script></body>');
     return new Response(content,{status:200,headers:{
       ...H,
       "Cache-Control":"private, no-store, max-age=0",
@@ -161,3 +163,5 @@ serve(async req=>{
     return new Response(status===401?"Unauthorized":"Premium content unavailable",{status,headers:H});
   }
 });
+
+
