@@ -26,6 +26,12 @@
 | `3341197364` | Multiplex (fim da página) | `autorelaxed` | 1.924 | 1.902 | ✅ Ativa — presente em praticamente toda página elegível |
 | `5690484911` | Display Pré-Resultado ("Botão Calcular") | `horizontal` | 1.042 | 1.042 | ✅ Ativa — páginas com calculadora/resultado |
 | `2979726942` | Display Pós-Hero | `horizontal`/`auto` | 22 | 22 | ✅ Ativa — injetada por JS em toda página; hardcoded em `aldrete.html`, `centro-cirurgico.min.html` + 20 páginas normalizadas |
+| `1045005779` | Vertical Lateral (formulários) | `auto` (160x600) | 420 | 210 | ✅ Ativa — injetada por JS nos formulários PDF (2 por página) |
+
+> **Nota (unidade dinâmica):** os anúncios verticais laterais (`1045005779`) são **injetados
+> dinamicamente** por `global-scripts.js` (`placeFormPdfSideAds`) e **não aparecem** no
+> `_scan_result.json` (que só varre `<ins>` hardcoded). São 2 por página (esquerda + direita),
+> 160x600, visíveis apenas em ≥1200px, nas 210 páginas `formulario_*.html` (62 pt-BR, 74 en, 74 es).
 
 ### 1.2 Unidades legadas — ✅ CORRIGIDAS em 03/10/2026
 

@@ -33,13 +33,14 @@ const CONTROLLED_RESULT_SLOT      = "5690484911"; // Display Pré-Resultado ("Bo
 const CONTROLLED_MULTIPLEX_SLOT   = "3341197364"; // Multiplex (final da página)
 ```
 
-### 2.2 As 3 unidades oficiais (o "tesouro")
+### 2.2 As 4 unidades oficiais (o "tesouro")
 
 | Unidade | Slot | Formato | Posição na página | Injeção |
 |---|---|---|---|---|
 | **Display Pós-Hero** | `2979726942` | `horizontal` | Logo abaixo do card do H1 (hero) | JS (`placeControlledAds`) — hardcoded em só 2 páginas |
 | **Display Pré-Resultado** | `5690484911` | `horizontal` | Entre o formulário/calculadora e o container de resultado | Hardcoded em 1042 páginas + JS |
-| **Multiplex** | `3341197364` | `autorelaxed` | Fim da jornada, antes do `<footer>` | Hardcoded em ~1903 páginas + JS |
+| **Multiplex** | `3341197364` | `autorelaxed` | Fim da jornada, antes do `<footer>` | Hardcoded em ~1902 páginas + JS |
+| **Vertical Lateral (formulários)** | `1045005779` | `auto` (160x600) | 2 trilhos (esquerda + direita) ao lado do PDF do formulário | Injetado por JS (`placeFormPdfSideAds`) em 210 páginas `formulario_*.html` |
 
 ### 2.3 Funções-chave no `global-scripts.js`
 
@@ -47,7 +48,10 @@ const CONTROLLED_MULTIPLEX_SLOT   = "3341197364"; // Multiplex (final da página
 |---|---|
 | `CONTROLLED_AD_CLIENT` / `*_SLOT` | Constantes com publisher e slots oficiais. |
 | `isAdsExcludedPage()` | Lista de páginas que **não** recebem anúncio. |
-| `placeControlledAds()` | Cria/reposiciona os 3 blocos controlados na página. |
+| `placeControlledAds()` | Cria/reposiciona os 3 blocos controlados (display + multiplex). |
+| `placeFormPdfSideAds()` | Cria os 2 anúncios verticais laterais nos formulários PDF. |
+| `isFormPdfSideAdsPage()` | Detecta páginas `formulario_*.html` (pt/en/es). |
+| `hideFormPdfSideAds()` | Esconde as laterais para Premium. |
 | `createDisplayAd()` / `createMultiplexAd()` | Montam o `<aside>` + `<ins class="adsbygoogle">`. |
 | `normalizeExistingAd()` | Normaliza um bloco já hardcoded para o padrão oficial. |
 | `initializeManualAds()` | Empurra todos os `ins.adsbygoogle` para `window.adsbygoogle.push({})`. |
