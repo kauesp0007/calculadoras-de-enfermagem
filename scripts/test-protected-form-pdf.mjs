@@ -32,3 +32,26 @@ const {formPdfStorageObject}=await import('../supabase/functions/premium-content
 assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/formulário.pdf'),'formul_C3_A1rio.pdf');
 assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/EN/test.pdf'),'EN/test.pdf');
 
+
+// Executa o script real: menu/arraste são restritos à prévia, sem gate paralelo.
+const {runInNewContext}=await import('node:vm');
+for(const lang of ['pt-BR','en','es']){
+  const listeners={},image={style:{},hidden:false};
+  const viewer={querySelectorAll:selector=>selector==='img'?[image]:[],querySelector:()=>image};
+  const document={documentElement:{lang},querySelectorAll:()=>[viewer],querySelector:()=>null,addEventListener:(name,handler)=>{listeners[name]=handler;}};
+  const window={addEventListener:()=>{}};
+  runInNewContext(fs.readFileSync('js/access/protected-form-pdf.js','utf8'),{window,document,URL:{revokeObjectURL:()=>{}},Set});
+  assert.equal(image.draggable,false);assert.equal(image.style.webkitTouchCallout,'none');
+  for(const eventName of ['contextmenu','dragstart']){
+    assert.equal(typeof listeners[eventName],'function');
+    for(const preview of [true,false]){
+      let prevented=false;
+      listeners[eventName]({target:{closest:selector=>{assert.equal(selector,'.protected-pdf-viewer img');return preview?image:null;}},preventDefault:()=>{prevented=true;}});
+      assert.equal(prevented,preview,eventName+' '+lang+' preview='+preview);
+    }
+    listeners[eventName]({target:{},preventDefault:()=>assert.fail('Non-image target blocked')});
+  }
+  assert.equal(typeof listeners.click,'function','Existing protected PDF actions remain attached');
+  listeners['auth:logout']();assert.equal(image.hidden,false,'Logout restores the same protected preview');
+}
+console.log('PASS: PT/EN/ES preview context menu and drag blocked; unrelated targets and protected PDF controls preserved.');
