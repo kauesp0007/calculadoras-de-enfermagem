@@ -1,4 +1,4 @@
-const CACHE_VERSION = "20261002-152533";
+const CACHE_VERSION = "20261002-221150";
 const CACHE_NAME = `calculadoras-enfermagem-cache-${CACHE_VERSION}`;
 
 // O SCRIPT DE BUILD VAI INJETAR A LISTA DE ARQUIVOS AQUI
@@ -77,6 +77,7 @@ const urlsToCache = [
   '_gerar_formularios_escalas.js',
   '_gerar_formularios_escalas_4.js',
   'atualizar-scripts.js',
+  'auto-git-sync.js',
   'automacoes/add-guias-especificos.js',
   'automacoes/add-guias-gerais.js',
   'automacoes/auditoria_notificacao_compulsoria.json',
@@ -229,8 +230,15 @@ const urlsToCache = [
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/auth-user-profile.js',
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/global-scripts.js',
   'backups-temporarios/2026-09-02-conta-i18n-pre-edit/js/auth/lang-selector.js',
+  'backups-temporarios/20261002-navigation/cache-revision/global-scripts.js',
+  'backups-temporarios/20261002-navigation/global-scripts.js',
+  'backups-temporarios/20261002-navigation/js/access/premium-print-guard.js',
+  'backups-temporarios/20261002-navigation/scripts/test-premium-auth-delivery-flow.js',
   'backups-temporarios/_check_single_quote.js',
+  'backups-temporarios/_equal_height_side_cards.js',
   'backups-temporarios/_fix_links.js',
+  'backups-temporarios/_fix_side_card_title.js',
+  'backups-temporarios/_remove_mini_calc.js',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.codex-plugin/plugin.json',
   'backups-temporarios/copilot-gpt56-bridge-scaffold-20260902-1519/.mcp.json',
   'backups-temporarios/en_content_register.json',
@@ -1067,6 +1075,7 @@ const urlsToCache = [
   'relatorios/cwv-gate/2026-10-02T14-46-32.json',
   'relatorios/cwv-gate/2026-10-02T16-43-26.json',
   'relatorios/cwv-gate/2026-10-02T16-47-36.json',
+  'relatorios/cwv-gate/2026-10-03T01-10-02.json',
   'relatorios/impacto/2026-09-02T10-01-10.json',
   'relatorios/impacto/2026-09-02T10-55-46.json',
   'relatorios/impacto/2026-09-02T10-59-28.json',
@@ -1500,6 +1509,7 @@ const urlsToCache = [
   'relatorios/impacto/2026-10-02T14-46-33.json',
   'relatorios/impacto/2026-10-02T16-43-27.json',
   'relatorios/impacto/2026-10-02T16-47-38.json',
+  'relatorios/impacto/2026-10-03T01-10-08.json',
   'relatorios/multiplex-reserva.json',
   'relatorios/orquestracao/task-0085d6c28f25.json',
   'relatorios/orquestracao/task-2dfc9d3f72a9.json',
@@ -1555,6 +1565,7 @@ const urlsToCache = [
   'scripts/replicar-forum-note.js',
   'scripts/sensitive-replace.js',
   'scripts/sensitive-scan.js',
+  'scripts/spanish-assistential-preview-map.json',
   'scripts/substituir-fontawesome.js',
   'scripts/test-account-pages.js',
   'scripts/test-billing-final.js',
@@ -1571,7 +1582,9 @@ const urlsToCache = [
   'scripts/test-orquestrador.js',
   'scripts/test-premium-ads.js',
   'scripts/test-premium-auth-delivery-flow.js',
+  'scripts/test-premium-chrome-rehydration.js',
   'scripts/test-premium-content-access.js',
+  'scripts/test-premium-print-navigation.js',
   'scripts/test-premium-promo.js',
   'scripts/test-premium-simulados-access.js',
   'scripts/test-prova-execucao.js',
