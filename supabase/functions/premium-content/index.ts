@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
-import { protectFormPdfPreview } from "./form-pdf-preview.mjs";
+import { protectFormPdfPreview, formPdfStorageObject } from "./form-pdf-preview.mjs";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")??"";
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")??"";
@@ -117,7 +117,7 @@ serve(async req=>{
       if(!(await premiumForUser(user))) return new Response("Premium required",{status:403,headers:H});
       const form=catalogDownload(data.content,url.searchParams.get("download")||"");
       if(!form) return new Response("Not Found",{status:404,headers:H});
-      const object=form.pdf.replace(/^\/FORMULARIOS_DE_ESCALAS\//,"");
+      const object=formPdfStorageObject(form.pdf);
       const stored=await db().storage.from("assistential-pdfs-private").download(object);
       if(stored.error||!stored.data) throw new Error("form_pdf_unavailable");
       const bytes=await stored.data.arrayBuffer();
