@@ -150,25 +150,6 @@ let syncing = false;
 let pending = false;
 let debounceTimer = null;
 
-async function pullOnly() {
-    const branch = await currentBranch();
-    if (!branch) {
-        log("⚠️ branch não detectada; pull periódico ignorado.");
-        return;
-    }
-    const r = await git(["pull", "--rebase", "origin", branch]);
-    if (r.code !== 0) {
-        log("⚠️ pull periódico com conflito; abortando rebase...");
-        await abortRebaseIfNeeded();
-        log("❌ Conflito no pull. Resolva manualmente com: git status / git rebase --continue.");
-        return;
-    }
-    const msg = (r.out + r.err).trim();
-    if (msg && !msg.includes("Already up to date")) {
-        log("✅ pull periódico trouxe mudanças da origem.");
-    }
-}
-
 async function commitPullPush() {
     const branch = await currentBranch();
     if (!branch) {
@@ -177,12 +158,17 @@ async function commitPullPush() {
     }
 
     // 1. Commit local (se houver mudanças)
+    let didCommit = false;
     await git(["add", "-A"]);
     if (await hasStagedChanges()) {
         const msg = await buildCommitMessage();
         const c = await git(["commit", "-m", msg]);
-        if (c.code === 0) log(`✅ commit: ${msg}`);
-        else log(`ℹ️ commit: ${(c.err || c.out).trim().split("\n")[0]}`);
+        if (c.code === 0) {
+            didCommit = true;
+            log(`✅ commit: ${msg}`);
+        } else {
+            log(`ℹ️ commit: ${(c.err || c.out).trim().split("\n")[0]}`);
+        }
     }
 
     // 2. Pull --rebase (traz a origem antes de publicar)
@@ -194,12 +180,14 @@ async function commitPullPush() {
         return;
     }
 
-    // 3. Push
-    const push = await git(["push", "-u", "origin", branch]);
-    if (push.code === 0) {
-        log("✅ push ok.");
-    } else {
-        log(`⚠️ push: ${(push.err || push.out).trim().split("\n").slice(0, 2).join(" | ")}`);
+    // 3. Push (só se houve commit local, para não empurrar "nothing")
+    if (didCommit) {
+        const push = await git(["push", "-u", "origin", branch]);
+        if (push.code === 0) {
+            log("✅ push ok.");
+        } else {
+            log(`⚠️ push: ${(push.err || push.out).trim().split("\n").slice(0, 2).join(" | ")}`);
+        }
     }
 }
 
@@ -243,8 +231,8 @@ watcher.on("all", (event) => {
     }
 });
 
-// Pull periódico da origem
-setInterval(pullOnly, PULL_INTERVAL_MS);
+// Sincronização periódica: commita pendências e traz a origem
+setInterval(runSync, PULL_INTERVAL_MS);
 
-log("🟢 Auto Git Sync ativo — commit+pull+push ao salvar e pull periódico a cada 5 min.");
+log("🟢 Auto Git Sync ativo — commit+pull+push ao salvar e sincronização periódica a cada 5 min.");
 log("   Mensagem manual: crie COMMIT_MSG.txt na raiz. Apague-o para voltar ao automático.");
