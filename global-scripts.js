@@ -1115,12 +1115,12 @@ function initializeAuthMenu() {
     if (desktopItem) {
       if (isLoggedIn) {
         // Avatar + nome + dropdown
-        desktopItem.className = "relative group flex items-center";
+        desktopItem.className = "relative group flex items-center mr-1.5";
         desktopItem.innerHTML =
           '<button type="button" class="flex flex-col items-center gap-0.5 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false" title="' + displayName + '">' +
           (photoURL
-            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="rounded-full border-2 border-[#1A3E74]" style="width:26px;height:26px;object-fit:cover;flex-shrink:0" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
-            : '<div class="rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-xs" style="width:26px;height:26px;flex-shrink:0">' + displayName.charAt(0).toUpperCase() + "</div>") +
+            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="account-avatar" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
+            : '<div class="account-avatar account-avatar-initial">' + displayName.charAt(0).toUpperCase() + "</div>") +
           "<span class='max-w-[90px] truncate text-[10px] leading-none'>" + displayName + "</span>" +
           "</button>" +
           '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100" role="menu">' +
