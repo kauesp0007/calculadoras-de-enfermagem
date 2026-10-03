@@ -3,6 +3,7 @@ import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
 import assert from "node:assert/strict";
+import { validateCatalogNavigation } from "./assistential-catalog-navigation.mjs";
 
 const ROOT=process.cwd();
 const LANGS=["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"];
@@ -55,6 +56,7 @@ if(base&&key){
   const rows=await get("premium_content_pages?select=path,content&path=in.("+paths.map(encodeURIComponent).join(",")+")");
   const byPath=new Map(rows.map(r=>[r.path,r]));
   assert.equal(byPath.size,3,"Os três catálogos privados devem existir");
+  for(const p of paths) validateCatalogNavigation(byPath.get(p).content,p);
   function registry(p){
     const html=byPath.get(p)?.content||"";
     const m=html.match(/<script\b[^>]*id=["']assistential-form-downloads["'][^>]*>([\s\S]*?)<\/script>/i);
