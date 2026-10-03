@@ -1117,12 +1117,11 @@ function initializeAuthMenu() {
         // Avatar + nome + dropdown
         desktopItem.className = "relative group flex items-center";
         desktopItem.innerHTML =
-          '<button type="button" class="flex items-center gap-2 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false">' +
+          '<button type="button" class="flex flex-col items-center gap-0.5 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false" title="' + displayName + '">' +
           (photoURL
-            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="w-7 h-7 rounded-full border-2 border-[#1A3E74]" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
-            : '<div class="w-7 h-7 rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-xs">' + displayName.charAt(0).toUpperCase() + "</div>") +
-          "<span class='max-w-[100px] truncate'>" + displayName + "</span>" +
-          '<svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>' +
+            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="rounded-full border-2 border-[#1A3E74]" style="width:26px;height:26px;object-fit:cover;flex-shrink:0" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
+            : '<div class="rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-xs" style="width:26px;height:26px;flex-shrink:0">' + displayName.charAt(0).toUpperCase() + "</div>") +
+          "<span class='max-w-[90px] truncate text-[10px] leading-none'>" + displayName + "</span>" +
           "</button>" +
           '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100" role="menu">' +
           '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.profile + '</a></li>' +
@@ -1201,8 +1200,8 @@ function initializeAuthMenu() {
         mobileItem.innerHTML =
           '<div class="px-4 py-2 flex items-center gap-3">' +
           (photoURL
-            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="w-9 h-9 rounded-full border-2 border-[#1A3E74]" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
-            : '<div class="w-9 h-9 rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-sm">' + displayName.charAt(0).toUpperCase() + "</div>") +
+            ? '<img src="' + photoURL + '" alt="' + displayName + '" class="rounded-full border-2 border-[#1A3E74]" style="width:36px;height:36px;object-fit:cover;flex-shrink:0" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
+            : '<div class="rounded-full bg-[#1A3E74] flex items-center justify-center text-white font-bold text-sm" style="width:36px;height:36px;flex-shrink:0">' + displayName.charAt(0).toUpperCase() + "</div>") +
           '<div><p class="font-bold text-sm text-gray-800 m-0">' + (user.displayName || "Usuário") + "</p>" +
           '<p class="text-xs text-gray-500 m-0">' + (user.email || "") + "</p></div>" +
           "</div>" +
