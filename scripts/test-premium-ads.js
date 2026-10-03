@@ -102,7 +102,28 @@ assert.match(loaderSection, /resolvePremiumAdState\(false\)/, "O carregador não
 assert.match(loaderSection, /if \(adState\.premium\)/, "O carregador não possui bloqueio específico para Premium.");
 assert.match(source, /function isPremiumContentShellPage\(\)/, "Shells Premium não possuem detecção dedicada para bloqueio de anúncios.");
 assert.match(source, /premium-content-loader\.js/, "A detecção de shells Premium não reconhece o loader de conteúdo protegido.");
-assert.match(source, /isPremiumContentShellPage\(\)\s*\|\|/, "Shells Premium não foram excluídos da política global de anúncios.");
+// Executa a exclusão real: apenas formulários PT/EN/ES já entregues
+// podem seguir para a decisão central de plano e consentimento.
+const exclusionPolicy = section("function isPremiumContentShellPage()", "var __formPdfAdMediaBound");
+const routeExcluded = new Function("window", "document", exclusionPolicy + "\nreturn isAdsExcludedPage();");
+for (const test of [
+  ["/formulario_bps.html", true, false, true],
+  ["/formulario_bps.html", true, true, false],
+  ["/en/formulario_escala_de_flacc.html", true, true, false],
+  ["/es/formulario_escala_de_flacc.html", true, true, false],
+  ["/fr/formulario_bps.html", true, true, true],
+  ["/formularios_de_escalas_assistenciais.html", true, true, true],
+  ["/morse.html", true, true, true],
+  ["/conta/formulario_bps.html", true, true, true],
+  ["/morse.html", false, false, false]
+]) {
+  const [pathname, shell, viewer, expected] = test;
+  const excluded = routeExcluded(
+    { location: { pathname }, __IS_PREMIUM_ROUTE: shell },
+    { querySelector: selector => selector === "main .protected-pdf-viewer" ? viewer : shell }
+  );
+  assert.equal(excluded, expected, "Exclusão real de anúncios: " + pathname + " shell=" + shell + " viewer=" + viewer);
+}
 
 assert.doesNotMatch(adSection, /premium-ads-guard/i, "Módulo legado premium-ads-guard foi reutilizado.");
 assert.doesNotMatch(adSection, /premium-banner-manager/i, "Módulo legado premium-banner-manager foi reutilizado.");
