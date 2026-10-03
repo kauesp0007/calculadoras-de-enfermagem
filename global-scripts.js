@@ -1117,11 +1117,11 @@ function initializeAuthMenu() {
         // Avatar + nome + dropdown
         desktopItem.className = "relative group flex items-center mr-1.5";
         desktopItem.innerHTML =
-          '<button type="button" class="flex flex-col items-center gap-0.5 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false" title="' + displayName + '">' +
+          '<button type="button" class="account-menu-btn flex flex-row items-center gap-2 text-gray-700 hover:text-[#1A3E74] font-medium" aria-haspopup="true" aria-expanded="false" title="' + displayName + '">' +
+          "<span class='max-w-[110px] truncate text-xs leading-none'>" + displayName + "</span>" +
           (photoURL
             ? '<img src="' + photoURL + '" alt="' + displayName + '" class="account-avatar" referrerpolicy="no-referrer" onerror="this.style.display=\'none\'"/>'
             : '<div class="account-avatar account-avatar-initial">' + displayName.charAt(0).toUpperCase() + "</div>") +
-          "<span class='max-w-[90px] truncate text-[10px] leading-none'>" + displayName + "</span>" +
           "</button>" +
           '<ul class="absolute right-0 hidden group-hover:block bg-white shadow-lg rounded-md py-1 w-48 z-50 border border-gray-100" role="menu">' +
           '<li><a role="menuitem" href="' + window.__ACCOUNT_PAGE_URL('/conta/perfil.html') + '" class="block px-4 !py-1.5 text-gray-700 hover:bg-gray-100 text-sm">' + copy.profile + '</a></li>' +
