@@ -247,3 +247,6 @@ O deploy copia e verifica byte a byte os originais no bucket privado e só entã
 
 
 O bucket privado tem isolamento RLS restritivo para anon/authenticated, registrado em `supabase/security/assistential-pdf-storage.sql`; políticas permissivas antigas não podem liberar seus objetos. O deploy prova recusa anônima nas rotas públicas/autenticadas e exclui também a cópia duplicada Perroca em docs. A service role permanece restrita ao pipeline e à Edge.
+
+
+As prévias WebP (439 × 620 px) usam largura máxima de 439 px, altura automática e alinhamento central. O wrapper da imagem perde altura/aspect ratio forçados; em telas menores a prévia reduz proporcionalmente. A regra condicionada à imagem visível não limita o iframe PDF autorizado. O atributo hidden é respeitado mesmo diante dos estilos inline, evitando imagem duplicada no Premium. Não ampliar essas prévias acima da resolução original.
