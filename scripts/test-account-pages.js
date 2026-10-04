@@ -138,6 +138,32 @@ if (langSelector.includes('const isAccountPage = pathName.indexOf("/conta/") ===
   fail("lang-selector.js: detector antigo root-only de conta ainda presente.");
 }
 
+const loginPage = fs.readFileSync(path.join(ROOT, "conta", "login.html"), "utf8");
+for (const required of [
+  'id="btn-google-login"',
+  'data-evento="click_botao_conta_google"',
+  'id="form-email-login"',
+  'id="link-toggle-mode"',
+  'id="link-reset-password"',
+  'fill="#4285F4"',
+  'fill="#34A853"',
+  'fill="#FBBC05"',
+  'fill="#EA4335"'
+]) {
+  if (!loginPage.includes(required)) fail(`conta/login.html: login Google/e-mail canônico ausente: ${required}`);
+}
+for (const forbidden of [
+  'id="btn-microsoft-login"',
+  'id="btn-apple-login"',
+  'data-evento="click_botao_conta_microsoft"',
+  'data-evento="click_botao_conta_apple"'
+]) {
+  if (loginPage.includes(forbidden)) fail(`conta/login.html: provedor social ainda exposto na interface: ${forbidden}`);
+}
+if (!loginPage.includes('src="/js/auth/auth-microsoft.js"') || !loginPage.includes('src="/js/auth/auth-apple.js"')) {
+  fail("conta/login.html: módulos placeholder Microsoft/Apple foram removidos; ocultar a UI não deve alterar a arquitetura de autenticação vigente.");
+}
+
 const authUi = fs.readFileSync(path.join(ROOT, "js", "auth", "auth-ui.js"), "utf8");
 if (authUi.includes('normalizedReturn.indexOf("/conta/") === 0')) {
   fail("auth-ui.js: retorno de login ainda usa detector root-only de conta.");
