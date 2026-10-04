@@ -83,7 +83,7 @@ engine_added as (
   select replace(
     content,
     E'<script>\r\ndocument.addEventListener(\'DOMContentLoaded\',function(){\r\n\'use strict\';',
-    E'<script src="/js/simulados/simulator-engine.js?v=1.0.1-p0"></script>\r\n<script>\r\n\'use strict\';'
+    E'<script>\r\n\'use strict\';'
   ) as content
   from ui_replaced
 ),
@@ -103,7 +103,7 @@ with_script_end as (
 final_doc as (
   select overlay(
     content
-    placing E'];\r\n\r\n(function(){\r\n  var root = document.getElementById(\'ce-simulator-root\');\r\n  if (!root || !window.CESimulator) {\r\n    console.error(\'CESimulator indisponível para o piloto.\');\r\n    return;\r\n  }\r\n  window.CESimulator.create({\r\n    id: \'simulado-tecnico-enfermagem-1\',\r\n    title: \'1° Simulado para Técnicos de Enfermagem\',\r\n    contentVersion: \'2026-10-04-pilot-01\',\r\n    mode: \'exam\',\r\n    allowModeChoice: true,\r\n    storage: true,\r\n    timer: true,\r\n    print: true,\r\n    analytics: true,\r\n    type: \'general\',\r\n    audience: \'tecnico-enfermagem\',\r\n    topic: \'concursos\',\r\n    questions: questionsData\r\n  }).mount();\r\n})();\r\n'
+    placing E'];\r\n\r\n(function(){\r\n  var root = document.getElementById(\'ce-simulator-root\');\r\n  if (!root || !window.CESimulator) {\r\n    console.error(\'CESimulator indisponível para o piloto.\');\r\n    return;\r\n  }\r\n  window.CESimulator.create({\r\n    id: \'simulado-tecnico-enfermagem-1\',\r\n    title: \'1° Simulado para Técnicos de Enfermagem\',\r\n    contentVersion: \'2026-10-04-pilot-01\',\r\n    mode: \'exam\',\r\n    allowModeChoice: true,\r\n    storage: true,\r\n    timer: true,\r\n    print: true,\r\n    analytics: true,\r\n    type: \'general\',\r\n    audience: \'tecnico-enfermagem\',\r\n    topic: \'concursos\',\r\n      questions: questionsData\r\n    }).mount();\r\n  }\r\n  if (window.CESimulator) { mountSimulator(); return; }\r\n  var engineScript = document.createElement('script');\r\n  engineScript.src = '/js/simulados/simulator-engine.js?v=1.0.1-p0';\r\n  engineScript.async = false;\r\n  engineScript.onload = mountSimulator;\r\n  engineScript.onerror = function(){ console.error('Falha ao carregar CESimulator.'); };\r\n  document.head.appendChild(engineScript);\r\n})();\r\n'
     from runtime_start
     for script_end - runtime_start
   ) as content
@@ -145,7 +145,7 @@ begin
     (length(content)-length(replace(content,'/js/simulados/simulator-engine.js','')))/length('/js/simulados/simulator-engine.js'),
     (length(content)-length(replace(content,'/css/simulados/simulator-engine.css','')))/length('/css/simulados/simulator-engine.css'),
     (length(content)-length(replace(content,'data-premium-action="block"','')))/length('data-premium-action="block"'),
-    (length(content)-length(replace(content,E'questions: questionsData\r\n  }).mount();\r\n})();\r\n</script>','')))/length(E'questions: questionsData\r\n  }).mount();\r\n})();\r\n</script>')
+    (length(content)-length(replace(content,E'document.head.appendChild(engineScript);\r\n})();\r\n</script>','')))/length(E'document.head.appendChild(engineScript);\r\n})();\r\n</script>')
   into v_questions_md5, v_answer_count, v_ref_count, v_mount_count, v_engine_js_count, v_engine_css_count, v_premium_block_count, v_immediate_bootstrap_count
   from public.premium_content_pages
   where path = 'simulado-de-enfermagem.html';
