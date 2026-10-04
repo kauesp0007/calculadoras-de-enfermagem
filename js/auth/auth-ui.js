@@ -542,6 +542,10 @@
       var localizedHome = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
 var isAccountRoute = /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(normalizedReturn);
       var isExtensionBridge = normalizedReturn === "/conta/extensao-login.html";
+      // A assinatura central é a única rota de conta autorizada como retorno
+      // pós-login. Preservá-la evita perder o usuário no meio do funil sem
+      // criar páginas ou rotas alternativas.
+      var isSubscriptionRoute = normalizedReturn === "/conta/assinatura.html";
       var premiumPath = normalizedReturn;
       var parts = premiumPath.split("/").filter(Boolean);
       var languages = {en:1,es:1,fr:1,it:1,de:1,hi:1,zh:1,ja:1,ru:1,ko:1,tr:1,nl:1,pl:1,sv:1,id:1,vi:1,uk:1,ar:1};
@@ -553,8 +557,16 @@ var isAccountRoute = /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|u
         window.__PREMIUM_PATHS[premiumPath]
       );
 
-      if (isExtensionBridge) {
+      if (isExtensionBridge || isSubscriptionRoute) {
         targetUrl = returnUrl;
+        if (isSubscriptionRoute) {
+          try {
+            sessionStorage.setItem("billing_login_completed", JSON.stringify({
+              lang: params.get("lang") || "",
+              at: Date.now()
+            }));
+          } catch (_) {}
+        }
       } else if (
         !isAccountRoute &&
         normalizedReturn !== "/" &&
