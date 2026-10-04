@@ -199,8 +199,8 @@
       // Executa o login
       await window.Auth.signIn(providerName);
 
-      // Sucesso: redireciona
-      _redirectAfterLogin();
+      // Sucesso: confirma o plano no backend antes de redirecionar.
+      await _redirectAfterLogin();
     } catch (error) {
       // Tratamento de erro
       _showError(_localizedError(error));
@@ -240,7 +240,7 @@
             email: email,
             password: password
           });
-          _redirectAfterLogin();
+          await _redirectAfterLogin();
           break;
 
         case "register":
@@ -252,7 +252,7 @@
           });
           _showSuccess(_t("authSuccess"));
           setTimeout(function () {
-            _redirectAfterLogin();
+            void _redirectAfterLogin();
           }, 1500);
           break;
 
@@ -519,10 +519,25 @@
     }
   }
 
+  function _trackSubscriptionRedirect(planState, destination, lang) {
+    try {
+      if (typeof window.gtag === "function") {
+        window.gtag("event", "subscription_post_login_redirect", {
+          plan_state: planState,
+          destination: destination,
+          lang: lang || "",
+          transport_type: "beacon"
+        });
+      }
+    } catch (_) {}
+  }
+
   /**
    * Redireciona o usuário após login bem-sucedido.
+   * Quando o retorno solicitado é a assinatura central, confirma primeiro o
+   * entitlement canônico: Premium volta para a home; Free permanece no funil.
    */
-  function _redirectAfterLogin() {
+  async function _redirectAfterLogin() {
     var params = new URLSearchParams(window.location.search);
     var returnUrl = params.get("returnUrl") || params.get("redirect");
     var targetUrl = window.AccountI18n ? window.AccountI18n.localizedHome() : "/";
@@ -557,9 +572,32 @@ var isAccountRoute = /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|u
         window.__PREMIUM_PATHS[premiumPath]
       );
 
-      if (isExtensionBridge || isSubscriptionRoute) {
+      if (isExtensionBridge) {
         targetUrl = returnUrl;
-        if (isSubscriptionRoute) {
+      } else if (isSubscriptionRoute) {
+        var isPremiumAccount = false;
+        var planState = "free";
+        try {
+          if (window.Auth && typeof window.Auth.refreshProfile === "function") {
+            await window.Auth.refreshProfile();
+          }
+          isPremiumAccount = !!(
+            window.Auth &&
+            typeof window.Auth.hasPlan === "function" &&
+            window.Auth.hasPlan("premium")
+          );
+          planState = isPremiumAccount ? "premium" : "free";
+        } catch (error) {
+          planState = "unresolved";
+          console.warn("[AuthUI] Não foi possível confirmar o plano após o login:", error);
+        }
+
+        if (isPremiumAccount) {
+          targetUrl = localizedHome;
+          _trackSubscriptionRedirect(planState, "home", params.get("lang") || "");
+        } else {
+          targetUrl = returnUrl;
+          _trackSubscriptionRedirect(planState, "subscription", params.get("lang") || "");
           try {
             sessionStorage.setItem("billing_login_completed", JSON.stringify({
               lang: params.get("lang") || "",
