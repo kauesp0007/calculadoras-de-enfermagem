@@ -70,6 +70,14 @@ PAYMENT_OVERDUE marca past_due. CHECKOUT_CANCELED/EXPIRED, SUBSCRIPTION_INACTIVA
 
 **Incidente e correção:** um checkout de cartão criado em 01/10/2026 gerou cobrança futura porque `asaas-checkout` adicionava 24 horas à primeira data. Em paralelo, o webhook recebeu uma data que causou `RangeError: Invalid time value`. PR #124 (commit `c439bfeaa15f808cb4b59298fee17a9809ac849f`) publicou `asaas-webhook` v252 com parser seguro e separação entre assinatura criada e primeiro pagamento. PR #125 (commit `a04599e8ee7fc8f794d86b37bcdac358803e665e`) publicou `asaas-checkout` v257 com primeira cobrança imediata e recorrência mensal posterior. Checkouts criados antes da v257 não são retroativamente remarcados.
 
+## Correções do funil de assinatura e rastreabilidade — 03/10/2026
+
+O retorno pós-login continua usando exclusivamente a rota central `/conta/assinatura.html?lang=xx&returnUrl=...`. Essa rota é a única exceção de conta aceita por `auth-ui.js` como destino automático depois da autenticação. Não foram criadas páginas `/{lang}/conta/assinatura.html`, aliases nem um segundo roteador. As demais rotas de conta continuam voltando à home quando não forem destinos explicitamente permitidos. Um marcador efêmero em `sessionStorage` serve apenas para emitir telemetria de login concluído; ele não autentica, não autoriza e não concede plano.
+
+A correlação Asaas foi reforçada sem criar registros paralelos. `asaas-checkout` v258 persiste `checkout_id` e, quando a resposta do provedor os disponibiliza, `provider_subscription_id` e `asaas_customer_id`. `asaas-webhook` v253 continua tentando external reference, checkout, subscription e customer; quando esses campos não bastam, consulta o cliente no Asaas e só recupera a assinatura se o e-mail normalizado corresponder a uma única `billing_identity` Firebase e houver um único candidato compatível. Ambiguidade falha fechada e permanece `webhook_orphan`; a função não cria assinatura nem entitlement nesse fallback. Depois da recuperação, os identificadores são persistidos para que os eventos seguintes usem a correlação direta.
+
+A rastreabilidade do funil usa os mecanismos existentes, sem novo endpoint ou tabela. O frontend envia ao GA4: `subscription_page_view`, `subscription_login_required`, `subscription_login_completed`, `subscription_checkout_click`, `subscription_checkout_request`, `subscription_checkout_created`, `subscription_checkout_redirect`, `subscription_payment_pending`, `subscription_checkout_error`, `subscription_page_error` e os retornos de pagamento já existentes. As Edge Functions escrevem logs estruturados `[billing-event]` para checkout criado/reutilizado/erro, webhook correlacionado, correlação recuperada, órfão, processado e erro. Não registrar token, segredo ou e-mail nesses logs.
+
 ## Stripe internacional
 
 stripe-checkout exige lang entre en, es, fr, de, it, hi, zh, ja, ru, ko, tr, nl, pl, sv, id, vi, uk, ar. EUR: tr, nl, pl, ru, fr, es, de, it, uk, sv. USD: en, hi, zh, ja, ko, id, vi, ar. O backend escolhe STRIPE_PRICE_EUR/STRIPE_PRICE_USD; há fallback hardcoded de price IDs, sem garantia de correspondência com a conta conectada. Cria Checkout Session mode=subscription, quantity=1, customer_email, client_reference_id=billing identity, metadata Firebase UID/plano/idioma; success_url localizada e cancel_url em /conta/. O frontend e o card exibem € 5,00 ou US$ 5,00 mensais e aceitam cartão; preço efetivo depende do Price escolhido pelo backend.
@@ -86,7 +94,7 @@ A autenticação é Firebase; o plano é decidido no servidor. O caminho canôni
 
 No frontend, `Auth.billingStatus()`, `Auth.hasPlan("premium")` e `Auth.refreshProfile()` refletem o resultado de `billing-access`. Quando uma ação exige Premium, o backend é novamente consultado por `premium-content?path=...&access=check`; uma decisão Free não fica cacheada indefinidamente, porque pagamento, reconciliação ou concessão administrativa podem mudar durante a sessão. Token 401 força renovação antes de nova tentativa; falha de infraestrutura não deve ser tratada como pagamento aprovado.
 
-Versões implantadas neste corte: `premium-content` v146, `billing-access` v146, `developer-admin` v5, `asaas-checkout` v257, `asaas-webhook` v252, `stripe-checkout` v187 e `stripe-webhook` v261.
+Versões implantadas neste corte: `premium-content` v146, `billing-access` v146, `developer-admin` v5, `asaas-checkout` v258, `asaas-webhook` v253, `stripe-checkout` v187 e `stripe-webhook` v261.
 
 ### Política de rotas e significado de Free/Premium
 
