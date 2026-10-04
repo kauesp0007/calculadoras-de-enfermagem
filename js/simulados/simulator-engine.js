@@ -32,6 +32,7 @@
     unansweredResult: "Não respondidas",
     score: "Aproveitamento",
     time: "Tempo",
+    print: "Imprimir",
     reviewErrors: "Revisar erros",
     retryAll: "Refazer simulado",
     noErrors: "Nenhuma questão errada para revisar.",
@@ -239,6 +240,7 @@
       allowModeChoice: true,
       storage: true,
       timer: true,
+      print: false,
       analytics: true,
       type: "",
       audience: "",
@@ -789,13 +791,102 @@
     retry.type = "button";
     retry.addEventListener("click", this.restart.bind(this));
     actions.appendChild(retry);
+
+    if (this.config.print) {
+      var printButton = createElement("button", "ce-sim-btn ce-sim-btn-secondary", this.labels.print);
+      printButton.type = "button";
+      printButton.addEventListener("click", this.printAttempt.bind(this));
+      actions.appendChild(printButton);
+    }
     section.appendChild(actions);
 
     this.root.appendChild(section);
+    if (this.config.print) this.renderPrintSheet();
     this._emit("simulator_result_view", {
       score_bucket: scoreBucket(score.percent),
       unanswered_count: score.unanswered
     });
+  };
+
+
+  Simulator.prototype.renderPrintSheet = function () {
+    if (!this.attempt || !this.attempt.completedAt) return null;
+
+    var existing = this.root.querySelector("[data-ce-sim-print-sheet]");
+    if (existing) existing.remove();
+
+    var score = scoreAttempt(this.questions, this.attempt.answers);
+    var sheet = createElement("section", "ce-sim-print-sheet");
+    sheet.setAttribute("data-ce-sim-print-sheet", "true");
+    sheet.appendChild(createElement("h1", "ce-sim-print-title", this.config.title));
+    sheet.appendChild(createElement(
+      "p",
+      "ce-sim-print-summary",
+      this.labels.hits + ": " + score.hits + "/" + score.total +
+        " · " + this.labels.score + ": " + score.percent + "%" +
+        " · " + this.labels.time + ": " + formatTime(this.attempt.elapsedSeconds)
+    ));
+
+    var self = this;
+    this.questions.forEach(function (question, index) {
+      var answer = self.attempt.answers[index];
+      var card = createElement("article", "ce-sim-print-question");
+      card.appendChild(createElement(
+        "h2",
+        "ce-sim-print-question-title",
+        self.labels.question + " " + (index + 1)
+      ));
+      card.appendChild(createElement("p", "ce-sim-print-prompt", question.prompt));
+
+      var options = createElement("ol", "ce-sim-print-options");
+      question.options.forEach(function (option, optionIndex) {
+        var item = createElement(
+          "li",
+          "ce-sim-print-option",
+          String.fromCharCode(65 + optionIndex) + ") " + option
+        );
+        if (optionIndex === question.correctIndex) item.classList.add("is-correct");
+        if (Number.isInteger(answer) && optionIndex === answer && answer !== question.correctIndex) {
+          item.classList.add("is-user-wrong");
+        }
+        options.appendChild(item);
+      });
+      card.appendChild(options);
+
+      var userAnswer = Number.isInteger(answer)
+        ? String.fromCharCode(65 + answer) + ") " + question.options[answer]
+        : self.labels.unanswered;
+      var correctAnswer = String.fromCharCode(65 + question.correctIndex) + ") " +
+        question.options[question.correctIndex];
+
+      card.appendChild(createElement("p", "ce-sim-print-answer", "Sua resposta: " + userAnswer));
+      card.appendChild(createElement("p", "ce-sim-print-answer", "Gabarito: " + correctAnswer));
+      if (question.explanation) {
+        card.appendChild(createElement(
+          "p",
+          "ce-sim-print-explanation",
+          self.labels.explanation + ": " + question.explanation
+        ));
+      }
+      if (question.reference) {
+        card.appendChild(createElement(
+          "p",
+          "ce-sim-print-reference",
+          self.labels.reference + ": " + question.reference
+        ));
+      }
+      sheet.appendChild(card);
+    });
+
+    this.root.appendChild(sheet);
+    return sheet;
+  };
+
+  Simulator.prototype.printAttempt = function () {
+    if (!this.attempt || !this.attempt.completedAt) return;
+    this.renderPrintSheet();
+    this._emit("simulator_print_click");
+    if (typeof global.print === "function") global.print();
   };
 
   Simulator.prototype.reviewErrors = function () {
@@ -871,7 +962,7 @@
   };
 
   var api = {
-    version: "1.0.0-p0",
+    version: "1.0.1-p0",
     create: function (config) { return new Simulator(config); },
     normalizeQuestion: normalizeQuestion,
     normalizeQuestions: normalizeQuestions,
