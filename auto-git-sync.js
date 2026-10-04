@@ -54,6 +54,23 @@ function shouldTrack(rel) {
     return !parts.some((p) => IGNORED_SEGMENTS.includes(p));
 }
 
+// Lock obsoleto do git: quando uma operação é interrompida, o .git/index.lock
+// fica órfão e trava os commits seguintes. Removemos se estiver velho.
+const LOCK_STALE_MS = 60 * 1000; // 1 minuto
+
+function cleanupStaleLock() {
+    const lockPath = path.join(ROOT, ".git", "index.lock");
+    try {
+        const st = fs.statSync(lockPath);
+        if (Date.now() - st.mtimeMs > LOCK_STALE_MS) {
+            fs.unlinkSync(lockPath);
+            log("🧹 .git/index.lock obsoleto removido (travava commits).");
+        }
+    } catch {
+        // sem lock ou erro de stat: nada a fazer
+    }
+}
+
 function git(args) {
     return new Promise((resolve) => {
         const child = spawn("git", args, {
@@ -156,6 +173,8 @@ async function commitPullPush() {
         log("⚠️ branch não detectada; commit ignorado.");
         return;
     }
+
+    cleanupStaleLock();
 
     // 1. Commit local (se houver mudanças)
     let didCommit = false;
