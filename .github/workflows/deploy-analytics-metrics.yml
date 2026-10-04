@@ -39,7 +39,8 @@ jobs:
             echo "$realtime_response"
             exit 1
           }
-          subscription_response="$(curl -sS --fail-with-body "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics?mode=subscription_24h")"
+          subscription_headers="$(mktemp)"
+          subscription_response="$(curl -sS --fail-with-body -D "$subscription_headers" "https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics?mode=subscription_24h&fresh=1")"
           echo "$subscription_response" | grep -q '"subscription24h":' || {
             echo "::error::A Edge Function não retornou o funil de assinatura de 24h esperado."
             echo "$subscription_response"
@@ -48,6 +49,11 @@ jobs:
           echo "$subscription_response" | grep -q '"windowHours":24' || {
             echo "::error::A janela do funil de assinatura não está configurada para 24 horas."
             echo "$subscription_response"
+            exit 1
+          }
+          grep -qi '^cache-control:.*no-store' "$subscription_headers" || {
+            echo "::error::A consulta fresh do painel do desenvolvedor não está retornando Cache-Control no-store."
+            cat "$subscription_headers"
             exit 1
           }
           echo "analytics-metrics respondeu com sucesso nos modos padrão, tempo real e assinatura 24h."

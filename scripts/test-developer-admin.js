@@ -85,6 +85,16 @@ assert.match(page, /Funil de assinatura — últimas 24 horas/);
 assert.match(page, /subscription_checkout_click/);
 assert.match(page, /subscription_payment_cancelled/);
 assert.match(page, /subscription_payment_success/);
+assert.match(page, /mode=subscription_24h&fresh=1/);
+assert.match(page, /cache:"no-store"/);
+assert.match(page, /pageshow/);
+assert.match(page, /visibilitychange/);
+assert.ok(
+  page.indexOf("Liberar Área Premium") < page.indexOf("Assinantes e Tentativas") &&
+  page.indexOf("Assinantes e Tentativas") < page.indexOf("Histórico de decisões do desenvolvedor") &&
+  page.indexOf("Histórico de decisões do desenvolvedor") < page.indexOf("Classificação Free ou Premium por página"),
+  "conta/desenvolvedor.html: ordem dos cards administrativos não corresponde ao layout canônico."
+);
 assert.match(page, /simulado-de-enfermagem\.html/);
 assert.match(page, /biblioteca-provas\.html/);
 
@@ -96,5 +106,8 @@ assert.match(analytics, /click_menu_assine_ja/);
 assert.match(analytics, /subscription_checkout_click/);
 assert.match(analytics, /subscription_payment_cancelled/);
 assert.match(analytics, /subscription_payment_success/);
+assert.match(analytics, /url\.searchParams\.get\("fresh"\) === "1"/);
+assert.match(analytics, /jsonNoStore/);
+assert.match(analytics, /private, no-store, max-age=0/);
 
 console.log("Developer admin static audit passed.");
