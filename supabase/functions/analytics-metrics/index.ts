@@ -7,6 +7,27 @@ const TOKEN_URL = "https://oauth2.googleapis.com/token";
 const API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${PROPERTY_ID}:runReport`;
 const REALTIME_API_URL = `https://analyticsdata.googleapis.com/v1beta/properties/${PROPERTY_ID}:runRealtimeReport`;
 
+const GA_TIME_ZONE = "America/Sao_Paulo";
+const SUBSCRIPTION_EVENT_NAMES = [
+  "click_menu_assine_ja",
+  "subscription_page_view",
+  "subscription_login_required",
+  "subscription_login_completed",
+  "subscription_post_login_redirect",
+  "subscription_checkout_click",
+  "subscription_checkout_request",
+  "subscription_checkout_created",
+  "subscription_checkout_redirect",
+  "subscription_payment_pending",
+  "subscription_checkout_cancel",
+  "subscription_payment_cancelled",
+  "subscription_payment_expired",
+  "subscription_payment_return_success",
+  "subscription_payment_success",
+  "subscription_checkout_error",
+  "subscription_page_error",
+];
+
 const cors = {
   "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
   "Access-Control-Allow-Methods": "GET,OPTIONS",
@@ -151,6 +172,26 @@ function num(v: unknown) {
   return Number.isFinite(n) ? n : 0;
 }
 
+function zonedMinuteKey(date: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: GA_TIME_ZONE,
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+  }).formatToParts(date);
+  const get = (type: string) => parts.find((part) => part.type === type)?.value || "00";
+  return get("year") + get("month") + get("day") + get("hour") + get("minute");
+}
+
+function localMinuteIso(key: string) {
+  if (!/^\d{12}$/.test(key)) return null;
+  return key.slice(0,4) + "-" + key.slice(4,6) + "-" + key.slice(6,8) + "T" + key.slice(8,10) + ":" + key.slice(10,12);
+}
+
+function localMinuteLabel(key: string) {
+  if (!/^\d{12}$/.test(key)) return "—";
+  return key.slice(6,8) + "/" + key.slice(4,6) + "/" + key.slice(0,4) + " " + key.slice(8,10) + ":" + key.slice(10,12);
+}
+
 async function reportSet(rangeName: string) {
   const range = rangeFor(rangeName);
   const base = { dateRanges: [range] };
@@ -293,6 +334,75 @@ async function realtime() {
   };
 }
 
+async function subscription24h() {
+  const report = await runReport({
+    dateRanges: [{ startDate: "1daysAgo", endDate: "today" }],
+    dimensions: [{ name: "eventName" }, { name: "dateHourMinute" }],
+    metrics: [{ name: "eventCount" }],
+    dimensionFilter: {
+      filter: {
+        fieldName: "eventName",
+        stringFilter: {
+          matchType: "FULL_REGEXP",
+          value: "^(click_menu_assine_ja|subscription_.*)$",
+          caseSensitive: true,
+        },
+      },
+    },
+    orderBys: [{ dimension: { dimensionName: "dateHourMinute" }, desc: true }],
+    limit: "5000",
+  });
+
+  const now = new Date();
+  const startKey = zonedMinuteKey(new Date(now.getTime() - 24 * 60 * 60 * 1000));
+  const endKey = zonedMinuteKey(now);
+  const buckets = rows(report).map((r: any) => ({
+    name: String(r.dims[0] || ""),
+    minuteKey: String(r.dims[1] || ""),
+    eventCount: num(r.mets[0]),
+  })).filter((row: any) =>
+    row.name && /^\d{12}$/.test(row.minuteKey) &&
+    row.minuteKey >= startKey && row.minuteKey <= endKey
+  );
+
+  const totals = new Map<string, { eventCount: number; lastKey: string | null }>();
+  for (const name of SUBSCRIPTION_EVENT_NAMES) totals.set(name, { eventCount: 0, lastKey: null });
+  for (const bucket of buckets) {
+    const item = totals.get(bucket.name) || { eventCount: 0, lastKey: null };
+    item.eventCount += bucket.eventCount;
+    if (!item.lastKey || bucket.minuteKey > item.lastKey) item.lastKey = bucket.minuteKey;
+    totals.set(bucket.name, item);
+  }
+
+  const extraNames = [...totals.keys()].filter((name) => !SUBSCRIPTION_EVENT_NAMES.includes(name)).sort();
+  const orderedNames = [...SUBSCRIPTION_EVENT_NAMES, ...extraNames];
+  const events = orderedNames.map((name) => {
+    const item = totals.get(name) || { eventCount: 0, lastKey: null };
+    return {
+      name,
+      eventCount: item.eventCount,
+      lastOccurrence: item.lastKey ? localMinuteIso(item.lastKey) : null,
+      lastOccurrenceLabel: item.lastKey ? localMinuteLabel(item.lastKey) : "—",
+    };
+  });
+
+  return {
+    windowHours: 24,
+    timezone: GA_TIME_ZONE,
+    from: localMinuteIso(startKey),
+    fromLabel: localMinuteLabel(startKey),
+    to: localMinuteIso(endKey),
+    toLabel: localMinuteLabel(endKey),
+    events,
+    timeline: buckets.slice(0, 40).map((bucket: any) => ({
+      name: bucket.name,
+      eventCount: bucket.eventCount,
+      occurredAt: localMinuteIso(bucket.minuteKey),
+      occurredAtLabel: localMinuteLabel(bucket.minuteKey),
+    })),
+  };
+}
+
 async function historical() {
   const [monthly, total] = await Promise.all([
     runReport({
@@ -338,6 +448,22 @@ Deno.serve(async (req) => {
       };
       responseCache.set(cacheKey, { value: realtimePayload, expiresAt: Date.now() + 30 * 1000 });
       return json(realtimePayload, 200, 15);
+    }
+
+    if (mode === "subscription_24h") {
+      const cacheKey = "subscription_24h";
+      const cachedSubscription = responseCache.get(cacheKey);
+      if (cachedSubscription && cachedSubscription.expiresAt > Date.now()) return json(cachedSubscription.value, 200, 30);
+      const funnel24h = await subscription24h();
+      const subscriptionPayload = {
+        version: 2,
+        generatedAt: new Date().toISOString(),
+        source: "Google Analytics 4 Data API",
+        property: PROPERTY_ID,
+        subscription24h: funnel24h,
+      };
+      responseCache.set(cacheKey, { value: subscriptionPayload, expiresAt: Date.now() + 60 * 1000 });
+      return json(subscriptionPayload, 200, 30);
     }
 
     const requestedRange = url.searchParams.get("range") || "last_30_days";
