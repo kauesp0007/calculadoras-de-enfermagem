@@ -1,0 +1,576 @@
+# Resolução COFEN nº 736/2024 — Processo de Enfermagem
+
+- Source ID: `SRC-COFEN-736-2024`
+- Organization: COFEN
+- Year: 2024
+- Canonical URL: https://www.cofen.gov.br/resolucao-cofen-no-736-de-17-de-janeiro-de-2024/
+- DOI: —
+- Rights class: BRAZIL_OFFICIAL_ACT
+- License: Lei 9.610/1998 art. 8º, IV — ato oficial fora da proteção autoral
+- Rights gate: GREEN
+- Attribution/rights evidence: https://www.planalto.gov.br/ccivil_03/leis/l9610.htm
+
+> Exportação fonte-cêntrica, sem síntese clínica e sem organização por tema. Elementos de terceiros continuam sujeitos aos próprios créditos/licenças.
+
+---
+
+## Documento: Resolução COFEN nº 736/2024 — Processo de Enfermagem
+
+`document_id=DOC-1bcaf6f5d0789e0b` · `sha256=8a8a9ecb5987a308f8e51fa2a291ea19c9284c9712300744f144c7ba48c3329e` · `arquivo=Resolucao-Cofen-no-736-2024-Dispoe-sobre-a-implementacao-do-Processo-de-Enfermagem-em-todo-contexto-socioambiental-onde-ocorre-o-cuidado-de-.pdf`
+
+23/01/2024, 08:33
+SEI/COFEN - 0208733 - Resolução
+
+RESOLUÇÃO COFEN Nº 736 DE 17 DE JANEIRO DE 2024
+
+Dispõe sobre a implementação do Processo
+de
+Enfermagem
+em
+todo
+contexto
+socioambiental onde ocorre o cuidado de
+enfermagem.
+
+O Conselho Federal de Enfermagem - Cofen, no uso de suas atribuições legais que lhe são
+conferidas pela Lei nº 5.905, de 12 de julho de 1973, e pelo Regimento Interno da Autarquia, aprovado
+pela Resolução Cofen nº 726 de 15 de setembro de 2023;
+
+CONSIDERANDO o art. 5º, Inciso XIII, e o art. 196 da Constituição da República Federativa
+do Brasil, promulgada em 05 de outubro de 1988;
+
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, que regulamenta o exercício
+profissional da Enfermagem e o seu Decreto nº 94.406, de 08 de junho de 1987;
+
+CONSIDERANDO a Resolução Cofen nº 429/2012, de 30 de maio de 2012, que dispõe sobre
+o registro das ações profissionais no prontuário do paciente, e em outros documentos próprios da
+enfermagem, independente do meio de suporte – tradicional ou eletrônico, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 727/2023, de 27 de setembro de 2023, que atualiza
+a norma técnica para Anotação de Responsabilidade Técnica pelo Serviço de Enfermagem, ou a que
+sobrevir;
+
+CONSIDERANDO a aprovação do Guia de Recomendações para Registro de Enfermagem no
+Prontuário do Paciente e Outros Documentos de Enfermagem, Resolução Cofen nº 514/2016, de 05 de
+maio de 2016, ou a que sobrevir;
+
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado pela
+Resolução Cofen nº 564/2017, de 06 de novembro de 2017, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 689/2022, de 19 de janeiro de 2022, que normatiza
+a atuação da equipe de enfermagem no cumprimento de prescrições à distância, através de meios
+eletrônicos, ou outra que sobrevir;
+
+CONSIDERANDO o Parecer Conjunto da Câmara Técnica nº 004/2022/Cofen/CTLN/CTAS, de
+14 de janeiro de 2021, que aponta o método SOAP como ferramenta compatível com o desenvolvimento
+do Processo de Enfermagem na Atenção Primária, incluindo o uso dos Sistemas de Linguagem
+Padronizadas de Enfermagem;
+
+CONSIDERANDO que o Processo de Enfermagem é um método que orienta o pensamento
+crítico e o julgamento clínico do Enfermeiro direcionando a equipe de enfermagem para o cuidado à
+pessoa, família, coletividade e grupos especiais;
+
+CONSIDERANDO tudo o mais que consta nos autos do Processo Administrativo Cofen nº
+0674/2021 e a deliberação do Plenário em sua 560ª Reunião Ordinária de Plenário;
+
+RESOLVE:
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=237689&infra_siste…
+1/4
+
+23/01/2024, 08:33
+SEI/COFEN - 0208733 - Resolução
+
+Art. 1º O Processo de Enfermagem-PE, deve ser realizado, de modo deliberado e
+sistemático, em todo contexto socioambiental, em que ocorre o cuidado de Enfermagem.
+
+Art. 2º O Processo de Enfermagem deve estar fundamentado em suporte teórico, que
+podem estar associados entre si, como Teorias e Modelos de Cuidado, Sistemas de Linguagens
+Padronizadas, instrumentos de avaliação de predição de risco validados, Protocolos baseados em
+evidências e outros conhecimentos correlatos, como estruturas teóricas conceituais e operacionais que
+fornecem propriedades descritivas, explicativas, preditivas e prescritivas que lhe servem de base.
+
+Art. 3º Os diagnósticos, os resultados e os indicadores, as intervenções e ações/atividades
+de enfermagem podem ser apoiadas nos Sistemas de Linguagem Padronizada de Enfermagem, em
+protocolos institucionais, e com os melhores níveis de evidências científicas.
+
+Art. 4º O Processo de Enfermagem organiza-se em cinco etapas inter-relacionadas,
+interdependentes, recorrentes e cíclicas, descritas a seguir:
+
+§ 1º Avaliação de Enfermagem – compreende a coleta de dados subjetivos (entrevista) e
+objetivos (exame físico) inicial e contínua pertinentes à saúde da pessoa, da família, coletividade e grupos
+especiais, realizada mediante auxílio de técnicas (laboratorial e de imagem, testes clínicos, escalas de
+avaliação validadas, protocolos institucionais e outros) para a obtenção de informações sobre as
+necessidades do cuidado de Enfermagem e saúde relevantes para a prática;
+
+§ 2º Diagnóstico de Enfermagem – compreende a identificação de problemas existentes,
+condições de vulnerabilidades ou disposições para melhorar comportamentos de saúde. Estes
+representam o julgamento clínico das informações obtidas sobre as necessidades do cuidado de
+Enfermagem e saúde da pessoa, família, coletividade ou grupos especiais;
+
+§ 3º Planejamento de Enfermagem – compreende o desenvolvimento de um plano
+assistencial direcionado para à pessoa, família, coletividade, grupos especiais, e compartilhado com os
+sujeitos do cuidado e equipe de Enfermagem e saúde. Deverá envolver:
+
+I - Priorização de Diagnósticos de Enfermagem;
+
+II - Determinação de resultados (quantitativos e/ou qualitativos) esperados e exequíveis de
+enfermagem e de saúde;
+
+III - Tomada de decisão terapêutica, declarada pela prescrição de enfermagem das
+intervenções, ações/atividades e protocolos assistenciais.
+
+§ 4º Implementação de Enfermagem – compreende a realização das intervenções, ações e
+atividades previstas no planejamento assistencial, pela equipe de enfermagem, respeitando as
+resoluções/pareceres do Conselho Federal e Conselhos Regionais de Enfermagem quanto a competência
+técnica de cada profissional, por meio da colaboração e comunicação contínua, inclusive com a checagem
+quanto à execução da prescrição de enfermagem, e apoiados nos seguintes padrões:
+
+I - Padrões de cuidados de Enfermagem: cuidados autônomos do Enfermeiro, ou seja,
+prescritos pelo enfermeiro de forma independente, e realizados pelo Enfermeiro, por Técnico de
+enfermagem ou por Auxiliar de Enfermagem, observadas as competências técnicas de cada profissional e
+os preceitos legais da profissão;
+
+II - Padrões de cuidados Interprofissionais: cuidados colaborativos com as demais
+profissões de saúde;
+
+III - Padrões de cuidados em Programas de Saúde: cuidados advindos de protocolos
+assistenciais, tais como prescrição de medicamentos padronizados nos programas de saúde pública e em
+rotina aprovada pela instituição, bem como a solicitação de exames de rotina e complementares.
+
+§ 5º Evolução de Enfermagem – compreende a avaliação dos resultados alcançados de
+enfermagem e saúde da pessoa, família, coletividade e grupos especiais. Esta etapa permite a análise e a
+revisão de todo o Processo de Enfermagem.
+
+Art. 5º A consulta de Enfermagem deve ser organizada e registrada conforme as etapas do
+Processo de Enfermagem.
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=237689&infra_siste…
+2/4
+
+23/01/2024, 08:33
+SEI/COFEN - 0208733 - Resolução
+
+Art. 6º Ao enfermeiro, observadas as disposições da Lei nº 7.498, de 25 de junho de 1986,
+e do Decreto nº 94.406, de 08 de junho de 1987, no processo de enfermagem cabe-lhe privativamente o
+Diagnóstico de Enfermagem e a Prescrição de Enfermagem.
+
+Art. 7º Os Técnicos e Auxiliares de Enfermagem, em conformidade com o disposto na Lei
+nº 7.498, de 25 de junho de 1986, e do Decreto 94.406, de 08 de junho de 1987, que a regulamenta,
+participam do Processo de Enfermagem, com Anotações de Enfermagem, bem como na implementação
+dos cuidados prescritos e sua checagem, sob a supervisão e orientação do Enfermeiro.
+
+Art. 8º A documentação do Processo de Enfermagem deve ser realizada pelos membros da
+equipe formalmente no prontuário do paciente, físico ou eletrônico, cabendo ao Enfermeiro o registro de
+todas as suas etapas, e aos membros da equipe de enfermagem a Anotação de Enfermagem, a checagem
+da prescrição e a documentação de outros registros próprios da enfermagem.
+
+Art. 9º Os profissionais de enfermagem bem como as instituições de saúde devem buscar
+os meios necessários para a capacitação/qualificação na utilização do Processo de Enfermagem.
+
+Art. 10 Na Educação Permanente em Saúde e Enfermagem e na formação de profissionais
+em nível médio, graduação e pós-graduação devem ser contempladas temáticas que favoreçam a
+qualificação dos profissionais para a implementação do Processo de Enfermagem.
+
+Art. 11 Os profissionais de enfermagem devem empenhar-se para a criação de políticas
+institucionais de incorporação de resultados de pesquisas acerca do Processo de Enfermagem e suas
+etapas na prática, se corresponsabilizando no processo de translação de conhecimento.
+
+Art. 12 Compete ao Conselho Federal de Enfermagem e aos Conselhos Regionais de
+Enfermagem, a fiscalização do Processo de Enfermagem na prática profissional, no que se refere ao
+cumprimento desta Resolução.
+
+Art. 13 Os casos omissos serão resolvidos pelo Conselho Federal de Enfermagem.
+
+Art. 14 Esta Resolução entra em vigor na data de sua publicação, revogando-se as
+disposições contrárias, em especial, a Resolução Cofen nº 358/2009.
+
+BETÂNIA MARIA PEREIRA DOS SANTOS
+
+Coren-PB 42.725-ENF-IR
+
+Presidente
+
+SILVIA MARIA NERI PIEDADE
+
+Coren-RO 92.597-ENF
+
+Primeira-Secretária
+
+Documento assinado eletronicamente por SILVIA MARIA NERI PIEDADE - Coren-RO 92.597-ENF,
+Primeira-Secretária, em 22/01/2024, às 17:00, conforme horário oficial de Brasília, com fundamento
+no art. 6º, § 1º, do Decreto nº 8.539, de 8 de outubro de 2015.
+
+Documento assinado eletronicamente por BETÂNIA MARIA PEREIRA DOS SANTOS - Coren-PB
+42.725-ENF-IR, Presidente do Cofen, em 22/01/2024, às 17:13, conforme horário oficial de Brasília,
+com fundamento no art. 6º, § 1º, do Decreto nº 8.539, de 8 de outubro de 2015.
+
+A autenticidade deste documento pode ser conferida no site
+https://sei.cofen.gov.br/sei/controlador_externo.php?
+acao=documento_conferir&id_orgao_acesso_externo=0, informando o código verificador 0208733 e
+o código CRC F5190F43.
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=237689&infra_siste…
+3/4
+
+23/01/2024, 08:33
+SEI/COFEN - 0208733 - Resolução
+
+Referência: Processo nº 0674/2021
+SEI nº 0208733
+
+SCLN, Qd. 304, Bloco E, Lote 09 - Bairro Asa Norte, Brasília/DF,
+
+CEP 70.736-550 - Telefone: (61) 3329-5800
+
+- www.cofen.gov.br
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=237689&infra_siste…
+4/4
+
+## Documento: RESOLUÇÃO COFEN Nº 736 DE 17 DE JANEIRO DE 2024 - Cofen
+
+`document_id=DOC-550c6f44b5147192` · `sha256=4203efb5570d18bc6210e49c1f7a26a65058029c66be64a3c82c9a3a26c73796` · `arquivo=source.html`
+
+### RESOLUÇÃO COFEN Nº 736 DE 17 DE JANEIRO DE 2024
+
+23.01.2024
+
+Dispõe sobre a implementação do Processo de Enfermagem em todo contexto socioambiental onde ocorre o cuidado de enfermagem.
+
+O Conselho Federal de Enfermagem – Cofen , no uso de suas atribuições legais que lhe são conferidas pela Lei nº 5.905, de 12 de julho de 1973, e pelo Regimento Interno da Autarquia, aprovado pela Resolução Cofen nº 726 de 15 de setembro de 2023;
+
+CONSIDERANDO o art. 5º, Inciso XIII, e o art. 196 da Constituição da República Federativa do Brasil, promulgada em 05 de outubro de 1988;
+
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, que regulamenta o exercício profissional da Enfermagem e o seu Decreto nº 94.406, de 08 de junho de 1987;
+
+CONSIDERANDO a Resolução Cofen nº 429/2012, de 30 de maio de 2012, que dispõe sobre o registro das ações profissionais no prontuário do paciente, e em outros documentos próprios da enfermagem, independente do meio de suporte – tradicional ou eletrônico, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 727/2023, de 27 de setembro de 2023, que atualiza a norma técnica para Anotação de Responsabilidade Técnica pelo Serviço de Enfermagem, ou a que sobrevir;
+
+CONSIDERANDO a aprovação do Guia de Recomendações para Registro de Enfermagem no Prontuário do Paciente e Outros Documentos de Enfermagem, Resolução Cofen nº 514/2016, de 05 de maio de 2016, ou a que sobrevir;
+
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado pela Resolução Cofen nº 564/2017, de 06 de novembro de 2017, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 689/2022, de 19 de janeiro de 2022, que normatiza a atuação da equipe de enfermagem no cumprimento de prescrições à distância, através de meios eletrônicos, ou outra que sobrevir;
+
+CONSIDERANDO o Parecer Conjunto da Câmara Técnica nº 004/2022/Cofen/CTLN/CTAS, de 14 de janeiro de 2021, que aponta o método SOAP como ferramenta compatível com o desenvolvimento do Processo de Enfermagem na Atenção Primária, incluindo o uso dos Sistemas de Linguagem Padronizadas de Enfermagem;
+
+CONSIDERANDO que o Processo de Enfermagem é um método que orienta o pensamento crítico e o julgamento clínico do Enfermeiro direcionando a equipe de enfermagem para o cuidado à pessoa, família, coletividade e grupos especiais;
+
+CONSIDERANDO tudo o mais que consta nos autos do Processo Administrativo Cofen nº 0674/2021 e a deliberação do Plenário em sua 560ª Reunião Ordinária de Plenário;
+
+RESOLVE :
+
+Art. 1º O Processo de Enfermagem-PE, deve ser realizado, de modo deliberado e sistemático, em todo contexto socioambiental, em que ocorre o cuidado de Enfermagem.
+
+Art. 2º O Processo de Enfermagem deve estar fundamentado em suporte teórico, que podem estar associados entre si, como Teorias e Modelos de Cuidado, Sistemas de Linguagens Padronizadas, instrumentos de avaliação de predição de risco validados, Protocolos baseados em evidências e outros conhecimentos correlatos, como estruturas teóricas conceituais e operacionais que fornecem propriedades descritivas, explicativas, preditivas e prescritivas que lhe servem de base.
+
+Art. 3º Os diagnósticos, os resultados e os indicadores, as intervenções e ações/atividades de enfermagem podem ser apoiadas nos Sistemas de Linguagem Padronizada de Enfermagem, em protocolos institucionais, e com os melhores níveis de evidências científicas.
+
+Art. 4º O Processo de Enfermagem organiza-se em cinco etapas inter-relacionadas, interdependentes, recorrentes e cíclicas, descritas a seguir:
+
+§ 1º Avaliação de Enfermagem – compreende a coleta de dados subjetivos (entrevista) e objetivos (exame físico) inicial e contínua pertinentes à saúde da pessoa, da família, coletividade e grupos especiais, realizada mediante auxílio de técnicas (laboratorial e de imagem, testes clínicos, escalas de avaliação validadas, protocolos institucionais e outros) para a obtenção de informações sobre as necessidades do cuidado de Enfermagem e saúde relevantes para a prática;
+
+§ 2º Diagnóstico de Enfermagem – compreende a identificação de problemas existentes, condições de vulnerabilidades ou disposições para melhorar comportamentos de saúde. Estes representam o julgamento clínico das informações obtidas sobre as necessidades do cuidado de Enfermagem e saúde da pessoa, família, coletividade ou grupos especiais;
+
+§ 3º Planejamento de Enfermagem – compreende o desenvolvimento de um plano assistencial direcionado para à pessoa, família, coletividade, grupos especiais, e compartilhado com os sujeitos do cuidado e equipe de Enfermagem e saúde. Deverá envolver:
+
+I – Priorização de Diagnósticos de Enfermagem;
+
+II – Determinação de resultados (quantitativos e/ou qualitativos) esperados e exequíveis de enfermagem e de saúde;
+
+III – Tomada de decisão terapêutica, declarada pela prescrição de enfermagem das intervenções, ações/atividades e protocolos assistenciais.
+
+§ 4º Implementação de Enfermagem – compreende a realização das intervenções, ações e atividades previstas no planejamento assistencial, pela equipe de enfermagem, respeitando as resoluções/pareceres do Conselho Federal e Conselhos Regionais de Enfermagem quanto a competência técnica de cada profissional, por meio da colaboração e comunicação contínua, inclusive com a checagem quanto à execução da prescrição de enfermagem, e apoiados nos seguintes padrões:
+
+I – Padrões de cuidados de Enfermagem: cuidados autônomos do Enfermeiro, ou seja, prescritos pelo enfermeiro de forma independente, e realizados pelo Enfermeiro, por Técnico de enfermagem ou por Auxiliar de Enfermagem, observadas as competências técnicas de cada profissional e os preceitos legais da profissão;
+
+II – Padrões de cuidados Interprofissionais: cuidados colaborativos com as demais profissões de saúde;
+
+III – Padrões de cuidados em Programas de Saúde: cuidados advindos de protocolos assistenciais, tais como prescrição de medicamentos padronizados nos programas de saúde pública e em rotina aprovada pela instituição, bem como a solicitação de exames de rotina e complementares.
+
+§ 5º Evolução de Enfermagem – compreende a avaliação dos resultados alcançados de enfermagem e saúde da pessoa, família, coletividade e grupos especiais. Esta etapa permite a análise e a revisão de todo o Processo de Enfermagem.
+
+Art. 5º A consulta de Enfermagem deve ser organizada e registrada conforme as etapas do Processo de Enfermagem.
+
+Art. 6º Ao enfermeiro, observadas as disposições da Lei nº 7.498, de 25 de junho de 1986, e do Decreto nº 94.406, de 08 de junho de 1987, no processo de enfermagem cabe-lhe privativamente o Diagnóstico de Enfermagem e a Prescrição de Enfermagem.
+
+Art. 7º Os Técnicos e Auxiliares de Enfermagem, em conformidade com o disposto na Lei nº 7.498, de 25 de junho de 1986, e do Decreto 94.406, de 08 de junho de 1987, que a regulamenta, participam do Processo de Enfermagem, com Anotações de Enfermagem, bem como na implementação dos cuidados prescritos e sua checagem, sob a supervisão e orientação do Enfermeiro.
+
+Art. 8º A documentação do Processo de Enfermagem deve ser realizada pelos membros da equipe formalmente no prontuário do paciente, físico ou eletrônico, cabendo ao Enfermeiro o registro de todas as suas etapas, e aos membros da equipe de enfermagem a Anotação de Enfermagem, a checagem da prescrição e a documentação de outros registros próprios da enfermagem.
+
+Art. 9º Os profissionais de enfermagem bem como as instituições de saúde devem buscar os meios necessários para a capacitação/qualificação na utilização do Processo de Enfermagem.
+
+Art. 10º Na Educação Permanente em Saúde e Enfermagem e na formação de profissionais em nível médio, graduação e pós-graduação devem ser contempladas temáticas que favoreçam a qualificação dos profissionais para a implementação do Processo de Enfermagem.
+
+Art. 11º Os profissionais de enfermagem devem empenhar-se para a criação de políticas institucionais de incorporação de resultados de pesquisas acerca do Processo de Enfermagem e suas etapas na prática, se corresponsabilizando no processo de translação de conhecimento.
+
+Art. 12º Compete ao Conselho Federal de Enfermagem e aos Conselhos Regionais de Enfermagem, a fiscalização do Processo de Enfermagem na prática profissional, no que se refere ao cumprimento desta Resolução.
+
+Art. 13º Os casos omissos serão resolvidos pelo Conselho Federal de Enfermagem.
+
+Art. 14º Esta Resolução entra em vigor na data de sua publicação, revogando-se as disposições contrárias, em especial, a Resolução Cofen nº 358/2009 .
+
+BETÂNIA MARIA PEREIRA DOS SANTOS Coren-PB 42.725-ENF-IR Presidente SILVIA MARIA NERI PIEDADE Coren-RO 92.597-ENF Primeira-Secretária
+
+#### Anexos:
+
+- Resolução Cofen nº 736-2024 - 0 bytes
+
+- Publicação no Diário Oficial da União - 0 bytes
+
+## Documento: Resolução COFEN nº 736/2024 — Processo de Enfermagem
+
+`document_id=DOC-e71e2ec2f1ce7c5d` · `sha256=3fb4e597f053aefeb1aadf9b50c1ace53c32ca687454c28184814741677d7a49` · `arquivo=Resolucao-736-2024.pdf`
+
+Nº 16, terça-feira, 23 de janeiro de 2024
+ISSN 1677-7042
+Seção 1
+
+Entidades de Fiscalização
+do Exercício das Profissões Liberais
+
+CONSELHO FEDERAL DE ENFERMAGEM
+
+RESOLUÇÃO COFEN Nº 736, DE 17 DE JANEIRO DE 2024
+
+Dispõe sobre a implementação do Processo de
+Enfermagem em todo contexto socioambiental onde
+ocorre o cuidado de enfermagem.
+
+Art. 10 Na Educação Permanente em Saúde e Enfermagem e na formação de
+profissionais em nível médio, graduação e pós-graduação devem ser contempladas
+temáticas que favoreçam a qualificação dos profissionais para a implementação do
+Processo de Enfermagem.
+Art. 11 Os profissionais de enfermagem devem empenhar-se para a criação de políticas
+institucionais de incorporação de resultados de pesquisas acerca do Processo de Enfermagem e
+suas etapas na prática, se corresponsabilizando no processo de translação de conhecimento.
+Art. 12 Compete ao Conselho Federal de Enfermagem e aos Conselhos
+Regionais de Enfermagem, a fiscalização do Processo de Enfermagem na prática
+profissional, no que se refere ao cumprimento desta Resolução.
+Art. 13 Os casos omissos serão resolvidos pelo Conselho Federal de Enfermagem.
+Art. 14 Esta Resolução entra em vigor na data de sua publicação, revogando-se
+as disposições contrárias, em especial, a Resolução Cofen nº 358/2009.
+
+BETÂNIA MARIA PEREIRA DOS SANTOS
+Presidente do Conselho
+
+SILVIA MARIA NERI PIEDADE
+Primeira-Secretária
+
+CONSELHO FEDERAL DE FISIOTERAPIA E TERAPIA OCUPACIONAL
+
+RESOLUÇÃO Nº 584, DE 19 DE DEZEMBRO DE 2023
+
+Institui a Política Nacional de Refinanciamento de
+Dívida Tributária - REFIS no âmbito do CREFITO-7.
+
+O Plenário do Conselho Federal de Fisioterapia e Terapia Ocupacional - COFFITO, no
+exercício de suas atribuições legais e regimentais, na conformidade com as competências
+previstas no artigo 5º, inciso II, da Lei nº 6.316, de 17 de dezembro de 1975, e cumprindo o
+deliberado em sua 415ª Reunião Plenária Ordinária, realizada no dia 19 de dezembro de 2023;
+Considerando que a Lei Federal nº 12.514/2011, em seu art. 6º, § 2º, atribuiu
+aos Conselhos Federais a competência para estabelecer as regras de recuperação de
+créditos e isenções tributárias;
+Considerando que a Lei Federal nº 6.316/1975 atribuiu ao COFFITO a
+competência tributária para fixar valor de taxas, anuidades, emolumentos e multas devidas
+pelos profissionais e empresas aos Conselhos Regionais a que estejam vinculados;
+Considerando que a eficiência na arrecadação tributária decorre de maiores e
+melhores condições oferecidas ao contribuinte que deva se adequar aos custos da
+operação jurídica necessária para o executivo fiscal;
+Considerando que o Conselho Regional de Fisioterapia e Terapia Ocupacional é
+o órgão competente para arrecadação no Sistema COFFITO-CREFITOs; e
+Considerando o OFÍCIO/CREFITO-7/GAPRE/Nº 083/2023, de 03 de outubro de 2023, que
+requer autorização para realização de campanha de refinanciamento no âmbito do CREFITO-7; resolve:
+Art. 1º O Conselho Federal de Fisioterapia e Terapia Ocupacional institui a
+presente Política Nacional de Refinanciamento de Dívida Tributária - REFIS no âmbito do
+Conselho Regional de Fisioterapia e Terapia Ocupacional da 7ª Região - CREFITO-7, cujos
+procedimentos administrativos deverão ser observados no disposto na presente Resolução.
+Art. 2º O CREFITO-7 divulgará, pelos meios que melhor alcancem os profissionais
+e as pessoas jurídicas, devidamente inscritas, a abertura do prazo para que o devedor de
+taxas, emolumentos, anuidades e multas, inscritas ou não na dívida ativa, possa requerer
+sua adesão ao Plano Nacional de Refinanciamento, nos termos da presente Resolução.
+§ 1º O CREFITO-7 terá, a partir da vigência da presente Resolução, o prazo de
+180 (cento e oitenta) dias para promover a adesão prevista no presente artigo.
+§ 2º O CREFITO-7 encaminhará ao COFFITO, após o término do prazo para as
+adesões ao REFIS, informações a respeito do quantitativo apurado pelo presente Plano.
+Art. 3º Os débitos sujeitos à presente Política Nacional de Refinanciamento
+limitam-se aos superiores a 2 (dois) anos de atraso.
+§ 1º Os referidos débitos poderão ser parcelados, a critério do CREFITO, em até 12
+(doze) parcelas mensais e sucessivas, com isenção de juros e correção monetária, respeitando-
+se o valor mínimo de parcela de R$92,50 (noventa e dois reais e cinquenta centavos).
+§ 2º Os valores deverão ser apurados na data do requerimento formal de REFIS.
+§ 3º As parcelas deverão ser pagas mediante expedição de boleto bancário pelo
+respectivo CREFITO.
+§ 4º No caso de REFIS realizado em débitos já ajuizados, o CREFITO promoverá
+termo de acordo com confissão de dívida, dotado de força executiva, com pedido expresso
+de suspensão do processo de execução fiscal, pelo período do parcelamento requerido.
+§ 5º No caso de atraso das parcelas, o CREFITO requererá o prosseguimento da
+execução fiscal, nos termos do acordo realizado judicialmente, hipótese em que haverá a
+antecipação de todo o débito e a extinção do benefício de isenção de juros e correção monetária.
+§ 6º No caso de parcelamento de débito, ainda não ajuizado, mas já inscrito em Dívida
+Ativa, e havendo inadimplemento quanto ao parcelamento, o CREFITO deverá promover a
+execução fiscal de todo o débito confessado e não adimplido, hipótese em que haverá a
+antecipação de todo o débito e a extinção do benefício de isenção de juros e correção monetária.
+§ 7º No caso de parcelamentos superiores a 12 (doze) parcelas, o devedor
+deverá optar pelas regras definidas na Resolução-COFFITO nº 388/2011.
+Art. 4º Os casos omissos serão deliberados pelo Plenário do COFFITO.
+Art. 5º Esta Resolução entra em vigor no dia 29 de janeiro de 2024.
+
+CÁSSIO FERNANDO OLIVEIRA DA SILVA
+Diretor-Secretário
+
+ROBERTO MATTAR CEPEDA
+Presidente do Conselho
+
+RESOLUÇÃO Nº 585, DE 19 DE DEZEMBRO DE 2023
+
+Institui a Política Nacional de Refinanciamento de
+Dívida Tributária - REFIS no âmbito do CREFITO-17.
+
+O Conselho Federal de Enfermagem - Cofen, no uso de suas atribuições legais
+que lhe são conferidas pela Lei nº 5.905, de 12 de julho de 1973, e pelo Regimento
+Interno da Autarquia, aprovado pela Resolução Cofen nº 726 de 15 de setembro de
+2023;
+CONSIDERANDO o art. 5º, Inciso XIII, e o art. 196 da Constituição da República
+Federativa do Brasil, promulgada em 05 de outubro de 1988;
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, que regulamenta o
+exercício profissional da Enfermagem e o seu Decreto nº 94.406, de 08 de junho de 1987;
+CONSIDERANDO a Resolução Cofen nº 429/2012, de 30 de maio de 2012, que
+dispõe sobre o registro das ações profissionais no prontuário do paciente, e em outros
+documentos próprios da enfermagem, independente do meio de suporte - tradicional ou
+eletrônico, ou a que sobrevir;
+CONSIDERANDO a Resolução Cofen nº 727/2023, de 27 de setembro de 2023,
+que atualiza a norma técnica para Anotação de Responsabilidade Técnica pelo Serviço de
+Enfermagem, ou a que sobrevir;
+CONSIDERANDO a aprovação do Guia de Recomendações para Registro de
+Enfermagem no Prontuário do Paciente e Outros Documentos de Enfermagem, Resolução
+Cofen nº 514/2016, de 05 de maio de 2016, ou a que sobrevir;
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado
+pela Resolução Cofen nº 564/2017, de 06 de novembro de 2017, ou a que sobrevir;
+CONSIDERANDO a Resolução Cofen nº 689/2022, de 19 de janeiro de 2022, que
+normatiza a atuação da equipe de enfermagem no cumprimento de prescrições à
+distância, através de meios eletrônicos, ou outra que sobrevir;
+CONSIDERANDO
+o
+Parecer
+Conjunto
+da
+Câmara
+Técnica
+nº
+004/2022/Cofen/CTLN/CTAS, de 14 de janeiro de 2021, que aponta o método SOAP como
+ferramenta compatível com o desenvolvimento do Processo de Enfermagem na Atenção
+Primária, incluindo o uso dos Sistemas de Linguagem Padronizadas de Enfermagem;
+CONSIDERANDO que o Processo de Enfermagem é um método que orienta o
+pensamento crítico e o julgamento clínico do Enfermeiro direcionando a equipe de
+enfermagem para o cuidado à pessoa, família, coletividade e grupos especiais;
+CONSIDERANDO tudo o mais que consta nos autos do Processo Administrativo Cofen
+nº 0674/2021 e a deliberação do Plenário em sua 560ª Reunião Ordinária de Plenário; resolve:
+Art. 1º O Processo de Enfermagem-PE, deve ser realizado, de modo deliberado e
+sistemático, em todo contexto socioambiental, em que ocorre o cuidado de Enfermagem.
+Art. 2º O Processo de Enfermagem deve estar fundamentado em suporte
+teórico, que podem estar associados entre si, como Teorias e Modelos de Cuidado,
+Sistemas de Linguagens Padronizadas, instrumentos de avaliação de predição de risco
+validados, Protocolos baseados em evidências e outros conhecimentos correlatos, como
+estruturas teóricas conceituais e operacionais que fornecem propriedades descritivas,
+explicativas, preditivas e prescritivas que lhe servem de base.
+Art. 3º Os diagnósticos, os resultados e os indicadores, as intervenções e
+ações/atividades de enfermagem podem ser apoiadas nos Sistemas de Linguagem
+Padronizada de Enfermagem, em protocolos institucionais, e com os melhores níveis de
+evidências científicas.
+Art. 4º O Processo de Enfermagem organiza-se em cinco etapas inter-
+relacionadas, interdependentes, recorrentes e cíclicas, descritas a seguir:
+§ 1º Avaliação de Enfermagem - compreende a coleta de dados subjetivos
+(entrevista) e objetivos (exame físico) inicial e contínua pertinentes à saúde da pessoa, da
+família, coletividade e grupos especiais, realizada mediante auxílio de técnicas (laboratorial
+e de imagem, testes clínicos, escalas de avaliação validadas, protocolos institucionais e
+outros) para a obtenção de informações sobre as necessidades do cuidado de Enfermagem
+e saúde relevantes para a prática;
+§ 2º Diagnóstico de Enfermagem - compreende a identificação de problemas
+existentes, condições de vulnerabilidades ou disposições para melhorar comportamentos
+de saúde. Estes representam o julgamento clínico das informações obtidas sobre as
+necessidades do cuidado de Enfermagem e saúde da pessoa, família, coletividade ou
+grupos especiais;
+§ 3º Planejamento de Enfermagem - compreende o desenvolvimento de um plano
+assistencial direcionado para à pessoa, família, coletividade, grupos especiais, e compartilhado
+com os sujeitos do cuidado e equipe de Enfermagem e saúde. Deverá envolver:
+I - Priorização de Diagnósticos de Enfermagem;
+II - Determinação de resultados (quantitativos e/ou qualitativos) esperados e
+exequíveis de enfermagem e de saúde;
+III - Tomada de decisão terapêutica, declarada pela prescrição de enfermagem
+das intervenções, ações/atividades e protocolos assistenciais.
+§ 4º Implementação de Enfermagem
+- compreende a realização das
+intervenções, ações e atividades previstas no planejamento assistencial, pela equipe de
+enfermagem, respeitando as resoluções/pareceres do Conselho Federal e Conselhos
+Regionais de Enfermagem quanto a competência técnica de cada profissional, por meio da
+colaboração e comunicação contínua, inclusive com a checagem quanto à execução da
+prescrição de enfermagem, e apoiados nos seguintes padrões:
+I - Padrões de cuidados de Enfermagem: cuidados autônomos do Enfermeiro,
+ou seja, prescritos pelo enfermeiro de forma independente, e realizados pelo Enfermeiro,
+por Técnico de enfermagem ou por Auxiliar de Enfermagem, observadas as competências
+técnicas de cada profissional e os preceitos legais da profissão;
+II - Padrões de cuidados Interprofissionais: cuidados colaborativos com as
+demais profissões de saúde;
+III - Padrões de cuidados em Programas de Saúde: cuidados advindos de
+protocolos assistenciais, tais como prescrição de medicamentos padronizados nos
+programas de saúde pública e em rotina aprovada pela instituição, bem como a solicitação
+de exames de rotina e complementares.
+§ 5º Evolução de Enfermagem - compreende a avaliação dos resultados
+alcançados de enfermagem e saúde da pessoa, família, coletividade e grupos especiais.
+Esta etapa permite a análise e a revisão de todo o Processo de Enfermagem.
+Art. 5º A consulta de Enfermagem deve ser organizada e registrada conforme
+as etapas do Processo de Enfermagem.
+Art. 6º Ao enfermeiro, observadas as disposições da Lei nº 7.498, de 25 de junho
+de 1986, e do Decreto nº 94.406, de 08 de junho de 1987, no processo de enfermagem
+cabe-lhe privativamente o Diagnóstico de Enfermagem e a Prescrição de Enfermagem.
+Art. 7º Os Técnicos e Auxiliares de Enfermagem, em conformidade com o
+disposto na Lei nº 7.498, de 25 de junho de 1986, e do Decreto 94.406, de 08 de junho
+de 1987, que a regulamenta, participam do Processo de Enfermagem, com Anotações de
+Enfermagem, bem como na implementação dos cuidados prescritos e sua checagem, sob
+a supervisão e orientação do Enfermeiro.
+Art. 8º A documentação do Processo de Enfermagem deve ser realizada pelos
+membros da equipe formalmente no prontuário do paciente, físico ou eletrônico, cabendo
+ao Enfermeiro o registro de todas as suas etapas, e aos membros da equipe de
+enfermagem a Anotação de Enfermagem, a checagem da prescrição e a documentação de
+outros registros próprios da enfermagem.
+Art. 9º Os profissionais de enfermagem bem como as instituições de saúde
+devem buscar os meios necessários para a capacitação/qualificação na utilização do
+Processo de Enfermagem.
+
+O Plenário do Conselho Federal de Fisioterapia e Terapia Ocupacional - COFFITO, no
+exercício de suas atribuições legais e regimentais, na conformidade com as competências
+previstas no artigo 5º, inciso II, da Lei nº 6.316 de 17 de dezembro de 1975, e cumprindo o
+deliberado em sua 415ª Reunião Plenária Ordinária, realizada no dia 19 de dezembro de 2023;
+Considerando que a Lei Federal nº 12.514/2011, em seu art. 6º, § 2º, atribuiu
+aos Conselhos Federais a competência para estabelecer as regras de recuperação de
+créditos e isenções tributárias;
+Considerando que a Lei Federal nº 6.316/1975 atribuiu ao COFFITO a
+competência tributária para fixar valor de taxas, anuidades, emolumentos e multas devidas
+pelos profissionais e empresas aos Conselhos Regionais a que estejam vinculados;
+Considerando que a eficiência na arrecadação tributária decorre de maiores e
+melhores condições oferecidas ao contribuinte que deva se adequar aos custos da
+operação jurídica necessária para o executivo fiscal;
+Considerando que o Conselho Regional de Fisioterapia e Terapia Ocupacional é
+o órgão competente para arrecadação no Sistema COFFITO-CREFITOs; e
+Considerando o OFÍCIO CREFITO-17/GAPRE/Nº 239/2023, que requer autorização
+para realização de campanha de refinanciamento no âmbito do CREFITO-17; resolve:
+Art. 1º O Conselho Federal de Fisioterapia e Terapia Ocupacional institui a
+presente Política Nacional de Refinanciamento de Dívida Tributária - REFIS, no âmbito do
+Conselho Regional de Fisioterapia e Terapia Ocupacional da 17ª Região - CREFITO-17, cujos
+procedimentos administrativos deverão ser observados no disposto na presente Resolução.
+Art. 2º O CREFITO-17 divulgará, pelos meios que melhor alcancem os profissionais
+e as pessoas jurídicas, devidamente inscritas, a abertura do prazo para que o devedor de
+taxas, emolumentos, anuidades e multas, inscritas ou não na dívida ativa, possa requerer sua
+adesão ao Plano Nacional de Refinanciamento, nos termos da presente Resolução.
+§ 1º O CREFITO-17 terá, a partir da vigência da presente Resolução, o prazo de
+180 (cento e oitenta) dias para promover a adesão prevista no presente artigo.
+
+Documento assinado digitalmente conforme MP nº 2.200-2 de 24/08/2001,
+que institui a Infraestrutura de Chaves Públicas Brasileira - ICP-Brasil.
+Este documento pode ser verificado no endereço eletrônico
+http://www.in.gov.br/autenticidade.html, pelo código 05152024012300074
+74
+
