@@ -18,10 +18,12 @@ function loadEngine(dom) {
   );
   dom.window.confirm = () => true;
   dom.window.gtag = () => {};
+  let printCalls = 0;
+  dom.window.print = () => { printCalls += 1; };
 
   const engine = loadEngine(dom);
 
-  assert.strictEqual(engine.version, "1.0.0-p0");
+  assert.strictEqual(engine.version, "1.0.1-p0");
 
   const normalized = engine.normalizeQuestions([
     { id: 1, question: "Questão 1", options: ["A", "B"], answerIndex: 1, ref: "Fonte 1" },
@@ -48,6 +50,7 @@ function loadEngine(dom) {
     mode: "study",
     allowModeChoice: false,
     timer: false,
+    print: true,
     analytics: false,
     storage: true,
     root: "#root",
@@ -96,6 +99,18 @@ function loadEngine(dom) {
   assert.ok(resultText.includes("Resultado"));
   assert.ok(resultText.includes("100%"));
   assert.ok(resultText.includes("Não respondidas"));
+
+  const printButton = Array.from(root.querySelectorAll("button")).find(
+    (button) => button.textContent.trim() === "Imprimir"
+  );
+  assert.ok(printButton, "botão imprimir deve existir quando print=true");
+  assert.ok(root.querySelector("[data-ce-sim-print-sheet]"), "folha de impressão deve ser preparada");
+  printButton.click();
+  assert.strictEqual(printCalls, 1, "impressão deve usar window.print");
+  const printText = root.querySelector("[data-ce-sim-print-sheet]").textContent;
+  assert.ok(printText.includes("Questão 1"));
+  assert.ok(printText.includes("Gabarito: B) B"));
+  assert.ok(printText.includes("Referência: Fonte 1"));
 
   const saved = JSON.parse(dom.window.localStorage.getItem(engine.storageKey("teste")));
   assert.ok(saved.completedAt, "tentativa concluída deve permanecer salva");
