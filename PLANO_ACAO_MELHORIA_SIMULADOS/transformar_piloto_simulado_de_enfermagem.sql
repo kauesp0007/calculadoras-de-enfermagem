@@ -65,8 +65,8 @@ with src as (
 css_added as (
   select replace(
     content,
-    '</head>',
-    E'<link href="/css/simulados/simulator-engine.css?v=1.0.1-p0" rel="stylesheet">\r\n</head>'
+    '<body class="bg-gray-50 text-gray-800 font-sans">',
+    E'<link href="/css/simulados/simulator-engine.css?v=1.0.1-p0" rel="stylesheet">\r\n<body class="bg-gray-50 text-gray-800 font-sans">'
   ) as content
   from src
 ),
