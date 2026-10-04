@@ -26,3 +26,30 @@ Não edite arquivos, não execute comandos e não faça commit ou push.
 - LOW: aplicar apenas controles editoriais usuais.
 - A nota de transparência deve apresentar IA como apoio à conferência e preservar os limites de revisão humana, privacidade, ética e autoridade das fontes.
 - A publicação deve ter registro editorial de revisão prévia por profissional de enfermagem habilitado e em atividade; o marcador técnico declara a exigência, mas não prova habilitação.
+
+## Padrão visual canônico de referências + card de governança (IMPOSITIVO)
+
+Em toda página HTML de conteúdo, ANTES do footer, exigir e verificar este padrão visual
+(mesmas classes, tamanhos de fonte, disposição, data e versão):
+
+1. **Referências bibliográficas** — `<section class="sec" aria-label="Referências bibliográficas">` com
+   `<div class="sec-head">` (ícone SVG + `<h2>Referências bibliográficas</h2>`) e
+   `<div class="refs" data-references-section="v1">`, cada referência em `<p>`
+   (borda esquerda navy 3px, fonte 12px, cor #64748b, link #1A3E74).
+2. **Card de governança** (logo abaixo das referências) — `<aside class="gov-seal"
+   data-governance-disclosure="v1" data-professional-review="required"
+   aria-label="Transparência de governança editorial">` com:
+   - Texto fixo: "Controles editoriais de governança — Esta página rastreia as fontes utilizadas
+     (identificação, autoridade, URL, versão e data), sinaliza divergências e preserva evidências
+     técnicas de integridade quando aplicável. Recursos de IA auxiliam organização e comparação,
+     mas não substituem a fonte oficial, a revisão humana qualificada, o julgamento
+     clínico/administrativo ou a orientação profissional. Antes da publicação definitiva, é exigida
+     revisão por profissional de enfermagem habilitado e em atividade."
+   - Rodapé fixo: "versão revisada em: 28 de setembro de 2026 · versão 1.0 · **COSO e COBIT 2019**."
+
+CSS canônico (copiar; cores hardcoded quando `--navy`/`--slate-*` não existirem):
+`.sec`, `.sec-head`, `.sec-head .ic`, `.sec-head h2`, `.refs`, `.refs p`, `.refs a`,
+`.gov-seal`, `.gov-seal b` — navy `#1A3E74`, slate-200 `#e2e8f0`, slate-500 `#64748b`.
+
+Verificar ausência dos marcadores, ordem incorreta (card antes das referências) ou texto divergente;
+reportar como achado de conformidade. A nota NÃO prova revisão humana — apenas declara a exigência.
