@@ -55,6 +55,9 @@ def listar_arquivos() -> list[Path]:
     for p in ENTRADA_DIR.rglob("*"):
         if not p.is_file() or p.suffix.lower() not in EXTENSOES_ACEITAS:
             continue
+        # README.md descreve pacotes de fontes; não é conteúdo a catalogar
+        if p.name.lower() == "readme.md":
+            continue
         # Ignora companheiros ".txt" de extração (ex.: "doc.pdf.txt") quando o original existe
         if p.suffix.lower() == ".txt" and p.with_suffix("").exists():
             continue

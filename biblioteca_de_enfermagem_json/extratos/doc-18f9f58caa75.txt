@@ -1,0 +1,435 @@
+# Resolução COFEN nº 746/2024 — contenção mecânica
+
+- Source ID: `SRC-COFEN-746-2024`
+- Organization: COFEN
+- Year: 2024
+- Canonical URL: https://www.cofen.gov.br/resolucao-cofen-no-746-de-20-de-marco-de-2024/
+- DOI: —
+- Rights class: BRAZIL_OFFICIAL_ACT
+- License: Lei 9.610/1998 art. 8º, IV — ato oficial fora da proteção autoral
+- Rights gate: GREEN
+- Attribution/rights evidence: https://www.planalto.gov.br/ccivil_03/leis/l9610.htm
+
+> Exportação fonte-cêntrica, sem síntese clínica e sem organização por tema. Elementos de terceiros continuam sujeitos aos próprios créditos/licenças.
+
+---
+
+## Documento: Resolução COFEN nº 746/2024 — contenção mecânica
+
+`document_id=DOC-6e59fec27d04de89` · `sha256=cde007d32be3d7b1fae0a9d3a278520c6d1115f3b384e0e20d11c7f9b738c258` · `arquivo=Resolucao-746-2024.pdf`
+
+Nº 64, quarta-feira, 3 de abril de 2024
+ISSN 1677-7042
+Seção 1
+
+Art. 1º Instituir a política de preços dos serviços disponíveis no Banco de
+Negócios Imobiliários: a) Poderão ser usuários do BNI-SGR Corretores de Imóveis e
+imobiliárias regularmente inscritos no Sistema Cofeci-Creci; incorporadoras, devidamente
+credenciadas junto ao SGR; e, Instituições Financeiras, com atuação no mercado
+imobiliário. Parágrafo Único - O acesso às funcionalidades do SGR observará as
+competências de cada usuário, estabelecidas de acordo com sua formação específica.
+Art. 2º O BNI-SGR disponibiliza aos usuários as seguintes funcionalidades, com
+seus respectivos preços públicos:
+I. Ciclo de lançamento e venda: infraestrutura em contratos inteligentes para
+oferta de unidade para parceria de comercialização; vinculação contratual com
+interessados; registro das atividades negociais de vistoria; visitas e aviso de negócio;
+demais documentos e contratos; tramitação documental; assinatura digital avançada;
+gerenciamento da documentação negocial e de seu fluxo entre as partes interessadas; e
+mitigação de bypass e rateio de comissão. Custo: 1% do valor da transação, ou R$ 1.350,00
+(mil trezentos e cinquenta reais), o que for maior, por processo.
+II Instrumento Particular de Financiamento Imobiliário com Garantia Real:
+geração automatizada e registro no blockchain SGR do Instrumento Particular de
+Financiamento Imobiliário com Garantia Real, com assinatura digital avançada das partes,
+posterior geração do extrato de financiamento em XML para envio ao CRI. Custo: R$
+560,00 (quinhentos e sessenta reais), por instrumento.
+III. Conversão de documentos em contratos inteligentes, com registro: mutação
+de infraestrutura tecnológica de contratos digitais para Contratos Inteligentes na rede
+blockchain do SGR. Custo: R$ 1.200,00 (mil e duzentos reais), por conversão. IV.
+Instrumento Simples de Parceria Imobiliária: registro de instrumento simples de parceria
+para comercialização em bloco de imóveis. Custo: R$ 120,00 (cento e vinte reais), por
+bloco de imóveis. CAPÍTULO II DO REGISTRO DE ATIVOS DIGITAIS (RAD).
+Art. 3º O RAD permite o registro, organização, indexação e autenticação de
+documentação comprobatória de direitos imobiliários que possibilita o lançamento de
+ativos ou de contratos digitais a eles vinculados.
+Art. 4º O RAD permite a indexação de Contratos Inteligentes natos do SGR com
+token próprio ou de terceiros, devidamente registrados junto ao Sistema.
+Art. 5º O token tem como objetivo a liquidação financeira ou subdivisão de
+direitos econômicos sobre contratos imobiliários registrados no SGR.
+Art. 6º O RAD-SGR disponibiliza aos usuários as seguintes funcionalidades, com
+seus respectivos preços públicos:
+I. Registro de Ativo Digital: 0,5% do valor do ativo.
+II. Registro com lançamento de token vinculado nato do sistema: 0,6% do valor do ativo.
+III. Registro com lançamento de token de terceiros: 0,7% do valor do ativo. IV.
+Taxa de transação: 0,1% do valor da operação, com mínimo de R$ 0,50.
+
+JOÃO TEODORO DA SILVA
+Presidente do Conselho
+
+RÔMULO SOARES DE LIMA
+Diretor-Secretário
+
+CONSELHO FEDERAL DE ENFERMAGEM
+
+RESOLUÇÃO COFEN Nº 746, DE 20 DE MARÇO DE 2024
+
+Normatiza os procedimentos de enfermagem na
+contenção mecânica de pacientes.
+
+ciência desta deliberação à Secretaria Executiva do Ministério da Cultura e aos
+responsáveis, de acordo com os pareceres emitidos nos autos:
+1. Processo TC-023.179/2023-6 (TOMADA DE CONTAS ESPECIAL)
+1.1. Responsáveis: Hilton Jose da Veiga Faria (290.640.319-91) e Instituto
+Festival de Música de Santa Catarina (08.288.790/0001-64).
+1.2. Órgão: Ministério da Cultura.
+1.3. Relator: Ministro-Substituto Marcos Bemquerer Costa.
+1.4. Representante do Ministério Público: Procurador Marinus Eduardo De
+Vries Marsico.
+1.5. Unidade Técnica: Unidade de Auditoria Especializada em Tomada de
+Contas Especial (AudTCE).
+1.6.
+Representação
+legal:
+Carlos
+Rodrigo
+Thieme
+(27736/OAB-SC),
+representando Hilton Jose da Veiga Faria; Carlos Rodrigo Thieme (27736/OAB-SC),
+representando Instituto Festival de Música de Santa Catarina.
+1.7. Determinações/Recomendações/Orientações: não há.
+ACÓRDÃO Nº 2031/2024 - TCU - 2ª Câmara
+VISTOS e relacionados estes autos da Tomada de Contas Especial instaurada
+pela Empresa Brasileira de Correios e Telégrafos - ECT em desfavor do Sr. Luis Paulo
+Moraes, em razão da falta de numerário, no montante de R$ 103.874,30 (cento e três
+mil, oitocentos e setenta e quatro reais e trinta centavos), ocorrida no Caixa Retaguarda
+da AC Vitória do Mearim - SE/MA;
+Considerando que, por meio do Acórdão 2.285/2022 - Plenário, este Tribunal
+aprovou a Resolução/TCU 344/2022, cujo texto estabelece que as pretensões punitiva e
+ressarcitória nos processos
+de controle externo (exceto para
+atos de pessoal)
+prescrevem em cinco anos (art. 2º, prescrição principal) ou em três, se o processo ficar
+paralisado, pendente de julgamento ou despacho (art. 8º, prescrição intercorrente),
+conforme o previsto na Lei 9.873/1999 (art. 1º), diploma que regula o prazo para o
+exercício da ação punitiva movida pela Administração Pública Federal;
+Considerando que
+a instrução
+produzida pela
+Unidade de
+Auditoria
+Especializada em Tomada de Contas Especial - AudTCE (peças 40/42) manifestou-se pela
+ocorrência da prescrição intercorrente, sugerindo, com fulcro nos arts. 8º e 11 da
+Resolução/TCU 344/2022, o arquivamento do processo, posicionamento que contou com
+a anuência do Ministério Público junto ao TCU, representado pelo Procurador Rodrigo
+Medeiros de Lima (peça 43);
+Considerando que, no caso concreto em exame, o termo inicial da contagem
+do prazo da prescrição principal ocorreu em 3/12/2018 (peça 7, p. 2), data do Termo
+de Conferência de Numerário (art. 4º, inciso IV);
+Considerando, que, consoante o Acórdão 534/2023 - Plenário (rel. Min.
+Benjamin Zymler), o termo inicial da contagem da prescrição intercorrente ocorreu em
+6/12/2018 (peça 5, p. 3), data do Relatório 122/2018, sendo o primeiro marco
+interruptivo da prescrição ordinária;
+Considerando os principais eventos processuais interruptivos da prescrição
+apontados pela AudTCE (item 17 da instrução, peça 40, p. 3), e atentando que o
+intervalo havido entre o Memorando 5393322 acerca da solicitação de apuração em
+processo disciplinar, de 11/2/2019 (peça 6, p. 1), e a Designação de Apurador Direto,
+de 17/9/2022 (peça 6, p. 2), foi superior ao triênio previsto no art. 8º, caput, da
+Resolução/TCU 344/2022, o que caracteriza a prescrição intercorrente;
+ACORDAM os Ministros do Tribunal de Contas da União, com fundamento
+nos arts. 8º e 11 da Resolução/TCU 344/2022, em determinar o arquivamento dos
+presentes autos, ante o reconhecimento da prescrição das pretensões punitiva e de
+ressarcimento, sem prejuízo de encaminhar cópia desta deliberação ao responsável e à
+Empresa Brasileira de Correios e Telégrafos, de acordo com os pareceres emitidos nos
+autos:
+1. Processo TC-036.314/2023-4 (TOMADA DE CONTAS ESPECIAL)
+1.1. Responsável: Luis Paulo Moraes (015.738.073-46).
+1.2. Entidade: Empresa Brasileira de Correios e Telégrafos - ECT - AC Vitória
+do Mearim/MA.
+1.3. Relator: Ministro-Substituto Marcos Bemquerer Costa.
+1.4. Representante do Ministério Público: Procurador Rodrigo Medeiros de
+Lima.
+1.5. Unidade Técnica: Unidade de Auditoria Especializada em Tomada de
+Contas Especial (AudTCE).
+1.6. Representação legal: não há.
+1.7. Determinações/Recomendações/Orientações: não há.
+ENCERRAMENTO
+Às 10 horas e 39 minutos, a Presidência encerrou a sessão, da qual foi
+lavrada
+esta
+ata, a
+ser
+aprovada
+pelo
+Presidente
+e homologada
+pela
+Segunda
+Câmara.
+
+ELENIR TEODORO GONCALVES DOS SANTOS
+Subsecretária da Segunda Câmara
+
+Aprovada em 1º de abril de 2024.
+
+O CONSELHO FEDERAL DE ENFERMAGEM - COFEN, no uso da atribuição que lhe foi
+conferida pelo art. 8º, inciso I, da Lei nº 5.905, de 12 de julho de 1973, e pelo seu Regimento
+Interno aprovado pela Resolução Cofen nº 726, de 15 de setembro de 2023;
+CONSIDERANDO o art. 5º, inciso III, da Constituição Federal de 1988, segundo o
+qual "ninguém será submetido a tortura nem a tratamento desumano ou degradante";
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, e o Decreto
+regulamentador nº 94.406, de 8 de junho de 1987, e suas disposições;
+CONSIDERANDO a Lei 10.216/2001 que dispõe sobre a proteção e os direitos das
+pessoas portadoras de transtornos mentais e redireciona o modelo assistencial em saúde mental;
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado pela
+Resolução Cofen nº 654/2017, ou a que sobrevir;
+CONSIDERANDO a Resolução Cofen nº 358, de 15 de outubro de 2009, ou a que
+sobrevir, que dispõe sobre a sistematização da assistência de Enfermagem e a implementação
+do processo de Enfermagem em ambientes públicos ou privados em que ocorre o cuidado
+profissional de Enfermagem;
+CONSIDERANDO o aprovado pela 562ª Reunião Ordinária de Plenário do Cofen e os
+autos do Processo SEI Cofen nº 00196.002913/2023-15, resolve:
+Art. 1º A contenção mecânica de paciente será realizada quando for o único meio
+disponível para prevenir dano imediato ou iminente ao paciente ou aos demais.
+§ 1º A aplicação da contenção mecânica se dará sob a supervisão direta do
+enfermeiro.
+§ 2º Na excepcionalidade, os profissionais que atuam no Serviço de Atendimento
+Pré-hospitalar Móvel, poderão realizar a contenção mecânica de maneira segura, utilizando no
+mínimo de 05 (cinco) pessoas para realização do procedimento.
+Art. 2º Todo paciente em contenção mecânica deve ser monitorado pela equipe de
+Enfermagem, para promover a segurança do paciente e prevenir danos e eventos adversos.
+Art. 3º Em todos os procedimentos de contenção mecânica de pacientes, as razões
+para a realização, sua duração, avaliações e ocorrência de eventos adversos, assim como os
+detalhes relativos ao monitoramento clínico, devem ser registrados no prontuário do paciente.
+Art. 4º Esta Resolução entra em vigor na data de sua publicação, revogando
+especialmente a Resolução Cofen nº 427/2012.
+
+BETÂNIA MARIA PEREIRA DOS SANTOS
+Presidente do Conselho
+
+AROLDO CEDRAZ
+Na Presidência da Segunda Câmara
+Entidades de Fiscalização
+do Exercício das Profissões Liberais
+
+SILVIA MARIA NERI PIEDADE
+Primeira-Secretária
+
+ACÓRDÃO COFEN Nº 22, DE 19 DE MARÇO DE 2024
+
+CONSELHO FEDERAL DE CORRETORES DE IMÓVEIS
+
+PORTARIA-COFECI Nº 40, DE 27 DE MARÇO DE 2024
+
+Estabelece os parâmetros de preços a serem praticados no
+Banco de Negócios Imobiliários (BNI) e no Registro de
+Ativos Digitais (RAD) do Sistema de Governança e Registro.
+
+ADMINISTRATIVO. PROCESSO SEI COFEN Nº 00196.006285/2023-47. ORIGEM
+PROCESSO ÉTICO COREN-RS Nº 003/2018. 563ª REUNIÃO ORDINÁRIA DE PLENÁRIO.
+JULGAMENTO DE RECURSO. SEGUNDA INSTÂNCIA. Por unanimidade dos votos, decidido pelo
+recebimento do recurso, por ser tempestivo, pelo seu provimento parcial e pela reforma da
+Decisão Coren-RS nº 060/2023. Condenação de 01 (um) profissional de enfermagem à
+penalidade de advertência verbal em razão da infração aos artigos 5º, 7º, 9º, 12, 13, 21, 40 e 73
+do Código de Ética, Resolução Cofen nº 311/2007.
+
+GILNEY GUERRA DE MEDEIROS
+Presidente da Mesa
+
+TATIANA MARIA MELO GUIMARÃES
+Relatora
+
+ACÓRDÃO COFEN Nº 23, DE 19 DE MARÇO DE 2024
+
+ADMINISTRATIVO. PROCESSO SEI COFEN Nº 00196.002016/2023-10. ORIGEM
+PROCESSO ADMINISTRATIVO COREN-SC SC Nº 080/2022. 563ª REUNIÃO ORDINÁRIA DE
+PLENÁRIO. JULGAMENTO DE RECURSO. SEGUNDA INSTÂNCIA. NÃO ADMISSIBILIDADE.
+ARQUIVAMENTO. Por unanimidade dos votos, decidido pelo recebimento do recurso, por ser
+tempestivo, pelo seu não provimento e pela manutenção da Decisão do Coren-SC.
+Arquivamento do processo em razão da não admissibilidade da denúncia.
+
+SILVIA MARIA NERI PIEDADE
+Presidente da Mesa
+
+O CONSELHO FEDERAL DE CORRETORES DE IMÓVEIS-COFECI, no uso das
+atribuições legais e regimentais, estabelecidas no art. 16, inciso XVII da Lei nº 6.530, de 12
+de maio de 1978, cc com o art. 10, III, do Decreto nº 81.871/78;
+CONSIDERANDO: 1. o determinado pela Resolução Cofeci nº 1487/2022 e o
+início de operação do Banco de Negócios Imobiliários (BNI-SGR) e do Registro de Ativos
+Digitais (RAD). 2. que o SGR permite o registro criptografado de contratos e documentos,
+com a segurança da tecnologia blockchain, com a vinculação automática de aditivos
+contratuais e documentos sequenciais, os quais poderão ser acessados a qualquer
+momento pelos responsáveis pelo registro, inclusive
+com a obtenção de cópias
+autenticadas. 3. que os preços a serem praticados para registro de contratos e documentos
+no SGR, independentemente do valor constante do documento, se houver, será apenas o
+necessário para ressarcimento dos custos operacionais, mais uma pequena margem de
+lucro para a empresa gestora e armazenadora dos dados, resolve:
+Convenção: COFECI - Conselho Federal de Corretores de Imóveis; CRECI -
+Conselho Regional de Corretores de Imóveis; Sistema Cofeci-Creci - Designação conjunta do
+Cofeci e dos Crecis; Corretor de Imóveis - Corretor ou Corretora de Imóveis regularmente
+inscrito(a) no Sistema Cofeci-Creci; SGR - Sistema de Governança e Registro de Contratos
+e Documentos; LGPD - Lei Geral de Proteção de Dados; BNI - Banco de Negócios
+Imobiliários; RAD - Registro de Ativos Digitais Imobiliários; e CRI - Cartório de Registro de
+Imóveis. CAPÍTULO I Dos Serviços Presentes no Banco de Negócios Imobiliários (BNI).
+
+CLÁUDIO LUIZ DA SILVEIRA
+Relator
+
+Documento assinado digitalmente conforme MP nº 2.200-2 de 24/08/2001,
+que institui a Infraestrutura de Chaves Públicas Brasileira - ICP-Brasil.
+Este documento pode ser verificado no endereço eletrônico
+http://www.in.gov.br/autenticidade.html, pelo código 05152024040300091
+91
+
+## Documento: SEI/COFEN - 0248937 - Resolução
+
+`document_id=DOC-b7e7775bd5adad26` · `sha256=376d29e6ca308489e9439b718a1b4cc00ba7321a18d725df546f5b19e59d5b94` · `arquivo=Resolucao-Cofen-no-746-2024-Normatiza-os-procedimentos-de-enfermagem-na-contencao-mecanica-de-pacientes.pdf`
+
+02/04/2024, 11:15
+SEI/COFEN - 0248937 - Resolução
+
+RESOLUÇÃO COFEN Nº 746 DE 20 DE MARÇO DE 2024
+
+Normatiza
+os
+procedimentos
+de
+enfermagem na contenção mecânica de
+pacientes.
+
+O CONSELHO FEDERAL DE ENFERMAGEM – COFEN, no uso da atribuição que lhe foi
+conferida pelo art. 8º, inciso I, da Lei nº 5.905, de 12 de julho de 1973, e pelo seu Regimento Interno
+aprovado pela Resolução Cofen nº 726, de 15 de setembro de 2023;
+
+CONSIDERANDO o art. 5º, inciso III, da Constituição Federal de 1988, segundo o qual
+"ninguém será submetido a tortura nem a tratamento desumano ou degradante";
+
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, e o Decreto regulamentador nº
+94.406, de 8 de junho de 1987, e suas disposições;
+
+CONSIDERANDO a Lei 10.216/2001 que dispõe sobre a proteção e os direitos das pessoas
+portadoras de transtornos mentais e redireciona o modelo assistencial em saúde mental;
+
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado pela
+Resolução Cofen nº 654/2017, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 358, de 15 de outubro de 2009, ou a que sobrevir,
+que dispõe sobre a sistematização da assistência de Enfermagem e a implementação do processo de
+Enfermagem em ambientes públicos ou privados em que ocorre o cuidado profissional de Enfermagem;
+
+CONSIDERANDO o aprovado pela 562ª Reunião Ordinária de Plenário do Cofen e os autos
+do Processo SEI Cofen nº 00196.002913/2023-15;
+
+RESOLVE:
+
+Art. 1º A contenção mecânica de paciente será realizada quando for o único meio
+disponível para prevenir dano imediato ou iminente ao paciente ou aos demais.
+
+§ 1º A aplicação da contenção mecânica se dará sob a supervisão direta do enfermeiro.
+
+§ 2º Na excepcionalidade, os profissionais que atuam no Serviço de Atendimento Pré-
+hospitalar Móvel, poderão realizar a contenção mecânica de maneira segura, utilizando no mínimo de 05
+(cinco) pessoas para realização do procedimento.
+
+Art. 2º Todo paciente em contenção mecânica deve ser monitorado pela equipe de
+Enfermagem, para promover a segurança do paciente e prevenir danos e eventos adversos.
+
+Art. 3º Em todos os procedimentos de contenção mecânica de pacientes, as razões para a
+realização, sua duração, avaliações e ocorrência de eventos adversos, assim como os detalhes relativos ao
+monitoramento clínico, devem ser registrados no prontuário do paciente.
+
+Art. 4º Esta Resolução entra em vigor na data de sua publicação, revogando especialmente
+a Resolução Cofen nº 427/2012.
+
+Brasília, 20 de março de 2024.
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=280810&infra_siste…
+1/2
+
+02/04/2024, 11:15
+SEI/COFEN - 0248937 - Resolução
+
+BETÂNIA MARIA PEREIRA DOS SANTOS
+
+SILVIA MARIA NERI PIEDADE
+
+Coren-PB 42.725-ENF-IR
+
+Coren-RO 92.597-ENF
+
+Presidente
+
+Primeira-Secretário
+
+Documento assinado eletronicamente por SILVIA MARIA NERI PIEDADE - Coren-RO 92.597-ENF,
+Primeira-Secretária, em 21/03/2024, às 18:41, conforme horário oficial de Brasília, com fundamento
+no art. 6º, § 1º, do Decreto nº 8.539, de 8 de outubro de 2015.
+
+Documento assinado eletronicamente por BETÂNIA MARIA PEREIRA DOS SANTOS - Coren-PB
+42.725-ENF-IR, Presidente do Cofen, em 21/03/2024, às 18:47, conforme horário oficial de Brasília,
+com fundamento no art. 6º, § 1º, do Decreto nº 8.539, de 8 de outubro de 2015.
+
+A autenticidade deste documento pode ser conferida no site
+https://sei.cofen.gov.br/sei/controlador_externo.php?
+acao=documento_conferir&id_orgao_acesso_externo=0, informando o código verificador 0248937 e
+o código CRC E1892680.
+
+Referência: Processo nº 00196.002913/2023-15
+SEI nº 0248937
+
+SCLN, Qd. 304, Bloco E, Lote 09 - Bairro Asa Norte, Brasília/DF,
+
+CEP 70.736-550 - Telefone: (61) 3329-5800
+
+- www.cofen.gov.br
+
+https://sei.cofen.gov.br/sei/controlador.php?acao=documento_imprimir_web&acao_origem=arvore_visualizar&id_documento=280810&infra_siste…
+2/2
+
+## Documento: RESOLUÇÃO COFEN Nº 746 DE 20 DE MARÇO DE 2024 - Cofen
+
+`document_id=DOC-d63b3991c1263353` · `sha256=9df9e6d247a7fd15baa618f0b9897640532962e62b35c3216aaa69cb93853d20` · `arquivo=source.html`
+
+### RESOLUÇÃO COFEN Nº 746 DE 20 DE MARÇO DE 2024
+
+03.04.2024
+
+Normatiza os procedimentos de enfermagem na contenção mecânica de pacientes.
+
+O CONSELHO FEDERAL DE ENFERMAGEM – COFEN , no uso da atribuição que lhe foi conferida pelo art. 8º, inciso I, da Lei nº 5.905, de 12 de julho de 1973, e pelo seu Regimento Interno aprovado pela Resolução Cofen nº 726, de 15 de setembro de 2023;
+
+CONSIDERANDO o art. 5º, inciso III, da Constituição Federal de 1988, segundo o qual “ninguém será submetido a tortura nem a tratamento desumano ou degradante”;
+
+CONSIDERANDO a Lei nº 7.498, de 25 de junho de 1986, e o Decreto regulamentador nº 94.406, de 8 de junho de 1987, e suas disposições;
+
+CONSIDERANDO a Lei 10.216/2001 que dispõe sobre a proteção e os direitos das pessoas portadoras de transtornos mentais e redireciona o modelo assistencial em saúde mental;
+
+CONSIDERANDO o Código de Ética dos Profissionais de Enfermagem, aprovado pela Resolução Cofen nº 654/2017, ou a que sobrevir;
+
+CONSIDERANDO a Resolução Cofen nº 358, de 15 de outubro de 2009, ou a que sobrevir, que dispõe sobre a sistematização da assistência de Enfermagem e a implementação do processo de Enfermagem em ambientes públicos ou privados em que ocorre o cuidado profissional de Enfermagem;
+
+CONSIDERANDO o aprovado pela 562ª Reunião Ordinária de Plenário do Cofen e os autos do Processo SEI Cofen nº 00196.002913/2023-15;
+
+RESOLVE:
+
+Art. 1º A contenção mecânica de paciente será realizada quando for o único meio disponível para prevenir dano imediato ou iminente ao paciente ou aos demais.
+
+§ 1º A aplicação da contenção mecânica se dará sob a supervisão direta do enfermeiro.
+
+§ 2º Na excepcionalidade, os profissionais que atuam no Serviço de Atendimento Pré-hospitalar Móvel, poderão realizar a contenção mecânica de maneira segura, utilizando no mínimo de 05 (cinco) pessoas para realização do procedimento.
+
+Art. 2º Todo paciente em contenção mecânica deve ser monitorado pela equipe de Enfermagem, para promover a segurança do paciente e prevenir danos e eventos adversos.
+
+Art. 3º Em todos os procedimentos de contenção mecânica de pacientes, as razões para a realização, sua duração, avaliações e ocorrência de eventos adversos, assim como os detalhes relativos ao monitoramento clínico, devem ser registrados no prontuário do paciente.
+
+Art. 4º Esta Resolução entra em vigor na data de sua publicação, revogando especialmente a Resolução Cofen nº 427/2012 .
+
+Brasília, 20 de março de 2024.
+
+BETÂNIA MARIA PEREIRA DOS SANTOS Coren-PB 42.725-ENF-IR Presidente SILVIA MARIA NERI PIEDADE Coren-RO 92.597-ENF Primeira-Secretário
+
+#### Anexos:
+
+- Resolução Cofen nº 746/2024 - 0 bytes
+
+- Publicação no Diário Oficial da União - 0 bytes
+
