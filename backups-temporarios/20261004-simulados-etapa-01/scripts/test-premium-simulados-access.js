@@ -122,8 +122,3 @@ console.log(JSON.stringify({
   menuSignatureRedirects: badMenuLinks.length,
   protectedFlow: "public simulator -> start button gate -> entitlement check"
 }, null, 2));
-
-
-// Fundação compartilhada dos simulados (P0).
-require("./test-simulator-engine.js");
-require("./test-simulator-catalog.js");

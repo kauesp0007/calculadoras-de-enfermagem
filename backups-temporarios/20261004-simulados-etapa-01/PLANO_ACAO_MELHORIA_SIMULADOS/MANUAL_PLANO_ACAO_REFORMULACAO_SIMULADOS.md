@@ -166,10 +166,10 @@ Pelos títulos/metadescriptions atuais:
 - Hospital Amigo da Criança — 15;
 - Aleitamento Materno — 15;
 - Bloco Operatório/CME/SRPA — 30;
-- Código de Ética — 58 questões confirmadas no conteúdo privado; as 58 já possuem explanation/topic e metadados editoriais adicionais;
-- flashcards_quiz — 24 questões confirmadas no conteúdo privado; formato diferente, com explicações próprias.
+- Código de Ética — quantidade não declarada na description inspecionada;
+- flashcards_quiz — formato diferente, sem quantidade declarada na description.
 
-Os números acima foram posteriormente confrontados com o conteúdo privado em 04/10/2026. As 19 páginas de simulado confirmaram exatamente as quantidades declaradas, com a atualização importante de Código de Ética = 58. O flashcards_quiz confirmou 24 questões.
+Esses números devem ser confirmados contra o conteúdo real antes de serem usados como dado estruturado.
 
 ---
 
@@ -1405,53 +1405,7 @@ Estas fontes documentam padrões observados. Nenhum conteúdo de terceiros deve 
 
 ---
 
-## 30. Auditoria do conteúdo privado — 04/10/2026
-
-Após a criação inicial deste manual, a Etapa 01 consultou diretamente o conteúdo canônico em premium_content_pages sem alterar dados.
-
-Achados confirmados:
-
-- as 20 rotas inventariadas possuem documento privado;
-- as 20 estavam, naquele momento, com premium_required=true, enforcement=client_guard e source=premium_content_pages;
-- essa política é dinâmica e não será hardcoded no catálogo novo;
-- 19 páginas de simulado usam o conceito questionsData;
-- o flashcards_quiz usa banco próprio DB com 24 questões;
-- o piloto simulado-de-enfermagem.html possui 50 questões, 50 answerIndex e 50 referências;
-- o piloto renderiza atualmente todas as 50 questões de uma vez;
-- o estado de respostas do piloto é mantido em memória e não existe persistência padronizada da tentativa;
-- não foi encontrada instrumentação GA4 específica do fluxo do piloto;
-- não foi encontrado fluxo separado de revisão de erros no piloto;
-- o Código de Ética é o conteúdo mais estruturado encontrado: 58 questões com explanation, topic, chapter/article, difficulty e source;
-- os demais simulados auditados possuem gabarito/referência, mas em geral ainda não possuem explanation estruturada.
-
-Contagens confirmadas no conteúdo privado:
-
-- Técnico geral 1: 50;
-- Técnico geral 2: 50;
-- Enfermeiro geral 1: 50;
-- Enfermeiro geral 2: 50;
-- Segurança do Paciente: 50;
-- Notificação Compulsória: 50;
-- Vacinação: 30;
-- PCR/SBV: 30;
-- Lei 8.080/90: 40;
-- Lei 8.142/90: 20;
-- HumanizaSUS: 30;
-- Código de Ética: 58;
-- Hospital Amigo da Criança: 15;
-- Aleitamento Materno: 15;
-- Bloco Operatório/CME/SRPA: 30;
-- IBAM Bebedouro 2024: 14;
-- IBAM Guarulhos Enfermeiro 2024: 32;
-- IBAM Guarulhos ESF 2024: 22;
-- IBAM Japaratuba 2014: 20;
-- Flashcards/Quiz de cálculos: 24.
-
-Consequência arquitetural: editar somente os shells públicos do GitHub não reforma o simulador real, pois o documento completo é entregue por premium-content. A migração funcional deverá atualizar o conteúdo privado com estratégia explícita de backup/rollback, sem publicar o banco de questões no repositório público.
-
----
-
-## 31. Registro de decisões durante a execução
+## 30. Registro de decisões durante a execução
 
 A partir do próximo PR, toda etapa deve acrescentar ao final deste manual ou a um log específico da pasta:
 
