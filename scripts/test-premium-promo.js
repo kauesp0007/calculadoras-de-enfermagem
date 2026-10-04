@@ -131,7 +131,7 @@ for (const lang of internationalLanguages) {
   assert.equal(pending.window.document.getElementById("premium-promo-banner"), null);
   pending.close();
 }
-assert.match(subscriptionPage, /stripeEur\?"€ 5,00":"US\$ 5,00"/);
+assert.match(subscriptionPage, /stripeEur\?"€ 3,00":"US\$ 3,00"/);
 assert.match(stripeCheckout, /EUR\.includes\(lang\)\?"EUR":"USD"/);
 
 const recoveredPages = [
