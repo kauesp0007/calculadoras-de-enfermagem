@@ -126,3 +126,4 @@ console.log(JSON.stringify({
 
 // Fundação compartilhada dos simulados (P0).
 require("./test-simulator-engine.js");
+require("./test-simulator-catalog.js");
