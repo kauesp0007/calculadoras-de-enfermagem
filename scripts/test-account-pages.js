@@ -126,6 +126,46 @@ for (const lang of LANGS) {
   }
 }
 
+// Os menus internacionais devem usar a mesma geometria desktop do menu raiz.
+// A foto/avatar continua centralizada em global-scripts.js; os arquivos localizados
+// apenas preservam o mesmo host e alinhamento para a renderização autenticada.
+const canonicalDesktopNavClass = 'class="flex-1 flex items-center desktop-nav desktop-only"';
+const canonicalDesktopListClass = '<ul class="flex flex-1 items-center justify-between">';
+for (const lang of LANGS) {
+  const localizedMenu = fs.readFileSync(path.join(ROOT, lang, "menu-global.html"), "utf8");
+  if (!localizedMenu.includes(canonicalDesktopNavClass)) {
+    fail(`${lang}/menu-global.html: navegação desktop não replica o alinhamento do menu raiz.`);
+  }
+  if (!localizedMenu.includes(canonicalDesktopListClass)) {
+    fail(`${lang}/menu-global.html: lista desktop não replica a distribuição do menu raiz.`);
+  }
+  const authId = localizedMenu.indexOf('id="menu-auth-link-desktop"');
+  const authStart = authId >= 0 ? localizedMenu.lastIndexOf("<a ", authId) : -1;
+  const authEnd = authId >= 0 ? localizedMenu.indexOf(">", authId) : -1;
+  const authOpen = authStart >= 0 && authEnd > authStart ? localizedMenu.slice(authStart, authEnd + 1) : "";
+  if (!authOpen.includes(`href="/conta/login.html?lang=${lang}"`)) {
+    fail(`${lang}/menu-global.html: link de login localizado ausente.`);
+  }
+  if (!authOpen.includes("whitespace-nowrap")) {
+    fail(`${lang}/menu-global.html: botão de login não replica a configuração visual do menu raiz.`);
+  }
+  if ((localizedMenu.match(/id=["']menu-auth-desktop["']/g) || []).length !== 1) {
+    fail(`${lang}/menu-global.html: host desktop de autenticação ausente ou duplicado.`);
+  }
+}
+
+const globalAuthUi = fs.readFileSync(path.join(ROOT, "global-scripts.js"), "utf8");
+for (const required of [
+  'class="account-avatar"',
+  'account-avatar account-avatar-initial',
+  'desktopItem.className = "relative group flex items-center mr-1.5"',
+  'class="account-menu-btn flex flex-row items-center gap-2'
+]) {
+  if (!globalAuthUi.includes(required)) {
+    fail(`global-scripts.js: renderização canônica do avatar/menu de conta ausente: ${required}`);
+  }
+}
+
 const langSelector = fs.readFileSync(path.join(ROOT, "lang-selector.js"), "utf8");
 for (const required of [
   "const accountMatch = pathName.match(",
