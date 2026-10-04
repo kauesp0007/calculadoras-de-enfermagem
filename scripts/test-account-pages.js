@@ -148,8 +148,10 @@ for (const required of [
 ]) {
   if (!authUi.includes(required)) fail(`auth-ui.js: retorno canônico da assinatura sem rastreabilidade: ${required}`);
 }
-if (/normalizedReturn === "\\/(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\\/conta\\/assinatura\\.html"/.test(authUi)) {
-  fail("auth-ui.js: não deve criar rota localizada secundária de assinatura.");
+for (const lang of LANGS) {
+  if (authUi.includes('normalizedReturn === "/' + lang + '/conta/assinatura.html"')) {
+    fail(`auth-ui.js: não deve criar rota secundária de assinatura em ${lang}.`);
+  }
 }
 const premiumBanner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
 if (premiumBanner.includes('window.location.pathname || "").indexOf("/conta/") === 0')) {
