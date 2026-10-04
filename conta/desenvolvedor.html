@@ -39,7 +39,32 @@
 .client-row{display:grid;grid-template-columns:minmax(0,1.2fr) repeat(3,minmax(120px,.6fr));gap:8px;padding:10px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc;font-size:12px}
 .client-row strong{color:var(--navy)}
 .route-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px}
-@media(max-width:900px){.dev-grid{grid-template-columns:1fr}.route-toolbar{grid-template-columns:1fr}.client-row{grid-template-columns:1fr}.dev-wrap{padding:12px}}
+.billing-admin-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(390px,.92fr);gap:16px;align-items:start}
+.billing-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.billing-summary{border:1px solid #dbe4ef;border-radius:11px;background:#f8fafc;padding:10px;min-width:0}
+.billing-summary strong{display:block;color:var(--navy);font-size:20px;line-height:1;font-weight:900}
+.billing-summary span{display:block;margin-top:5px;color:#475569;font-size:10px;font-weight:900;line-height:1.2}
+.billing-records-note{margin:0 0 9px;color:#64748b;font-size:11px;font-weight:800}
+.billing-analytics-card{border:1px solid #bfdbfe;border-radius:14px;background:linear-gradient(180deg,#f8fbff,#eef5ff);padding:15px;box-shadow:0 8px 20px rgba(26,62,116,.08)}
+.billing-analytics-card h3{color:var(--navy);font-size:18px;font-weight:900}
+.billing-analytics-copy{margin-top:4px;color:#475569;font-size:11px;font-weight:700;line-height:1.45}
+.billing-event-head,.billing-event-row{display:grid;grid-template-columns:minmax(0,1fr) 76px 126px;gap:8px;align-items:center}
+.billing-event-head{margin-top:12px;padding:0 8px 6px;color:#64748b;font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+.billing-event-row{padding:8px;border-top:1px solid #dbeafe;font-size:11px}
+.billing-event-row:first-child{border-top:0}
+.billing-event-name{min-width:0;color:#1e293b;font-weight:800;line-height:1.25}
+.billing-event-name code{display:block;margin-top:2px;color:#64748b;font-size:9px;font-weight:600;white-space:normal;overflow-wrap:anywhere}
+.billing-event-count{text-align:center;color:var(--navy);font-size:15px;font-weight:900}
+.billing-event-time{text-align:right;color:#475569;font-size:10px;font-weight:800}
+.billing-timeline{display:grid;gap:6px;max-height:250px;overflow:auto;padding-right:2px}
+.billing-timeline-row{display:grid;grid-template-columns:118px minmax(0,1fr) auto;gap:8px;align-items:center;padding:7px 8px;border:1px solid #dbeafe;border-radius:10px;background:#fff;font-size:10px}
+.billing-timeline-row time{color:#475569;font-weight:800}
+.billing-timeline-row strong{color:var(--navy);font-size:10px}
+.billing-timeline-row span{color:#334155;font-weight:800;text-align:right}
+.billing-analytics-updated{margin-top:10px;color:#64748b;font-size:10px;font-weight:700}
+@media(max-width:1180px){.billing-admin-layout{grid-template-columns:1fr}.billing-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){.dev-grid{grid-template-columns:1fr}.route-toolbar{grid-template-columns:1fr}.client-row{grid-template-columns:1fr}.dev-wrap{padding:12px}.billing-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.billing-event-head,.billing-event-row{grid-template-columns:minmax(0,1fr) 64px 112px}}
+@media(max-width:520px){.billing-event-head,.billing-event-row{grid-template-columns:minmax(0,1fr) 56px}.billing-event-head span:last-child,.billing-event-time{grid-column:1/-1;text-align:left}.billing-timeline-row{grid-template-columns:1fr auto}.billing-timeline-row strong{grid-column:1/-1}}
 </style>
 <script src="/global-scripts.js" defer></script>
 <script src="/lang-selector.js" defer></script>
@@ -110,13 +135,32 @@
 <div id="decision-history" class="table-list" aria-live="polite"></div>
 </section>
 
-<section class="dev-card p-5">
-<h2 class="text-2xl mb-4">Assinantes e Tentativas</h2>
-<div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
-<div><h3 class="font-black text-[#15803d] mb-2">Clientes Premium Ativos</h3><div id="billing-active" class="table-list"></div></div>
-<div><h3 class="font-black text-[#92400e] mb-2">Aguardando Aprovação</h3><div id="billing-pending" class="table-list"></div></div>
-<div><h3 class="font-black text-[#b91c1c] mb-2">Tentativas Falharam</h3><div id="billing-failed" class="table-list"></div></div>
-<div><h3 class="font-black text-slate-600 mb-2">Expirados</h3><div id="billing-expired" class="table-list"></div></div>
+<section class="dev-card p-5" aria-labelledby="billing-title">
+<div class="mb-4">
+<h2 id="billing-title" class="text-2xl">Assinantes e Tentativas</h2>
+<p class="status-line mt-1">Registros financeiros em ordem cronológica: o mais recente aparece primeiro.</p>
+</div>
+<div class="billing-admin-layout">
+<div>
+<div class="billing-summary-grid" aria-label="Resumo dos registros de assinatura">
+<div class="billing-summary"><strong id="billing-count-active">0</strong><span>Clientes Premium Ativos</span></div>
+<div class="billing-summary"><strong id="billing-count-pending">0</strong><span>Aguardando Aprovação</span></div>
+<div class="billing-summary"><strong id="billing-count-failed">0</strong><span>Tentativas Falharam</span></div>
+<div class="billing-summary"><strong id="billing-count-expired">0</strong><span>Expirados</span></div>
+</div>
+<p class="billing-records-note">Mais recentes → mais antigos, considerando a data de criação do registro.</p>
+<div id="billing-all" class="table-list" aria-live="polite"></div>
+</div>
+
+<aside class="billing-analytics-card" aria-labelledby="billing-analytics-title">
+<h3 id="billing-analytics-title">Funil de assinatura — últimas 24 horas</h3>
+<p class="billing-analytics-copy">Eventos já existentes no GA4. A coluna Quantidade mostra ocorrências, não pessoas únicas; um mesmo usuário pode gerar mais de uma. O painel usa uma janela móvel de 24 horas e não grava histórico local: ocorrências mais antigas deixam de ser exibidas automaticamente.</p>
+<div class="billing-event-head" aria-hidden="true"><span>Evento</span><span class="text-center">Quantidade</span><span class="text-right">Última ocorrência</span></div>
+<div id="billing-events" aria-live="polite"><p class="text-slate-500 text-xs font-bold p-3">Carregando eventos...</p></div>
+<h4 class="mt-4 mb-2 text-sm font-black text-[#1A3E74]">Atividade mais recente</h4>
+<div id="billing-event-timeline" class="billing-timeline" aria-live="polite"></div>
+<p id="billing-analytics-updated" class="billing-analytics-updated">Aguardando atualização do GA4.</p>
+</aside>
 </div>
 </section>
 
@@ -129,8 +173,28 @@
 (function(){
 "use strict";
 var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
+var ANALYTICS_ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics";
 var ADMIN_EMAIL="ciadeenfermagem@gmail.com";
-var state={settings:{},routes:[],activationRequests:[],grants:[],auditLog:[],billing:{active:[],pending:[],failed:[],expired:[]},routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
+var state={settings:{},routes:[],activationRequests:[],grants:[],auditLog:[],billing:{active:[],pending:[],failed:[],expired:[]},subscriptionAnalytics:null,routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
+var BILLING_EVENT_LABELS={
+"click_menu_assine_ja":"Entrou pelo botão Assine já",
+"subscription_page_view":"Abriu a página de assinatura",
+"subscription_login_required":"Precisou fazer login",
+"subscription_login_completed":"Login concluído",
+"subscription_post_login_redirect":"Retorno após o login",
+"subscription_checkout_click":"Clicou para assinar",
+"subscription_checkout_request":"Checkout solicitado",
+"subscription_checkout_created":"Checkout criado",
+"subscription_checkout_redirect":"Redirecionado ao provedor",
+"subscription_payment_pending":"Pagamento/checkout pendente",
+"subscription_checkout_cancel":"Checkout cancelado / desistência registrada",
+"subscription_payment_cancelled":"Pagamento cancelado / desistência registrada",
+"subscription_payment_expired":"Cobrança expirada",
+"subscription_payment_return_success":"Retorno do Stripe com sucesso",
+"subscription_payment_success":"Pagamento confirmado",
+"subscription_checkout_error":"Erro ao iniciar checkout",
+"subscription_page_error":"Erro na página de assinatura"
+};
 var LANGS=new Set(["en","es","fr","it","de","hi","zh","ja","ru","ko","tr","nl","pl","sv","id","vi","uk","ar"]);
 var CATALOG=[
 ["Sobre Nós",["missao.html","objetivo.html","mapa-do-site.html","metricas.html","tecnologiaverde.html","responsbilidade_inteligencia_artificial.html","politica.html","termos.html","auditoria_governanca_regulatoria.html","reembolso.html"]],
@@ -189,10 +253,29 @@ return'<div class="switch-row" data-route-row="'+esc(r.path)+'"><div><p class="f
 }).join("")||'<div class="p-6 text-center text-slate-500 font-bold">Nenhuma rota encontrada.</div>';
 }
 function renderGrants(){var active=state.grants.filter(function(g){return g.active});$("grant-list").innerHTML=active.length?active.map(function(g){return'<div class="client-row"><div><strong>'+esc(g.email)+'</strong><div class="text-slate-500">'+esc(g.reason||"Liberação manual")+'</div></div><div>Criado: '+esc(fmt(g.created_at))+'</div><div>Por: '+esc(g.created_by||"—")+'</div><div><button class="dev-btn danger" type="button" data-revoke="'+esc(g.email)+'">Excluir</button></div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhuma exceção manual ativa.</p>'}
-function renderBillingList(id,rows){$(id).innerHTML=rows&&rows.length?rows.map(function(r){return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="text-slate-500">'+esc(r.provider||"—")+'</div></div><div>Status: '+esc(r.status||r.plan||"—")+'</div><div>Fim: '+esc(fmt(r.current_period_end||r.premium_expires_at))+'</div><div>Criado: '+esc(fmt(r.created_at))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro.</p>'}
+function billingTime(row){var raw=row&&((row.created_at)||(row.updated_at)||(row.current_period_start)||(row.premium_expires_at));var time=Date.parse(String(raw||""));return Number.isFinite(time)?time:0}
+function sortBillingRecords(rows){return(rows||[]).slice().sort(function(a,b){return billingTime(b)-billingTime(a)})}
+function billingMeta(kind,row){if(kind==="active")return{label:"Premium ativo",tag:"green"};if(kind==="pending")return{label:"Aguardando aprovação",tag:"amber"};if(kind==="failed")return{label:"Tentativa falhou",tag:"red"};return{label:"Expirado",tag:"gray"}}
+function allBillingRecords(){var out=[];["active","pending","failed","expired"].forEach(function(kind){(state.billing[kind]||[]).forEach(function(row){out.push({kind:kind,row:row})})});return out.sort(function(a,b){return billingTime(b.row)-billingTime(a.row)})}
+function renderBilling(){
+var counts={active:(state.billing.active||[]).length,pending:(state.billing.pending||[]).length,failed:(state.billing.failed||[]).length,expired:(state.billing.expired||[]).length};
+Object.keys(counts).forEach(function(k){var el=$("billing-count-"+k);if(el)el.textContent=String(counts[k])});
+var rows=allBillingRecords();
+$("billing-all").innerHTML=rows.length?rows.map(function(item){var r=item.row,meta=billingMeta(item.kind,r),created=r.created_at||r.updated_at,end=r.current_period_end||r.premium_expires_at;return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="switch-meta"><span class="tag '+meta.tag+'">'+esc(meta.label)+'</span><span class="tag gray">'+esc(r.provider||"—")+'</span></div></div><div>Status: '+esc(r.status||r.plan||meta.label)+'</div><div>Fim: '+esc(fmt(end))+'</div><div>Criado: '+esc(fmt(created))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro de assinatura.</p>';
+}
+function eventLabel(name){return BILLING_EVENT_LABELS[name]||name}
+function renderSubscriptionAnalytics(){
+var d=state.subscriptionAnalytics||{},events=Array.isArray(d.events)?d.events:[],timeline=Array.isArray(d.timeline)?d.timeline:[];
+$("billing-events").innerHTML=events.length?events.map(function(row){return'<div class="billing-event-row"><div class="billing-event-name">'+esc(eventLabel(row.name))+'<code>'+esc(row.name)+'</code></div><div class="billing-event-count">'+esc(row.eventCount||0)+'</div><div class="billing-event-time">'+esc(row.lastOccurrenceLabel||"—")+'</div></div>'}).join(""):'<p class="text-slate-500 text-xs font-bold p-3">Nenhum evento de assinatura registrado nas últimas 24 horas.</p>';
+$("billing-event-timeline").innerHTML=timeline.length?timeline.map(function(row){return'<div class="billing-timeline-row"><time>'+esc(row.occurredAtLabel||"—")+'</time><strong>'+esc(eventLabel(row.name))+'</strong><span>x'+esc(row.eventCount||0)+'</span></div>'}).join(""):'<p class="rounded-xl border border-dashed border-blue-200 bg-white p-3 text-slate-500 text-xs font-bold">Sem atividade recente no funil.</p>';
+var updated=$("billing-analytics-updated");if(updated){var windowText=d.fromLabel&&d.toLabel?("Janela: "+d.fromLabel+" até "+d.toLabel+" · "):"";updated.textContent=windowText+"Atualizado: "+fmt(state.subscriptionAnalyticsGeneratedAt||new Date().toISOString())+" · horário de referência: "+(d.timezone||"America/Sao_Paulo")}
+}
+async function loadSubscriptionAnalytics(){
+try{var res=await fetch(ANALYTICS_ENDPOINT+"?mode=subscription_24h",{cache:"no-store",headers:{Accept:"application/json"}});var data=await res.json().catch(function(){return{}});if(!res.ok||!data.subscription24h)throw new Error(data.error||("http_"+res.status));state.subscriptionAnalytics=data.subscription24h;state.subscriptionAnalyticsGeneratedAt=data.generatedAt||new Date().toISOString();renderSubscriptionAnalytics()}catch(e){console.warn("[Developer Analytics]",e);$("billing-events").innerHTML='<p class="rounded-xl border border-dashed border-red-200 bg-white p-3 text-red-700 text-xs font-bold">Métricas de assinatura indisponíveis no momento.</p>';$("billing-event-timeline").innerHTML="";$("billing-analytics-updated").textContent="Falha ao consultar o GA4. Os controles de assinatura continuam funcionando normalmente."}
+}
 function decisionValue(value){if(!value)return"Sem registro anterior";if(value.route)value=value.route;if(typeof value.premium_required==="boolean")return value.premium_required?"Premium":"Free";if(value.value&&typeof value.value.enabled==="boolean")return value.value.enabled?"Ativado":"Desativado";if(typeof value.active==="boolean")return value.active?"Liberado":"Revogado";return"Registrado"}
 function renderDecisionHistory(){var actions={set_route:"Alteração de acesso",queue_route_activation:"Solicitação Premium",activate_route_after_deploy:"Publicação da solicitação",set_setting:"Alteração de configuração",grant_email:"Concessão administrativa",revoke_email:"Revogação administrativa",restore_developer_panel_choice:"Restauração da escolha do painel"};$("decision-history").innerHTML=state.auditLog.length?state.auditLog.map(function(row){var after=row.after_state||{},meta=after._decision||{},automation=/^(?:system:|codex:)/i.test(row.actor_email||""),origin=meta.origin==="developer_panel"||!automation?"Desenvolvedor":"Manutenção/automação",chosen=row.action==="queue_route_activation"?"Premium solicitado (aguardando publicação)":decisionValue(after);return'<div class="client-row"><div><strong>'+esc(actions[row.action]||row.action)+'</strong><div class="text-slate-500">'+esc(row.target_key)+'</div></div><div>'+esc(decisionValue(row.before_state))+' → '+esc(chosen)+'</div><div>'+esc(origin)+'<br>'+esc(fmt(row.created_at))+'</div><div class="text-slate-500">Registro '+esc(row.id)+'</div></div>'}).join(""):'<p class="text-slate-500">Nenhuma decisão recente disponível.</p>'}
-function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderDecisionHistory();renderBillingList("billing-active",state.billing.active||[]);renderBillingList("billing-pending",state.billing.pending||[]);renderBillingList("billing-failed",state.billing.failed||[]);renderBillingList("billing-expired",state.billing.expired||[])}
+function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));state.billing.active=sortBillingRecords(state.billing.active);state.billing.pending=sortBillingRecords(state.billing.pending);state.billing.failed=sortBillingRecords(state.billing.failed);state.billing.expired=sortBillingRecords(state.billing.expired);renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderDecisionHistory();renderBilling()}
 async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.activationRequests=data.activation_requests||[];state.grants=data.grants||[];state.auditLog=data.audit_log||[];state.billing=data.billing||{};renderAll()}
 async function loadCatalog(){
 var res=await fetch("/conta/developer-route-catalog.json",{cache:"no-store"});
@@ -206,7 +289,7 @@ async function saveRoute(input){input.disabled=true;var path=input.dataset.route
 async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
 async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
 function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",function(){state.visibleRoutes=100;renderRoutes()});$("route-category").addEventListener("change",function(){state.visibleRoutes=100;renderRoutes()});$("route-more").addEventListener("click",function(){state.visibleRoutes+=100;renderRoutes()});$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
-async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();setInterval(function(){if(!document.hidden)reload().catch(console.warn)},60000);$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
+async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();await loadSubscriptionAnalytics();setInterval(function(){if(!document.hidden){reload().catch(console.warn);loadSubscriptionAnalytics().catch(console.warn)}},60000);$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>

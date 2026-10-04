@@ -1,6 +1,6 @@
 # Manual canônico de eventos e origem geográfica — GA4
 
-Atualizado em: 3 de outubro de 2026  
+Atualizado em: 4 de outubro de 2026  
 Site: https://www.calculadorasdeenfermagem.com.br/  
 Propriedade GA4 usada pelo painel: `522498030`
 
@@ -109,11 +109,23 @@ Parâmetros de `tempo_permanencia`:
 
 | Evento | Significado |
 |---|---|
+| `click_menu_assine_ja` | Clique na chamada “Assine já” que leva o usuário ao fluxo de assinatura. |
+| `subscription_page_view` | A página central de assinatura foi aberta. |
+| `subscription_login_required` | O usuário tentou prosseguir e precisou autenticar-se. |
+| `subscription_login_completed` | Login concluído durante o fluxo de assinatura. |
+| `subscription_post_login_redirect` | Redirecionamento após login para a assinatura ou para a home, sem PII. |
+| `subscription_checkout_click` | Clique em um método de pagamento para iniciar a assinatura. |
+| `subscription_checkout_request` | Requisição enviada à Edge Function para criar/reusar checkout. |
+| `subscription_checkout_created` | Checkout criado ou reaproveitado com URL válida. |
+| `subscription_checkout_redirect` | Navegador redirecionado ao checkout hospedado do Asaas/Stripe. |
+| `subscription_payment_pending` | Fluxo de pagamento ainda pendente/reutilizado. |
 | `subscription_checkout_cancel` | Retorno de checkout Stripe cancelado. |
-| `subscription_payment_return_success` | Retorno do Stripe sinalizando sucesso. |
-| `subscription_payment_success` | Página de boas-vindas aberta após pagamento confirmado. |
 | `subscription_payment_cancelled` | Pagamento/checkout cancelado no Asaas ou Stripe. |
 | `subscription_payment_expired` | Cobrança Asaas expirada. |
+| `subscription_payment_return_success` | Retorno do Stripe sinalizando sucesso. |
+| `subscription_payment_success` | Página de boas-vindas aberta após pagamento confirmado. |
+| `subscription_checkout_error` | Erro antes da criação/redirecionamento do checkout. |
+| `subscription_page_error` | Falha de inicialização da página de assinatura. |
 
 Parâmetros comuns do faturamento:
 
@@ -122,6 +134,25 @@ Parâmetros comuns do faturamento:
 - `payment_status`: `success`, `cancel` ou `expired`;
 - `lang`: idioma do fluxo;
 - `page` ou `page_path`: página em que o retorno foi processado.
+
+### Painel administrativo de 24 horas
+
+A área autenticada `/conta/desenvolvedor.html` possui um card **Funil de assinatura — últimas 24 horas**. Ele consulta:
+
+`https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics?mode=subscription_24h`
+
+Esse modo:
+
+- consulta somente eventos de assinatura já existentes no GA4;
+- usa a dimensão `dateHourMinute` para mostrar data e horário da última ocorrência e a atividade mais recente;
+- retorna uma janela móvel de 24 horas no fuso de referência `America/Sao_Paulo`;
+- não cria tabela, cookie, storage ou histórico paralelo;
+- não exibe e-mail, nome, CPF ou qualquer identificador pessoal;
+- mostra **ocorrências de evento**, portanto a quantidade não deve ser interpretada como pessoas únicas;
+- deixa de exibir automaticamente ocorrências que ultrapassam 24 horas; não há rotina de exclusão porque o painel não persiste esses dados localmente.
+
+Cancelamento/desistência só é mostrado quando existe evento explícito de cancelamento (`subscription_checkout_cancel` ou `subscription_payment_cancelled`). Não inferir abandono apenas porque não houve conversão.
+
 
 ## 7. Como interpretar prefixos e sufixos
 
@@ -178,7 +209,8 @@ Exemplo internacional:
 
 - `global-scripts.js`: captura eventos globais, tempo de permanência e retornos de pagamento.
 - `metricas.html`: apresenta dados agregados e o painel em tempo real.
-- `supabase/functions/analytics-metrics/index.ts`: consulta segura às APIs Core e Realtime do GA4.
+- `conta/desenvolvedor.html`: apresenta o funil agregado de assinatura das últimas 24 horas ao administrador autenticado.
+- `supabase/functions/analytics-metrics/index.ts`: consulta segura às APIs Core e Realtime do GA4, inclusive o modo `subscription_24h`.
 - `.github/workflows/deploy-analytics-metrics.yml`: publica e testa a Edge Function.
 
 ## 11. Limitações e privacidade
