@@ -53,6 +53,13 @@ function isoFromUnix(value:any){
   const n=Number(value);
   return Number.isFinite(n)&&n>0?new Date(n*1000).toISOString():null;
 }
+function periodFromSub(remote:any){
+  const item=remote?.items?.data?.[0];
+  return {
+    start:isoFromUnix(item?.current_period_start??remote?.current_period_start),
+    end:isoFromUnix(item?.current_period_end??remote?.current_period_end)
+  };
+}
 function subCurrency(remote:any,local:any){
   return String(remote?.items?.data?.[0]?.price?.currency||local?.currency||"").toLowerCase()||null;
 }
@@ -66,8 +73,9 @@ async function grantFromRemote(local:any,remote:any,lang:string,sessionId:string
   if(sessionId)metadata.checkout_session_id=sessionId;
   if(remote?.customer)metadata.customer_id=String(remote.customer);
   metadata.reconciled_by="stripe-checkout";
-  const end=isoFromUnix(remote?.current_period_end)||new Date(Date.now()+30*86400000).toISOString();
-  const start=isoFromUnix(remote?.current_period_start);
+  const period=periodFromSub(remote);
+  const end=period.end||new Date(Date.now()+30*86400000).toISOString();
+  const start=period.start;
   const u=await db().from("billing_subscriptions").update({
     external_id:subId,
     status:["active","trialing"].includes(String(remote?.status||""))?String(remote.status):"active",
