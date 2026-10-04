@@ -721,7 +721,6 @@
     } else {
       var finish = createElement("button", "ce-sim-btn ce-sim-btn-primary", this.labels.finish);
       finish.type = "button";
-      finish.setAttribute("data-evento", "simulator_finish_click");
       finish.addEventListener("click", function () { self.finish(); });
       controls.appendChild(finish);
     }
@@ -861,7 +860,6 @@
       }
 
       section.appendChild(card);
-      self._emit("simulator_review_question", { question_index: index + 1 });
     });
 
     var back = createElement("button", "ce-sim-btn ce-sim-btn-secondary", this.labels.result);
