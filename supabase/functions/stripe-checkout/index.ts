@@ -41,21 +41,24 @@ async function stripe(path:string,init:RequestInit={}){
   if(!r.ok)throw new Error(d?.error?.message||("stripe_"+r.status));
   return d;
 }
-const CANONICAL_PRICE_USD="price_1UEeJeAE0EBt2lxCFI56AWCx";
-const CANONICAL_PRICE_EUR="price_1UEf7uAE0EBt2lxCmfLGGmNH";
-const LEGACY_BROKEN_PRICE_USD="price_1UEeJeAE0EBt21xCFI56AWCx";
+const CANONICAL_PRICE_USD="price_1UMhcFAE0EBt2lxCXtRE82lF";
+const CANONICAL_PRICE_EUR="price_1UMhcLAE0EBt2lxCJ0YPQw3S";
 function priceFor(lang:string){
   const currency=EUR.includes(lang)?"EUR":"USD";
-  const configured=currency==="EUR"?Deno.env.get("STRIPE_PRICE_EUR"):Deno.env.get("STRIPE_PRICE_USD");
-  const canonical=currency==="EUR"?CANONICAL_PRICE_EUR:CANONICAL_PRICE_USD;
-  const id=configured===LEGACY_BROKEN_PRICE_USD||!configured?canonical:configured;
-  if(!id)throw new Error("stripe_price_not_configured");
+  const id=currency==="EUR"?CANONICAL_PRICE_EUR:CANONICAL_PRICE_USD;
   return {id,currency};
 }
 function stripeLocale(lang:string){return STRIPE_LOCALES[lang as keyof typeof STRIPE_LOCALES]||"auto";}
 function isoFromUnix(value:any){
   const n=Number(value);
   return Number.isFinite(n)&&n>0?new Date(n*1000).toISOString():null;
+}
+function periodFromSub(remote:any){
+  const item=remote?.items?.data?.[0];
+  return {
+    start:isoFromUnix(item?.current_period_start??remote?.current_period_start),
+    end:isoFromUnix(item?.current_period_end??remote?.current_period_end)
+  };
 }
 function subCurrency(remote:any,local:any){
   return String(remote?.items?.data?.[0]?.price?.currency||local?.currency||"").toLowerCase()||null;
@@ -70,8 +73,9 @@ async function grantFromRemote(local:any,remote:any,lang:string,sessionId:string
   if(sessionId)metadata.checkout_session_id=sessionId;
   if(remote?.customer)metadata.customer_id=String(remote.customer);
   metadata.reconciled_by="stripe-checkout";
-  const end=isoFromUnix(remote?.current_period_end)||new Date(Date.now()+30*86400000).toISOString();
-  const start=isoFromUnix(remote?.current_period_start);
+  const period=periodFromSub(remote);
+  const end=period.end||new Date(Date.now()+30*86400000).toISOString();
+  const start=period.start;
   const u=await db().from("billing_subscriptions").update({
     external_id:subId,
     status:["active","trialing"].includes(String(remote?.status||""))?String(remote.status):"active",

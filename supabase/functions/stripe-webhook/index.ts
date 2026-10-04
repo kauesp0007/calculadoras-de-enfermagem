@@ -29,6 +29,13 @@ function isoFromUnix(value:any){
   const n=Number(value);
   return Number.isFinite(n)&&n>0?new Date(n*1000).toISOString():null;
 }
+function periodFromSub(remote:any){
+  const item=remote?.items?.data?.[0];
+  return {
+    start:isoFromUnix(item?.current_period_start??remote?.current_period_start),
+    end:isoFromUnix(item?.current_period_end??remote?.current_period_end)
+  };
+}
 function currencyFromSub(remote:any,local:any){
   return String(remote?.items?.data?.[0]?.price?.currency||local?.currency||"").toLowerCase()||null;
 }
@@ -62,6 +69,7 @@ async function createReconciledSub(uid:string,subId:string,sessionId:string,remo
   if(sessionId)merged.checkout_session_id=sessionId;
   const customerId=String(remote?.customer||meta?.customer_id||"");
   if(customerId)merged.customer_id=customerId;
+  const period=periodFromSub(remote);
   const row={
     user_id:uid,
     provider:"stripe",
@@ -69,8 +77,8 @@ async function createReconciledSub(uid:string,subId:string,sessionId:string,remo
     status,
     plan:"premium",
     currency:currencyFromSub(remote,null),
-    current_period_start:isoFromUnix(remote?.current_period_start),
-    current_period_end:isoFromUnix(remote?.current_period_end),
+    current_period_start:period.start,
+    current_period_end:period.end,
     cancel_at_period_end:Boolean(remote?.cancel_at_period_end??false),
     metadata:merged
   };
@@ -84,8 +92,9 @@ async function setPremium(sub:any,remote:any,meta:any,status="active"){
   const merged={...(sub.metadata||{}),...(meta||{})};
   const subId=String(remote?.id||merged.provider_subscription_id||"");
   const customerId=String(remote?.customer||merged.customer_id||"");
-  const start=isoFromUnix(remote?.current_period_start);
-  const end=isoFromUnix(remote?.current_period_end)||new Date(Date.now()+30*86400000).toISOString();
+  const period=periodFromSub(remote);
+  const start=period.start;
+  const end=period.end||new Date(Date.now()+30*86400000).toISOString();
   if(subId)merged.provider_subscription_id=subId;
   if(customerId)merged.customer_id=customerId;
   const u=await db().from("billing_subscriptions").update({
@@ -200,13 +209,14 @@ serve(async req=>{
       await setPremium({...sub,metadata:meta},subRemote,meta,"active");
     }else if(type==="customer.subscription.updated"){
       const status=String(o?.status||"");
-      const end=isoFromUnix(o?.current_period_end);
+      const period=periodFromSub(o);
+      const end=period.end;
       if(["active","trialing"].includes(status))await setPremium({...sub,metadata:meta},o,meta,status);
       else{
         const u=await db().from("billing_subscriptions").update({
           external_id:subId||sub.external_id,
           status,
-          current_period_start:isoFromUnix(o?.current_period_start)||sub.current_period_start||null,
+          current_period_start:period.start||sub.current_period_start||null,
           current_period_end:end||sub.current_period_end||null,
           cancel_at_period_end:Boolean(o?.cancel_at_period_end??sub.cancel_at_period_end??false),
           metadata:meta,
@@ -219,7 +229,7 @@ serve(async req=>{
       const u=await db().from("billing_subscriptions").update({
         external_id:subId||sub.external_id,
         status:"past_due",
-        current_period_end:isoFromUnix(subRemote?.current_period_end)||sub.current_period_end||null,
+        current_period_end:periodFromSub(subRemote).end||sub.current_period_end||null,
         metadata:meta,
         updated_at:new Date().toISOString()
       }).eq("id",sub.id);

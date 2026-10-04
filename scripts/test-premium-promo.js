@@ -111,7 +111,7 @@ for (const lang of internationalLanguages) {
     assert.ok(root.textContent.trim().length > 45, lang + " translation missing");
     assert.doesNotMatch(root.textContent, /Por apenas|Aceitamos Pix|Clique para assinar|Elimine todos/);
     assert.doesNotMatch(root.textContent, /\bPix\b/i);
-    assert.match(root.textContent, euroLanguages.has(lang) ? /€ 5,00/ : /US\$ 5,00/);
+    assert.match(root.textContent, euroLanguages.has(lang) ? /€ 3,00/ : /US\$ 3,00/);
     test.advance(1500);
     assert.equal(root.style.display, "block");
     test.advance(20000 + 180);
@@ -131,7 +131,7 @@ for (const lang of internationalLanguages) {
   assert.equal(pending.window.document.getElementById("premium-promo-banner"), null);
   pending.close();
 }
-assert.match(subscriptionPage, /stripeEur\?"€ 5,00":"US\$ 5,00"/);
+assert.match(subscriptionPage, /stripeEur\?"€ 3,00":"US\$ 3,00"/);
 assert.match(stripeCheckout, /EUR\.includes\(lang\)\?"EUR":"USD"/);
 
 const recoveredPages = [
