@@ -64,13 +64,6 @@ function json(data: unknown, status = 200, maxAge = 300) {
   });
 }
 
-function jsonNoStore(data: unknown, status = 200) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { ...cors, "Cache-Control": "private, no-store, max-age=0", "Pragma": "no-cache", "Expires": "0" },
-  });
-}
-
 function serviceAccount() {
   const raw = Deno.env.get(SERVICE_ACCOUNT_SECRET);
   if (!raw) throw new Error("GA credential not configured");
@@ -458,10 +451,9 @@ Deno.serve(async (req) => {
     }
 
     if (mode === "subscription_24h") {
-      const forceFresh = url.searchParams.get("fresh") === "1";
       const cacheKey = "subscription_24h";
       const cachedSubscription = responseCache.get(cacheKey);
-      if (!forceFresh && cachedSubscription && cachedSubscription.expiresAt > Date.now()) return json(cachedSubscription.value, 200, 30);
+      if (cachedSubscription && cachedSubscription.expiresAt > Date.now()) return json(cachedSubscription.value, 200, 30);
       const funnel24h = await subscription24h();
       const subscriptionPayload = {
         version: 2,
@@ -470,7 +462,6 @@ Deno.serve(async (req) => {
         property: PROPERTY_ID,
         subscription24h: funnel24h,
       };
-      if (forceFresh) return jsonNoStore(subscriptionPayload);
       responseCache.set(cacheKey, { value: subscriptionPayload, expiresAt: Date.now() + 60 * 1000 });
       return json(subscriptionPayload, 200, 30);
     }

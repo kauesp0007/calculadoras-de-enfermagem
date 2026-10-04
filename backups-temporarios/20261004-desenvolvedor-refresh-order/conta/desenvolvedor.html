@@ -119,6 +119,22 @@
 <div id="grant-list" class="grid gap-2"></div>
 </section>
 
+<section class="dev-card p-5">
+<div class="flex flex-wrap items-end justify-between gap-3 mb-4">
+<div><h2 class="text-2xl">Classificação Free ou Premium por página</h2><p class="status-line">Verde significa que as ações da página exigem assinatura Premium. Vermelho significa acesso Free integral. O conteúdo, os campos, o menu e o rodapé continuam visíveis nos dois modos.</p></div>
+<div class="route-toolbar"><input id="route-search" class="dev-input" type="search" placeholder="Pesquisar página..."><select id="route-category" class="dev-input"></select></div>
+</div>
+<p id="route-summary" class="status-line mb-2" aria-live="polite"></p>
+<div id="route-list" class="divide-y divide-slate-200"></div>
+<button id="route-more" class="dev-btn secondary mt-4 hidden" type="button">Mostrar mais páginas</button>
+</section>
+
+<section class="dev-card p-5" aria-labelledby="decision-history-title">
+<h2 id="decision-history-title" class="text-2xl mb-2">Histórico de decisões do desenvolvedor</h2>
+<p class="status-line mb-3">Cada alteração registra a origem, a data e o estado anterior e escolhido. Esse histórico orienta as auditorias e a manutenção do site.</p>
+<div id="decision-history" class="table-list" aria-live="polite"></div>
+</section>
+
 <section class="dev-card p-5" aria-labelledby="billing-title">
 <div class="mb-4">
 <h2 id="billing-title" class="text-2xl">Assinantes e Tentativas</h2>
@@ -146,22 +162,6 @@
 <p id="billing-analytics-updated" class="billing-analytics-updated">Aguardando atualização do GA4.</p>
 </aside>
 </div>
-</section>
-
-<section class="dev-card p-5" aria-labelledby="decision-history-title">
-<h2 id="decision-history-title" class="text-2xl mb-2">Histórico de decisões do desenvolvedor</h2>
-<p class="status-line mb-3">Cada alteração registra a origem, a data e o estado anterior e escolhido. Esse histórico orienta as auditorias e a manutenção do site.</p>
-<div id="decision-history" class="table-list" aria-live="polite"></div>
-</section>
-
-<section class="dev-card p-5">
-<div class="flex flex-wrap items-end justify-between gap-3 mb-4">
-<div><h2 class="text-2xl">Classificação Free ou Premium por página</h2><p class="status-line">Verde significa que as ações da página exigem assinatura Premium. Vermelho significa acesso Free integral. O conteúdo, os campos, o menu e o rodapé continuam visíveis nos dois modos.</p></div>
-<div class="route-toolbar"><input id="route-search" class="dev-input" type="search" placeholder="Pesquisar página..."><select id="route-category" class="dev-input"></select></div>
-</div>
-<p id="route-summary" class="status-line mb-2" aria-live="polite"></p>
-<div id="route-list" class="divide-y divide-slate-200"></div>
-<button id="route-more" class="dev-btn secondary mt-4 hidden" type="button">Mostrar mais páginas</button>
 </section>
 
 </div>
@@ -271,7 +271,7 @@ $("billing-event-timeline").innerHTML=timeline.length?timeline.map(function(row)
 var updated=$("billing-analytics-updated");if(updated){var windowText=d.fromLabel&&d.toLabel?("Janela: "+d.fromLabel+" até "+d.toLabel+" · "):"";updated.textContent=windowText+"Atualizado: "+fmt(state.subscriptionAnalyticsGeneratedAt||new Date().toISOString())+" · horário de referência: "+(d.timezone||"America/Sao_Paulo")}
 }
 async function loadSubscriptionAnalytics(){
-try{var analyticsUrl=ANALYTICS_ENDPOINT+"?mode=subscription_24h&fresh=1&_="+Date.now();var res=await fetch(analyticsUrl,{cache:"no-store",headers:{Accept:"application/json"}});var data=await res.json().catch(function(){return{}});if(!res.ok||!data.subscription24h)throw new Error(data.error||("http_"+res.status));state.subscriptionAnalytics=data.subscription24h;state.subscriptionAnalyticsGeneratedAt=data.generatedAt||new Date().toISOString();renderSubscriptionAnalytics()}catch(e){console.warn("[Developer Analytics]",e);$("billing-events").innerHTML='<p class="rounded-xl border border-dashed border-red-200 bg-white p-3 text-red-700 text-xs font-bold">Métricas de assinatura indisponíveis no momento.</p>';$("billing-event-timeline").innerHTML="";$("billing-analytics-updated").textContent="Falha ao consultar o GA4. Os controles de assinatura continuam funcionando normalmente."}
+try{var res=await fetch(ANALYTICS_ENDPOINT+"?mode=subscription_24h",{cache:"no-store",headers:{Accept:"application/json"}});var data=await res.json().catch(function(){return{}});if(!res.ok||!data.subscription24h)throw new Error(data.error||("http_"+res.status));state.subscriptionAnalytics=data.subscription24h;state.subscriptionAnalyticsGeneratedAt=data.generatedAt||new Date().toISOString();renderSubscriptionAnalytics()}catch(e){console.warn("[Developer Analytics]",e);$("billing-events").innerHTML='<p class="rounded-xl border border-dashed border-red-200 bg-white p-3 text-red-700 text-xs font-bold">Métricas de assinatura indisponíveis no momento.</p>';$("billing-event-timeline").innerHTML="";$("billing-analytics-updated").textContent="Falha ao consultar o GA4. Os controles de assinatura continuam funcionando normalmente."}
 }
 function decisionValue(value){if(!value)return"Sem registro anterior";if(value.route)value=value.route;if(typeof value.premium_required==="boolean")return value.premium_required?"Premium":"Free";if(value.value&&typeof value.value.enabled==="boolean")return value.value.enabled?"Ativado":"Desativado";if(typeof value.active==="boolean")return value.active?"Liberado":"Revogado";return"Registrado"}
 function renderDecisionHistory(){var actions={set_route:"Alteração de acesso",queue_route_activation:"Solicitação Premium",activate_route_after_deploy:"Publicação da solicitação",set_setting:"Alteração de configuração",grant_email:"Concessão administrativa",revoke_email:"Revogação administrativa",restore_developer_panel_choice:"Restauração da escolha do painel"};$("decision-history").innerHTML=state.auditLog.length?state.auditLog.map(function(row){var after=row.after_state||{},meta=after._decision||{},automation=/^(?:system:|codex:)/i.test(row.actor_email||""),origin=meta.origin==="developer_panel"||!automation?"Desenvolvedor":"Manutenção/automação",chosen=row.action==="queue_route_activation"?"Premium solicitado (aguardando publicação)":decisionValue(after);return'<div class="client-row"><div><strong>'+esc(actions[row.action]||row.action)+'</strong><div class="text-slate-500">'+esc(row.target_key)+'</div></div><div>'+esc(decisionValue(row.before_state))+' → '+esc(chosen)+'</div><div>'+esc(origin)+'<br>'+esc(fmt(row.created_at))+'</div><div class="text-slate-500">Registro '+esc(row.id)+'</div></div>'}).join(""):'<p class="text-slate-500">Nenhuma decisão recente disponível.</p>'}
@@ -289,15 +289,7 @@ async function saveRoute(input){input.disabled=true;var path=input.dataset.route
 async function grant(email){await api("POST",{action:"grant_email",email:email});await reload();msg("E-mail liberado: "+email,false)}
 async function revoke(email){await api("POST",{action:"revoke_email",email:email});await reload();msg("E-mail removido da exceção: "+email,false)}
 function bind(){document.addEventListener("change",function(ev){var t=ev.target;if(t&&t.matches("[data-setting]"))saveSetting(t);if(t&&t.matches("[data-route]"))saveRoute(t)});document.addEventListener("click",function(ev){var b=ev.target.closest("[data-revoke]");if(b)revoke(b.dataset.revoke)});$("route-search").addEventListener("input",function(){state.visibleRoutes=100;renderRoutes()});$("route-category").addEventListener("change",function(){state.visibleRoutes=100;renderRoutes()});$("route-more").addEventListener("click",function(){state.visibleRoutes+=100;renderRoutes()});$("grant-form").addEventListener("submit",function(ev){ev.preventDefault();var email=($("grant-email").value||"").trim().toLowerCase();if(!email)return;grant(email);$("grant-email").value=""})}
-var dashboardReady=false,lastDashboardRefreshAt=0;
-function refreshDeveloperDashboard(){
-if(!dashboardReady||document.hidden)return;
-var now=Date.now();if(now-lastDashboardRefreshAt<3000)return;
-lastDashboardRefreshAt=now;
-reload().catch(console.warn);
-loadSubscriptionAnalytics().catch(console.warn);
-}
-async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();await loadSubscriptionAnalytics();lastDashboardRefreshAt=Date.now();dashboardReady=true;setInterval(refreshDeveloperDashboard,60000);window.addEventListener("pageshow",refreshDeveloperDashboard);document.addEventListener("visibilitychange",refreshDeveloperDashboard);$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
+async function boot(){try{await window.Auth.init();var u=window.Auth.currentUser&&window.Auth.currentUser();if(!u){location.replace("/conta/login.html?returnUrl="+encodeURIComponent(location.pathname));return}if(String(u.email||"").toLowerCase()!==ADMIN_EMAIL){$("dev-loading").textContent="Acesso negado.";return}bind();try{await loadCatalog()}catch(e){console.warn(e);msg("Catálogo de páginas indisponível. Exibindo apenas rotas administrativas conhecidas.",true)}await reload();await loadSubscriptionAnalytics();setInterval(function(){if(!document.hidden){reload().catch(console.warn);loadSubscriptionAnalytics().catch(console.warn)}},60000);$("dev-loading").classList.add("hidden");$("dev-content").classList.remove("hidden")}catch(e){console.error(e);$("dev-loading").textContent="Não foi possível carregar a área do desenvolvedor: "+e.message}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
 </script>

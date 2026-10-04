@@ -149,9 +149,7 @@ Esse modo:
 - não cria tabela, cookie, storage ou histórico paralelo;
 - não exibe e-mail, nome, CPF ou qualquer identificador pessoal;
 - mostra **ocorrências de evento**, portanto a quantidade não deve ser interpretada como pessoas únicas;
-- deixa de exibir automaticamente ocorrências que ultrapassam 24 horas; não há rotina de exclusão porque o painel não persiste esses dados localmente;
-- ao abrir `/conta/desenvolvedor.html`, ao restaurar a página pelo histórico do navegador e ao voltar para a aba, o painel solicita uma leitura nova com `mode=subscription_24h&fresh=1`, `cache: "no-store"` e um parâmetro anti-cache; essa variante ignora o cache interno de 60 segundos da Edge Function e responde com `Cache-Control: private, no-store`;
-- a atualização periódica de 60 segundos continua ativa enquanto a página estiver visível.
+- deixa de exibir automaticamente ocorrências que ultrapassam 24 horas; não há rotina de exclusão porque o painel não persiste esses dados localmente.
 
 Cancelamento/desistência só é mostrado quando existe evento explícito de cancelamento (`subscription_checkout_cancel` ou `subscription_payment_cancelled`). Não inferir abandono apenas porque não houve conversão.
 
