@@ -77,7 +77,24 @@ assert.match(page, /data-setting="free_global_lockdown"/);
 assert.match(page, /grant_email/);
 assert.match(page, /set_route/);
 assert.match(page, /Clientes Premium Ativos/);
+assert.match(page, /billing-all/);
+assert.match(page, /billing-events/);
+assert.match(page, /sortBillingRecords/);
+assert.match(page, /mode=subscription_24h/);
+assert.match(page, /Funil de assinatura — últimas 24 horas/);
+assert.match(page, /subscription_checkout_click/);
+assert.match(page, /subscription_payment_cancelled/);
+assert.match(page, /subscription_payment_success/);
 assert.match(page, /simulado-de-enfermagem\.html/);
 assert.match(page, /biblioteca-provas\.html/);
+
+const analytics = read("supabase/functions/analytics-metrics/index.ts");
+assert.match(analytics, /subscription_24h/);
+assert.match(analytics, /dateHourMinute/);
+assert.match(analytics, /windowHours:\s*24/);
+assert.match(analytics, /click_menu_assine_ja/);
+assert.match(analytics, /subscription_checkout_click/);
+assert.match(analytics, /subscription_payment_cancelled/);
+assert.match(analytics, /subscription_payment_success/);
 
 console.log("Developer admin static audit passed.");
