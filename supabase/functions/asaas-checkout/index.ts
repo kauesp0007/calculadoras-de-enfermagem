@@ -11,6 +11,15 @@ const PRICE_BRL=Number(Deno.env.get("ASAAS_PRICE_BRL")||"0");
 const JWKS=createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const H={"Access-Control-Allow-Origin":"https://www.calculadorasdeenfermagem.com.br","Access-Control-Allow-Methods":"POST,OPTIONS","Access-Control-Allow-Headers":"Authorization,apikey,Content-Type","Content-Type":"application/json; charset=utf-8"};
 const db=()=>createClient(SUPABASE_URL,SERVICE_KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+function trace(event:string,data:Record<string,unknown>={}){
+  console.info("[billing-event]",JSON.stringify({
+    flow:"subscription",
+    provider:"asaas",
+    event,
+    at:new Date().toISOString(),
+    ...data
+  }));
+}
 
 async function firebaseUser(req:Request){
   const h=req.headers.get("Authorization")||"";
@@ -86,6 +95,10 @@ serve(async req=>{
             }else{
               const existingUrl=String(remote?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(existingCheckoutId)}`).trim();
               if(!/^https:\/\/(?:www\.)?asaas\.com\//i.test(existingUrl))throw new Error("active_billing_flow");
+              trace("checkout_reused",{
+                checkout_id:existingCheckoutId,
+                subscription_row_id:String(current.id||"")
+              });
               return new Response(JSON.stringify({
                 url:existingUrl,
                 checkoutId:existingCheckoutId,
@@ -182,11 +195,32 @@ serve(async req=>{
     checkoutId=String(checkout?.id||"");
     if(!checkoutId)throw new Error("checkout_id_missing");
     const checkoutUrl=String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`);
+    const checkoutSubscription=checkout?.subscription;
+    const providerSubscriptionId=String(
+      typeof checkoutSubscription==="object"
+        ? checkoutSubscription?.id||""
+        : checkoutSubscription||""
+    ).trim();
+    const checkoutCustomerId=String(
+      checkout?.customer||
+      (typeof checkoutSubscription==="object"?checkoutSubscription?.customer||"":"")||
+      ""
+    ).trim();
+    const persistedMetadata:any={...initialMetadata,checkout_id:checkoutId};
+    if(providerSubscriptionId)persistedMetadata.provider_subscription_id=providerSubscriptionId;
+    if(checkoutCustomerId)persistedMetadata.asaas_customer_id=checkoutCustomerId;
     const upd=await db().from("billing_subscriptions").update({
-      metadata:{...initialMetadata,checkout_id:checkoutId},
+      metadata:persistedMetadata,
       updated_at:new Date().toISOString()
     }).eq("provider","asaas").eq("external_id",ref);
     if(upd.error)throw upd.error;
+    trace("checkout_created",{
+      checkout_id:checkoutId,
+      kind,
+      lang,
+      provider_subscription_linked:Boolean(providerSubscriptionId),
+      customer_linked:Boolean(checkoutCustomerId)
+    });
     return new Response(JSON.stringify({url:checkoutUrl,checkoutId,externalReference:ref}),{status:200,headers:H});
   }catch(e){
     const msg=String((e as Error)?.message||e);
@@ -205,6 +239,11 @@ serve(async req=>{
     }
     console.error("[asaas-checkout]",msg);
     const safeCode=msg.startsWith("asaas_")?msg:"checkout_failed";
+    trace("checkout_error",{
+      kind:attemptKind,
+      lang:attemptLang,
+      error_code:safeCode.slice(0,160)
+    });
     return new Response(JSON.stringify({error:safeCode}),{status:400,headers:H});
   }
 });
