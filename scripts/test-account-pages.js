@@ -142,6 +142,15 @@ const authUi = fs.readFileSync(path.join(ROOT, "js", "auth", "auth-ui.js"), "utf
 if (authUi.includes('normalizedReturn.indexOf("/conta/") === 0')) {
   fail("auth-ui.js: retorno de login ainda usa detector root-only de conta.");
 }
+for (const required of [
+  'normalizedReturn === "/conta/assinatura.html"',
+  'sessionStorage.setItem("billing_login_completed"'
+]) {
+  if (!authUi.includes(required)) fail(`auth-ui.js: retorno canônico da assinatura sem rastreabilidade: ${required}`);
+}
+if (/normalizedReturn === "\\/(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\\/conta\\/assinatura\\.html"/.test(authUi)) {
+  fail("auth-ui.js: não deve criar rota localizada secundária de assinatura.");
+}
 const premiumBanner = fs.readFileSync(path.join(ROOT, "js", "access", "premium-banner-manager.js"), "utf8");
 if (premiumBanner.includes('window.location.pathname || "").indexOf("/conta/") === 0')) {
   fail("premium-banner-manager.js: detector root-only ainda permite promo na conta localizada.");
@@ -166,6 +175,43 @@ for (const required of [
 const globalScripts = fs.readFileSync(path.join(ROOT, "global-scripts.js"), "utf8");
 if (!globalScripts.includes("__ACCOUNT_AUTH_BOOTSTRAP_PROMISE")) {
   fail("global-scripts.js: bootstrap antecipado da sessão na área de conta ausente.");
+}
+
+const subscriptionPage = fs.readFileSync(path.join(ROOT, "conta", "assinatura.html"), "utf8");
+for (const eventName of [
+  "subscription_page_view",
+  "subscription_login_required",
+  "subscription_login_completed",
+  "subscription_checkout_click",
+  "subscription_checkout_request",
+  "subscription_checkout_created",
+  "subscription_checkout_redirect",
+  "subscription_checkout_error",
+  "subscription_page_error"
+]) {
+  if (!subscriptionPage.includes(eventName)) fail(`conta/assinatura.html: evento do funil ausente: ${eventName}`);
+}
+
+const asaasCheckout = fs.readFileSync(path.join(ROOT, "supabase", "functions", "asaas-checkout", "index.ts"), "utf8");
+for (const required of [
+  "provider_subscription_linked",
+  "asaas_customer_id",
+  'trace("checkout_created"',
+  'trace("checkout_error"'
+]) {
+  if (!asaasCheckout.includes(required)) fail(`asaas-checkout: identificador/rastreabilidade ausente: ${required}`);
+}
+
+const asaasWebhook = fs.readFileSync(path.join(ROOT, "supabase", "functions", "asaas-webhook", "index.ts"), "utf8");
+for (const required of [
+  "findSubByCustomerIdentity",
+  'strategy:"asaas_customer_email"',
+  'trace("webhook_correlation_recovered"',
+  'trace("webhook_orphan"',
+  'trace("webhook_processed"',
+  'trace("webhook_error"'
+]) {
+  if (!asaasWebhook.includes(required)) fail(`asaas-webhook: correlação/rastreabilidade ausente: ${required}`);
 }
 
 const notFound = fs.readFileSync(path.join(ROOT, "404.html"), "utf8");
