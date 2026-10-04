@@ -144,9 +144,16 @@ if (authUi.includes('normalizedReturn.indexOf("/conta/") === 0')) {
 }
 for (const required of [
   'normalizedReturn === "/conta/assinatura.html"',
+  'async function _redirectAfterLogin()',
+  'await window.Auth.refreshProfile();',
+  'window.Auth.hasPlan("premium")',
+  'targetUrl = localizedHome;',
+  '"subscription_post_login_redirect"',
+  '_trackSubscriptionRedirect(planState, "home"',
+  '_trackSubscriptionRedirect(planState, "subscription"',
   'sessionStorage.setItem("billing_login_completed"'
 ]) {
-  if (!authUi.includes(required)) fail(`auth-ui.js: retorno canônico da assinatura sem rastreabilidade: ${required}`);
+  if (!authUi.includes(required)) fail(`auth-ui.js: decisão pós-login por entitlement/rastreabilidade ausente: ${required}`);
 }
 for (const lang of LANGS) {
   if (authUi.includes('normalizedReturn === "/' + lang + '/conta/assinatura.html"')) {
