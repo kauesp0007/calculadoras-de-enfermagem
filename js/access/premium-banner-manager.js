@@ -551,7 +551,7 @@ return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta
         var INITIAL_DELAY_MS = 1500;
         var lastShownInMemory = 0;
         var copy = PROMO_COPY[lang];
-        var price = lang === "pt" ? "" : (EUR_LANGS.indexOf(lang) !== -1 ? "€ 5,00" : "US$ 5,00");
+        var price = lang === "pt" ? "" : (EUR_LANGS.indexOf(lang) !== -1 ? "€ 3,00" : "US$ 3,00");
         var priceLine = copy.price.replace("{price}", price);
         var subscribeUrl = lang === "pt" ? "/conta/assinatura.html" : "/conta/assinatura.html?lang=" + lang;
 
