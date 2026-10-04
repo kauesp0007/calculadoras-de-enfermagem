@@ -7,6 +7,15 @@ const TOKEN=Deno.env.get("ASAAS_WEBHOOK_TOKEN")??"";
 const ASAAS=Deno.env.get("ASAAS_API_TOKEN")??"";
 const H={"Content-Type":"application/json; charset=utf-8"};
 const db=()=>createClient(URL,KEY,{auth:{persistSession:false,autoRefreshToken:false}});
+function trace(event:string,data:Record<string,unknown>={}){
+  console.info("[billing-event]",JSON.stringify({
+    flow:"subscription",
+    provider:"asaas",
+    event,
+    at:new Date().toISOString(),
+    ...data
+  }));
+}
 function iso(value:any,endOfDay=false){
   if(value===null||value===undefined)return null;
   const raw=String(value).trim();
@@ -41,6 +50,51 @@ async function findSub(ref:string,providerSubId:string,customerId:string,checkou
     if(a.data)return a.data;
   }
   return null;
+}
+
+async function findSubByCustomerIdentity(customerId:string,providerSubId:string){
+  if(!customerId)return null;
+  const remoteCustomer=await asaasGet("/customers/"+encodeURIComponent(customerId));
+  const email=String(remoteCustomer?.email||"").trim().toLowerCase();
+  if(!email)return null;
+
+  // O e-mail vem da identidade do cliente confirmada pelo próprio Asaas.
+  // Só correlacionamos quando existe uma única identidade Firebase local,
+  // evitando associação ambígua ou criação de assinatura paralela.
+  const identities=await db().from("billing_identities")
+    .select("id")
+    .eq("provider","firebase")
+    .eq("email",email)
+    .limit(2);
+  if(identities.error)throw identities.error;
+  if(!identities.data||identities.data.length!==1)return null;
+
+  const rows=await db().from("billing_subscriptions")
+    .select("*")
+    .eq("provider","asaas")
+    .eq("user_id",String(identities.data[0].id))
+    .in("status",["checkout_pending","active","past_due","inactive"])
+    .order("created_at",{ascending:false})
+    .limit(10);
+  if(rows.error)throw rows.error;
+  const candidates=rows.data||[];
+  if(!candidates.length)return null;
+
+  if(providerSubId){
+    const exact=candidates.filter((row:any)=>
+      String(row?.metadata?.provider_subscription_id||"")===providerSubId
+    );
+    if(exact.length===1)return exact[0];
+
+    const recurring=candidates.filter((row:any)=>{
+      const stored=String(row?.metadata?.provider_subscription_id||"");
+      return String(row?.metadata?.kind||"")==="monthly_card"&&(!stored||stored===providerSubId);
+    });
+    if(recurring.length===1)return recurring[0];
+    return null;
+  }
+
+  return candidates.length===1?candidates[0]:null;
 }
 
 async function isGuardBlocked(userId:string){
@@ -207,7 +261,41 @@ serve(async req=>{
       }catch(err){ console.warn("[asaas-webhook] subscription lookup fallback",String((err as Error)?.message||err)); }
     }
 
+    if(!sub&&customerId){
+      try{
+        sub=await findSubByCustomerIdentity(customerId,providerSubId);
+        if(sub){
+          const recoveredMetadata:any={...(sub.metadata||{})};
+          if(providerSubId)recoveredMetadata.provider_subscription_id=providerSubId;
+          recoveredMetadata.asaas_customer_id=customerId;
+          if(paymentId)recoveredMetadata.last_payment_id=paymentId;
+          const linked=await db().from("billing_subscriptions").update({
+            metadata:recoveredMetadata,
+            updated_at:new Date().toISOString()
+          }).eq("id",sub.id);
+          if(linked.error)throw linked.error;
+          sub={...sub,metadata:recoveredMetadata};
+          trace("webhook_correlation_recovered",{
+            event_type:event,
+            subscription_row_id:String(sub.id||""),
+            provider_subscription_linked:Boolean(providerSubId),
+            strategy:"asaas_customer_email"
+          });
+        }
+      }catch(err){
+        console.warn("[asaas-webhook] customer identity fallback",String((err as Error)?.message||err));
+      }
+    }
+
     if(!sub){
+      trace("webhook_orphan",{
+        event_type:event,
+        event_id:eventId,
+        has_checkout_id:Boolean(checkoutId),
+        has_provider_subscription_id:Boolean(providerSubId),
+        has_payment_id:Boolean(paymentId),
+        has_customer_id:Boolean(customerId)
+      });
       console.warn("[asaas-webhook] orphan_event",{
         event,
         eventId,
@@ -234,6 +322,12 @@ serve(async req=>{
       if(done.error)throw done.error;
       return new Response(JSON.stringify({ok:true,guarded:true}),{status:200,headers:H});
     }
+
+    trace("webhook_correlated",{
+      event_type:event,
+      event_id:eventId,
+      subscription_row_id:String(sub.id||"")
+    });
 
     const metadata={
       ...(sub.metadata||{}),
@@ -377,10 +471,26 @@ serve(async req=>{
     });
     if(done.error)throw done.error;
 
+    trace("webhook_processed",{
+      event_type:event,
+      event_id:eventId,
+      subscription_row_id:String(sub.id||""),
+      resulting_status:[
+        "CHECKOUT_PAID","PAYMENT_CONFIRMED","PAYMENT_RECEIVED"
+      ].includes(event)?"premium_active":([
+        "CHECKOUT_CANCELED","CHECKOUT_EXPIRED","SUBSCRIPTION_INACTIVATED",
+        "SUBSCRIPTION_DELETED","PAYMENT_REFUNDED","PAYMENT_PARTIALLY_REFUNDED",
+        "PAYMENT_CHARGEBACK_REQUESTED","PAYMENT_CHARGEBACK_DISPUTE"
+      ].includes(event)?"inactive":event==="PAYMENT_OVERDUE"?"past_due":"recorded")
+    });
     return new Response(JSON.stringify({ok:true}),{status:200,headers:H});
   }catch(e){
     const detail=String((e as Error)?.message||e);
     console.error("[asaas-webhook]",detail);
+    trace("webhook_error",{
+      event_id:claimedEventId,
+      error_code:detail.slice(0,200)
+    });
     try{
       if(claimedEventId){
         await db().rpc("fail_billing_webhook",{
