@@ -103,7 +103,7 @@ with_script_end as (
 final_doc as (
   select overlay(
     content
-    placing E'];\r\n\r\n(function(){\r\n  var root = document.getElementById(\'ce-simulator-root\');\r\n  if (!root || !window.CESimulator) {\r\n    console.error(\'CESimulator indisponível para o piloto.\');\r\n    return;\r\n  }\r\n  window.CESimulator.create({\r\n    id: \'simulado-tecnico-enfermagem-1\',\r\n    title: \'1° Simulado para Técnicos de Enfermagem\',\r\n    contentVersion: \'2026-10-04-pilot-01\',\r\n    mode: \'exam\',\r\n    allowModeChoice: true,\r\n    storage: true,\r\n    timer: true,\r\n    print: true,\r\n    analytics: true,\r\n    type: \'general\',\r\n    audience: \'tecnico-enfermagem\',\r\n    topic: \'concursos\',\r\n    questions: questionsData\r\n  }).mount();\r\n})();\r\n'
+    placing E'];\r\n\r\n(function(){\r\n  var root = document.getElementById(\'ce-simulator-root\');\r\n  if (!root || !window.CESimulator) {\r\n    console.error(\'CESimulator indisponível para o piloto.\');\r\n    return;\r\n  }\r\n  window.CESimulator.create({\r\n    id: \'simulado-tecnico-enfermagem-1\',\r\n    title: \'1° Simulado para Técnicos de Enfermagem\',\r\n    contentVersion: \'2026-10-04-pilot-01\',\r\n    mode: \'exam\',\r\n    allowModeChoice: true,\r\n    storage: true,\r\n    timer: true,\r\n    print: true,\r\n    analytics: true,\r\n    type: \'general\',\r\n    audience: \'tecnico-enfermagem\',\r\n    topic: \'concursos\',\r\n    questions: questionsData\r\n  }).mount();\r\n})();\r\n});\r\n'
     from runtime_start
     for script_end - runtime_start
   ) as content
@@ -154,7 +154,8 @@ begin
      or v_mount_count <> 1
      or v_engine_js_count <> 1
      or v_engine_css_count <> 1
-     or v_premium_block_count <> 1 then
+     or v_premium_block_count <> 1
+     or position(E'})();\\r\\n});\\r\\n</script>' in content) = 0 then
     raise exception 'validação pós-transformação falhou';
   end if;
 end $$;
