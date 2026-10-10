@@ -265,3 +265,63 @@ As prévias são renderizadas diretamente dos PDFs originais em 200 DPI com WebP
 
 
 Desde 03/10/2026, `protected-form-pdf.js` impede `contextmenu` e `dragstart` somente nas imagens dentro de `.protected-pdf-viewer`, desativa o arraste nativo e o callout WebKit da prévia. O bloqueio central vale para PT/EN/ES e para prévias restauradas após logout; não interfere no menu da página, outros elementos ou iframe PDF Premium autorizado. Download e impressão continuam passando pelos controles existentes. Esta restrição de interface não impede screenshot, DevTools, acesso aos bytes da prévia ou clientes modificados; não altera a resolução nem adiciona marca-d’água.
+
+
+---
+
+## 20. Incidente Asaas — fila interrompida e recuperação canônica (2026-10-10)
+
+### 20.1. Diagnóstico confirmado
+
+Em 10/10/2026, a configuração Asaas **“Enfermagem - Liberar plano”** apareceu como
+`Interrompido`. O Asaas interrompe uma configuração após 15 falhas consecutivas e
+mantém os eventos pendentes para reenvio quando a fila é reativada.
+
+A falha determinística era causada por dois comportamentos no sistema vigente:
+
+1. `asaas-checkout` consultava `GET /v3/checkouts/{id}`, leitura não exposta na
+   referência atual de Checkout. O retorno 404 era interpretado como checkout inexistente,
+   encerrava um registro válido e permitia criar outro checkout.
+2. `asaas-webhook` tratava todo `CHECKOUT_CREATED` como transição obrigatória para
+   `checkout_pending`. Um evento atrasado conseguia tentar reabrir um registro inativo e
+   colidia com o índice `billing_subscriptions_one_open_asaas`, produzindo HTTP 500.
+
+### 20.2. Regra vigente após a correção
+
+- O checkout tem TTL local canônico de 60 minutos, igual ao `minutesToExpire` enviado ao Asaas.
+- `checkout_url`, `checkout_created_at` e `checkout_expires_at` são persistidos no
+  `metadata` de `billing_subscriptions`.
+- Um checkout da mesma modalidade e ainda válido é reutilizado sem consulta remota.
+- Para trocar cartão por Pix ou Pix por cartão, o checkout anterior é cancelado pelo endpoint
+  documentado `POST /v3/checkouts/{id}/cancel` antes da criação do substituto.
+- Checkout local vencido é encerrado como `CHECKOUT_EXPIRED_LOCAL`.
+- `CHECKOUT_CREATED` é informativo e idempotente: registra IDs/horário, mas preserva
+  `inactive`, `active`, `past_due`, `checkout_failed` ou `checkout_pending`.
+- `SUBSCRIPTION_CREATED` e `SUBSCRIPTION_UPDATED` sem comprovação financeira também
+  preservam o estado atual; criação da assinatura não comprova o primeiro pagamento.
+- O acesso Premium comercial continua sendo concedido somente por
+  `CHECKOUT_PAID`, `PAYMENT_CONFIRMED` ou `PAYMENT_RECEIVED`.
+- Não existe rota de pagamento paralela: permanecem
+  `asaas-checkout`, `asaas-webhook`, `billing_subscriptions` e `user_entitlements`
+  como fluxo canônico.
+
+### 20.3. Contingência temporária
+
+Cinco identidades que permaneciam em `checkout_pending` receberam exceção administrativa em
+`developer_premium_email_grants`. A concessão foi registrada em
+`developer_admin_audit_log`, não alterou o status financeiro e não criou entitlement pago.
+As exceções devem ser revogadas individualmente depois da reconciliação dos eventos do Asaas.
+
+### 20.4. Recuperação operacional
+
+A ordem obrigatória para uma fila interrompida é:
+
+1. corrigir e implantar o endpoint;
+2. executar `scripts/test-billing-final.js` e `scripts/test-asaas-resilience.js`;
+3. encerrar localmente checkouts vencidos sem apagar o histórico;
+4. reativar a configuração no Asaas;
+5. confirmar o reenvio dos eventos acumulados com HTTP 200;
+6. validar `billing_webhook_claims`, `billing_subscriptions` e `user_entitlements`;
+7. revogar as exceções temporárias somente após confirmar cada pagamento.
+
+O workflow `.github/workflows/deploy.yml` executa os dois testes de faturamento em todo deploy.

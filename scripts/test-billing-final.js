@@ -33,7 +33,10 @@ assert(page.includes('btn.addEventListener("click",function(){start(btn.getAttri
 
 assert(asaas.includes('if(kind!=="monthly_card"&&kind!=="pix_30d")'),"Asaas deve aceitar somente os dois tipos canônicos.");
 assert(asaas.includes('chargeTypes:isRecurring?["RECURRENT"]:["DETACHED"]'),"Asaas deve separar recorrência de Pix avulso.");
-assert(asaas.includes('if(isRecurring)payload.subscription={cycle:"MONTHLY",nextDueDate,externalReference:ref};'),"cartão Asaas deve criar Checkout recorrente com referência externa.");
+assert(asaas.includes('nextDueDate:firstChargeDate'),"cartão Asaas deve cobrar a primeira mensalidade na data do checkout.");
+assert(asaas.includes("checkout_expires_at"),"checkout Asaas deve persistir a expiração local.");
+assert(!asaas.includes('const remote=await asaas("/checkouts/"+encodeURIComponent(existingCheckoutId))'),"checkout não pode consultar GET /checkouts/{id}, rota ausente na referência Asaas.");
+assert(asaas.includes('"/cancel",{method:"POST"}'),"troca de forma de pagamento deve cancelar o checkout anterior antes de criar outro.");
 assert(stripe.includes('mode:"subscription"'),"Stripe deve usar Checkout em modo subscription.");
 assert(stripe.includes('"metadata[plan]":"premium"'),"Stripe deve gravar o plano no metadata do checkout.");
 assert(stripe.includes('"subscription_data[metadata][plan]":"premium"'),"Stripe deve gravar o plano no metadata da assinatura.");
@@ -44,6 +47,8 @@ assert(asaasWebhook.includes('PAYMENT_REFUNDED'),"Webhook Asaas deve revogar ace
 assert(asaasWebhook.includes('SUBSCRIPTION_DELETED'),"Webhook Asaas deve revogar acesso após exclusão da assinatura.");
 assert(asaasWebhook.includes('claim_billing_webhook'),"Webhook Asaas deve usar idempotência.");
 assert(asaasWebhook.includes('asaas-access-token'),"Webhook Asaas deve validar seu token de autenticação.");
+assert(!asaasWebhook.includes('asaasGet("/checkouts/"+encodeURIComponent(checkoutId))'),"Webhook não pode depender de GET /checkouts/{id}.");
+assert(asaasWebhook.includes("checkoutCreatedPatch("),"Webhook deve preservar o estado em CHECKOUT_CREATED atrasado.");
 
 assert(stripeWebhook.includes('checkout.session.completed'),"Webhook Stripe deve processar checkout concluído.");
 assert(stripeWebhook.includes('invoice.paid'),"Webhook Stripe deve processar renovação paga.");

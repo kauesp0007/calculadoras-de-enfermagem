@@ -21,6 +21,30 @@ function trace(event:string,data:Record<string,unknown>={}){
   }));
 }
 
+/* ASAAS_CHECKOUT_STATE_START */
+const CHECKOUT_TTL_MINUTES=60;
+const CHECKOUT_TTL_MS=CHECKOUT_TTL_MINUTES*60*1000;
+const PENDING_WITHOUT_ID_GRACE_MS=5*60*1000;
+function checkoutExpiresAtMs(createdAt,metadata={}){
+  const explicit=Date.parse(String(metadata?.checkout_expires_at||""));
+  if(Number.isFinite(explicit))return explicit;
+  const created=Date.parse(String(createdAt||metadata?.checkout_created_at||""));
+  return Number.isFinite(created)?created+CHECKOUT_TTL_MS:NaN;
+}
+function isCheckoutExpired(createdAt,metadata={},nowMs=Date.now()){
+  const expiresAt=checkoutExpiresAtMs(createdAt,metadata);
+  return !Number.isFinite(expiresAt)||nowMs>=expiresAt;
+}
+function checkoutUrlFor(metadata={},checkoutId=""){
+  const stored=String(metadata?.checkout_url||"").trim();
+  const fallback=checkoutId
+    ? `https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`
+    : "";
+  const value=stored||fallback;
+  return /^https:\/\/(?:www\.)?asaas\.com\//i.test(value)?value:"";
+}
+/* ASAAS_CHECKOUT_STATE_END */
+
 async function firebaseUser(req:Request){
   const h=req.headers.get("Authorization")||"";
   if(!h.startsWith("Bearer "))throw new Error("unauthorized");
@@ -76,61 +100,86 @@ serve(async req=>{
 
     const {data:active}=await db().from("user_entitlements").select("plan,premium_expires_at").eq("user_id",id).maybeSingle();
     if(active?.plan==="premium"&&(!active.premium_expires_at||new Date(active.premium_expires_at)>new Date()))throw new Error("already_premium");
-    const {data:existing}=await db().from("billing_subscriptions").select("id,status,provider,metadata,created_at").eq("user_id",id).in("status",["checkout_pending","active","past_due"]).order("created_at",{ascending:false}).limit(1);
+
+    const {data:existing,error:existingError}=await db().from("billing_subscriptions")
+      .select("id,status,provider,external_id,metadata,created_at")
+      .eq("user_id",id)
+      .in("status",["checkout_pending","active","past_due"])
+      .order("created_at",{ascending:false})
+      .limit(1);
+    if(existingError)throw existingError;
+
     if(existing?.length){
       const current=existing[0];
       const status=String(current.status||"");
       if(status==="checkout_pending"){
-        const existingCheckoutId=String(current?.metadata?.checkout_id||"");
+        const currentMetadata:any=current.metadata||{};
+        const existingCheckoutId=String(currentMetadata.checkout_id||"");
         if(existingCheckoutId){
-          try{
-            const remote=await asaas("/checkouts/"+encodeURIComponent(existingCheckoutId));
-            const remoteStatus=String(remote?.status||"").toUpperCase();
-            if(remoteStatus==="CANCELED"||remoteStatus==="EXPIRED"){
-              await db().from("billing_subscriptions").update({
-                status:"inactive",
-                metadata:{...(current.metadata||{}),last_event:"CHECKOUT_"+remoteStatus},
-                updated_at:new Date().toISOString()
-              }).eq("id",current.id);
-            }else{
-              const existingUrl=String(remote?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(existingCheckoutId)}`).trim();
-              if(!/^https:\/\/(?:www\.)?asaas\.com\//i.test(existingUrl))throw new Error("active_billing_flow");
-              trace("checkout_reused",{
-                checkout_id:existingCheckoutId,
-                subscription_row_id:String(current.id||"")
-              });
-              return new Response(JSON.stringify({
-                url:existingUrl,
-                checkoutId:existingCheckoutId,
-                externalReference:String(current.external_id||""),
-                reused:true
-              }),{status:200,headers:H});
-            }
-          }catch(e){
-            const msg=String((e as Error)?.message||e);
-            if(msg==="active_billing_flow")throw e;
-            // Se o checkout não existe mais no Asaas, o registro local ficou
-            // órfão. Nesse caso é seguro encerrá-lo e criar um novo checkout.
-            // Para falhas de autenticação/rede/provedor, mantemos fail-closed
-            // e não criamos uma segunda sessão potencialmente duplicada.
-            if(/^asaas_404(?:_|$)/.test(msg)){
-              await db().from("billing_subscriptions").update({
-                status:"inactive",
-                metadata:{...(current.metadata||{}),last_event:"CHECKOUT_NOT_FOUND"},
-                updated_at:new Date().toISOString()
-              }).eq("id",current.id);
-            }else{
-              throw new Error("active_billing_flow");
+          const expired=isCheckoutExpired(current.created_at,currentMetadata);
+          const existingKind=String(currentMetadata.kind||"");
+          if(!expired&&existingKind===kind){
+            const existingUrl=checkoutUrlFor(currentMetadata,existingCheckoutId);
+            if(!existingUrl)throw new Error("active_billing_flow");
+            trace("checkout_reused",{
+              checkout_id:existingCheckoutId,
+              subscription_row_id:String(current.id||""),
+              expires_at:new Date(checkoutExpiresAtMs(current.created_at,currentMetadata)).toISOString()
+            });
+            return new Response(JSON.stringify({
+              url:existingUrl,
+              checkoutId:existingCheckoutId,
+              externalReference:String(current.external_id||""),
+              reused:true
+            }),{status:200,headers:H});
+          }
+
+          const closedAt=new Date().toISOString();
+          let lastEvent=expired
+            ?"CHECKOUT_EXPIRED_LOCAL"
+            :"CHECKOUT_CANCELED_FOR_METHOD_CHANGE";
+
+          if(!expired){
+            try{
+              // O Asaas documenta o cancelamento por ID, mas não uma leitura
+              // GET /checkouts/{id}. Trocar a forma de pagamento exige cancelar
+              // explicitamente o checkout anterior antes de criar outro.
+              await asaas("/checkouts/"+encodeURIComponent(existingCheckoutId)+"/cancel",{method:"POST"});
+            }catch(cancelError){
+              const cancelMessage=String((cancelError as Error)?.message||cancelError);
+              if(/^asaas_404(?:_|$)/.test(cancelMessage)){
+                lastEvent="CHECKOUT_NOT_FOUND_DURING_CANCEL";
+              }else{
+                throw new Error("active_billing_flow");
+              }
             }
           }
+
+          const closed=await db().from("billing_subscriptions").update({
+            status:"inactive",
+            metadata:{
+              ...currentMetadata,
+              last_event:lastEvent,
+              checkout_closed_at:closedAt
+            },
+            updated_at:closedAt
+          }).eq("id",current.id).eq("status","checkout_pending");
+          if(closed.error)throw closed.error;
+          trace("checkout_closed_before_replacement",{
+            checkout_id:existingCheckoutId,
+            subscription_row_id:String(current.id||""),
+            reason:lastEvent
+          });
         }else{
           const createdAt=Date.parse(String(current.created_at||""));
-          if(Number.isFinite(createdAt)&&Date.now()-createdAt>2*60*60*1000){
-            await db().from("billing_subscriptions").update({
+          if(Number.isFinite(createdAt)&&Date.now()-createdAt>PENDING_WITHOUT_ID_GRACE_MS){
+            const failedAt=new Date().toISOString();
+            const failed=await db().from("billing_subscriptions").update({
               status:"checkout_failed",
-              metadata:{...(current.metadata||{}),last_event:"STALE_CHECKOUT_PENDING"},
-              updated_at:new Date().toISOString()
-            }).eq("id",current.id);
+              metadata:{...(current.metadata||{}),last_event:"STALE_CHECKOUT_PENDING_WITHOUT_ID"},
+              updated_at:failedAt
+            }).eq("id",current.id).eq("status","checkout_pending");
+            if(failed.error)throw failed.error;
           }else{
             throw new Error("active_billing_flow");
           }
@@ -169,7 +218,7 @@ serve(async req=>{
     const payload:any={
       billingTypes:isRecurring?["CREDIT_CARD"]:["PIX"],
       chargeTypes:isRecurring?["RECURRENT"]:["DETACHED"],
-      minutesToExpire:60,
+      minutesToExpire:CHECKOUT_TTL_MINUTES,
       externalReference:ref,
       callback:{
         cancelUrl:`${SITE}/conta/assinatura.html?lang=pt&asaas=cancel`,
@@ -195,6 +244,9 @@ serve(async req=>{
     checkoutId=String(checkout?.id||"");
     if(!checkoutId)throw new Error("checkout_id_missing");
     const checkoutUrl=String(checkout?.link||`https://asaas.com/checkoutSession/show?id=${encodeURIComponent(checkoutId)}`);
+    if(!/^https:\/\/(?:www\.)?asaas\.com\//i.test(checkoutUrl))throw new Error("checkout_url_invalid");
+    const checkoutCreatedAt=new Date().toISOString();
+    const checkoutExpiresAt=new Date(Date.parse(checkoutCreatedAt)+CHECKOUT_TTL_MS).toISOString();
     const checkoutSubscription=checkout?.subscription;
     const providerSubscriptionId=String(
       typeof checkoutSubscription==="object"
@@ -206,7 +258,13 @@ serve(async req=>{
       (typeof checkoutSubscription==="object"?checkoutSubscription?.customer||"":"")||
       ""
     ).trim();
-    const persistedMetadata:any={...initialMetadata,checkout_id:checkoutId};
+    const persistedMetadata:any={
+      ...initialMetadata,
+      checkout_id:checkoutId,
+      checkout_url:checkoutUrl,
+      checkout_created_at:checkoutCreatedAt,
+      checkout_expires_at:checkoutExpiresAt
+    };
     if(providerSubscriptionId)persistedMetadata.provider_subscription_id=providerSubscriptionId;
     if(checkoutCustomerId)persistedMetadata.asaas_customer_id=checkoutCustomerId;
     const upd=await db().from("billing_subscriptions").update({
@@ -219,7 +277,8 @@ serve(async req=>{
       kind,
       lang,
       provider_subscription_linked:Boolean(providerSubscriptionId),
-      customer_linked:Boolean(checkoutCustomerId)
+      customer_linked:Boolean(checkoutCustomerId),
+      checkout_expires_at:checkoutExpiresAt
     });
     return new Response(JSON.stringify({url:checkoutUrl,checkoutId,externalReference:ref}),{status:200,headers:H});
   }catch(e){

@@ -28,6 +28,27 @@ function iso(value:any,endOfDay=false){
 }
 const addDays=(n:number)=>new Date(Date.now()+n*86400000).toISOString();
 
+/* ASAAS_WEBHOOK_STATE_START */
+function checkoutCreatedPatch(currentStatus,currentMetadata,eventId,checkoutId,customerId,nowIso){
+  const status=String(currentStatus||"checkout_pending");
+  const metadata={
+    ...(currentMetadata||{}),
+    checkout_created_event_id:eventId,
+    checkout_created_received_at:nowIso
+  };
+  if(!metadata.last_event){
+    metadata.last_event="CHECKOUT_CREATED";
+    metadata.last_event_id=eventId;
+  }
+  if(checkoutId)metadata.checkout_id=checkoutId;
+  if(customerId)metadata.asaas_customer_id=customerId;
+  return {status,metadata,updated_at:nowIso};
+}
+function prePaymentLifecycleStatus(currentStatus){
+  return String(currentStatus||"checkout_pending");
+}
+/* ASAAS_WEBHOOK_STATE_END */
+
 async function asaasGet(path:string){
   if(!ASAAS)throw new Error("asaas_not_configured");
   const r=await fetch("https://api.asaas.com/v3"+path,{headers:{access_token:ASAAS}});
@@ -223,21 +244,9 @@ serve(async req=>{
 
     let sub=await findSub(ref,providerSubId,customerId,checkoutId);
 
-    // Eventos do Asaas podem chegar antes de o checkout local terminar de
-    // persistir checkout_id/customer. Quando isso acontecer, resolva os
-    // identificadores pela API do próprio Asaas e tente novamente. Isso evita
-    // falsos billing_subscription_not_found sem criar registros paralelos.
-    if(!sub&&checkoutId){
-      try{
-        const remote=await asaasGet("/checkouts/"+encodeURIComponent(checkoutId));
-        sub=await findSub(
-          String(remote?.externalReference||ref||""),
-          providerSubId,
-          String(remote?.customer||customerId||""),
-          checkoutId
-        );
-      }catch(err){ console.warn("[asaas-webhook] checkout lookup fallback",String((err as Error)?.message||err)); }
-    }
+    // CHECKOUT_CREATED e CHECKOUT_PAID já carregam externalReference e/ou
+    // checkout.id. Não consultar GET /checkouts/{id}: essa leitura não existe
+    // na referência atual do Asaas e gerava falsos 404/duplicação local.
     if(!sub&&paymentId){
       try{
         const remote=await asaasGet("/payments/"+encodeURIComponent(paymentId));
@@ -339,12 +348,21 @@ serve(async req=>{
     if(customerId)metadata.asaas_customer_id=customerId;
 
     if(event==="CHECKOUT_CREATED"){
-      const u=await db().from("billing_subscriptions").update({
-        status:"checkout_pending",
-        metadata,
-        updated_at:new Date().toISOString()
-      }).eq("id",sub.id);
+      const patch=checkoutCreatedPatch(
+        sub.status,
+        sub.metadata,
+        eventId,
+        checkoutId,
+        customerId,
+        new Date().toISOString()
+      );
+      const u=await db().from("billing_subscriptions").update(patch).eq("id",sub.id);
       if(u.error)throw u.error;
+      trace("webhook_checkout_created_recorded",{
+        event_id:eventId,
+        subscription_row_id:String(sub.id||""),
+        preserved_status:patch.status
+      });
 
     }else if(event==="CHECKOUT_PAID"){
       const kind=String(metadata.kind||"pix_30d");
@@ -396,7 +414,7 @@ serve(async req=>{
       const remoteStatus=String(subscription?.status||"").toUpperCase();
       const status=firstPaymentConfirmed
         ? (remoteStatus==="ACTIVE"?"active":remoteStatus.toLowerCase()||sub.status)
-        : "checkout_pending";
+        : prePaymentLifecycleStatus(sub.status);
 
       const update:any={
         status,
