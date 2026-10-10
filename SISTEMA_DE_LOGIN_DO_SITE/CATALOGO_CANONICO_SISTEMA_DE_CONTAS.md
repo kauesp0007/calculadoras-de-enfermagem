@@ -325,3 +325,22 @@ A ordem obrigatória para uma fila interrompida é:
 7. revogar as exceções temporárias somente após confirmar cada pagamento.
 
 O workflow `.github/workflows/deploy.yml` executa os dois testes de faturamento em todo deploy.
+
+
+### 20.5. Resultado da recuperação e piso de vencimento futuro
+
+Na reativação de 10/10/2026, o Asaas reenviou 27 eventos acumulados. As 27 chamadas
+responderam HTTP 200, sem HTTP 500 e sem novo registro de erro. Os cinco usuários
+da contingência tiveram pagamento confirmado recuperado pelo fluxo canônico.
+
+Um checkout recorrente histórico trouxe `nextDueDate` anterior ao próprio
+processamento do pagamento. A partir desta correção, `setPremium` aplica um
+invariante final: pagamento confirmado nunca grava `current_period_end` nem
+`premium_expires_at` no passado. Data futura válida é preservada; data ausente
+ou não futura recebe piso de 30 dias baseado na criação do checkout quando esse
+resultado ainda é futuro, ou em 30 dias a partir do processamento. A correção
+fica rastreável em `nonfuture_access_expiry_ignored` e
+`access_expiry_correction`.
+
+Depois da reconciliação individual, os cinco entitlements ficaram Premium com
+vencimento futuro e as cinco concessões temporárias foram revogadas, com auditoria.

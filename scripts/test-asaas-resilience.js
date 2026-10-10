@@ -73,7 +73,7 @@ assert(
 
 const webhookState=evaluate(
   marked(webhook,"/* ASAAS_WEBHOOK_STATE_START */","/* ASAAS_WEBHOOK_STATE_END */"),
-  "{checkoutCreatedPatch,prePaymentLifecycleStatus}"
+  "{checkoutCreatedPatch,prePaymentLifecycleStatus,normalizePaidAccessExpiry}"
 );
 for(const status of ["inactive","active","past_due","checkout_failed","checkout_pending"]){
   const patch=webhookState.checkoutCreatedPatch(
@@ -93,6 +93,32 @@ assert(
 assert(
   webhookState.prePaymentLifecycleStatus("checkout_pending")==="checkout_pending",
   "assinatura ainda pendente deve continuar pendente"
+);
+
+const expiryNow="2026-10-10T04:00:00.000Z";
+const historicalPaid=webhookState.normalizePaidAccessExpiry(
+  "2026-10-06T03:00:00.000Z",
+  "2026-10-07T01:28:38.000Z",
+  expiryNow
+);
+assert(historicalPaid.corrected===true,"vencimento passado deve ser corrigido");
+assert(
+  historicalPaid.expiry==="2026-11-06T01:28:38.000Z",
+  "pagamento confirmado deve receber vencimento futuro a partir do checkout"
+);
+const futurePaid=webhookState.normalizePaidAccessExpiry(
+  "2026-11-06T03:00:00.000Z",
+  "2026-10-07T01:28:38.000Z",
+  expiryNow
+);
+assert(futurePaid.corrected===false,"vencimento futuro válido deve ser preservado");
+assert(
+  futurePaid.expiry==="2026-11-06T03:00:00.000Z",
+  "normalização não pode mudar vencimento futuro válido"
+);
+assert(
+  webhook.includes("nonfuture_access_expiry_ignored"),
+  "correção de vencimento passado deve ficar rastreável"
 );
 
 const checkoutCreatedBlock=webhook.slice(

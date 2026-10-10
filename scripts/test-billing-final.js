@@ -49,6 +49,8 @@ assert(asaasWebhook.includes('claim_billing_webhook'),"Webhook Asaas deve usar i
 assert(asaasWebhook.includes('asaas-access-token'),"Webhook Asaas deve validar seu token de autenticação.");
 assert(!asaasWebhook.includes('asaasGet("/checkouts/"+encodeURIComponent(checkoutId))'),"Webhook não pode depender de GET /checkouts/{id}.");
 assert(asaasWebhook.includes("checkoutCreatedPatch("),"Webhook deve preservar o estado em CHECKOUT_CREATED atrasado.");
+assert(asaasWebhook.includes("normalizePaidAccessExpiry("),"Webhook deve normalizar vencimento de pagamento confirmado.");
+assert(asaasWebhook.includes("nonfuture_access_expiry_ignored"),"Correção de vencimento passado deve ser auditável no metadata.");
 
 assert(stripeWebhook.includes('checkout.session.completed'),"Webhook Stripe deve processar checkout concluído.");
 assert(stripeWebhook.includes('invoice.paid'),"Webhook Stripe deve processar renovação paga.");

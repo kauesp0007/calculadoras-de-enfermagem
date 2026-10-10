@@ -47,6 +47,23 @@ function checkoutCreatedPatch(currentStatus,currentMetadata,eventId,checkoutId,c
 function prePaymentLifecycleStatus(currentStatus){
   return String(currentStatus||"checkout_pending");
 }
+function normalizePaidAccessExpiry(candidate,baseline,nowIso=new Date().toISOString()){
+  const nowMs=Date.parse(String(nowIso||""));
+  const safeNowMs=Number.isFinite(nowMs)?nowMs:Date.now();
+  const candidateMs=Date.parse(String(candidate||""));
+  if(Number.isFinite(candidateMs)&&candidateMs>safeNowMs){
+    return {expiry:new Date(candidateMs).toISOString(),corrected:false};
+  }
+
+  const baselineMs=Date.parse(String(baseline||""));
+  const baselineExpiryMs=Number.isFinite(baselineMs)
+    ? baselineMs+30*86400000
+    : NaN;
+  const fallbackMs=Number.isFinite(baselineExpiryMs)&&baselineExpiryMs>safeNowMs
+    ? baselineExpiryMs
+    : safeNowMs+30*86400000;
+  return {expiry:new Date(fallbackMs).toISOString(),corrected:true};
+}
 /* ASAAS_WEBHOOK_STATE_END */
 
 async function asaasGet(path:string){
@@ -146,10 +163,25 @@ async function forceFree(sub:any,reason:string){
 
 async function setPremium(sub:any,expires:string,extra:any={}){
   const now=new Date().toISOString();
-  const metadata={...(sub.metadata||{}),...extra};
+  const normalized=normalizePaidAccessExpiry(expires,sub.created_at,now);
+  const safeExpires=normalized.expiry;
+  const metadata={
+    ...(sub.metadata||{}),
+    ...extra,
+    access_expires_at:safeExpires
+  };
+  if(normalized.corrected){
+    metadata.nonfuture_access_expiry_ignored=String(expires||"");
+    metadata.access_expiry_correction="confirmed_payment_future_floor";
+    trace("nonfuture_paid_expiry_corrected",{
+      subscription_row_id:String(sub.id||""),
+      corrected_expiry:safeExpires
+    });
+  }
+
   const u=await db().from("billing_subscriptions").update({
     status:"active",
-    current_period_end:expires,
+    current_period_end:safeExpires,
     metadata,
     updated_at:now
   }).eq("id",sub.id);
@@ -158,7 +190,7 @@ async function setPremium(sub:any,expires:string,extra:any={}){
   const e=await db().from("user_entitlements").upsert({
     user_id:sub.user_id,
     plan:"premium",
-    premium_expires_at:expires,
+    premium_expires_at:safeExpires,
     provider:"asaas",
     provider_customer_id:metadata.asaas_customer_id||null,
     provider_subscription_id:metadata.provider_subscription_id||null,
