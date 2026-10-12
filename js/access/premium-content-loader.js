@@ -111,6 +111,30 @@
     var match=window.location.pathname.match(/^\/(en|es|de|it|fr|hi|zh|ar|ja|ru|ko|tr|nl|pl|sv|id|vi|uk)\//);
     return match?"/"+match[1]+"/":"/";
   }
+  var PREMIUM_SIMULATION_HERO_ROUTES=["simulado-de-enfermagem.html","simulado-de-enfermagem2.html","simulado-de-enfermagem3.html","simulado-de-enfermagem-nucleo-de-seguranca-do-paciente.html","simulado-de-enfermagem-doencas-de-notificacao-compulsoria.html","simulado_vacinacao.html","simulado_pcr.html","flashcards_quiz.html","simulado_ibam_bebedouro_enfermeiro_2024.html","simulado_ibam_guarulhos_enfermeiro_2024.html","simulado_ibam_guarulhos_enfermeiro_esf_2024.html","simulado_ibam_japaratuba_sergipe_enfermeiro_2014.html","simulado_lei_organica_do_sus_8080-90.html","simulado_participacao_da_comunidade.html","simulado_humaniza_sus.html","simulado_codigo_de_etica_enfermagem.html","simulado_hospital_amigo_da_crianca.html","simulado_aleitamento_materno.html"];
+  // Mantém breadcrumb e hero dos simulados na mesma sequência e distância usadas por aldrete.html.
+  function ensurePremiumSimulationHeroLayoutAfterWrite(){
+    var routeName=decodeURIComponent(window.location.pathname.split("/").pop()||"").toLowerCase();
+    if(PREMIUM_SIMULATION_HERO_ROUTES.indexOf(routeName)===-1) return false;
+    var main=document.getElementById("main-content");
+    if(!main) return false;
+    var breadcrumb=main.querySelector('nav[aria-label="Breadcrumb"]');
+    var hero=main.querySelector(".hero-card");
+    if(!breadcrumb||!hero) return false;
+    if(breadcrumb.nextElementSibling!==hero) breadcrumb.insertAdjacentElement("afterend",hero);
+    var style=document.getElementById("premium-simulation-hero-layout-fix");
+    if(!style){
+      style=document.createElement("style");
+      style.id="premium-simulation-hero-layout-fix";
+      style.textContent=
+        '#main-content>nav[aria-label="Breadcrumb"]{margin-bottom:1.5rem!important}'+
+        '#main-content>nav[aria-label="Breadcrumb"]+.hero-card{margin-top:0!important;top:auto!important;transform:none!important}'+
+        '#main-content>nav[aria-label="Breadcrumb"]+.hero-card>div:first-child{padding-top:1.5rem!important;padding-bottom:1.5rem!important}'+
+        '@media(min-width:768px){#main-content>nav[aria-label="Breadcrumb"]+.hero-card>div:first-child{padding-top:2rem!important;padding-bottom:2rem!important}}';
+      document.head.appendChild(style);
+    }
+    return true;
+  }
   // O CSS global estiliza <header>; o hero dos formulários precisa neutralizar altura e deslocamento.
   function ensurePremiumLocalizedFormLayoutAfterWrite(){
     if(!/^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?formulario_[^/]+\.html$/i.test(window.location.pathname)) return false;
@@ -180,6 +204,7 @@
     document.head.appendChild(script);
   }
   async function ensureGlobalChromeAfterWrite(){
+    ensurePremiumSimulationHeroLayoutAfterWrite();
     ensurePremiumLocalizedFormLayoutAfterWrite();
     await ensurePremiumFooterAfterWrite();
     // O shell público já carregou os scripts globais. Após document.write(), o
@@ -191,6 +216,7 @@
           if(typeof window.__INIT_LANGUAGE_SELECTOR==="function") await window.__INIT_LANGUAGE_SELECTOR();
           if(typeof window.__ENSURE_PAGE_COMMENTS_V2==="function") window.__ENSURE_PAGE_COMMENTS_V2();
           else if(typeof window.__INIT_PAGE_COMMENTS_V2==="function") window.__INIT_PAGE_COMMENTS_V2();
+          ensurePremiumSimulationHeroLayoutAfterWrite();
           ensurePremiumPromoAfterWrite();
           if(typeof window.__INIT_FORM_PDF_SIDE_ADS==="function") {
             Promise.resolve(window.__INIT_FORM_PDF_SIDE_ADS()).catch(function(error){console.warn("[PremiumContent] anúncios do formulário indisponíveis",error);});
@@ -202,6 +228,7 @@
       }
       await new Promise(function(resolve){setTimeout(resolve,25);});
     }
+    ensurePremiumSimulationHeroLayoutAfterWrite();
     ensurePremiumPromoAfterWrite();
     if(typeof window.__INIT_FORM_PDF_SIDE_ADS==="function") {
       Promise.resolve(window.__INIT_FORM_PDF_SIDE_ADS()).catch(function(error){console.warn("[PremiumContent] anúncios do formulário indisponíveis",error);});
