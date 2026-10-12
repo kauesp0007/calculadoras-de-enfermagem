@@ -40,9 +40,11 @@ assert.match(migration, /revoke all on table public\.page_comment_contacts from 
 
 assert.match(globalScripts, /loadPageCommentsV2/);
 assert.match(globalScripts, /\/js\/page-comments\.js/);
+assert.match(globalScripts, /__ENSURE_PAGE_COMMENTS_V2/);
 assert.match(config, /\[functions\.page-comments\]\s+verify_jwt = false/);
 assert.match(developer, /Lista de comentários/);
 assert.match(developer, /page_comment_count/);
+assert.match(premiumLoader, /__ENSURE_PAGE_COMMENTS_V2/);
 assert.match(premiumLoader, /__INIT_PAGE_COMMENTS_V2/);
 
 console.log("Page comments static audit passed.");
