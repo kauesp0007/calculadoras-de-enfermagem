@@ -7,7 +7,7 @@ const read = (file) => fs.readFileSync(path.join(ROOT, file), "utf8");
 const client = read("js/page-comments.js");
 const endpoint = read("supabase/functions/page-comments/index.ts");
 const migration = read("supabase/migrations/20261012062437_page_comments_v2_rating_privacy.sql");
-const ownership = read("supabase/migrations/20261012090000_page_comment_ownership_actions.sql");
+const ownership = read("supabase/migrations/20261012082514_page_comment_ownership_actions.sql");
 const globalScripts = read("global-scripts.js");
 const config = read("supabase/config.toml");
 const developer = read("conta/desenvolvedor.html");
