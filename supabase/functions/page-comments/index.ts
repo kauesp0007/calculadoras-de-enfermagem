@@ -248,9 +248,6 @@ function normalizeOptional(value: unknown, max: number) {
   const text = String(value || "").trim();
   return text ? text.slice(0, max) : null;
 }
-function validEmail(email: string | null) {
-  return !email || (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254);
-}
 type Identity = { uid: string; email: string };
 async function firebaseUser(req: Request): Promise<Identity | null> {
   const header = req.headers.get("Authorization") || "";
@@ -343,12 +340,10 @@ serve(async (req) => {
       const comment = String(body.comment || "").trim();
       const anonymous = body.is_anonymous === true;
       const name = anonymous ? null : normalizeOptional(body.name, 80);
-      const email = anonymous ? null : normalizeOptional(body.email, 254);
       const ratingValue = body.rating == null || body.rating === "" ? null : Number(body.rating);
-      const rating = Number.isInteger(ratingValue) && ratingValue >= 1 && ratingValue <= 4 ? ratingValue : null;
+      const rating = Number.isInteger(ratingValue) && ratingValue >= 1 && ratingValue <= 5 ? ratingValue : null;
 
       if (!comment || comment.length > 200) return json(req, { error: "invalid_comment" }, 400);
-      if (!validEmail(email)) return json(req, { error: "invalid_email" }, 400);
       if (body.rating != null && body.rating !== "" && rating === null) return json(req, { error: "invalid_rating" }, 400);
 
       const { data: inserted, error: insertError } = await sb.from("page_comments").insert({
@@ -370,13 +365,6 @@ serve(async (req) => {
             token_hash: token ? await tokenHash(token) : null
           });
           if (ownerError) throw ownerError;
-        }
-        if (email) {
-          const { error: contactError } = await sb.from("page_comment_contacts").insert({
-            comment_id: inserted.id,
-            email: email.toLowerCase()
-          });
-          if (contactError) throw contactError;
         }
         const { data: published, error: publishError } = await sb.from("page_comments")
           .update({ is_approved: true }).eq("id", inserted.id)

@@ -222,7 +222,7 @@
   var pendingPlacementTimer = 0;
   var loadGeneration = 0;
   var authBound = false;
-  var ratingLabels = ["", "Péssimo", "Ruim", "Bom", "Ótimo"];
+  var ratingLabels = ["", "Péssimo", "Ruim", "Bom", "Ótimo", "Excelente"];
 
   function addStyles() {
     if (document.getElementById("ce-page-comments-style")) return;
@@ -232,11 +232,11 @@
       ".cepc-card{width:100%;box-sizing:border-box;margin:18px 0 20px;background:#eaf4ff;border:2px solid #334155;border-radius:14px;box-shadow:0 5px 0 rgba(30,41,59,.72),0 12px 24px rgba(15,23,42,.14);overflow:hidden;font-family:Inter,Arial,sans-serif;color:#1e293b}" +
       ".cepc-head{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:38px;padding:7px 12px;background:linear-gradient(135deg,#1A3E74 0%,#1E4D8C 60%,#163269 100%);color:#fff}" +
       ".cepc-title{margin:0;font-size:15px;line-height:1.2;font-weight:900;color:#fff}" +
-      ".cepc-stars{display:flex;gap:3px;align-items:center;white-space:nowrap}" +
+      ".cepc-stars{display:flex;gap:3px;align-items:center;white-space:nowrap}.cepc-stars-label{font-size:10px;font-weight:800;margin-right:4px}" +
       ".cepc-star{appearance:none;border:0;background:transparent;color:#cbd5e1;font-size:23px;line-height:1;min-width:29px;min-height:29px;padding:1px;cursor:pointer;text-shadow:0 1px 1px rgba(0,0,0,.45)}" +
       ".cepc-star.is-on{color:#facc15}.cepc-star:focus-visible{outline:3px solid #facc15;outline-offset:2px;border-radius:5px}" +
       ".cepc-body{padding:9px 11px 10px}" +
-      ".cepc-meta{display:grid;grid-template-columns:minmax(110px,.9fr) minmax(170px,1.25fr) minmax(125px,.75fr) auto auto;gap:7px;align-items:end}" +
+      ".cepc-meta{display:grid;grid-template-columns:minmax(0,2fr) minmax(125px,.65fr) auto auto;gap:7px;align-items:end}" +
       ".cepc-field{display:grid;gap:2px;min-width:0}.cepc-label{font-size:9px;line-height:1.1;font-weight:900;color:#334155;text-transform:uppercase;letter-spacing:.03em}" +
       ".cepc-input,.cepc-textarea,.cepc-btn{box-sizing:border-box;border:2px solid #475569;border-radius:7px;background:#fff;box-shadow:0 2px 0 rgba(30,41,59,.78)}" +
       ".cepc-input{width:100%;height:32px;padding:5px 7px;font-size:11px;font-weight:700;color:#1A3E74;outline:none}" +
@@ -244,6 +244,7 @@
       ".cepc-input:focus,.cepc-textarea:focus{border-color:#1A3E74;box-shadow:0 0 0 3px rgba(26,62,116,.18),0 2px 0 rgba(30,41,59,.78)}" +
       ".cepc-btn{height:32px;padding:5px 10px;font-size:11px;line-height:1;font-weight:900;color:#111827;cursor:pointer;white-space:nowrap}" +
       ".cepc-btn:hover{background:#f1f5f9}.cepc-btn:focus-visible{outline:3px solid #2563eb;outline-offset:2px}.cepc-btn[aria-pressed=true]{background:#fef3c7;border-color:#92400e}.cepc-btn:disabled{opacity:.55;cursor:wait}" +
+      ".cepc-anonymous{display:inline-flex;align-items:center;gap:5px;min-height:32px;font-size:10px;font-weight:800;color:#1e293b;white-space:nowrap;cursor:pointer}.cepc-anonymous input{width:15px;height:15px;margin:0;accent-color:#1A3E74;cursor:pointer}" +
       ".cepc-comment-field{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;align-items:end;margin-top:7px}" +
       ".cepc-textarea{width:100%;height:48px;min-height:48px;max-height:82px;resize:vertical;padding:7px 9px;font-size:11px;font-weight:700;line-height:1.35;color:#1A3E74;outline:none}" +
       ".cepc-count{align-self:end;padding:0 2px 4px;font-size:9px;font-weight:800;color:#64748b;white-space:nowrap}" +
@@ -254,8 +255,8 @@
       ".cepc-item-actions{display:flex;justify-content:flex-start;align-items:center;gap:5px;margin-top:5px}.cepc-item-actions[hidden]{display:none}.cepc-item-action{appearance:none;background:#f8fafc;border:1px solid #94a3b8;border-radius:5px;color:#334155;cursor:pointer;font:700 10px/1 Inter,Arial,sans-serif;min-height:26px;padding:4px 7px}.cepc-item-action:hover{background:#e2e8f0}.cepc-item-action:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-item-action:disabled{opacity:.55;cursor:wait}" +
       ".cepc-edit-form{margin-top:6px}.cepc-edit-input{box-sizing:border-box;display:block;width:100%;min-height:48px;max-height:110px;padding:6px;border:1px solid #64748b;border-radius:6px;color:#1e293b;font:600 12px/1.4 Inter,Arial,sans-serif;resize:vertical}.cepc-edit-input:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-edited{color:#64748b;font-size:9px}" +
       ".cepc-delete-confirm{margin-top:6px;color:#475569;font-size:10px;font-weight:700}" +
-      "@media(max-width:850px){.cepc-meta{grid-template-columns:1fr 1fr}.cepc-meta .cepc-field:nth-child(3){grid-column:1/2}.cepc-btn{width:100%}.cepc-comment-field{grid-template-columns:1fr}.cepc-count{padding:0;text-align:right}}" +
-      "@media(max-width:520px){.cepc-head{align-items:flex-start;flex-direction:column}.cepc-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.cepc-meta .cepc-field:nth-child(3){grid-column:1/-1}.cepc-stars{align-self:flex-start}.cepc-star{font-size:22px}.cepc-card{margin-top:14px}.cepc-item-actions{flex-wrap:nowrap;gap:6px}.cepc-item-action{min-height:36px;padding:5px 9px}}";
+      "@media(max-width:850px){.cepc-meta{grid-template-columns:minmax(0,1fr) auto}.cepc-meta .cepc-field:first-child,.cepc-meta .cepc-field:nth-child(2){grid-column:1/-1}.cepc-anonymous{grid-column:1}.cepc-btn{grid-column:2}.cepc-comment-field{grid-template-columns:1fr}.cepc-count{padding:0;text-align:right}}" +
+      "@media(max-width:520px){.cepc-head{align-items:flex-start;flex-direction:column}.cepc-stars{align-self:flex-start;flex-wrap:wrap;white-space:normal}.cepc-star{font-size:22px}.cepc-card{margin-top:14px}.cepc-item-actions{flex-wrap:nowrap;gap:6px}.cepc-item-action{min-height:36px;padding:5px 9px}}";
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -286,18 +287,9 @@
     state.anonymous = !!next;
     if (!card) return;
     var name = card.querySelector("[data-cepc-name]");
-    var email = card.querySelector("[data-cepc-email]");
-    var button = card.querySelector("[data-cepc-anonymous]");
-    if (state.anonymous) {
-      if (name) name.value = "";
-      if (email) email.value = "";
-    }
+    var checkbox = card.querySelector("[data-cepc-anonymous]");
     if (name) name.disabled = state.anonymous;
-    if (email) email.disabled = state.anonymous;
-    if (button) {
-      button.setAttribute("aria-pressed", state.anonymous ? "true" : "false");
-      button.textContent = state.anonymous ? "Anônimo ativo" : "Comentar anônimo";
-    }
+    if (checkbox) checkbox.checked = state.anonymous;
   }
 
   function ownerToken(id) {
@@ -467,7 +459,7 @@
       if (row.rating) {
         var stars = make("span", "cepc-item-stars");
         stars.setAttribute("aria-label", ratingLabels[row.rating] || "Avaliação");
-        for (var i = 1; i <= 4; i++) {
+        for (var i = 1; i <= 5; i++) {
           var s = make("span", i <= row.rating ? "on" : "", "★");
           s.setAttribute("aria-hidden", "true");
           stars.appendChild(s);
@@ -536,15 +528,12 @@
   async function publish() {
     if (!card) return;
     var name = card.querySelector("[data-cepc-name]");
-    var email = card.querySelector("[data-cepc-email]");
     var text = card.querySelector("[data-cepc-comment]");
     var button = card.querySelector("[data-cepc-publish]");
     var comment = String(text && text.value || "").trim();
-    var emailValue = state.anonymous ? "" : String(email && email.value || "").trim();
 
     if (!comment) { setStatus("Digite um comentário antes de publicar.", "error"); if (text) text.focus(); return; }
     if (comment.length > 200) { setStatus("O comentário deve ter no máximo 200 caracteres.", "error"); return; }
-    if (emailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(emailValue)) { setStatus("Digite um e-mail válido ou deixe o campo vazio.", "error"); if (email) email.focus(); return; }
 
     if (button) button.disabled = true;
     setStatus("Publicando...");
@@ -559,7 +548,6 @@
           page_path: PAGE_PATH,
           lang: LANG,
           name: state.anonymous ? null : String(name && name.value || "").trim(),
-          email: emailValue || null,
           comment: comment,
           is_anonymous: state.anonymous,
           rating: state.rating || null,
@@ -606,14 +594,15 @@
     head.appendChild(title);
     var stars = make("div", "cepc-stars");
     stars.setAttribute("role", "group");
-    stars.setAttribute("aria-label", "Avalie esta página de uma a quatro estrelas");
-    for (var i = 1; i <= 4; i++) {
+    stars.setAttribute("aria-label", "Avalie este site de uma a cinco estrelas");
+    stars.appendChild(make("span", "cepc-stars-label", "Avalie este site >"));
+    for (var i = 1; i <= 5; i++) {
       (function (rating) {
         var star = make("button", "cepc-star", "★");
         star.type = "button";
         star.dataset.rating = String(rating);
         star.title = ratingLabels[rating];
-        star.setAttribute("aria-label", rating + " de 4 — " + ratingLabels[rating]);
+        star.setAttribute("aria-label", rating + " de 5 — " + ratingLabels[rating]);
         star.setAttribute("aria-pressed", "false");
         star.addEventListener("mouseenter", function () { updateStars(rating); });
         star.addEventListener("mouseleave", function () { updateStars(); });
@@ -640,19 +629,19 @@
     }
     var name = make("input", "cepc-input");
     name.type = "text"; name.maxLength = 80; name.autocomplete = "name"; name.placeholder = "Nome (opcional)"; name.dataset.cepcName = "";
-    var email = make("input", "cepc-input");
-    email.type = "email"; email.maxLength = 254; email.autocomplete = "email"; email.placeholder = "E-mail (opcional)"; email.dataset.cepcEmail = "";
     var date = make("input", "cepc-input");
     date.type = "text"; date.readOnly = true; date.value = formatDate(); date.dataset.cepcDate = "";
 
     meta.appendChild(field("Nome", name));
-    meta.appendChild(field("E-mail opcional", email));
     meta.appendChild(field("Data/hora", date));
 
-    var anon = make("button", "cepc-btn", "Comentar anônimo");
-    anon.type = "button"; anon.dataset.cepcAnonymous = ""; anon.setAttribute("aria-pressed", "false");
-    anon.addEventListener("click", function () { setAnonymous(!state.anonymous); });
-    meta.appendChild(anon);
+    var anonLabel = make("label", "cepc-anonymous");
+    var anon = make("input");
+    anon.type = "checkbox"; anon.dataset.cepcAnonymous = "";
+    anon.addEventListener("change", function () { setAnonymous(anon.checked); });
+    anonLabel.appendChild(anon);
+    anonLabel.appendChild(make("span", "", "Comentar anônimo"));
+    meta.appendChild(anonLabel);
 
     var publishButton = make("button", "cepc-btn", "Publicar");
     publishButton.type = "button"; publishButton.dataset.cepcPublish = "";
