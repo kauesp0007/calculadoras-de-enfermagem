@@ -1,8 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { createRemoteJWKSet, jwtVerify } from "npm:jose@5.10.0";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const FIREBASE_PROJECT_ID = Deno.env.get("FIREBASE_PROJECT_ID") ?? "calculadoras-enfermagem";
+const ADMIN_EMAIL = "ciadeenfermagem@gmail.com";
+const JWKS = createRemoteJWKSet(new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"));
 const SITE = "https://www.calculadorasdeenfermagem.com.br";
 const ALLOWED_ORIGINS = new Set([SITE, "https://calculadorasdeenfermagem.com.br"]);
 const ALLOWED_PAGES = new Set([
@@ -218,8 +222,8 @@ function headers(req: Request) {
   const allowedOrigin = ALLOWED_ORIGINS.has(origin) ? origin : SITE;
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Methods": "GET,POST,PATCH,DELETE,OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization,Content-Type",
     "Cache-Control": "no-store",
     "Content-Type": "application/json; charset=utf-8",
     "Vary": "Origin"
@@ -247,6 +251,33 @@ function normalizeOptional(value: unknown, max: number) {
 function validEmail(email: string | null) {
   return !email || (/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) && email.length <= 254);
 }
+type Identity = { uid: string; email: string };
+async function firebaseUser(req: Request): Promise<Identity | null> {
+  const header = req.headers.get("Authorization") || "";
+  if (!header) return null;
+  if (!header.startsWith("Bearer ")) throw new Error("unauthorized");
+  try {
+    const { payload } = await jwtVerify(header.slice(7).trim(), JWKS, {
+      algorithms: ["RS256"],
+      issuer: `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`,
+      audience: FIREBASE_PROJECT_ID
+    });
+    const uid = String(payload.sub || "").trim();
+    const email = String(payload.email || "").trim().toLowerCase();
+    if (!uid || !email) throw new Error("unauthorized");
+    return { uid, email };
+  } catch (_) {
+    throw new Error("unauthorized");
+  }
+}
+function editToken(value: unknown) {
+  const token = String(value || "");
+  return /^[a-f0-9]{64}$/.test(token) ? token : null;
+}
+async function tokenHash(token: string) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
+  return Array.from(new Uint8Array(bytes), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
 function publicRow(row: any) {
   return {
     id: row.id,
@@ -256,7 +287,8 @@ function publicRow(row: any) {
     comment: row.comment,
     is_anonymous: Boolean(row.is_anonymous),
     rating: Number.isInteger(row.rating) ? row.rating : null,
-    created_at: row.created_at
+    created_at: row.created_at,
+    edited_at: row.edited_at || null
   };
 }
 
@@ -272,15 +304,29 @@ serve(async (req) => {
     if (req.method === "GET") {
       const pagePath = normalizePage(url.searchParams.get("page_path"));
       const lang = normalizeLang(url.searchParams.get("lang"));
-      const { data, error } = await sb.from("page_comments")
-        .select("id,page_path,lang,name,comment,is_anonymous,rating,created_at")
+      const identity = await firebaseUser(req);
+      const admin = identity?.email === ADMIN_EMAIL;
+      let query = sb.from("page_comments")
+        .select("id,page_path,lang,name,comment,is_anonymous,rating,is_approved,created_at,edited_at")
         .eq("page_path", pagePath)
-        .eq("lang", lang)
-        .eq("is_approved", true)
+        .eq("lang", lang);
+      if (!admin) query = query.eq("is_approved", true);
+      const { data, error } = await query
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return json(req, { comments: (data || []).map(publicRow) });
+      const owned = new Set<string>();
+      if (identity && !admin && data?.length) {
+        const { data: owners, error: ownersError } = await sb.from("page_comment_ownership")
+          .select("comment_id").eq("firebase_uid", identity.uid)
+          .in("comment_id", data.map((row) => row.id));
+        if (ownersError) throw ownersError;
+        (owners || []).forEach((owner) => owned.add(owner.comment_id));
+      }
+      return json(req, { comments: (data || []).map((row) => ({
+        ...publicRow(row), can_edit: admin || owned.has(row.id),
+        ...(admin ? { is_approved: row.is_approved } : {})
+      })) });
     }
 
     if (req.method === "POST") {
@@ -290,6 +336,10 @@ serve(async (req) => {
       const body = await req.json().catch(() => ({}));
       const pagePath = normalizePage(body.page_path);
       const lang = normalizeLang(body.lang);
+      const identity = await firebaseUser(req);
+      const token = identity ? null : editToken(body.edit_token);
+      // Cached pre-update clients may still publish. Such legacy comments
+      // remain unclaimed until the new script is loaded; moderation still works.
       const comment = String(body.comment || "").trim();
       const anonymous = body.is_anonymous === true;
       const name = anonymous ? null : normalizeOptional(body.name, 80);
@@ -308,27 +358,88 @@ serve(async (req) => {
         comment,
         is_anonymous: anonymous,
         rating,
-        is_approved: true
-      }).select("id,page_path,lang,name,comment,is_anonymous,rating,created_at").single();
+        is_approved: false
+      }).select("id,page_path,lang,name,comment,is_anonymous,rating,created_at,edited_at").single();
       if (insertError) throw insertError;
 
-      if (email) {
-        const { error: contactError } = await sb.from("page_comment_contacts").insert({
-          comment_id: inserted.id,
-          email: email.toLowerCase()
-        });
-        if (contactError) {
-          await sb.from("page_comments").delete().eq("id", inserted.id);
-          throw contactError;
+      try {
+        if (identity || token) {
+          const { error: ownerError } = await sb.from("page_comment_ownership").insert({
+            comment_id: inserted.id,
+            firebase_uid: identity?.uid || null,
+            token_hash: token ? await tokenHash(token) : null
+          });
+          if (ownerError) throw ownerError;
         }
+        if (email) {
+          const { error: contactError } = await sb.from("page_comment_contacts").insert({
+            comment_id: inserted.id,
+            email: email.toLowerCase()
+          });
+          if (contactError) throw contactError;
+        }
+        const { data: published, error: publishError } = await sb.from("page_comments")
+          .update({ is_approved: true }).eq("id", inserted.id)
+          .select("id,page_path,lang,name,comment,is_anonymous,rating,created_at,edited_at").single();
+        if (publishError) throw publishError;
+        return json(req, { comment: { ...publicRow(published), can_edit: Boolean(identity || token) } }, 201);
+      } catch (error) {
+        await sb.from("page_comments").delete().eq("id", inserted.id);
+        throw error;
       }
-      return json(req, { comment: publicRow(inserted) }, 201);
+    }
+
+    if (req.method === "PATCH" || req.method === "DELETE") {
+      if (!String(req.headers.get("content-type") || "").toLowerCase().includes("application/json")) {
+        return json(req, { error: "content_type_required" }, 415);
+      }
+      const body = await req.json().catch(() => ({}));
+      const pagePath = normalizePage(body.page_path);
+      const lang = normalizeLang(body.lang);
+      const id = String(body.id || "");
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        return json(req, { error: "invalid_id" }, 400);
+      }
+      const identity = await firebaseUser(req);
+      const admin = identity?.email === ADMIN_EMAIL;
+      const token = editToken(body.edit_token);
+      if (!identity && !token) return json(req, { error: "unauthorized" }, 401);
+      const { data: existing, error: readError } = await sb.from("page_comments")
+        .select("id").eq("id", id).eq("page_path", pagePath).eq("lang", lang).maybeSingle();
+      if (readError) throw readError;
+      if (!existing) return json(req, { error: "comment_not_found" }, 404);
+      if (!admin) {
+        const { data: owner, error: ownerError } = await sb.from("page_comment_ownership")
+          .select("firebase_uid,token_hash").eq("comment_id", id).maybeSingle();
+        if (ownerError) throw ownerError;
+        const byAccount = Boolean(identity && owner?.firebase_uid === identity.uid);
+        const byToken = Boolean(token && owner?.token_hash === await tokenHash(token));
+        if (!byAccount && !byToken) return json(req, { error: "forbidden" }, 403);
+      }
+      if (req.method === "DELETE") {
+        const { error } = await sb.from("page_comments").delete()
+          .eq("id", id).eq("page_path", pagePath).eq("lang", lang);
+        if (error) throw error;
+        return json(req, { deleted: true, id });
+      }
+      const comment = String(body.comment || "").trim();
+      if (!comment || comment.length > 200) return json(req, { error: "invalid_comment" }, 400);
+      const { data: updated, error } = await sb.from("page_comments")
+        .update({ comment, edited_at: new Date().toISOString() })
+        .eq("id", id).eq("page_path", pagePath).eq("lang", lang)
+        .select("id,page_path,lang,name,comment,is_anonymous,rating,is_approved,created_at,edited_at").single();
+      if (error) throw error;
+      return json(req, { comment: {
+        ...publicRow(updated), can_edit: true,
+        ...(admin ? { is_approved: updated.is_approved } : {})
+      } });
     }
 
     return json(req, { error: "method_not_allowed" }, 405);
   } catch (e) {
     const message = String((e as Error)?.message || e);
     if (message === "invalid_page") return json(req, { error: message }, 400);
+    if (message === "unauthorized") return json(req, { error: message }, 401);
     console.error("[page-comments]", message);
     return json(req, { error: "comments_unavailable" }, 500);
   }
