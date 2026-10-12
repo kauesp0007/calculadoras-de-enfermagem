@@ -2942,3 +2942,33 @@ window.addEventListener('load', function () {
     }, 150);
   } catch (_) { }
 })();
+
+
+/* =========================
+   Comentários de página v2
+   ========================= */
+// O componente é um arquivo isolado e só é solicitado em páginas HTML da raiz
+// (e nos dois templates explicitamente autorizados). A lista exata de páginas
+// permanece dentro do próprio componente. Carregamento ocioso evita disputar LCP/INP.
+(function loadPageCommentsV2(window, document) {
+  "use strict";
+  if (window.__PAGE_COMMENTS_LOADER_V2) return;
+  var path = "";
+  try { path = decodeURIComponent(window.location.pathname || "").replace(/^\/+|\/+$/g, ""); }
+  catch (_) { path = (window.location.pathname || "").replace(/^\/+|\/+$/g, ""); }
+  var candidate = /^[^/]+\.html$/i.test(path) || /^blog-templates\/(?:index|post)\.template\.html$/i.test(path);
+  if (!candidate) return;
+  window.__PAGE_COMMENTS_LOADER_V2 = true;
+
+  function load() {
+    if (document.querySelector('script[data-page-comments-loader="v2"]')) return;
+    var script = document.createElement("script");
+    script.src = "/js/page-comments.js";
+    script.async = true;
+    script.dataset.pageCommentsLoader = "v2";
+    (document.head || document.documentElement).appendChild(script);
+  }
+
+  if ("requestIdleCallback" in window) window.requestIdleCallback(load, { timeout: 1200 });
+  else window.setTimeout(load, 0);
+})(window, document);
