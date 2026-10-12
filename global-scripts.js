@@ -2961,6 +2961,10 @@ window.addEventListener('load', function () {
   window.__PAGE_COMMENTS_LOADER_V2 = true;
 
   function load() {
+    if (typeof window.__INIT_PAGE_COMMENTS_V2 === "function") {
+      window.__INIT_PAGE_COMMENTS_V2();
+      return;
+    }
     if (document.querySelector('script[data-page-comments-loader="v2"]')) return;
     var script = document.createElement("script");
     script.src = "/js/page-comments.js";
@@ -2968,6 +2972,11 @@ window.addEventListener('load', function () {
     script.dataset.pageCommentsLoader = "v2";
     (document.head || document.documentElement).appendChild(script);
   }
+
+  // Mantém um ponto de reentrada estável mesmo quando páginas Premium trocam
+  // o documento com document.write(). O Window permanece vivo e pode garantir
+  // novamente o componente no DOM final sem carregar código duplicado.
+  window.__ENSURE_PAGE_COMMENTS_V2 = load;
 
   if ("requestIdleCallback" in window) window.requestIdleCallback(load, { timeout: 1200 });
   else window.setTimeout(load, 0);

@@ -189,7 +189,8 @@
         try{
           await window.__ENSURE_GLOBAL_CHROME();
           if(typeof window.__INIT_LANGUAGE_SELECTOR==="function") await window.__INIT_LANGUAGE_SELECTOR();
-          if(typeof window.__INIT_PAGE_COMMENTS_V2==="function") window.__INIT_PAGE_COMMENTS_V2();
+          if(typeof window.__ENSURE_PAGE_COMMENTS_V2==="function") window.__ENSURE_PAGE_COMMENTS_V2();
+          else if(typeof window.__INIT_PAGE_COMMENTS_V2==="function") window.__INIT_PAGE_COMMENTS_V2();
           ensurePremiumPromoAfterWrite();
           if(typeof window.__INIT_FORM_PDF_SIDE_ADS==="function") {
             Promise.resolve(window.__INIT_FORM_PDF_SIDE_ADS()).catch(function(error){console.warn("[PremiumContent] anúncios do formulário indisponíveis",error);});
