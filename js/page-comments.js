@@ -409,7 +409,9 @@
     var actions = item.querySelector(".cepc-item-actions");
     if (actions) actions.hidden = true;
     var prompt = make("div", "cepc-delete-confirm");
-    prompt.appendChild(make("span", "", "Apagar este comentário?"));
+    var question = make("span", "", "Apagar este comentário?");
+    question.id = "cepc-delete-question-" + row.id;
+    prompt.appendChild(question);
     var controls = make("div", "cepc-item-actions");
     var confirm = actionButton("Confirmar", row, async function () {
       confirm.disabled = cancel.disabled = true;
@@ -435,6 +437,9 @@
       var deleteButton = actions && actions.querySelector(".cepc-item-action:last-child");
       if (deleteButton) deleteButton.focus();
     });
+    confirm.setAttribute("aria-label", "Confirmar exclusão do comentário");
+    confirm.setAttribute("aria-describedby", question.id);
+    cancel.setAttribute("aria-label", "Cancelar exclusão do comentário");
     controls.appendChild(confirm);
     controls.appendChild(cancel);
     prompt.appendChild(controls);
