@@ -344,3 +344,42 @@ fica rastreável em `nonfuture_access_expiry_ignored` e
 
 Depois da reconciliação individual, os cinco entitlements ficaram Premium com
 vencimento futuro e as cinco concessões temporárias foram revogadas, com auditoria.
+
+---
+
+## 21. Exceções administrativas Premium vitalícias (2026-10-12)
+
+Uma concessão vitalícia usa exclusivamente a fonte administrativa vigente `developer_premium_email_grants`, com `active=true` e motivo explícito. Ela não cria plano novo, não altera `billing_subscriptions`, não apaga checkout, não transforma pagamento em vitalício e não grava `premium_expires_at=null` para simular quitação. O histórico financeiro continua refletindo exatamente o que ocorreu no Asaas ou Stripe.
+
+A concessão permanece válida até revogação administrativa explícita. `billing-access`, `premium-content` e `extension-access` consultam o grant ativo pelo e-mail Firebase normalizado; por isso, vencimento, estorno ou alteração posterior do entitlement comercial não apagam automaticamente a decisão vitalícia. Webhooks continuam livres para registrar o estado financeiro verdadeiro em `billing_subscriptions` e `user_entitlements`.
+
+Toda concessão vitalícia deve ter:
+
+- motivo iniciado por `EXCEÇÃO PREMIUM VITALÍCIA`;
+- responsável e início efetivo;
+- `developer_admin_audit_log.action='grant_email'`, `target_type='email_grant'`;
+- `after_state._decision.scope='lifetime'`, origem da ordem e evidência de conferência do provedor;
+- regra `revoke_only_by_explicit_developer_order=true`;
+- referência ao commit documental correspondente.
+
+Os e-mails e identificadores do provedor são dados pessoais e ficam somente nas tabelas privadas `developer_premium_email_grants` e `developer_admin_audit_log`. O repositório público documenta método, quantidade e data, mas não replica a lista nominal.
+
+Em 12/10/2026, o desenvolvedor autorizou duas exceções Premium vitalícias após confirmar no Asaas que ambos os clientes estavam cadastrados e que seus pagamentos Pix de R$ 5,00 constavam como recebidos. Uma das identidades possui dois cadastros históricos no Asaas, sendo um sem cobrança; nenhum cadastro foi excluído ou fundido. A evidência nominal e os IDs de reconciliação estão no log privado.
+
+Consulta obrigatória para auditorias futuras:
+
+```sql
+select email, active, reason, created_by, created_at, updated_at, revoked_at
+from public.developer_premium_email_grants
+where active = true
+  and reason ilike 'EXCEÇÃO PREMIUM VITALÍCIA%';
+
+select action, target_key as email, after_state, created_at
+from public.developer_admin_audit_log
+where target_type = 'email_grant'
+  and after_state->'_decision'->>'scope' = 'lifetime'
+order by created_at desc;
+```
+
+Auditorias devem apresentar separadamente: Premium comercial por entitlement, Premium administrativo temporário e Premium administrativo vitalício. Nunca “corrigir” uma exceção vitalícia para Free apenas porque o período pago terminou.
+

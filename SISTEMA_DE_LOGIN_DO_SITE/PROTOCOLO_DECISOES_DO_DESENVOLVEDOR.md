@@ -26,3 +26,12 @@ Ativar uma página pública pode gerar uma solicitação de publicação. Nessa 
 6. Validar estado e registro após alteração autorizada, atualizar documentação e relatar os limites da verificação.
 
 O registro permanece no banco; não envia mensagens por e-mail/Slack e não depende de uma IA estar ativa. Cada IA que atua no repositório deve consultar a fonte vigente. Referência: `AGENTS.md`.
+
+## Exceções Premium vitalícias
+
+A decisão vitalícia continua usando a mesma ação `grant_email` e as mesmas tabelas do painel; não existe rota, tabela ou plano “lifetime” paralelo. A distinção é registrada no motivo e em `after_state._decision.scope='lifetime'`. O log privado deve conter a evidência de conferência do provedor, o início efetivo, a origem da ordem, a preservação do histórico financeiro e `revoke_only_by_explicit_developer_order=true`.
+
+O e-mail permanece em `target_key` e em `developer_premium_email_grants`, ambos privados por RLS/permissões. Documentação pública não deve expor a lista nominal. Toda IA que auditar assinaturas deve consultar os grants ativos e o log antes de classificar como divergência um entitlement vencido ou alterado por webhook.
+
+A decisão de 12/10/2026 autorizou duas exceções vitalícias. Os dois pagamentos Pix foram conferidos como recebidos no Asaas; uma identidade possui um cadastro Asaas adicional sem cobrança, preservado como histórico. A lista exata, motivos e IDs de reconciliação estão no banco privado, conforme a consulta canônica do catálogo de contas.
+
