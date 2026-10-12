@@ -598,10 +598,19 @@
   }
 
   function init() {
+    // Conteúdo Premium é reidratado com document.write(). Se o card antigo
+    // saiu do DOM, recomeçar sobre o documento final sem duplicar listeners.
+    if (card && !card.isConnected) {
+      card = null;
+      state.mounted = false;
+      state.loaded = false;
+    }
     if (state.mounted) return;
     var calculateButtons = findCalculateButtons();
     if (calculateButtons.length) {
       calculateButtons.forEach(function (button) {
+        if (button.dataset.pageCommentsBoundV2 === "true") return;
+        button.dataset.pageCommentsBoundV2 = "true";
         button.addEventListener("click", scheduleResultMount, false);
       });
       return;
@@ -609,6 +618,7 @@
     mount(false);
   }
 
+  window.__INIT_PAGE_COMMENTS_V2 = init;
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
   else init();
 
