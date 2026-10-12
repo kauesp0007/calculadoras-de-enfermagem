@@ -253,6 +253,7 @@
       ".cepc-item-text{margin:3px 0 0;font-size:11px;line-height:1.35;font-weight:600;color:#334155;overflow-wrap:anywhere}.cepc-empty{margin:2px 0 0;padding:6px 8px;border:1px dashed #94a3b8;border-radius:7px;background:rgba(255,255,255,.65);font-size:10px;font-weight:700;color:#64748b}" +
       ".cepc-item-actions{display:flex;justify-content:flex-start;align-items:center;gap:5px;margin-top:5px}.cepc-item-actions[hidden]{display:none}.cepc-item-action{appearance:none;background:#f8fafc;border:1px solid #94a3b8;border-radius:5px;color:#334155;cursor:pointer;font:700 10px/1 Inter,Arial,sans-serif;min-height:26px;padding:4px 7px}.cepc-item-action:hover{background:#e2e8f0}.cepc-item-action:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-item-action:disabled{opacity:.55;cursor:wait}" +
       ".cepc-edit-form{margin-top:6px}.cepc-edit-input{box-sizing:border-box;display:block;width:100%;min-height:48px;max-height:110px;padding:6px;border:1px solid #64748b;border-radius:6px;color:#1e293b;font:600 12px/1.4 Inter,Arial,sans-serif;resize:vertical}.cepc-edit-input:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-edited{color:#64748b;font-size:9px}" +
+      ".cepc-delete-confirm{margin-top:6px;color:#475569;font-size:10px;font-weight:700}" +
       "@media(max-width:850px){.cepc-meta{grid-template-columns:1fr 1fr}.cepc-meta .cepc-field:nth-child(3){grid-column:1/2}.cepc-btn{width:100%}.cepc-comment-field{grid-template-columns:1fr}.cepc-count{padding:0;text-align:right}}" +
       "@media(max-width:520px){.cepc-head{align-items:flex-start;flex-direction:column}.cepc-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.cepc-meta .cepc-field:nth-child(3){grid-column:1/-1}.cepc-stars{align-self:flex-start}.cepc-star{font-size:22px}.cepc-card{margin-top:14px}.cepc-item-actions{flex-wrap:nowrap;gap:6px}.cepc-item-action{min-height:36px;padding:5px 9px}}";
     (document.head || document.documentElement).appendChild(style);
@@ -403,24 +404,47 @@
     input.focus();
   }
 
-  async function deleteComment(row, item) {
-    if (!window.confirm("Apagar este comentário?")) return;
-    var buttons = item.querySelectorAll(".cepc-item-action");
-    buttons.forEach(function (button) { button.disabled = true; });
-    setStatus("Apagando...");
-    try {
-      await changeComment("DELETE", row);
-      clearOwnerToken(row.id);
-      state.comments = state.comments.filter(function (current) { return current.id !== row.id; });
-      renderComments();
-      var next = card.querySelector(".cepc-item-action") || card.querySelector("[data-cepc-comment]");
-      if (next) next.focus();
-      setStatus("Comentário apagado.", "ok");
-    } catch (error) {
-      console.warn("[PageComments] Falha ao apagar:", error);
-      setStatus("Não foi possível apagar o comentário.", "error");
-      buttons.forEach(function (button) { button.disabled = false; });
-    }
+  function deleteComment(row, item) {
+    if (item.querySelector(".cepc-delete-confirm")) return;
+    var actions = item.querySelector(".cepc-item-actions");
+    if (actions) actions.hidden = true;
+    var prompt = make("div", "cepc-delete-confirm");
+    var question = make("span", "", "Apagar este comentário?");
+    question.id = "cepc-delete-question-" + row.id;
+    prompt.appendChild(question);
+    var controls = make("div", "cepc-item-actions");
+    var confirm = actionButton("Confirmar", row, async function () {
+      confirm.disabled = cancel.disabled = true;
+      setStatus("Apagando...");
+      try {
+        await changeComment("DELETE", row);
+        clearOwnerToken(row.id);
+        state.comments = state.comments.filter(function (current) { return current.id !== row.id; });
+        renderComments();
+        var next = card.querySelector(".cepc-item-action") || card.querySelector("[data-cepc-comment]");
+        if (next) next.focus();
+        setStatus("Comentário apagado.", "ok");
+      } catch (error) {
+        console.warn("[PageComments] Falha ao apagar:", error);
+        setStatus("Não foi possível apagar o comentário.", "error");
+        confirm.disabled = cancel.disabled = false;
+      }
+    });
+    var cancel = actionButton("Cancelar", row, function () {
+      prompt.remove();
+      if (actions) actions.hidden = false;
+      setStatus("");
+      var deleteButton = actions && actions.querySelector(".cepc-item-action:last-child");
+      if (deleteButton) deleteButton.focus();
+    });
+    confirm.setAttribute("aria-label", "Confirmar exclusão do comentário");
+    confirm.setAttribute("aria-describedby", question.id);
+    cancel.setAttribute("aria-label", "Cancelar exclusão do comentário");
+    controls.appendChild(confirm);
+    controls.appendChild(cancel);
+    prompt.appendChild(controls);
+    item.appendChild(prompt);
+    confirm.focus();
   }
 
   function renderComments() {
