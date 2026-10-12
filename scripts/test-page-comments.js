@@ -10,6 +10,7 @@ const migration = read("supabase/migrations/20261012062437_page_comments_v2_rati
 const globalScripts = read("global-scripts.js");
 const config = read("supabase/config.toml");
 const developer = read("conta/desenvolvedor.html");
+const premiumLoader = read("js/access/premium-content-loader.js");
 
 assert.match(client, /TARGET_COUNT = 204/);
 assert.match(client, /maxlength/i);
@@ -22,6 +23,8 @@ assert.match(client, /Comentar anônimo/);
 assert.match(client, /insertBeforeAds/);
 assert.match(client, /placeAfterResult/);
 assert.match(client, /requestIdleCallback|DOMContentLoaded/);
+assert.match(client, /__INIT_PAGE_COMMENTS_V2/);
+assert.match(client, /pageCommentsBoundV2/);
 
 assert.match(endpoint, /ALLOWED_PAGES/);
 assert.match(endpoint, /page_comment_contacts/);
@@ -40,5 +43,6 @@ assert.match(globalScripts, /\/js\/page-comments\.js/);
 assert.match(config, /\[functions\.page-comments\]\s+verify_jwt = false/);
 assert.match(developer, /Lista de comentários/);
 assert.match(developer, /page_comment_count/);
+assert.match(premiumLoader, /__INIT_PAGE_COMMENTS_V2/);
 
 console.log("Page comments static audit passed.");
