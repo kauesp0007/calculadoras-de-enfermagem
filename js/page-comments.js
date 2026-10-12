@@ -217,9 +217,11 @@
 
   var PAGE_PATH = "/" + rawPath;
   var LANG = String(document.documentElement.lang || "pt-BR").toLowerCase().replace("_", "-");
-  var state = { mounted: false, loaded: false, rating: 0, anonymous: false, comments: [] };
+  var state = { mounted: false, loaded: false, rating: 0, anonymous: false, comments: [], ownedTokens: {} };
   var card = null;
   var pendingPlacementTimer = 0;
+  var loadGeneration = 0;
+  var authBound = false;
   var ratingLabels = ["", "Péssimo", "Ruim", "Bom", "Ótimo"];
 
   function addStyles() {
@@ -249,8 +251,10 @@
       ".cepc-list{display:grid;gap:6px;margin-top:7px}.cepc-item{border:1px solid #94a3b8;border-radius:8px;background:#fff;padding:7px 9px;box-shadow:0 2px 5px rgba(15,23,42,.08)}" +
       ".cepc-item-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:9px;font-weight:800;color:#64748b}.cepc-item-name{color:#1A3E74;font-size:10px;font-weight:900}.cepc-item-stars{color:#94a3b8;letter-spacing:1px}.cepc-item-stars .on{color:#eab308}" +
       ".cepc-item-text{margin:3px 0 0;font-size:11px;line-height:1.35;font-weight:600;color:#334155;overflow-wrap:anywhere}.cepc-empty{margin:2px 0 0;padding:6px 8px;border:1px dashed #94a3b8;border-radius:7px;background:rgba(255,255,255,.65);font-size:10px;font-weight:700;color:#64748b}" +
+      ".cepc-item-actions{display:flex;justify-content:flex-start;align-items:center;gap:5px;margin-top:5px}.cepc-item-actions[hidden]{display:none}.cepc-item-action{appearance:none;background:#f8fafc;border:1px solid #94a3b8;border-radius:5px;color:#334155;cursor:pointer;font:700 10px/1 Inter,Arial,sans-serif;min-height:26px;padding:4px 7px}.cepc-item-action:hover{background:#e2e8f0}.cepc-item-action:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-item-action:disabled{opacity:.55;cursor:wait}" +
+      ".cepc-edit-form{margin-top:6px}.cepc-edit-input{box-sizing:border-box;display:block;width:100%;min-height:48px;max-height:110px;padding:6px;border:1px solid #64748b;border-radius:6px;color:#1e293b;font:600 12px/1.4 Inter,Arial,sans-serif;resize:vertical}.cepc-edit-input:focus-visible{outline:2px solid #2563eb;outline-offset:2px}.cepc-edited{color:#64748b;font-size:9px}" +
       "@media(max-width:850px){.cepc-meta{grid-template-columns:1fr 1fr}.cepc-meta .cepc-field:nth-child(3){grid-column:1/2}.cepc-btn{width:100%}.cepc-comment-field{grid-template-columns:1fr}.cepc-count{padding:0;text-align:right}}" +
-      "@media(max-width:520px){.cepc-head{align-items:flex-start;flex-direction:column}.cepc-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.cepc-meta .cepc-field:nth-child(3){grid-column:1/-1}.cepc-stars{align-self:flex-start}.cepc-star{font-size:22px}.cepc-card{margin-top:14px}}";
+      "@media(max-width:520px){.cepc-head{align-items:flex-start;flex-direction:column}.cepc-meta{grid-template-columns:repeat(2,minmax(0,1fr))}.cepc-meta .cepc-field:nth-child(3){grid-column:1/-1}.cepc-stars{align-self:flex-start}.cepc-star{font-size:22px}.cepc-card{margin-top:14px}.cepc-item-actions{flex-wrap:nowrap;gap:6px}.cepc-item-action{min-height:36px;padding:5px 9px}}";
     (document.head || document.documentElement).appendChild(style);
   }
 
@@ -295,6 +299,130 @@
     }
   }
 
+  function ownerToken(id) {
+    if (state.ownedTokens[id]) return state.ownedTokens[id];
+    try {
+      return window.localStorage.getItem("cepc-owner-v1:" + id) || "";
+    } catch (_) { return ""; }
+  }
+
+  function saveOwnerToken(id, token) {
+    state.ownedTokens[id] = token;
+    try { window.localStorage.setItem("cepc-owner-v1:" + id, token); } catch (_) {}
+  }
+
+  function clearOwnerToken(id) {
+    delete state.ownedTokens[id];
+    try { window.localStorage.removeItem("cepc-owner-v1:" + id); } catch (_) {}
+  }
+
+  function newOwnerToken() {
+    var bytes = window.crypto.getRandomValues(new Uint8Array(32));
+    return Array.prototype.map.call(bytes, function (byte) { return byte.toString(16).padStart(2, "0"); }).join("");
+  }
+
+  async function identityHeaders() {
+    try {
+      var auth = typeof window.__ENSURE_AUTH === "function" ? await window.__ENSURE_AUTH() : window.Auth;
+      if (auth && !authBound && typeof auth.onAuthChange === "function") {
+        authBound = true;
+        auth.onAuthChange(function () {
+          if (!card || !card.isConnected) return;
+          state.loaded = false;
+          loadComments();
+        });
+      }
+      var user = auth && typeof auth.currentUser === "function" ? auth.currentUser() : null;
+      if (user && typeof user.getIdToken === "function") return { Authorization: "Bearer " + await user.getIdToken(false) };
+    } catch (error) {
+      console.warn("[PageComments] Autenticação indisponível:", error);
+    }
+    return {};
+  }
+
+  async function changeComment(method, row, comment) {
+    var headers = await identityHeaders();
+    var token = ownerToken(row.id);
+    var res = await fetch(ENDPOINT, {
+      method: method,
+      cache: "no-store",
+      headers: Object.assign({ "Content-Type": "application/json", Accept: "application/json" }, headers),
+      body: JSON.stringify({ page_path: PAGE_PATH, lang: LANG, id: row.id, comment: comment, edit_token: token || undefined })
+    });
+    var data = await res.json().catch(function () { return {}; });
+    if (!res.ok) throw new Error(data.error || ("http_" + res.status));
+    return data;
+  }
+
+  function actionButton(label, row, handler) {
+    var button = make("button", "cepc-item-action", label);
+    button.type = "button";
+    button.setAttribute("aria-label", label + " comentário de " + (row.is_anonymous ? "Anônimo" : (row.name || "Visitante")));
+    button.addEventListener("click", handler);
+    return button;
+  }
+
+  function startEdit(row, item) {
+    if (item.querySelector(".cepc-edit-form")) return;
+    var actions = item.querySelector(".cepc-item-actions");
+    if (actions) actions.hidden = true;
+    var form = make("div", "cepc-edit-form");
+    var input = make("textarea", "cepc-edit-input");
+    input.maxLength = 200;
+    input.value = row.comment || "";
+    input.setAttribute("aria-label", "Editar comentário");
+    form.appendChild(input);
+    var controls = make("div", "cepc-item-actions");
+    var save = actionButton("Salvar", row, async function () {
+      var next = input.value.trim();
+      if (!next || next.length > 200) { setStatus("O comentário deve ter entre 1 e 200 caracteres.", "error"); input.focus(); return; }
+      save.disabled = cancel.disabled = true;
+      setStatus("Salvando...");
+      try {
+        var data = await changeComment("PATCH", row, next);
+        state.comments = state.comments.map(function (current) { return current.id === row.id ? data.comment : current; });
+        renderComments();
+        var updated = card.querySelector('[data-cepc-id="' + row.id + '"] .cepc-item-action');
+        if (updated) updated.focus();
+        setStatus("Comentário atualizado.", "ok");
+      } catch (error) {
+        console.warn("[PageComments] Falha ao editar:", error);
+        setStatus("Não foi possível editar o comentário.", "error");
+        save.disabled = cancel.disabled = false;
+      }
+    });
+    var cancel = actionButton("Cancelar", row, function () {
+      form.remove();
+      if (actions) actions.hidden = false;
+      setStatus("");
+    });
+    controls.appendChild(save);
+    controls.appendChild(cancel);
+    form.appendChild(controls);
+    item.appendChild(form);
+    input.focus();
+  }
+
+  async function deleteComment(row, item) {
+    if (!window.confirm("Apagar este comentário?")) return;
+    var buttons = item.querySelectorAll(".cepc-item-action");
+    buttons.forEach(function (button) { button.disabled = true; });
+    setStatus("Apagando...");
+    try {
+      await changeComment("DELETE", row);
+      clearOwnerToken(row.id);
+      state.comments = state.comments.filter(function (current) { return current.id !== row.id; });
+      renderComments();
+      var next = card.querySelector(".cepc-item-action") || card.querySelector("[data-cepc-comment]");
+      if (next) next.focus();
+      setStatus("Comentário apagado.", "ok");
+    } catch (error) {
+      console.warn("[PageComments] Falha ao apagar:", error);
+      setStatus("Não foi possível apagar o comentário.", "error");
+      buttons.forEach(function (button) { button.disabled = false; });
+    }
+  }
+
   function renderComments() {
     if (!card) return;
     var list = card.querySelector("[data-cepc-list]");
@@ -306,9 +434,12 @@
     }
     state.comments.forEach(function (row) {
       var item = make("article", "cepc-item");
+      item.dataset.cepcId = row.id;
       var head = make("div", "cepc-item-head");
       head.appendChild(make("span", "cepc-item-name", row.is_anonymous ? "Anônimo" : (row.name || "Visitante")));
       head.appendChild(make("time", "", formatDate(row.created_at)));
+      if (row.edited_at) head.appendChild(make("span", "cepc-edited", "Editado em " + formatDate(row.edited_at)));
+      if (row.is_approved === false) head.appendChild(make("span", "cepc-edited", "Não publicado"));
       if (row.rating) {
         var stars = make("span", "cepc-item-stars");
         stars.setAttribute("aria-label", ratingLabels[row.rating] || "Avaliação");
@@ -322,6 +453,12 @@
       }
       item.appendChild(head);
       item.appendChild(make("p", "cepc-item-text", row.comment || ""));
+      if (row.can_edit || ownerToken(row.id)) {
+        var actions = make("div", "cepc-item-actions");
+        actions.appendChild(actionButton("Editar", row, function () { startEdit(row, item); }));
+        actions.appendChild(actionButton("Apagar", row, function () { deleteComment(row, item); }));
+        item.appendChild(actions);
+      }
       list.appendChild(item);
     });
   }
@@ -337,14 +474,35 @@
   async function loadComments() {
     if (state.loaded) return;
     state.loaded = true;
+    var generation = ++loadGeneration;
     try {
       var url = ENDPOINT + "?page_path=" + encodeURIComponent(PAGE_PATH) + "&lang=" + encodeURIComponent(LANG);
-      var res = await fetch(url, { method: "GET", cache: "no-store", headers: { Accept: "application/json" } });
+      // Public comments never wait indefinitely for Firebase. If the session
+      // resolves later, refresh once to attach server-verified owner actions.
+      var authReady = identityHeaders();
+      var authHeaders = await Promise.race([
+        authReady,
+        new Promise(function (resolve) { window.setTimeout(function () { resolve(null); }, 350); })
+      ]);
+      var res = await fetch(url, { method: "GET", cache: "no-store", headers: Object.assign({ Accept: "application/json" }, authHeaders) });
+      if (res.status === 401 && authHeaders && authHeaders.Authorization) {
+        authHeaders = {};
+        res = await fetch(url, { method: "GET", cache: "no-store", headers: { Accept: "application/json" } });
+      }
       var data = await res.json().catch(function () { return {}; });
       if (!res.ok) throw new Error(data.error || ("http_" + res.status));
+      if (generation !== loadGeneration) return;
       state.comments = Array.isArray(data.comments) ? data.comments : [];
       renderComments();
+      if (!authHeaders) {
+        authReady.then(function (headers) {
+          if (generation !== loadGeneration || !headers.Authorization) return;
+          state.loaded = false;
+          loadComments();
+        });
+      }
     } catch (error) {
+      if (generation !== loadGeneration) return;
       state.loaded = false;
       console.warn("[PageComments] Falha ao carregar comentários:", error);
       setStatus("Não foi possível carregar os comentários agora.", "error");
@@ -367,10 +525,12 @@
     if (button) button.disabled = true;
     setStatus("Publicando...");
     try {
+      var authHeaders = await identityHeaders();
+      var token = authHeaders.Authorization ? null : newOwnerToken();
       var res = await fetch(ENDPOINT, {
         method: "POST",
         cache: "no-store",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
+        headers: Object.assign({ "Content-Type": "application/json", Accept: "application/json" }, authHeaders),
         body: JSON.stringify({
           page_path: PAGE_PATH,
           lang: LANG,
@@ -378,11 +538,13 @@
           email: emailValue || null,
           comment: comment,
           is_anonymous: state.anonymous,
-          rating: state.rating || null
+          rating: state.rating || null,
+          edit_token: token
         })
       });
       var data = await res.json().catch(function () { return {}; });
       if (!res.ok || !data.comment) throw new Error(data.error || ("http_" + res.status));
+      if (token) saveOwnerToken(data.comment.id, token);
       state.comments = [data.comment].concat(state.comments.filter(function (row) { return row.id !== data.comment.id; }));
       if (text) text.value = "";
       state.rating = 0;
@@ -488,7 +650,7 @@
 
     var status = make("p", "cepc-status"); status.dataset.cepcStatus = ""; status.setAttribute("role", "status"); status.setAttribute("aria-live", "polite");
     body.appendChild(status);
-    var list = make("div", "cepc-list"); list.dataset.cepcList = ""; list.setAttribute("aria-live", "polite");
+    var list = make("div", "cepc-list"); list.dataset.cepcList = "";
     body.appendChild(list);
     section.appendChild(body);
     return section;
