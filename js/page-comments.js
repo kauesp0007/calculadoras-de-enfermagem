@@ -613,6 +613,8 @@
         button.dataset.pageCommentsBoundV2 = "true";
         button.addEventListener("click", scheduleResultMount, false);
       });
+      // O comentário fica disponível antes do cálculo; após o resultado, é reposicionado.
+      mount(true);
       return;
     }
     mount(false);
