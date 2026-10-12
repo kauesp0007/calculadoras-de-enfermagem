@@ -251,23 +251,45 @@ async function billingSummary(sb: ReturnType<typeof db>) {
   return { active, pending, failed, expired };
 }
 
+async function commentSummary(sb: ReturnType<typeof db>) {
+  const [{ data: recent, error: recentError }, { data: allPaths, error: countError }] = await Promise.all([
+    sb.from("page_comments")
+      .select("id,page_path,lang,name,comment,is_anonymous,rating,is_approved,created_at")
+      .order("created_at", { ascending: false })
+      .limit(1000),
+    sb.from("page_comments").select("page_path").limit(10000)
+  ]);
+  if (recentError) throw recentError;
+  if (countError) throw countError;
+  const counts = new Map<string, number>();
+  for (const row of allPaths || []) {
+    const path = String(row.page_path || "");
+    counts.set(path, (counts.get(path) || 0) + 1);
+  }
+  return (recent || []).map((row) => ({
+    ...row,
+    page_comment_count: counts.get(String(row.page_path || "")) || 1
+  }));
+}
+
 async function adminSnapshot(req: Request) {
   await requireAdmin(req);
   const sb = db();
-  const [settings, routes, requests, grants, billing, auditLog] = await Promise.all([
+  const [settings, routes, requests, grants, billing, auditLog, comments] = await Promise.all([
     readSettings(sb),
     sb.from("developer_premium_route_rules").select("path,title,category,premium_required,enforcement,source,updated_at").order("category", { ascending: true }).order("path", { ascending: true }).limit(3000),
     sb.from("developer_premium_activation_requests").select("path,request_id,status,requested_at").eq("status", "pending").limit(3000),
     sb.from("developer_premium_email_grants").select("email,active,reason,created_by,revoked_by,created_at,updated_at,revoked_at").order("created_at", { ascending: false }).limit(1000),
     billingSummary(sb),
     sb.from("developer_admin_audit_log").select("id,actor_email,action,target_type,target_key,before_state,after_state,created_at")
-      .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50)
+      .order("created_at", { ascending: false }).order("id", { ascending: false }).limit(50),
+    commentSummary(sb)
   ]);
   if (routes.error) throw routes.error;
   if (requests.error) throw requests.error;
   if (grants.error) throw grants.error;
   if (auditLog.error) throw auditLog.error;
-  return response({ settings, routes: routes.data || [], activation_requests: requests.data || [], grants: grants.data || [], billing, audit_log: auditLog.data || [] });
+  return response({ settings, routes: routes.data || [], activation_requests: requests.data || [], grants: grants.data || [], billing, audit_log: auditLog.data || [], comments });
 }
 
 async function routeHasPrivateContent(sb: ReturnType<typeof db>, path: string) {

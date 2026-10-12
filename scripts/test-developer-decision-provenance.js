@@ -15,6 +15,10 @@ const tables = {
   developer_premium_route_rules: [{ path: "fugulin.html", premium_required: true, enforcement: "protected_content", source: "premium_content_pages" }],
   developer_premium_activation_requests: [], developer_premium_email_grants: [],
   premium_content_pages: [], billing_identities: [], user_entitlements: [], billing_subscriptions: [],
+  page_comments: [
+    { id: "comment-1", page_path: "/katz.html", lang: "pt-br", name: "A", comment: "Primeiro", is_anonymous: false, rating: 4, is_approved: true, created_at: "2026-10-10T10:00:00Z" },
+    { id: "comment-2", page_path: "/katz.html", lang: "pt-br", name: null, comment: "Segundo", is_anonymous: true, rating: 3, is_approved: true, created_at: "2026-10-11T10:00:00Z" }
+  ],
   developer_admin_audit_log: [
     { id: "legacy", actor_email: admin, action: "set_route", target_type: "route", target_key: "fugulin.html", created_at: "2026-09-30T12:00:00Z", before_state: { premium_required: false }, after_state: { premium_required: true, notes: "secret notes", updated_by: admin } },
     { id: "deploy", actor_email: admin, action: "activate_route_after_deploy", target_type: "route", target_key: "fugulin.html", created_at: "2026-10-01T12:00:00Z", after_state: { premium_required: true } },
@@ -190,6 +194,9 @@ async function request(method, query = "", body, token) {
   assert.equal(res.body.billing.active.length, 1);
   assert.equal(res.body.billing.expired.length, 1);
   assert.equal(res.body.billing.active[0].email, "patient@example.com");
+  assert.equal(res.body.comments.length, 2);
+  assert.equal(res.body.comments[0].id, "comment-2");
+  assert.equal(res.body.comments[0].page_comment_count, 2);
   policy = (await request("GET", "?public=policy&path=fugulin.html")).body;
   assert.doesNotMatch(JSON.stringify(policy), /@|email_grant|private clinical content|premium_expires_at|private grant reason/);
   assert.equal(policy.route.decision.action, "set_route");

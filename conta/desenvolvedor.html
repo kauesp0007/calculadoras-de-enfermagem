@@ -62,6 +62,9 @@
 .billing-timeline-row strong{color:var(--navy);font-size:10px}
 .billing-timeline-row span{color:#334155;font-weight:800;text-align:right}
 .billing-analytics-updated{margin-top:10px;color:#64748b;font-size:10px;font-weight:700}
+.comment-admin-row{display:grid;grid-template-columns:minmax(0,1.4fr) 180px 170px;gap:10px;align-items:center;padding:10px;border:1px solid #dbe4ef;border-radius:11px;background:#f8fafc;font-size:11px}
+.comment-admin-row strong{color:var(--navy);font-size:12px;overflow-wrap:anywhere}.comment-admin-row time{color:#475569;font-weight:800}.comment-admin-row .tag{justify-self:start}
+@media(max-width:760px){.comment-admin-row{grid-template-columns:1fr}.comment-admin-row .tag{justify-self:start}}
 @media(max-width:1180px){.billing-admin-layout{grid-template-columns:1fr}.billing-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:900px){.dev-grid{grid-template-columns:1fr}.route-toolbar{grid-template-columns:1fr}.client-row{grid-template-columns:1fr}.dev-wrap{padding:12px}.billing-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.billing-event-head,.billing-event-row{grid-template-columns:minmax(0,1fr) 64px 112px}}
 @media(max-width:520px){.billing-event-head,.billing-event-row{grid-template-columns:minmax(0,1fr) 56px}.billing-event-head span:last-child,.billing-event-time{grid-column:1/-1;text-align:left}.billing-timeline-row{grid-template-columns:1fr auto}.billing-timeline-row strong{grid-column:1/-1}}
@@ -148,6 +151,14 @@
 </div>
 </section>
 
+<section class="dev-card p-5" aria-labelledby="comments-title">
+<div class="mb-4">
+<h2 id="comments-title" class="text-2xl">Lista de comentários</h2>
+<p class="status-line mt-1">Comentários publicados nas páginas, do mais recente para o mais antigo. A mesma página aparece novamente a cada nova publicação.</p>
+</div>
+<div id="comments-list" class="table-list" aria-live="polite"></div>
+</section>
+
 <section class="dev-card p-5" aria-labelledby="decision-history-title">
 <h2 id="decision-history-title" class="text-2xl mb-2">Histórico de decisões do desenvolvedor</h2>
 <p class="status-line mb-3">Cada alteração registra a origem, a data e o estado anterior e escolhido. Esse histórico orienta as auditorias e a manutenção do site.</p>
@@ -175,7 +186,7 @@
 var ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/developer-admin";
 var ANALYTICS_ENDPOINT="https://asjkftjfbkuuhilnqonx.supabase.co/functions/v1/analytics-metrics";
 var ADMIN_EMAIL="ciadeenfermagem@gmail.com";
-var state={settings:{},routes:[],activationRequests:[],grants:[],auditLog:[],billing:{active:[],pending:[],failed:[],expired:[]},subscriptionAnalytics:null,routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
+var state={settings:{},routes:[],activationRequests:[],grants:[],auditLog:[],comments:[],billing:{active:[],pending:[],failed:[],expired:[]},subscriptionAnalytics:null,routeMap:new Map(),catalogPaths:[],visibleRoutes:100};
 var BILLING_EVENT_LABELS={
 "click_menu_assine_ja":"Entrou pelo botão Assine já",
 "subscription_page_view":"Abriu a página de assinatura",
@@ -263,6 +274,13 @@ Object.keys(counts).forEach(function(k){var el=$("billing-count-"+k);if(el)el.te
 var rows=allBillingRecords();
 $("billing-all").innerHTML=rows.length?rows.map(function(item){var r=item.row,meta=billingMeta(item.kind,r),created=r.created_at||r.updated_at,end=r.current_period_end||r.premium_expires_at;return'<div class="client-row"><div><strong>'+esc(r.email||"Sem e-mail")+'</strong><div class="switch-meta"><span class="tag '+meta.tag+'">'+esc(meta.label)+'</span><span class="tag gray">'+esc(r.provider||"—")+'</span></div></div><div>Status: '+esc(r.status||r.plan||meta.label)+'</div><div>Fim: '+esc(fmt(end))+'</div><div>Criado: '+esc(fmt(created))+'</div></div>'}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum registro de assinatura.</p>';
 }
+function renderCommentsAdmin(){
+var rows=Array.isArray(state.comments)?state.comments:[];
+$("comments-list").innerHTML=rows.length?rows.map(function(row){
+var count=Math.max(1,Number(row.page_comment_count||1));
+return'<div class="comment-admin-row"><div><strong>'+esc(row.page_path||"—")+'</strong></div><time datetime="'+esc(row.created_at||"")+'">'+esc(fmt(row.created_at))+'</time><span class="tag">'+count+' comentário'+(count===1?'':'s')+' nesta página</span></div>'
+}).join(""):'<p class="rounded-xl border border-dashed border-slate-300 p-4 text-slate-500 font-bold">Nenhum comentário publicado.</p>'
+}
 function eventLabel(name){return BILLING_EVENT_LABELS[name]||name}
 function renderSubscriptionAnalytics(){
 var d=state.subscriptionAnalytics||{},events=Array.isArray(d.events)?d.events:[],timeline=Array.isArray(d.timeline)?d.timeline:[];
@@ -275,8 +293,8 @@ try{var analyticsUrl=ANALYTICS_ENDPOINT+"?mode=subscription_24h&fresh=1&_="+Date
 }
 function decisionValue(value){if(!value)return"Sem registro anterior";if(value.route)value=value.route;if(typeof value.premium_required==="boolean")return value.premium_required?"Premium":"Free";if(value.value&&typeof value.value.enabled==="boolean")return value.value.enabled?"Ativado":"Desativado";if(typeof value.active==="boolean")return value.active?"Liberado":"Revogado";return"Registrado"}
 function renderDecisionHistory(){var actions={set_route:"Alteração de acesso",queue_route_activation:"Solicitação Premium",activate_route_after_deploy:"Publicação da solicitação",set_setting:"Alteração de configuração",grant_email:"Concessão administrativa",revoke_email:"Revogação administrativa",restore_developer_panel_choice:"Restauração da escolha do painel"};$("decision-history").innerHTML=state.auditLog.length?state.auditLog.map(function(row){var after=row.after_state||{},meta=after._decision||{},automation=/^(?:system:|codex:)/i.test(row.actor_email||""),origin=meta.origin==="developer_panel"||!automation?"Desenvolvedor":"Manutenção/automação",chosen=row.action==="queue_route_activation"?"Premium solicitado (aguardando publicação)":decisionValue(after);return'<div class="client-row"><div><strong>'+esc(actions[row.action]||row.action)+'</strong><div class="text-slate-500">'+esc(row.target_key)+'</div></div><div>'+esc(decisionValue(row.before_state))+' → '+esc(chosen)+'</div><div>'+esc(origin)+'<br>'+esc(fmt(row.created_at))+'</div><div class="text-slate-500">Registro '+esc(row.id)+'</div></div>'}).join(""):'<p class="text-slate-500">Nenhuma decisão recente disponível.</p>'}
-function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));state.billing.active=sortBillingRecords(state.billing.active);state.billing.pending=sortBillingRecords(state.billing.pending);state.billing.failed=sortBillingRecords(state.billing.failed);state.billing.expired=sortBillingRecords(state.billing.expired);renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderDecisionHistory();renderBilling()}
-async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.activationRequests=data.activation_requests||[];state.grants=data.grants||[];state.auditLog=data.audit_log||[];state.billing=data.billing||{};renderAll()}
+function renderAll(){state.routeMap=new Map(state.routes.map(function(r){return[r.path,r]}));state.billing.active=sortBillingRecords(state.billing.active);state.billing.pending=sortBillingRecords(state.billing.pending);state.billing.failed=sortBillingRecords(state.billing.failed);state.billing.expired=sortBillingRecords(state.billing.expired);renderSettings();renderCategoryOptions();renderRoutes();renderGrants();renderDecisionHistory();renderBilling();renderCommentsAdmin()}
+async function reload(){var data=await api("GET");state.settings=data.settings||{};state.routes=data.routes||[];state.activationRequests=data.activation_requests||[];state.grants=data.grants||[];state.auditLog=data.audit_log||[];state.comments=data.comments||[];state.billing=data.billing||{};renderAll()}
 async function loadCatalog(){
 var res=await fetch("/conta/developer-route-catalog.json",{cache:"no-store"});
 if(!res.ok)throw new Error("catalog_http_"+res.status);

@@ -30,6 +30,8 @@ assert.match(developerAdmin, /enforcement: requestedPremium \? "client_guard" : 
 assert.match(developerAdmin, /Página Free com conteúdo e ações liberados/);
 assert.match(developerAdmin, /publishedShell\(path\)/);
 assert.match(developerAdmin, /developer_premium_activation_requests/);
+assert.match(developerAdmin, /commentSummary/);
+assert.match(developerAdmin, /page_comments/);
 
 const activation = read("supabase/migrations/20260929222447_secure_developer_premium_activation.sql");
 assert.match(activation, /developer_premium_requires_private_enforcement/);
@@ -89,9 +91,13 @@ assert.match(page, /mode=subscription_24h&fresh=1/);
 assert.match(page, /cache:"no-store"/);
 assert.match(page, /pageshow/);
 assert.match(page, /visibilitychange/);
+assert.match(page, /Lista de comentários/);
+assert.match(page, /comments-list/);
+assert.match(page, /renderCommentsAdmin/);
 assert.ok(
   page.indexOf("Liberar Área Premium") < page.indexOf("Assinantes e Tentativas") &&
-  page.indexOf("Assinantes e Tentativas") < page.indexOf("Histórico de decisões do desenvolvedor") &&
+  page.indexOf("Assinantes e Tentativas") < page.indexOf("Lista de comentários") &&
+  page.indexOf("Lista de comentários") < page.indexOf("Histórico de decisões do desenvolvedor") &&
   page.indexOf("Histórico de decisões do desenvolvedor") < page.indexOf("Classificação Free ou Premium por página"),
   "conta/desenvolvedor.html: ordem dos cards administrativos não corresponde ao layout canônico."
 );
