@@ -30,6 +30,9 @@ assert.match(client, /crypto\.getRandomValues\(new Uint8Array\(32\)\)/);
 assert.match(client, /localStorage\.setItem\("cepc-owner-v1:"/);
 assert.match(client, /changeComment\("PATCH"/);
 assert.match(client, /changeComment\("DELETE"/);
+assert.match(client, /"Apagar este comentário\?"/);
+assert.match(client, /cepc-delete-confirm/);
+assert.doesNotMatch(client, /window\.confirm\(/);
 assert.match(client, /\.cepc-item-actions\{display:flex;justify-content:flex-start/);
 assert.match(client, /@media\(max-width:520px\).*\.cepc-item-action\{min-height:36px/);
 
