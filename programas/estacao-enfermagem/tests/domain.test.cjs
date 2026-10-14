@@ -1,0 +1,7 @@
+const {test}=require('node:test'),assert=require('node:assert/strict');const fugulin=require('../src/modules/fugulin');
+const scores=total=>{const s=Object.fromEntries(fugulin.criteria.map(c=>[c.id,1]));let rest=total-12;for(const c of fugulin.criteria){const extra=Math.min(rest,3);s[c.id]+=extra;rest-=extra;}return s;};
+test('each total from 12 to 48 reaches the correct contiguous classification',()=>{for(let total=12;total<=48;total++){const r=fugulin.calculate(scores(total));assert.equal(r.total,total);assert.equal(r.hours,total<=17?4:total<=22?6:total<=34?10:18);assert.equal(r.id,total<=17?'minimos':total<=22?'intermediarios':total<=28?'alta_dependencia':total<=34?'semi_intensivos':'intensivos');}});
+test('three fours and nine blanks cannot calculate or save',()=>{const values=Object.fromEntries(fugulin.criteria.map((c,i)=>[c.id,i<3?4:0]));assert.equal(fugulin.progress(values),3);assert.throws(()=>fugulin.calculate(values),/12 áreas/);});
+test('invalid, extra and nonnumeric criteria are rejected',()=>{for(const val of [null,undefined,-1,5,1.5,'4',NaN]){const s=scores(12);s.estado_mental=val;assert.throws(()=>fugulin.calculate(s));}const s=scores(12);s.extra=1;assert.throws(()=>fugulin.calculate(s));});
+test('wound criterion is daily frequency rather than generic complexity',()=>{assert.match(fugulin.criteria.find(c=>c.id==='curativo').options[1].text,/uma vez/);assert.match(fugulin.criteria.find(c=>c.id==='tempo_curativo').options[3].text,/30/);});
+module.exports={scores};
