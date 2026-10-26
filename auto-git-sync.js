@@ -71,7 +71,7 @@ function cleanupStaleLock() {
     }
 }
 
-function git(args) {
+function gitOnce(args) {
     return new Promise((resolve) => {
         const child = spawn("git", args, {
             cwd: ROOT,
