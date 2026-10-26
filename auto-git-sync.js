@@ -197,13 +197,11 @@ async function commitPullPush() {
     cleanupStaleLock();
 
     // 1. Commit local (se houver mudanças)
-    let didCommit = false;
     await git(["add", "-A"]);
     if (await hasStagedChanges()) {
         const msg = await buildCommitMessage();
         const c = await git(["commit", "-m", msg]);
         if (c.code === 0) {
-            didCommit = true;
             log(`✅ commit: ${msg}`);
         } else {
             log(`ℹ️ commit: ${(c.err || c.out).trim().split("\n")[0]}`);
@@ -219,14 +217,24 @@ async function commitPullPush() {
         return;
     }
 
-    // 3. Push (só se houve commit local, para não empurrar "nothing")
-    if (didCommit) {
-        const push = await git(["push", "-u", "origin", branch]);
-        if (push.code === 0) {
-            log("✅ push ok.");
-        } else {
-            log(`⚠️ push: ${(push.err || push.out).trim().split("\n").slice(0, 2).join(" | ")}`);
-        }
+    // 3. Publica commits locais pendentes, mesmo que tenham sido criados antes
+    // deste ciclo. Isso evita deixar a branch divergida quando não há mudanças novas.
+    const ahead = await git(["rev-list", "--count", `origin/${branch}..HEAD`]);
+    const aheadCount = Number(ahead.out.trim());
+    if (ahead.code !== 0 || !Number.isInteger(aheadCount)) {
+        log(`❌ não foi possível verificar commits locais pendentes: ${(ahead.err || ahead.out).trim()}`);
+        return;
+    }
+    if (aheadCount === 0) {
+        log("✅ branch sincronizada; nenhum commit local pendente.");
+        return;
+    }
+
+    const push = await git(["push", "-u", "origin", branch]);
+    if (push.code === 0) {
+        log(`✅ push ok (${aheadCount} commit(s)).`);
+    } else {
+        log(`⚠️ push: ${(push.err || push.out).trim().split("\n").slice(0, 2).join(" | ")}`);
     }
 }
 
