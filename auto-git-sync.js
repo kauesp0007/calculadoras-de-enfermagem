@@ -89,6 +89,26 @@ function gitOnce(args) {
     });
 }
 
+// Quando o GitHub Desktop (ou outra ferramenta) está operando, o .git/index.lock
+// fica ocupado e o git falha na hora com "lock file already exists". Em vez de
+// errar, o auto-sync espera e tenta de novo, cedendo a vez para quem chegou antes.
+const LOCK_ERROR = /index\.lock|lock file|Unable to create|File exists/i;
+
+function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function git(args, retries = 6) {
+    for (let i = 0; i < retries; i++) {
+        const r = await gitOnce(args);
+        if (r.code === 0 || !LOCK_ERROR.test(r.err)) return r;
+        const waitMs = 2000 * (i + 1);
+        log(`⏳ lock do git ocupado; aguardando ${(waitMs / 1000).toFixed(0)}s (tentativa ${i + 1}/${retries})...`);
+        await sleep(waitMs);
+    }
+    return gitOnce(args);
+}
+
 async function currentBranch() {
     const r = await git(["rev-parse", "--abbrev-ref", "HEAD"]);
     const b = r.out.trim();
