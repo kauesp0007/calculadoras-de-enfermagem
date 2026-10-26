@@ -113,44 +113,19 @@ function forumHrefForCurrentLanguage() {
   return lang === "pt" ? "/forum-enfermagem.html" : "/" + lang + "/forum-enfermagem.html";
 }
 
+// Idioma e fórum permanecem somente na barra desktop, nunca no painel PWA.
 function getAccessibilityLeadGroup() {
-  const mobile = window.matchMedia("(max-width:1279px)").matches;
   const bar = document.getElementById("barraAcessibilidade");
-  const panel = document.getElementById("pwaAcessibilidadeBar");
-  const target = mobile ? panel : bar;
-  if (!target) return null;
-
+  if (!bar) return null;
   let group = document.getElementById("accessibility-lead-actions");
   if (!group) {
     group = document.createElement("div");
     group.id = "accessibility-lead-actions";
     group.className = "accessibility-lead-actions";
   }
-  if (group.parentElement !== target) {
-    if (mobile) {
-      const title = panel.querySelector(".pwa-acessibilidade-header");
-      if (title) title.insertAdjacentElement("afterend", group);
-      else panel.insertBefore(group, panel.firstChild);
-    } else {
-      bar.insertBefore(group, bar.firstChild);
-    }
-  }
+  if (group.parentElement !== bar) bar.insertBefore(group, bar.firstChild);
   return group;
 }
-
-// Um único seletor e um único botão de fórum mudam de painel sem recriar listeners.
-(function bindAccessibilityBreakpoint() {
-  const query = window.matchMedia("(max-width:1279px)");
-  const sync = () => {
-    if (!document.getElementById("accessibility-lead-actions")) return;
-    getAccessibilityLeadGroup();
-    const menu = document.getElementById("langMenu");
-    const button = document.getElementById("langButton");
-    if (menu && button) { menu.classList.add("hidden"); button.setAttribute("aria-expanded", "false"); }
-  };
-  if (query.addEventListener) query.addEventListener("change", sync);
-  else if (query.addListener) query.addListener(sync);
-})();
 
 function ensureAccessibilityForumButton(group) {
   if (!group) return;
