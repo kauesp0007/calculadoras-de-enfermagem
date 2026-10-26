@@ -1782,11 +1782,13 @@ function initializeGlobalFunctions() {
     if (!M) return;
     shortcutReturnFocus = document.activeElement;
     M.classList.remove("hidden");
+    M.classList.add("show");
     M.setAttribute("aria-hidden", "false");
     O?.focus();
   };
   const K = () => {
     if (!M) return;
+    M.classList.remove("show");
     M.classList.add("hidden");
     M.setAttribute("aria-hidden", "true");
     if (shortcutReturnFocus?.isConnected) shortcutReturnFocus.focus();
