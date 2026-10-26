@@ -1,0 +1,32 @@
+# Alinhamento do menu global — 26/10/2026
+
+Pedido do desenvolvedor: ícone na esquerda; links agrupados à esquerda com distância do ícone; conta na direita; padronizar raiz e 18 idiomas.
+
+## Alteração
+
+- 19 fragmentos menu-global.html: mesmas classes estruturais, sem largura máxima centralizada nem margem negativa no logo.
+- global-styles.css: espaçamento compartilhado; rótulos alinhados ao início; conta com margem automática na direita; avatar preservado em 40×40 e logo em 48×32.
+- Direção física da barra preservada em árabe, mantendo leitura RTL dos textos.
+- Drawer completo disponível até 1279px; na faixa 769–1279 inicia abaixo da barra de acessibilidade de 36px. Mobile reserva 60px, igual à barra.
+- Biblioteca desktop turca acrescentada com tradução e destinos já existentes no menu mobile.
+
+## Evidências
+
+- Descoberta de Conhecimento: executada, knowledge-discover e catálogos de erros/soluções consultados. Nenhuma regra de conteúdo clínico afetada.
+- Auditor do Ecossistema: CONSISTENTE.
+- Integridade independente: 19/19 preservam todos os href/src/id/data-evento/data-submenu-toggle anteriores. Únicas adições de destinos: Biblioteca desktop TR.
+- Conformidade técnica: diff limpo com `git -c core.whitespace=cr-at-eol diff --check`; CRLF original preservado em PT/EN/ES. Estrutura CSS balanceada, 385 blocos.
+- Acessibilidade: alt existentes preservados; foco de teclado abre submenus de navegação; conta mantém seu controle de abertura existente. Nenhum JS de autenticação modificado.
+- Performance: comparação cwv-core HEAD vs patch em PT/EN/TR sem novos avisos. Aviso body-font-sans idêntico é inaplicável a fragmentos sem body. Sem novas fontes, scripts ou requisições.
+- CWV gate em dry-run: 50 páginas avaliadas, 48 WARNING/2 PASS; inclui documentos preexistentes fora do escopo e verificação de documento completo sobre fragmentos. Não representa medição runtime nem ausência de problemas do site.
+- Build Tailwind: NÃO EXECUTADO COM SUCESSO — dependência ausente; nenhuma dependência instalada sem autorização.
+- SW: geração local e sintaxe válidas, arquivo ignorado não incluído nesta alteração; deve ser gerado em checkout limpo pelo CI para excluir temporários locais.
+- Navegador/overflow/CLS/interações reais: NOT_MEASURED. Chromium local indisponível; navegador remoto sem acesso ao servidor local. Não se declara validação visual concluída.
+
+## Limitações preexistentes
+
+IDs submenu-materiais-didaticos-sub duplicados em HI/ZH/JA/UK/AR, inalterados. Sem alteração em políticas Free/Premium, conteúdo clínico, rotas ou autenticação.
+
+## Revisão
+
+Auditoria independente: PUBLICAR_COM_RESSALVAS, com validação visual/build pendentes. Entrega em PR para revisão, sem publicar em produção.

@@ -332,7 +332,7 @@ header .header-content>div:first-child {
 header .header-content>nav {
   flex-grow: 1;
   display: flex;
-  justify-content: flex-end
+  justify-content: flex-start
 }
 
 .desktop-nav ul {
@@ -424,18 +424,17 @@ header .header-content>nav {
 .desktop-nav>ul>li>a,
 .desktop-nav>ul>li>button {
   font-size: 12px;
-  text-align: right !important;
+  text-align: start !important;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 5px
 }
 
 .desktop-nav>ul>li>a>svg,
 .desktop-nav>ul>li>button>svg {
-  order: -1;
-  margin-left: 0 !important;
-  margin-right: 5px
+  flex-shrink: 0;
+  margin: 0 !important
 }
 
 @media (min-width:769px) {
@@ -1739,6 +1738,9 @@ label {
     display: block
   }
 
+}
+
+@media (max-width:1279px) {
   .off-canvas-menu {
     display: flex !important;
     flex-direction: column;
@@ -1871,6 +1873,9 @@ label {
     font-size: .9rem
   }
 
+}
+
+@media (max-width:768px) {
   #barraAcessibilidade {
     display: none !important;
     justify-content: flex-start;
@@ -2117,15 +2122,9 @@ label {
   }
 }
 
-/* ===== FIX CLS v2 (2026-08-14): reserva de altura real do header SOMENTE NO MOBILE =====
-   v1 reduziu o desktop para 56px e o seletor de idioma passou a sumir atrás do menu em larguras
-   intermediárias (menu quebra em 2 linhas e ultrapassa o min-height). DESKTOP VOLTOU A 96px (original,
-   sem CLS reportado). Mobile: 48px = altura real do menu (py-2 + logo 32px). Backup:
-   global-styles.css.bak-20260814-clsfix. Reversão: ver REVERTER-FIX-CLS.md */
+/* Reserve the same 60px as the mobile global menu. */
 @media(max-width:768px) {
-  #global-header-container {
-    min-height: 48px !important
-  }
+  #global-header-container { min-height: 60px !important; }
 }
 
 /* Abertura suave dos submenus do menu desktop (fade + deslize) */
@@ -2503,7 +2502,7 @@ header .desktop-nav ul.absolute.left-full {
 }
 
 .account-menu-btn {
-  margin-block: -4px !important;
+  margin-block: 0 !important;
   padding: 0 !important
 }
 
@@ -2512,4 +2511,106 @@ header .desktop-nav ul.absolute.left-full {
   left: auto !important;
   right: 0 !important;
   max-width: calc(100vw - 16px)
+}
+/* Shared global menu: physical logo-left/account-right layout in every locale. */
+header.global-menu .header-content {
+  height: 60px;
+  padding: 0 clamp(16px, 2vw, 28px);
+  margin: 0;
+  max-width: none;
+  gap: clamp(24px, 2.5vw, 40px);
+  justify-content: flex-start;
+  direction: ltr;
+}
+
+header.global-menu .global-menu-logo {
+  flex: 0 0 48px;
+  width: 48px;
+  justify-content: flex-start;
+}
+
+header.global-menu .global-menu-logo img {
+  display: block;
+  width: 48px;
+  height: 32px;
+  object-fit: contain;
+}
+
+header.global-menu .desktop-nav {
+  min-width: 0;
+  margin: 0;
+}
+
+header.global-menu .global-menu-items {
+  width: 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: clamp(10px, 1.2vw, 20px);
+  direction: ltr;
+}
+
+header.global-menu .global-menu-items > li {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+header.global-menu .global-menu-items > li > a,
+header.global-menu .global-menu-items > li > button {
+  min-height: 44px;
+  line-height: 1.25;
+  white-space: normal;
+  cursor: pointer;
+}
+
+header.global-menu #menu-auth-desktop {
+  flex: 0 0 auto;
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+header.global-menu #menu-auth-desktop > .account-menu-btn {
+  direction: ltr;
+}
+
+header.global-menu .desktop-nav li:not(#menu-auth-desktop):focus-within > ul {
+  display: flex;
+}
+
+html[lang=ar] header.global-menu .desktop-nav a,
+html[lang=ar] header.global-menu .desktop-nav button,
+html[lang=ar] header.global-menu .desktop-nav ul ul {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Use the existing drawer before translated labels become crowded. */
+@media (min-width: 769px) and (max-width: 1279px) {
+  header.global-menu .desktop-nav { display: none !important; }
+  header.global-menu .hamburger-button {
+    display: flex !important;
+    position: absolute !important;
+    top: 10px !important;
+    right: 20px !important;
+    width: 40px !important;
+    height: 40px !important;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: 10px;
+    background: #1a3e74;
+    color: #fff;
+    cursor: pointer;
+  }
+  #offCanvasMenu.off-canvas-menu {
+    display: flex !important;
+    top: 36px;
+    height: calc(100vh - 36px);
+    max-height: calc(100dvh - 36px);
+  }
+}
+
+@media (max-width: 768px) {
+  header.global-menu { padding-block: 0; }
+  header.global-menu .header-content { height: 60px; }
 }
