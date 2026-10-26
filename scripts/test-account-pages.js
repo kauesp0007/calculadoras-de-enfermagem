@@ -130,7 +130,11 @@ for (const lang of LANGS) {
 // A foto/avatar continua centralizada em global-scripts.js; os arquivos localizados
 // apenas preservam o mesmo host e alinhamento para a renderização autenticada.
 const canonicalDesktopNavClass = 'class="flex-1 flex items-center desktop-nav desktop-only"';
-const canonicalDesktopListClass = '<ul class="flex flex-1 items-center justify-between">';
+const canonicalDesktopListClass = '<ul class="global-menu-items flex flex-1 items-center">';
+const rootMenu = fs.readFileSync(path.join(ROOT, "menu-global.html"), "utf8");
+if (!rootMenu.includes(canonicalDesktopNavClass) || !rootMenu.includes(canonicalDesktopListClass)) {
+  fail("menu-global.html: padrão compartilhado de navegação ausente na raiz.");
+}
 for (const lang of LANGS) {
   const localizedMenu = fs.readFileSync(path.join(ROOT, lang, "menu-global.html"), "utf8");
   if (!localizedMenu.includes(canonicalDesktopNavClass)) {
