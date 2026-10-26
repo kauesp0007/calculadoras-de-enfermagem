@@ -12,8 +12,6 @@
     var _root = null;
     var _promoRoot = null;
     var _promoTimers = [];
-    var ADS_CLIENT = "ca-pub-6472730056006847";
-    var _adsenseLoading = false;
 
     // Preços e moedas seguem o checkout internacional de /conta/assinatura.html.
     // A cobrança efetiva continua sendo definida pelo Price do Stripe no backend.
@@ -401,10 +399,6 @@
             }
     };
 
-    function isAccountPage() {
-return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta\//i.test(window.location.pathname || "");
-    }
-
     function isPremiumRoute() {
         return window.__IS_PREMIUM_ROUTE === true;
     }
@@ -428,10 +422,13 @@ return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta
         if (!auth || !auth.isInitialized || !auth.isInitialized()) return false;
         if (!auth.currentUser || !auth.currentUser()) return true;
 
-        // Um usuário logado só é Free depois que o billing confirma esse plano.
+        // Um usuário logado só é Free depois que a autoridade canônica
+        // billing-access confirma esse plano. Estado transitório/indisponível
+        // nunca autoriza o card, e Premium (inclusive vitalício) nunca é elegível.
         var billing = auth.billingStatus && auth.billingStatus();
-        return !!(billing && billing.resolved && !billing.unavailable &&
-            billing.plan === "free" && auth.hasPlan && !auth.hasPlan("premium"));
+        if (!billing || !billing.resolved || billing.unavailable) return false;
+        if (window.__premiumAdState && window.__premiumAdState.resolved && window.__premiumAdState.premium) return false;
+        return billing.plan === "free";
     }
 
     function syncPromoEligibility() {
@@ -442,75 +439,9 @@ return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta
         }
     }
 
-    function isPremiumProfile(profile) {
-        // Premium mantém anúncios ativos; este módulo não remove anúncios.
-        return false;
-    }
-
-    function authStateResolvedForAds() {
-        var auth = window.Auth;
-        if (!auth || !auth.isInitialized || !auth.isInitialized()) return false;
-
-        var user = auth.currentUser ? auth.currentUser() : null;
-        if (!user) return true;
-
-        var profile = auth.profile ? auth.profile() : null;
-        return !!profile;
-    }
-
-    function adsAllowed() {
-        var auth = window.Auth;
-        if (!auth || !auth.isInitialized || !auth.isInitialized()) return false;
-
-        var user = auth.currentUser ? auth.currentUser() : null;
-        if (!user) return true;
-
-        var profile = auth.profile ? auth.profile() : null;
-        if (!profile) return false;
-
-        return true;
-    }
-
-    function consentAllowsAds() {
-        try {
-            var consent = localStorage.getItem("cookieConsent");
-            if (consent === "refused") return false;
-            if (consent === "managed" && localStorage.getItem("ad_storage") === "denied") return false;
-        } catch (_) { }
-        return true;
-    }
-
-    function loadAdSenseForEligibleUser() {
-        return; // DESATIVADO: global-scripts.js é o único carregador de AdSense.
-        if (isAccountPage() || !authStateResolvedForAds() || !adsAllowed() || !consentAllowsAds()) return;
-        if (window.__adsenseLoaded || _adsenseLoading) return;
-
-        var existing = document.querySelector('script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]');
-        if (existing) {
-            window.__adsenseLoaded = true;
-            return;
-        }
-
-        _adsenseLoading = true;
-        var script = document.createElement("script");
-        script.async = true;
-        script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + ADS_CLIENT;
-        script.crossOrigin = "anonymous";
-        script.onload = function () {
-            _adsenseLoading = false;
-            window.__adsenseLoaded = true;
-        };
-        script.onerror = function () {
-            _adsenseLoading = false;
-            window.__adsenseLoaded = false;
-            setTimeout(loadAdSenseForEligibleUser, 3000);
-        };
-        document.head.appendChild(script);
-    }
-
     function syncAds() {
-        if (isAccountPage()) return;
-        loadAdSenseForEligibleUser();
+        // Compatibilidade da API do módulo. A única autoridade/carregador de
+        // publicidade é global-scripts.js; este manager governa somente o card.
     }
 
     function bindAuthGuards() {
@@ -750,3 +681,4 @@ return /^\/(?:(?:en|es|fr|it|de|hi|zh|ja|ru|ko|tr|nl|pl|sv|id|vi|uk|ar)\/)?conta
 
     console.log("[Access] Módulo premium-banner-manager.js carregado.");
 })(window, document);
+

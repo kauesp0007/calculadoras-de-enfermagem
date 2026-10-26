@@ -46,6 +46,10 @@ function productionHtmlPaths() {
       }
     }
   }
+  for (const relative of ["blog/index.html", "blog-templates/index.template.html"]) {
+    const file = path.join(ROOT, relative);
+    if (fs.existsSync(file)) out.push(file);
+  }
   return out;
 }
 
@@ -93,6 +97,8 @@ const adSection = section(
 assert.match(adSection, /billingStatus\s*\(/, "A decisão não consulta Auth.billingStatus().");
 assert.match(adSection, /premium_expires_at/, "A decisão não valida a expiração do Premium.");
 assert.match(adSection, /adsbygoogle\.js/, "O carregador do AdSense não está presente.");
+assert.match(adSection, /#premium-promo-banner/, "A neutralização Premium não remove o card de assinatura residual.");
+assert.match(adSection, /\.google-auto-placed/, "A neutralização Premium não cobre anúncios automáticos já injetados.");
 
 const loaderStart = source.indexOf("async function loadAdSenseOnce()");
 const loaderEnd = source.indexOf("function executeServices()", loaderStart);
@@ -161,7 +167,7 @@ const cases = [
     name: "Premium sem expiração",
     billing: { resolved: true, plan: "premium", premium_expires_at: null },
     authenticated: true,
-    expect: { resolved: true, premium: false, allowAds: true, authenticated: true }
+    expect: { resolved: true, premium: true, allowAds: false, authenticated: true }
   },
   {
     name: "Premium com expiração inválida",
@@ -206,3 +212,4 @@ console.log("✅ Teste Premium sem anúncios: política e estados críticos apro
 console.log("   Visitante/Free → anúncios elegíveis.");
 console.log("   Premium válido → anúncios bloqueados.");
 console.log("   Expirado/indisponível → comportamento seguro e derivado do billing.");
+

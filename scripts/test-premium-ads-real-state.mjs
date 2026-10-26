@@ -80,6 +80,10 @@ const futurePremium = premiumRows.filter((row) => {
   return expiry.getTime() > Date.now();
 });
 
+const permanentPremium = premiumRows.filter(
+  (row) => row.premium_expires_at === null || row.premium_expires_at === undefined
+);
+
 assert.ok(
   futurePremium.length > 0,
   "Nenhum entitlement Premium com expiração futura foi encontrado."
@@ -97,6 +101,15 @@ const realPremiumState = evaluate(
 assert.equal(realPremiumState.resolved, true, "Premium real deveria estar resolvido.");
 assert.equal(realPremiumState.premium, true, "Premium real deveria ser reconhecido como Premium.");
 assert.equal(realPremiumState.allowAds, false, "Premium real não pode permitir AdSense.");
+
+for (const row of permanentPremium) {
+  const permanentState = evaluate(
+    { resolved: true, plan: "premium", premium_expires_at: row.premium_expires_at },
+    true
+  );
+  assert.equal(permanentState.premium, true, "Premium permanente real deve ser reconhecido como Premium.");
+  assert.equal(permanentState.allowAds, false, "Premium permanente real não pode permitir AdSense.");
+}
 
 if (freeRows.length > 0) {
   const realFreeState = evaluate(
@@ -152,8 +165,10 @@ assert.equal(visitorState.allowAds, true, "Visitante deve continuar elegível pa
 
 console.log("✅ Simulação com estado REAL do Supabase aprovada.");
 console.log("   Premium persistido/futuro → AdSense bloqueado.");
+console.log("   Premium permanente/vitalício → AdSense e card de assinatura bloqueados.");
 console.log("   Free persistido (quando disponível) → AdSense elegível.");
 console.log("   Premium expirado (quando disponível) → AdSense elegível.");
 console.log("   Billing indisponível → AdSense permanece desligado até resolver.");
 console.log("   Visitante → AdSense elegível, sujeito ao consentimento.");
 console.log("   Timestamp da verificação: " + nowIso());
+

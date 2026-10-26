@@ -10,7 +10,9 @@ assert(safe.includes('/img/formularios-previas/form-011.webp'));
 assert(safe.includes('data-protected-pdf-action="print"'));
 assert(safe.includes('data-protected-pdf-action="download"'));
 assert(!/\sdownload(?:\s|>)/i.test(safe));
-assert(safe.includes('/js/access/protected-form-pdf.js?v=1'));
+assert(safe.includes('/js/access/protected-form-pdf.js?v=2'));
+assert(safe.includes('data-protected-pdf-action="preview"'),'The protected image must open the authorized PDF for Premium users');
+assert(safe.includes('role="button" tabindex="0"'),'The protected image action must be keyboard accessible');
 assert(safe.includes('max-width:900px!important'),'Preview must not enlarge its source raster');
 assert(safe.includes('height:auto!important'),'Preserve natural image ratio and remove oversized wrapper');
 assert(safe.includes(':has(>img:not([hidden]))'),'Size limit applies to image preview, not authorized PDF iframe');
@@ -26,6 +28,11 @@ assert(edge.includes('storage.from("assistential-pdfs-private").download(object)
 assert(!edge.includes('fetch(new URL(form.pdf'),'No public original fallback');
 const entitlement=edge.indexOf('if(!(await premiumForUser(user)))',edge.indexOf('url.searchParams.has("download")'));
 assert(entitlement>=0&&entitlement<edge.indexOf('.download(object)'),'Server entitlement precedes bytes');
+const client=fs.readFileSync('js/access/protected-form-pdf.js','utf8');
+assert(client.includes('billing.plan !== "premium"'),'Client preview must use the canonical billing plan');
+assert(client.includes('billing.premium_expires_at === null'),'Permanent Premium must unlock the native PDF preview');
+assert(client.includes('response.status === 401 || response.status === 403'),'Protected PDF must retry once with a refreshed Firebase token');
+assert(client.includes('#toolbar=1&navpanes=0&scrollbar=1&view=FitH'),'Premium iframe must request native PDF controls');
 console.log('PASS: PDF preview fail-closed, protected print/download, private storage and unconditional server Premium check.');
 
 const {formPdfStorageObject}=await import('../supabase/functions/premium-content/form-pdf-preview.mjs');
@@ -37,7 +44,8 @@ assert.equal(formPdfStorageObject('/FORMULARIOS_DE_ESCALAS/EN/test.pdf'),'EN/tes
 const {runInNewContext}=await import('node:vm');
 for(const lang of ['pt-BR','en','es']){
   const listeners={},image={style:{},hidden:false};
-  const viewer={querySelectorAll:selector=>selector==='img'?[image]:[],querySelector:()=>image};
+  const attributes={};
+  const viewer={dataset:{},classList:{contains:()=>true},querySelectorAll:selector=>selector==='img'?[image]:[],querySelector:()=>image,setAttribute:(name,value)=>{attributes[name]=value;},removeAttribute:name=>{delete attributes[name];}};
   const document={documentElement:{lang},querySelectorAll:()=>[viewer],querySelector:()=>null,addEventListener:(name,handler)=>{listeners[name]=handler;}};
   const window={addEventListener:()=>{}};
   runInNewContext(fs.readFileSync('js/access/protected-form-pdf.js','utf8'),{window,document,URL:{revokeObjectURL:()=>{}},Set});
@@ -55,3 +63,4 @@ for(const lang of ['pt-BR','en','es']){
   listeners['auth:logout']();assert.equal(image.hidden,false,'Logout restores the same protected preview');
 }
 console.log('PASS: PT/EN/ES preview context menu and drag blocked; unrelated targets and protected PDF controls preserved.');
+

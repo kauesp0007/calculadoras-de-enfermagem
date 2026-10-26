@@ -90,20 +90,23 @@ Premium sem anúncios é uma **capacidade derivada** do entitlement comercial v�
 |---|---|---|---|
 | Visitante (não autenticado) | `true` | `true` | Anúncios carregam |
 | Billing não resolvido / indisponível | `false` | `false` | **Fail-closed**: anúncios NÃO carregam |
-| `plan === "premium"` **e** `premium_expires_at` válido/futuro | `true` | `false` | Anúncios bloqueados |
+| `plan === "premium"` e `premium_expires_at` nulo (permanente/vitalício) | `true` | `false` | Anúncios e card de assinatura bloqueados |
+| `plan === "premium"` **e** `premium_expires_at` válido/futuro | `true` | `false` | Anúncios e card de assinatura bloqueados |
 | Free confirmado / Premium expirado | `true` | `true` | Anúncios carregam |
 
-> **Invariante:** `plan === "premium"` sozinho **NÃO basta** — exige `premium_expires_at`
-> válido e futuro. A única fonte frontend é `Auth.billingStatus()`.
+> **Invariante:** `plan === "premium"` com data nula representa acesso permanente.
+> Quando existe data, ela precisa ser válida e futura. A única fonte frontend é
+> `Auth.billingStatus()`, abastecido por `billing-access`.
 
 ### 4.2 Neutralização (`neutralizePremiumAdArtifacts`)
 
 Quando Premium é confirmado, o JS:
-1. Esconde `.controlled-display-ad`, `.controlled-multiplex-ad` e `#multiplex-ad-reserved`
-   (marca `data-premium-ads-hidden`).
+1. Esconde unidades controladas, laterais, Multiplex, `.google-auto-placed` e qualquer
+   bloco com `data-ad-client`/`data-ad-slot` (marca `data-premium-ads-hidden`).
 2. Esconde todos os `ins.adsbygoogle` (`display:none` + `aria-hidden`).
 3. **Remove** o `<script>` do `adsbygoogle.js`.
-4. Zera `window.__adsenseLoaded`.
+4. Desmonta `#premium-promo-banner` pelo controller canônico.
+5. Zera `window.__adsenseLoaded`.
 
 ### 4.3 Vigilância
 
@@ -115,7 +118,7 @@ Quando Premium é confirmado, o JS:
 
 ### 4.4 Legado PROIBIDO (não reativar)
 
-`premium-ads-guard.js`, `premium-banner-manager.js`, `PREMIUM_AD_FREE_PLANS`,
+`premium-ads-guard.js`, uso de `premium-banner-manager.js` como carregador de AdSense, `PREMIUM_AD_FREE_PLANS`,
 `isPremiumLocal()`, `localStorage.plan`, `hasPlan('junior')`, Firestore para plano,
 benefício por query string. (Veja `SISTEMA_DE_LOGIN_DO_SITE/CATALOGO_CANONICO_SISTEMA_DE_CONTAS.md`.)
 
@@ -146,3 +149,4 @@ Nestas rotas **nenhum** anúncio é carregado (mesmo que exista `<ins>` no HTML)
 
 > ⚠️ Alterações em `global-scripts.js` são **protegidas** (hook `block-protected-files`):
 > exigem autorização explícita do desenvolvedor.
+

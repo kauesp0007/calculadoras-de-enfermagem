@@ -2037,15 +2037,20 @@ function evaluatePremiumAdState(billing, authenticated) {
     };
   }
 
-  var expiresAt = billing.premium_expires_at
-    ? new Date(billing.premium_expires_at)
-    : null;
+  var hasExpiry = billing.premium_expires_at !== null &&
+    billing.premium_expires_at !== undefined &&
+    String(billing.premium_expires_at).trim() !== "";
+  var expiresAt = hasExpiry ? new Date(billing.premium_expires_at) : null;
 
+  // A autoridade canônica (billing-access) usa plan=premium com expiração nula
+  // para concessões permanentes/vitalícias. Somente uma data preenchida, válida
+  // e vencida remove o benefício sem anúncios.
   var premium = !!(
     billing.plan === "premium" &&
-    expiresAt &&
-    Number.isFinite(expiresAt.getTime()) &&
-    expiresAt.getTime() > Date.now()
+    (
+      !hasExpiry ||
+      (Number.isFinite(expiresAt.getTime()) && expiresAt.getTime() > Date.now())
+    )
   );
 
   return {
@@ -2070,7 +2075,8 @@ function withPremiumAdTimeout(promise, timeoutMs) {
 
 function neutralizePremiumAdArtifacts() {
   document.querySelectorAll(
-    ".controlled-display-ad, .controlled-multiplex-ad, #multiplex-ad-reserved"
+    ".controlled-display-ad, .controlled-multiplex-ad, #multiplex-ad-reserved, " +
+    ".form-pdf-side-ad, .google-auto-placed, [data-ad-client], [data-ad-slot]"
   ).forEach(function (container) {
     container.setAttribute("data-premium-ads-hidden", "true");
     container.style.display = "none";
@@ -2085,6 +2091,18 @@ function neutralizePremiumAdArtifacts() {
     'script[src*="pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"]'
   ).forEach(function (script) {
     script.remove();
+  });
+
+  // O card de assinatura usa a mesma decisão comercial. Se ele tiver sido
+  // montado durante a hidratação da conta, retire-o assim que Premium resolver.
+  if (
+    window.__premiumPromoController &&
+    typeof window.__premiumPromoController.dispose === "function"
+  ) {
+    window.__premiumPromoController.dispose();
+  }
+  document.querySelectorAll("#premium-promo-banner").forEach(function (promo) {
+    promo.remove();
   });
 
   window.__adsenseLoaded = false;
@@ -2981,3 +2999,4 @@ window.addEventListener('load', function () {
   if ("requestIdleCallback" in window) window.requestIdleCallback(load, { timeout: 1200 });
   else window.setTimeout(load, 0);
 })(window, document);
+
