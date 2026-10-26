@@ -43,3 +43,10 @@ Auditoria independente: PUBLICAR_COM_RESSALVAS, com validação visual/build pen
 - Contra-prova independente: PUBLICAR_COM_RESSALVAS para PR; nenhum bloqueador estático identificado. Overflow com traduções longas em 1280px, medição visual e interações seguem NOT_MEASURED.
 - Nesta continuação, o executor local ficou indisponível. Build e scripts locais não foram reexecutados; nenhuma declaração de aprovação visual. Alteração feita atomicamente pela API do GitHub.
 - Revisão anterior íntegra e recuperável pelo commit pai c74b1e1f0b88600a741695025f1ac2cb15a094f1. Os backups locais da execução anterior não foram incluídos na publicação.
+
+
+## Correção final — ícone quadrado na altura máxima da barra
+
+Substitui as dimensões intermediárias de 70×70 limitado a 56px: o estado final usa 60×60px no HTML e no CSS, tanto na caixa do logo quanto na imagem. A barra continua com 60px. object-fit:contain e object-position:center mantêm a imagem inteira, proporcional, sem recorte e sem esticar o arquivo original. Caso o arquivo original não seja quadrado, a imagem completa fica contida na caixa quadrada; não é usado cover nem preenchimento por distorção.
+
+Os 19 menus usam a mesma regra. Preservados o espaço desktop de 4cm, conta à direita e todas as URLs, classes, IDs, alt e eventos. Conferência estática aprovada; validação visual e build continuam NOT_MEASURED pelas limitações já documentadas. Revisão anterior recuperável no commit pai ac6bc7d9a2c20bcd9947b5a6fd02018a664bf654.
