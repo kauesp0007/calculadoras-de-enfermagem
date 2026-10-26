@@ -443,6 +443,11 @@ function loadGlobalMenuComponent() {
         console.error("[Navigation] Falha ao inicializar o menu:", navigationError);
       }
       try {
+        initializeViewportSafeSubmenus(container);
+      } catch (viewportError) {
+        console.warn("[Navigation] Ajuste de rolagem do menu:", viewportError);
+      }
+      try {
         initializeAuthMenu();
       } catch (authMenuError) {
         console.error("[Auth] Falha ao inicializar o menu de autenticação:", authMenuError);
@@ -554,6 +559,64 @@ window.addEventListener("load", function () {
     loadGlobalBodyElementsComponent();
   }, 50);
 });
+
+
+/* Dropdowns com submenu em lista rolável (componente global, PT + 18 idiomas).
+ * Usa posicionamento fixed nos flyouts, sem alterar links, traduções ou mobile. */
+function initializeViewportSafeSubmenus(container) {
+  const nav = container && container.querySelector("header.global-menu-root nav.desktop-nav");
+  if (!nav || nav.dataset.viewportSafeMenus === "1") return;
+  nav.dataset.viewportSafeMenus = "1";
+  nav.querySelectorAll(".global-menu-items ul ul").forEach(function(panel) {
+    panel.classList.add("menu-flyout-viewport");
+  });
+  function desktop() {
+    return window.innerWidth > 768 && getComputedStyle(nav).display !== "none";
+  }
+  function directPanel(li) {
+    return Array.prototype.find.call(li.children, function (child) { return child.tagName === "UL"; });
+  }
+  function place(li) {
+    const panel = directPanel(li);
+    if (!panel) return;
+    if (li.parentElement && li.parentElement.classList.contains("global-menu-items")) {
+      panel.style.setProperty("--menu-panel-top", Math.round(panel.getBoundingClientRect().top) + "px");
+      return;
+    }
+    if (!panel.classList.contains("menu-flyout-viewport")) return;
+    const rect = li.getBoundingClientRect();
+    const vw = document.documentElement.clientWidth || window.innerWidth;
+    const vh = window.innerHeight;
+    const width = panel.offsetWidth || 320;
+    const left = rect.right + width + 8 <= vw ? rect.right - 1 : rect.left - width + 1;
+    const x = Math.max(8, Math.min(left, Math.max(8, vw - width - 8)));
+    const panelHeight = Math.min(panel.scrollHeight || 1, Math.max(1, vh - 16));
+    const y = Math.max(8, Math.min(rect.top, Math.max(8, vh - panelHeight - 8)));
+    panel.style.setProperty("--menu-flyout-left", Math.round(x) + "px");
+    panel.style.setProperty("--menu-flyout-top", Math.round(y) + "px");
+  }
+  function alignChain(target) {
+    if (!desktop() || !target || !target.closest) return;
+    let li = target.closest("li");
+    while (li && nav.contains(li)) {
+      place(li);
+      li = li.parentElement && li.parentElement.closest("li");
+    }
+  }
+  nav.addEventListener("pointerover", function (event) { alignChain(event.target); });
+  nav.addEventListener("focusin", function (event) { alignChain(event.target); });
+  let queued = false;
+  function realignVisible() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false;
+      if (desktop()) nav.querySelectorAll(".global-menu-items li:hover,.global-menu-items li:focus-within").forEach(place);
+    });
+  }
+  nav.addEventListener("scroll", realignVisible, true);
+  window.addEventListener("resize", realignVisible, { passive: true });
+}
 
 function initializeNavigationMenu() {
   const e = document.getElementById("hamburgerButton"),
