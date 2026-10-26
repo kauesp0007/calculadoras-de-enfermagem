@@ -30,3 +30,16 @@ IDs submenu-materiais-didaticos-sub duplicados em HI/ZH/JA/UK/AR, inalterados. S
 ## Revisão
 
 Auditoria independente: PUBLICAR_COM_RESSALVAS, com validação visual/build pendentes. Entrega em PR para revisão, sem publicar em produção.
+
+
+## Ajuste solicitado em seguida — espaço de 4 cm e ícone maior
+
+- Os 19 ícones passam a declarar width=70 / height=70 e classe global-menu-icon, sem os limites antigos de 48×32.
+- Barra preservada em 60px. CSS contém a imagem em 70px de largura e até 56px de altura, com object-fit:contain: tamanho nominal 70×70, não tamanho visual quadrado de 70px. Mantém proporção e 2px livres acima/abaixo.
+- Espaço desktop: gap:4cm entre a caixa do logo e a navegação (aproximadamente 151,18 CSSpx; medida física depende da tela/zoom).
+- Bordas: padding horizontal de 12px; conta com margin-left:auto e avatar de 40px preservados.
+- Até 1279px, links continuam no drawer e o gap reduz para 16px, sem impor espaçador de 4cm no celular.
+- Conferência estática em memória dos 19 fragmentos: href/src/alt/id/eventos/toggles idênticos; só dimensões e classe do logo modificadas. Delimitadores do CSS balanceados.
+- Contra-prova independente: PUBLICAR_COM_RESSALVAS para PR; nenhum bloqueador estático identificado. Overflow com traduções longas em 1280px, medição visual e interações seguem NOT_MEASURED.
+- Nesta continuação, o executor local ficou indisponível. Build e scripts locais não foram reexecutados; nenhuma declaração de aprovação visual. Alteração feita atomicamente pela API do GitHub.
+- Revisão anterior íntegra e recuperável pelo commit pai c74b1e1f0b88600a741695025f1ac2cb15a094f1. Os backups locais da execução anterior não foram incluídos na publicação.
