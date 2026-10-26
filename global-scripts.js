@@ -1531,13 +1531,20 @@ function initializeGlobalFunctions() {
   let _resizeTimer;
   function _checkResize() {
     const _w = window.innerWidth;
-    if (_w > 1024) {
+    if (_w >= 1280) {
       window.requestAnimationFrame(() => {
         const _b = document.getElementById("barraAcessibilidade");
         // PREVENÇÃO REFLOW: Só escreve no DOM se o estado estiver errado
         if (_b && _b.style.display !== "flex") _b.style.display = "flex";
         const _n = document.querySelector("nav.desktop-nav");
         if (_n && _n.style.display !== "flex") _n.style.display = "flex";
+      });
+    } else {
+      window.requestAnimationFrame(() => {
+        const _b = document.getElementById("barraAcessibilidade");
+        const _n = document.querySelector("nav.desktop-nav");
+        if (_b && _b.style.display) _b.style.removeProperty("display");
+        if (_n && _n.style.display) _n.style.removeProperty("display");
       });
     }
   }
@@ -1642,13 +1649,13 @@ function initializeGlobalFunctions() {
       }), void 0 === o || o) && E("Cor de foco alterada.")
     },
     x = () => {
-      o.classList.toggle("contraste-alto"), E("Alto contraste " + (o.classList.contains("contraste-alto") ? "ativado" : "desativado"))
+      o.classList.toggle("contraste-alto"), localStorage.setItem("highContrast", String(o.classList.contains("contraste-alto"))), E("Alto contraste " + (o.classList.contains("contraste-alto") ? "ativado" : "desativado"))
     },
     A = () => {
-      o.classList.toggle("dark-mode"), E("Modo escuro " + (o.classList.contains("dark-mode") ? "ativado" : "desativado"))
+      o.classList.toggle("dark-mode"), localStorage.setItem("darkMode", String(o.classList.contains("dark-mode"))), E("Modo escuro " + (o.classList.contains("dark-mode") ? "ativado" : "desativado"))
     },
     D = () => {
-      o.classList.toggle("fonte-dislexia"), E("Fonte para dislexia " + (o.classList.contains("fonte-dislexia") ? "ativada" : "desativada"))
+      o.classList.toggle("fonte-dislexia"), localStorage.setItem("dyslexiaFont", String(o.classList.contains("fonte-dislexia"))), E("Fonte para dislexia " + (o.classList.contains("fonte-dislexia") ? "ativada" : "desativada"))
     },
     T = e => {
       if (e && v) {
@@ -1699,8 +1706,8 @@ function initializeGlobalFunctions() {
       // 5. Reseta cor de foco para amarelo
       S("yellow", false);
 
-      // 6. Limpa memória
-      localStorage.clear();
+      // 6. Limpa apenas preferências de acessibilidade; nunca dados de login/assinatura.
+      ["fontSize","lineHeight","letterSpacing","readingSpeed","focusColor","highContrast","darkMode","dyslexiaFont"].forEach(key => localStorage.removeItem(key));
 
       // 7. Feedback visual único
       E("Configurações redefinidas para o padrão");
@@ -1769,21 +1776,93 @@ function initializeGlobalFunctions() {
   const M = document.getElementById("keyboardShortcutsModal"),
     H = document.getElementById("btnKeyboardShortcuts"),
     I = document.getElementById("btnKeyboardShortcutsPWA"),
-    O = document.getElementById("keyboardModalCloseButton"),
-    J = () => {
-      M && M.classList.remove("hidden")
-    },
-    K = () => {
-      M && M.classList.add("hidden")
-    };
-  H?.addEventListener("click", J), I?.addEventListener("click", J), O?.addEventListener("click", K), window.addEventListener("keydown", e => {
-    "Escape" === e.key && M && !M.classList.contains("hidden") && K()
-  }), initializeCookieFunctionality();
-  a?.addEventListener("click", () => {
-    m?.classList.contains("is-open") && (m.classList.remove("is-open"), m.classList.add("-translate-x-full")), c?.classList.add("is-open"), d && (d.style.display = "block")
-  }), r?.addEventListener("click", () => {
-    c?.classList.remove("is-open"), m?.classList.contains("is-open") || d && (d.style.display = "none")
+    O = document.getElementById("keyboardModalCloseButton");
+  let shortcutReturnFocus = null;
+  const J = () => {
+    if (!M) return;
+    shortcutReturnFocus = document.activeElement;
+    M.classList.remove("hidden");
+    M.setAttribute("aria-hidden", "false");
+    O?.focus();
+  };
+  const K = () => {
+    if (!M) return;
+    M.classList.add("hidden");
+    M.setAttribute("aria-hidden", "true");
+    if (shortcutReturnFocus?.isConnected) shortcutReturnFocus.focus();
+  };
+  M?.setAttribute("aria-hidden", "true");
+  H?.addEventListener("click", J);
+  I?.addEventListener("click", J);
+  O?.addEventListener("click", K);
+  M?.addEventListener("click", event => { if (event.target === M) K(); });
+  c?.setAttribute("aria-hidden", "true");
+  if (c) c.inert = true;
+  a?.setAttribute("aria-expanded", "false");
+  a?.setAttribute("aria-controls", "pwaAcessibilidadeBar");
+  const closeAccessibility = (restoreFocus = true) => {
+    c?.classList.remove("is-open");
+    c?.setAttribute("aria-hidden", "true");
+    if (c) c.inert = true;
+    a?.setAttribute("aria-expanded", "false");
+    if (!m?.classList.contains("is-open") && d) { d.style.display = "none"; d.classList.remove("is-open"); }
+    if (restoreFocus && a?.offsetParent !== null) a.focus();
+  };
+  const openAccessibility = () => {
+    if (!c) return;
+    if (m?.classList.contains("is-open")) {
+      m.classList.remove("is-open");
+      m.classList.add("-translate-x-full");
+      document.getElementById("hamburgerButton")?.setAttribute("aria-expanded", "false");
+    }
+    c.inert = false;
+    c.classList.add("is-open");
+    c.setAttribute("aria-hidden", "false");
+    a?.setAttribute("aria-expanded", "true");
+    if (d) { d.style.display = "block"; d.classList.add("is-open"); }
+    r?.focus();
+  };
+  a?.addEventListener("click", openAccessibility);
+  r?.addEventListener("click", () => closeAccessibility());
+  d?.addEventListener("click", () => { if (c?.classList.contains("is-open")) closeAccessibility(false); });
+  window.addEventListener("keydown", event => {
+    if (event.key === "Escape") {
+      if (M && !M.classList.contains("hidden")) { event.preventDefault(); K(); return; }
+      if (c?.classList.contains("is-open")) { event.preventDefault(); closeAccessibility(); }
+      return;
+    }
+    if (M && !M.classList.contains("hidden") && event.key === "Tab") {
+      const focusables = [...M.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),[tabindex="0"]')];
+      if (focusables.length) {
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+      }
+      return;
+    }
+    // Equivalentes explícitos para as teclas indicadas no próprio modal.
+    if (!event.altKey || !event.shiftKey || event.ctrlKey || event.metaKey || event.repeat) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || "") || document.activeElement?.isContentEditable) return;
+    const key = String(event.key || "").toUpperCase();
+    if (!["I","C","A","T"].includes(key)) return;
+    event.preventDefault();
+    if (key === "T") { window.scrollTo({top:0,behavior:"smooth"}); return; }
+    if (key === "A") {
+      if (window.matchMedia("(max-width:1279px)").matches) openAccessibility();
+      else (document.getElementById("btnAlternarTamanhoFonte") || H)?.focus();
+      return;
+    }
+    if (key === "C") {
+      const main = document.querySelector("main") || document.getElementById("main-content");
+      if (main) { if (!main.hasAttribute("tabindex")) main.setAttribute("tabindex", "-1"); main.focus({preventScroll:true}); main.scrollIntoView({block:"start"}); }
+      return;
+    }
+    if (key === "I") {
+      const lang = String(window.__LANG || "pt");
+      window.location.assign(lang === "pt" ? "/index.html" : "/" + lang + "/index.html");
+    }
   });
+  initializeCookieFunctionality();
   const zTop = document.getElementById("backToTopBtn");
   if (zTop) {
     let _ticking = false;

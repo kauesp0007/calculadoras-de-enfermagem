@@ -114,18 +114,43 @@ function forumHrefForCurrentLanguage() {
 }
 
 function getAccessibilityLeadGroup() {
+  const mobile = window.matchMedia("(max-width:1279px)").matches;
   const bar = document.getElementById("barraAcessibilidade");
-  if (!bar) return null;
+  const panel = document.getElementById("pwaAcessibilidadeBar");
+  const target = mobile ? panel : bar;
+  if (!target) return null;
 
   let group = document.getElementById("accessibility-lead-actions");
   if (!group) {
     group = document.createElement("div");
     group.id = "accessibility-lead-actions";
     group.className = "accessibility-lead-actions";
-    bar.insertBefore(group, bar.firstChild);
+  }
+  if (group.parentElement !== target) {
+    if (mobile) {
+      const title = panel.querySelector(".pwa-acessibilidade-header");
+      if (title) title.insertAdjacentElement("afterend", group);
+      else panel.insertBefore(group, panel.firstChild);
+    } else {
+      bar.insertBefore(group, bar.firstChild);
+    }
   }
   return group;
 }
+
+// Um único seletor e um único botão de fórum mudam de painel sem recriar listeners.
+(function bindAccessibilityBreakpoint() {
+  const query = window.matchMedia("(max-width:1279px)");
+  const sync = () => {
+    if (!document.getElementById("accessibility-lead-actions")) return;
+    getAccessibilityLeadGroup();
+    const menu = document.getElementById("langMenu");
+    const button = document.getElementById("langButton");
+    if (menu && button) { menu.classList.add("hidden"); button.setAttribute("aria-expanded", "false"); }
+  };
+  if (query.addEventListener) query.addEventListener("change", sync);
+  else if (query.addListener) query.addListener(sync);
+})();
 
 function ensureAccessibilityForumButton(group) {
   if (!group) return;
@@ -136,6 +161,8 @@ function ensureAccessibilityForumButton(group) {
     link.id = "accessibility-forum-button";
     link.className = "accessibility-forum-button";
     link.setAttribute("data-evento", "click_botao_forum_barra_acessibilidade");
+    group.appendChild(link);
+  } else if (link.parentElement !== group) {
     group.appendChild(link);
   }
 
@@ -217,9 +244,43 @@ function langSelectorInit() {
   const accountFileName = accountMatch ? accountMatch[2] : "";
   const localizedAccountFiles = ["perfil.html","configuracoes.html","favoritos.html","historico.html"];
 
+  button.setAttribute("type", "button");
+  button.setAttribute("aria-haspopup", "menu");
+  button.setAttribute("aria-controls", "langMenu");
+  button.setAttribute("aria-expanded", "false");
+  menu.setAttribute("role", "menu");
+  const options = [...menu.querySelectorAll("[data-value]")];
+  options.forEach(option => { option.setAttribute("role", "menuitem"); option.tabIndex = -1; });
+  const closeLanguageMenu = (restoreFocus = false) => {
+    menu.classList.add("hidden");
+    button.setAttribute("aria-expanded", "false");
+    if (restoreFocus) button.focus();
+  };
   button.addEventListener("click", () => {
-    menu.classList.toggle("hidden");
-    button.setAttribute("aria-expanded", !menu.classList.contains("hidden"));
+    const opening = menu.classList.contains("hidden");
+    menu.classList.toggle("hidden", !opening);
+    button.setAttribute("aria-expanded", String(opening));
+  });
+  button.addEventListener("keydown", e => {
+    if (e.key === "ArrowDown" || e.key === "Enter" || e.key === " ") {
+      if (e.key === "ArrowDown" || menu.classList.contains("hidden")) {
+        e.preventDefault();
+        menu.classList.remove("hidden");
+        button.setAttribute("aria-expanded", "true");
+        options[0]?.focus();
+      }
+    } else if (e.key === "Escape") { closeLanguageMenu(true); }
+  });
+  menu.addEventListener("keydown", e => {
+    const item = e.target.closest("[data-value]");
+    const index = options.indexOf(item);
+    if (e.key === "Escape") { e.preventDefault(); closeLanguageMenu(true); }
+    else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+      e.preventDefault();
+      options[(index + (e.key === "ArrowDown" ? 1 : -1) + options.length) % options.length]?.focus();
+    } else if (e.key === "Enter" || e.key === " ") {
+      if (item) { e.preventDefault(); item.click(); }
+    }
   });
 
   document.addEventListener("click", (e) => {
