@@ -590,8 +590,11 @@ function initializeViewportSafeSubmenus(container) {
     const width = panel.offsetWidth || 320;
     const left = rect.right + width + 8 <= vw ? rect.right - 1 : rect.left - width + 1;
     const x = Math.max(8, Math.min(left, Math.max(8, vw - width - 8)));
-    const panelHeight = Math.min(panel.scrollHeight || 1, Math.max(1, vh - 16));
-    const y = Math.max(8, Math.min(rect.top, Math.max(8, vh - panelHeight - 8)));
+    // Não cobre os botões da barra: se faltar espaço, sobe até o limite do menu.
+    const floor = Math.max(8, Math.min(nav.getBoundingClientRect().bottom, Math.max(8, vh - 48)));
+    const panelHeight = Math.min(panel.scrollHeight || 1, Math.max(36, vh - floor - 8));
+    const y = Math.max(floor, Math.min(rect.top, Math.max(floor, vh - panelHeight - 8)));
+    panel.style.setProperty("max-height", Math.max(36, vh - y - 8) + "px", "important");
     panel.style.setProperty("--menu-flyout-left", Math.round(x) + "px");
     panel.style.setProperty("--menu-flyout-top", Math.round(y) + "px");
   }
