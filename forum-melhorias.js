@@ -39,7 +39,12 @@ roots.forEach(function(p){orderReplies(p.children);});
 if(filter==='comentados')roots.sort(function(a,b){return countReplies(b)-countReplies(a)||new Date(b.created_at)-new Date(a.created_at);});
 else roots.sort(function(a,b){return new Date(b.created_at)-new Date(a.created_at);});
 var fragment=document.createDocumentFragment();
-roots.forEach(function(p){fragment.appendChild(renderPost(p,false));});
+roots.forEach(function(p,i){
+var card=renderPost(p,false);
+card.classList.remove('post-tone-purple','post-tone-blue');
+card.classList.add(i%2===0?'post-tone-purple':'post-tone-blue');
+fragment.appendChild(card);
+});
 feed.replaceChildren(fragment);
 }
 async function translatePost(id,btn,target,all,request,renderText,showToast,lang){
