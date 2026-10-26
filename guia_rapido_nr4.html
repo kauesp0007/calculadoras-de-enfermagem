@@ -237,7 +237,11 @@
 document.getElementById("share-page").addEventListener("click", async function () {
   const shareData = { title: document.title, url: window.location.href };
   if (navigator.share) {
-    await navigator.share(shareData);
+    try {
+      await navigator.share(shareData);
+    } catch (error) {
+      if (error.name !== "AbortError") throw error;
+    }
     return;
   }
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -276,7 +280,10 @@ fetch("/footer.html").then(function (response) {
   return response.text();
 }).then(function (html) {
   document.getElementById("footer-placeholder").innerHTML = html;
-  if (typeof carregarTraducoes === "function") carregarTraducoes("pt", "footer.json");
+  if (typeof carregarTraducoes === "function") {
+    carregarTraducoes("pt", "footer.json");
+    carregarTraducoes("pt", "cookies.json");
+  }
 }).catch(function (error) {
   console.error(error);
 });
